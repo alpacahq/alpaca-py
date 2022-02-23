@@ -5,7 +5,6 @@ from ..common.enums import BaseURL
 from ..common.rest import RESTClient
 from .models import Account, AccountCreationRequest
 
-
 class BrokerClient(RESTClient):
     """
     Client for accessing Broker API services
@@ -19,14 +18,12 @@ class BrokerClient(RESTClient):
                 raw_data: bool = False,
                 ):
         """
-        :param api_key: Broker API key - set sandbox to true if using sandbox keys
-        :type api_key: str
-        :param secret_key: Broker API secret key - set sandbox to true if using sandbox keys
-        :type secret_key: str
-        :param sandbox: True if using sandbox mode
-        :type sandbox: bool
-        :param raw_data: True if you want raw response instead of wrapped responses
-        :type raw_data: bool
+        Args:
+            api_key (Optional[str], optional): Broker API key - set sandbox to true if using sandbox keys. Defaults to None.
+            secret_key (Optional[str], optional): Broker API secret key - set sandbox to true if using sandbox keys. Defaults to None.
+            api_version (str, optional): API version. Defaults to 'v1'.
+            sandbox (bool, optional): True if using sandbox mode. Defaults to True.
+            raw_data (bool, optional): True if you want raw response instead of wrapped responses. Defaults to False.
         """
         base_url: BaseURL = BaseURL.BROKER_SANDBOX if sandbox else BaseURL.BROKER_PRODUCTION
         super().__init__(api_key, secret_key, api_version, base_url, sandbox, raw_data)

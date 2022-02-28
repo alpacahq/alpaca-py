@@ -126,19 +126,19 @@ class RESTClient(ABC):
     def delete(self, path, data=None):
         return self._request('DELETE', path, data)
 
-    def response_wrapper(self, obj: dict, entity: BaseModel) -> Union[dict, BaseModel]:
+    def response_wrapper(self, model: BaseModel, **kwargs) -> Union[dict, BaseModel]:
         """To allow the user to get raw response from the api, we wrap all
         functions with this method, checking if the user has set raw_data
-        bool. if they didn't, we wrap the response with an Entity object.
+        bool. if they didn't, we wrap the response with a BaseModel object.
 
         Args:
-            obj (Any): response from server
-            model (BaseModel): derivative object of Entity
+            model (BaseModel): Class that response will be wrapped in
+            kwargs : The constructor parameters for that base model
 
         Returns:
             Union[dict, BaseModel]: either raw or parsed data
         """
         if self._use_raw_data:
-            return obj
+            return kwargs
         else:
-            return entity(**obj)
+            return model(**kwargs)

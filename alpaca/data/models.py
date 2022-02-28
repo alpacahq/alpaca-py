@@ -28,7 +28,7 @@ class Bar(BaseModel):
     """
 
     symbol: str
-    timeframe: TimeFrameType
+    timeframe: TimeFrame
     timestamp: datetime
     open: float
     high: float
@@ -41,7 +41,7 @@ class Bar(BaseModel):
 
     def __init__(self,
                 symbol: str, 
-                timeframe: TimeFrameType, 
+                timeframe: TimeFrame, 
                 bar: RawBar
                 ) -> None:
         """Instantiates a bar
@@ -73,12 +73,12 @@ class BarSet(BaseModel):
     """
 
     symbol: str
-    timeframe: TimeFrameType
+    timeframe: TimeFrame
     bars : List[Bar]
 
     def __init__(self,
                 symbol: str,
-                timeframe: TimeFrameType, 
+                timeframe: TimeFrame, 
                 bars: RawBarSet,
                 ) -> None:
         """A collection of Bars.
@@ -95,8 +95,6 @@ class BarSet(BaseModel):
 
         super().__init__(**bar_set)
 
-    # def __getitem__(self, key):
-    #     return super(BarSet, self).__getitem__(key-1)
         
 
 

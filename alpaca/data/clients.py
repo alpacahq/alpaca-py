@@ -1,19 +1,22 @@
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional, Union
 
-from ..common.enums import BaseURL
-from ..common.rest import RESTClient
-from ..common.time import TimeFrame
+from alpaca.common.enums import BaseURL
+from alpaca.common.rest import RESTClient
+from alpaca.common.time import TimeFrame
+from alpaca.common.types import RawBarSet
+
 from .models import BarSet
 
-class HistoricalDataClient(RESTClient):
 
-    def __init__(self, 
-                api_key: Optional[str] = None, 
-                secret_key: Optional[str] = None, 
-                api_version: str = 'v2',
-                raw_data: bool = False,
-                ) -> None:
+class HistoricalDataClient(RESTClient):
+    def __init__(
+        self,
+        api_key: Optional[str] = None,
+        secret_key: Optional[str] = None,
+        api_version: str = "v2",
+        raw_data: bool = False,
+    ) -> None:
         """_summary_
         Args:
         api_key (Optional[str], optional): _description_. Defaults to None.
@@ -21,22 +24,66 @@ class HistoricalDataClient(RESTClient):
         api_version (str, optional): _description_. Defaults to 'v1'.
         raw_data (bool, optional): _description_. Defaults to False.
         """
-        super().__init__(api_key=api_key, 
-                        secret_key=secret_key, 
-                        api_version=api_version, 
-                        base_url=BaseURL.DATA, 
-                        sandbox=False, 
-                        raw_data=raw_data)
+        super().__init__(
+            api_key=api_key,
+            secret_key=secret_key,
+            api_version=api_version,
+            base_url=BaseURL.DATA,
+            sandbox=False,
+            raw_data=raw_data,
+        )
 
-    def get_bars(self,
-                symbol: str, 
-                timeframe: TimeFrame,
-                start: datetime,
-                end: Optional[datetime] = None,
-                limit: Optional[int] = None):
+    def get_bars(
+        self,
+        symbol_or_symbols: Union[str, List[str]],
+        timeframe: TimeFrame,
+        start: datetime,
+        end: Optional[datetime] = None,
+        limit: Optional[int] = None,
+    ) -> Union[BarSet, RawBarSet]:
+        """Returns bar data for a security or list of securities over a given
+        time period and timeframe
 
+        Args:
+            symbol_or_symbols (Union[str, List[str]]): The security or multiple security ticker identifiers
+            timeframe (TimeFrame): The period over which the bars should be aggregated. (i.e. 5 Min bars, 1 Day bars)
+            start (datetime): The beginning of the time interval for desired data
+            end (Optional[datetime], optional): The beginning of the time interval for desired data. Defaults to None.
+            limit (Optional[int], optional): Upper limit of number of data points to return. Defaults to None.
+
+        Returns:
+            Union[BarSet, RawBarSet]: The bar data either in raw or wrapped form
+        """
+
+        is_multisymbol = not isinstance(symbol_or_symbols, str)
         timeframe_value = timeframe.value
-        
-        bars = self._data_get(endpoint=f'bars', symbol_or_symbols=symbol, timeframe=timeframe_value, start=start, end=end, limit=limit)
 
-        return self.response_wrapper(BarSet, symbol=symbol, timeframe=timeframe, bars=list(bars))
+        bars_generator = self._data_get(
+            endpoint="bars",
+            symbol_or_symbols=symbol_or_symbols,
+            timeframe=timeframe_value,
+            start=start,
+            end=end,
+            limit=limit,
+        )
+        raw_bars = list(bars_generator)
+
+        if not is_multisymbol:
+            return self.response_wrapper(
+                BarSet, symbol=symbol_or_symbols, timeframe=timeframe, raw_data=raw_bars
+            )
+
+
+        # merge list of dictionaries (symbol (key): List[Bar] (value)) yielded by _data_get
+        raw_multi_symbol_bars = {}
+
+        for _bars_by_symbol in raw_bars:
+            for _symbol, _bars in _bars_by_symbol.items():
+                if _symbol not in raw_multi_symbol_bars:
+                    raw_multi_symbol_bars[_symbol] = _bars
+                else:
+                    raw_multi_symbol_bars[_symbol].extend(_bars)
+
+        return self.response_wrapper(
+            BarSet, timeframe=timeframe, raw_data=raw_multi_symbol_bars
+        )

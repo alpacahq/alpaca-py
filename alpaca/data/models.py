@@ -1,17 +1,16 @@
 from datetime import datetime
-from typing import Dict, List, Optional, Union
+from typing import List, Optional
 
 from pydantic import BaseModel, validator
 
-from ..common.time import TimeFrame
-from ..common.types import RawBar, RawBarSet, TimeFrameType
+from alpaca.common.time import TimeFrame
+from alpaca.common.types import RawBar, RawBarSet
 from .enums import Exchange
 from .mappings import BAR_MAPPING
 
 
 class Bar(BaseModel):
     """Represents one bar/candlestick of aggregated trade data over a specified interval.
-
     Attributes:
         symbol (str): The ticker identifier for the security whose data forms the bar
         timeframe (TimeFrame): The interval of time price data has been aggregated over
@@ -28,7 +27,7 @@ class Bar(BaseModel):
     """
 
     symbol: str
-    timeframe: TimeFrameType
+    timeframe: TimeFrame
     timestamp: datetime
     open: float
     high: float
@@ -41,11 +40,10 @@ class Bar(BaseModel):
 
     def __init__(self,
                 symbol: str, 
-                timeframe: TimeFrameType, 
+                timeframe: TimeFrame, 
                 bar: RawBar
                 ) -> None:
         """Instantiates a bar
-
         Args:
             symbol (str): The ticker identifier for the security
             timeframe (TimeFrame): The interval of time that price data has been aggregated
@@ -65,7 +63,6 @@ class Bar(BaseModel):
 
 class BarSet(BaseModel):
     """_summary_
-
     Attributes:
         symbol (str): The ticker identifier for the security whose data forms the bar
         timeframe (TimeFrame): The interval of time price data has been aggregated over
@@ -73,16 +70,15 @@ class BarSet(BaseModel):
     """
 
     symbol: str
-    timeframe: TimeFrameType
+    timeframe: TimeFrame
     bars : List[Bar]
 
     def __init__(self,
                 symbol: str,
-                timeframe: TimeFrameType, 
+                timeframe: TimeFrame, 
                 bars: RawBarSet,
                 ) -> None:
         """A collection of Bars.
-
         Args:
             symbol (str): The ticker identifier for the security whose data forms the bar
             timeframe (TimeFrame): The interval of time price data has been aggregated over
@@ -94,13 +90,3 @@ class BarSet(BaseModel):
         bar_set = { 'symbol': symbol, 'timeframe': timeframe, 'bars': parsed_bars}
 
         super().__init__(**bar_set)
-
-    # def __getitem__(self, key):
-    #     return super(BarSet, self).__getitem__(key-1)
-        
-
-
-
-        
-
-        

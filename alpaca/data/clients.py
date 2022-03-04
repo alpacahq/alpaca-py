@@ -6,7 +6,6 @@ from ..common.rest import RESTClient
 from ..common.time import TimeFrame
 from .models import BarSet
 
-
 class HistoricalDataClient(RESTClient):
 
     def __init__(self, 
@@ -16,7 +15,6 @@ class HistoricalDataClient(RESTClient):
                 raw_data: bool = False,
                 ) -> None:
         """_summary_
-
         Args:
         api_key (Optional[str], optional): _description_. Defaults to None.
         secret_key (Optional[str], optional): _description_. Defaults to None.
@@ -36,17 +34,9 @@ class HistoricalDataClient(RESTClient):
                 start: datetime,
                 end: Optional[datetime] = None,
                 limit: Optional[int] = None):
-        data = {}
-        data['timeframe'] = timeframe
-        data['start'] = start
-        if end:
-                data['end'] = end
-        if limit:
-                data['limit'] = limit
 
-        response = self.get(f'/stocks/{symbol}/bars', data)
-        response['timeframe'] = timeframe
-        del response['next_page_token']
+        timeframe_value = timeframe.value
         
-        return self.response_wrapper(response, BarSet)
-        
+        bars = self._data_get(endpoint=f'bars', symbol_or_symbols=symbol, timeframe=timeframe_value, start=start, end=end, limit=limit)
+
+        return self.response_wrapper(BarSet, symbol=symbol, timeframe=timeframe, bars=list(bars))

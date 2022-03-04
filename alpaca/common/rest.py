@@ -89,7 +89,8 @@ class RESTClient(ABC):
             headers["APCA-API-KEY-ID"] = self._api_key
             headers["APCA-API-SECRET-KEY"] = self._secret_key
 
-        headers["User-Agent"] = "APCA-TRADE-SDK-PY/" + __version__
+        headers["User-Agent"] = "APCA-PY/" + __version__
+        
         opts = {
             "headers": headers,
             # Since we allow users to set endpoint URL via env var,
@@ -210,15 +211,12 @@ class RESTClient(ABC):
                 # required for /news endpoint
                 k = endpoint or endpoint_base
                 for item in resp.get(k, []) or []:
-                    yield item
                     total_items += 1
+                    yield item
             else:
                 by_symbol = resp.get(endpoint, {}) or {}
-                for sym, items in sorted(by_symbol.items()):
-                    for item in items or []:
-                        item["S"] = sym
-                        yield item
-                        total_items += 1
+                total_items += 1
+                yield by_symbol
 
             page_token = resp.get("next_page_token")
 

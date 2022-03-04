@@ -15,13 +15,47 @@ from .mappings import BAR_MAPPING
 class TimeSeriesMixin:
     @property
     def df(self) -> DataFrame:
-        """Returns a pandas dataframe containing the bars data
+        """Returns a pandas dataframe containing the bar data.
+        Requires mapping to be defined in child class.
 
         Returns:
             DataFrame: bars in a pandas dataframe
         """
 
-        df = pd.DataFrame(self.raw)
+        # if it is single symbol data, just non-multi-index dataframe with data
+        if self.symbol:
+            return self.create_timeseries_dataframe(self.raw)
+
+        # for multi-symbol data
+        symbols = list(self.raw.keys())
+
+        dataframes = {}
+
+        # create a dataframe for each symbol's data and store in dict
+        for symbol in symbols:
+
+            _df = self.create_timeseries_dataframe(self.raw[symbol])
+
+            dataframes[symbol] = _df
+
+        # concat into multi-index dataframe, it will have
+        # level 0 - symbol index
+        # level 1 - timestamp index
+        df = pd.concat(dataframes.values(), keys=dataframes.keys(), axis=0)
+
+        return df
+
+    def create_timeseries_dataframe(self, timeseries_data: List[dict]) -> DataFrame:
+        """Creates a dataframe for a given time series.
+        Requires mapping to be defined in child class.
+
+        Args:
+            timeseries_data (List[dict]): The raw timeseries data with timestamp column
+
+        Returns:
+            DataFrame: Dataframe containing timeseries data with timestamp index
+        """
+        df = pd.DataFrame(timeseries_data)
         df.columns = [self._mapping.get(c, c) for c in df.columns]
 
         if not df.empty:

@@ -14,20 +14,18 @@ class HistoricalDataClient(RESTClient):
         self,
         api_key: Optional[str] = None,
         secret_key: Optional[str] = None,
-        api_version: str = "v2",
         raw_data: bool = False,
     ) -> None:
         """_summary_
         Args:
-        api_key (Optional[str], optional): _description_. Defaults to None.
-        secret_key (Optional[str], optional): _description_. Defaults to None.
-        api_version (str, optional): _description_. Defaults to 'v1'.
-        raw_data (bool, optional): _description_. Defaults to False.
+        api_key (Optional[str], optional): Alpaca API key. Defaults to None.
+        secret_key (Optional[str], optional): Alpaca API secret key. Defaults to None.
+        raw_data (bool, optional): If true, API responses will not be wrapped and raw responses will returned from methods. Defaults to False.
         """
         super().__init__(
             api_key=api_key,
             secret_key=secret_key,
-            api_version=api_version,
+            api_version='v2',
             base_url=BaseURL.DATA,
             sandbox=False,
             raw_data=raw_data,
@@ -72,7 +70,6 @@ class HistoricalDataClient(RESTClient):
             return self.response_wrapper(
                 BarSet, symbol=symbol_or_symbols, timeframe=timeframe, raw_data=raw_bars
             )
-
 
         # merge list of dictionaries (symbol (key): List[Bar] (value)) yielded by _data_get
         raw_multi_symbol_bars = {}

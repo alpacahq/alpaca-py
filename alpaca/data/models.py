@@ -1,9 +1,9 @@
 from datetime import datetime
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional
 
 import pandas as pd
 from pandas import DataFrame
-from pydantic import BaseModel, validator
+from pydantic import BaseModel
 
 from alpaca.common.time import TimeFrame
 from alpaca.common.types import RawBar, RawBarSet
@@ -21,11 +21,6 @@ class TimeSeriesMixin:
         Returns:
             DataFrame: bars in a pandas dataframe
         """
-
-        # if it is single symbol data, just non-multi-index dataframe with data
-        if self.symbol:
-            return self.create_timeseries_dataframe(self.raw)
-
         # for multi-symbol data
         symbols = list(self.raw.keys())
 
@@ -34,7 +29,12 @@ class TimeSeriesMixin:
         # create a dataframe for each symbol's data and store in dict
         for symbol in symbols:
 
-            _df = self.create_timeseries_dataframe(self.raw[symbol])
+            _df = pd.DataFrame(self.raw[symbol])
+            _df.columns = [self._key_mapping.get(c, c) for c in _df.columns]
+
+            if not _df.empty:
+                _df.set_index("timestamp", inplace=True)
+                _df.index = pd.DatetimeIndex(_df.index)
 
             dataframes[symbol] = _df
 
@@ -43,24 +43,9 @@ class TimeSeriesMixin:
         # level 1 - timestamp index
         df = pd.concat(dataframes.values(), keys=dataframes.keys(), axis=0)
 
-        return df
-
-    def create_timeseries_dataframe(self, timeseries_data: List[dict]) -> DataFrame:
-        """Creates a dataframe for a given time series.
-        Requires mapping to be defined in child class.
-
-        Args:
-            timeseries_data (List[dict]): The raw timeseries data with timestamp column
-
-        Returns:
-            DataFrame: Dataframe containing timeseries data with timestamp index
-        """
-        df = pd.DataFrame(timeseries_data)
-        df.columns = [self._mapping.get(c, c) for c in df.columns]
-
-        if not df.empty:
-            df.set_index("timestamp", inplace=True)
-            df.index = pd.DatetimeIndex(df.index)
+        # drop symbol index for dataframe with only 1 or less symbols
+        if len(symbols) < 2:
+            df.reset_index(level=0, drop=True, inplace=True)
 
         return df
 
@@ -118,39 +103,38 @@ class BarSet(BaseModel, TimeSeriesMixin):
     Attributes:
         symbol (str): The ticker identifier for the security whose data forms the bar.
         timeframe (TimeFrame): The interval of time price data has been aggregated over.
-        bars_set(Union[List[Bar], Dict[str, List[Bar]]]): The collection of Bars.
-        _raw (Union[RawBarSet, Dict[str, List[RawBarSet]]]): The raw data from the API call.
+        bars_set(Dict[str, List[Bar]]]): The collection of Bars keyed by symbol.
+        raw (Dict[str, List[RawBarSet]]]): The raw data from the API call keyed by symbol.
+        _key_mapping (Dict[str, str]): The mapping for names of data fields from raw format received from API to data models
     """
 
-    symbol: Optional[str] = None
+    symbols: List[str]
     timeframe: TimeFrame
-    bar_set: Union[List[Bar], Dict[str, List[Bar]]]
-    raw: Union[RawBarSet, Dict[str, RawBarSet]]
-    _mapping: Dict[str, str] = BAR_MAPPING
+    bar_set: Dict[str, List[Bar]]
+    raw: Dict[str, RawBarSet]
+    _key_mapping: Dict[str, str] = BAR_MAPPING
 
     def __init__(
         self,
-        raw_data: Union[RawBarSet, Dict[str, RawBarSet]],
+        raw_data: Dict[str, RawBarSet],
         timeframe: TimeFrame,
-        symbol: Optional[str] = None,
+        symbols: Optional[str] = None,
     ) -> None:
         """A collection of Bars.
 
         Args:
-            bars (Union[RawBarSet, Dict[str, RawBarSet]]): The raw bar data from API.
+            raw_data (Dict[str, RawBarSet]]): The raw bar data from API keyed by Symbol.
             timeframe (TimeFrame): The interval of time price data has been aggregated over
             symbol (str): The ticker identifier for the security whose data forms the bar. Defaults to None.
         """
-        if symbol:
-            parsed_bars = [Bar(symbol, timeframe, bar) for bar in raw_data]
-        else:
-            parsed_bars = {}
 
-            for _symbol, bars in raw_data.items():
-                parsed_bars[_symbol] = [Bar(_symbol, timeframe, bar) for bar in bars]
+        parsed_bars = {}
+
+        for _symbol, bars in raw_data.items():
+            parsed_bars[_symbol] = [Bar(_symbol, timeframe, bar) for bar in bars]
 
         super().__init__(
-            symbol=symbol, timeframe=timeframe, bar_set=parsed_bars, raw=raw_data
+            symbols=symbols, timeframe=timeframe, bar_set=parsed_bars, raw=raw_data
         )
 
     def __getitem__(self, symbol: str) -> List[Bar]:
@@ -165,23 +149,7 @@ class BarSet(BaseModel, TimeSeriesMixin):
         Returns:
             List[Bar]: The BarSet data for the given symbol
         """
-        if self.symbol != None:
+        if symbol not in self.symbols:
             raise KeyError(f"No key {symbol} was found")
 
         return self.bar_set[symbol]
-
-    @validator("bar_set")
-    def multi_symbol_has_no_symbol_value(cls, v, values, **kwargs):
-
-        if not isinstance(v, List) and values["symbol"] != None:
-            raise ValueError("Symbol field cannot have value for multisymbol data")
-
-        return v
-
-    @validator("bar_set")
-    def single_symbol_has_symbol_value(cls, v, values, **kwargs):
-
-        if isinstance(v, List) and values["symbol"] == None:
-            raise ValueError("Symbol field is required for single symbol data")
-
-        return v

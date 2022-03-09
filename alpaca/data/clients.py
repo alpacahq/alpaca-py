@@ -25,7 +25,7 @@ class HistoricalDataClient(RESTClient):
         super().__init__(
             api_key=api_key,
             secret_key=secret_key,
-            api_version='v2',
+            api_version="v2",
             base_url=BaseURL.DATA,
             sandbox=False,
             raw_data=raw_data,
@@ -52,8 +52,6 @@ class HistoricalDataClient(RESTClient):
         Returns:
             Union[BarSet, RawBarSet]: The bar data either in raw or wrapped form
         """
-
-        is_multisymbol = not isinstance(symbol_or_symbols, str)
         timeframe_value = timeframe.value
 
         bars_generator = self._data_get(
@@ -66,9 +64,16 @@ class HistoricalDataClient(RESTClient):
         )
         raw_bars = list(bars_generator)
 
-        if not is_multisymbol:
+        if isinstance(symbol_or_symbols, str):
+
+            # BarSet expects a symbol keyed dictionary of bar data from API
+            _raw_bars_dict = {symbol_or_symbols: raw_bars}
+
             return self.response_wrapper(
-                BarSet, symbol=symbol_or_symbols, timeframe=timeframe, raw_data=raw_bars
+                BarSet,
+                symbols=[symbol_or_symbols],
+                timeframe=timeframe,
+                raw_data=_raw_bars_dict,
             )
 
         # merge list of dictionaries (symbol (key): List[Bar] (value)) yielded by _data_get
@@ -82,5 +87,8 @@ class HistoricalDataClient(RESTClient):
                     raw_multi_symbol_bars[_symbol].extend(_bars)
 
         return self.response_wrapper(
-            BarSet, timeframe=timeframe, raw_data=raw_multi_symbol_bars
+            BarSet,
+            symbols=symbol_or_symbols,
+            timeframe=timeframe,
+            raw_data=raw_multi_symbol_bars,
         )

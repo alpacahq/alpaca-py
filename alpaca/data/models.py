@@ -6,7 +6,7 @@ from pandas import DataFrame
 from pydantic import BaseModel
 
 from alpaca.common.time import TimeFrame
-from alpaca.common.types import RawBar, RawBarSet
+from alpaca.common.types import RawData
 
 from .enums import Exchange
 from .mappings import BAR_MAPPING
@@ -79,13 +79,13 @@ class Bar(BaseModel):
     vwap: Optional[float] = None
     exchange: Optional[Exchange] = None
 
-    def __init__(self, symbol: str, timeframe: TimeFrame, bar: RawBar) -> None:
+    def __init__(self, symbol: str, timeframe: TimeFrame, bar: RawData) -> None:
         """Instantiates a bar
 
         Args:
             symbol (str): The ticker identifier for the security
             timeframe (TimeFrame): The interval of time that price data has been aggregated
-            bar (RawBar): Raw unparsed bar data from API, contains ohlc and other fields.
+            bar (RawData): Raw unparsed bar data from API, contains ohlc and other fields.
         """
         mapped_bar = {
             BAR_MAPPING[key]: val for key, val in bar.items() if key in BAR_MAPPING
@@ -101,31 +101,31 @@ class BarSet(BaseModel, TimeSeriesMixin):
     """A collection of Bars.
 
     Attributes:
-        symbol (str): The ticker identifier for the security whose data forms the bar.
+        symbols (List[str]): The list of ticker identifiers for the securities whose data forms the set of bars.
         timeframe (TimeFrame): The interval of time price data has been aggregated over.
-        bars_set(Dict[str, List[Bar]]]): The collection of Bars keyed by symbol.
-        raw (Dict[str, List[RawBarSet]]]): The raw data from the API call keyed by symbol.
+        bar_set(Dict[str, List[Bar]]]): The collection of Bars keyed by symbol.
+        raw (Dict[str, List[RawData]): The collection of raw data from the API call keyed by symbol.
         _key_mapping (Dict[str, str]): The mapping for names of data fields from raw format received from API to data models
     """
 
     symbols: List[str]
     timeframe: TimeFrame
     bar_set: Dict[str, List[Bar]]
-    raw: Dict[str, RawBarSet]
+    raw: Dict[str, List[RawData]]
     _key_mapping: Dict[str, str] = BAR_MAPPING
 
     def __init__(
         self,
-        raw_data: Dict[str, RawBarSet],
+        raw_data: Dict[str, List[RawData]],
         timeframe: TimeFrame,
-        symbols: Optional[str] = None,
+        symbols: List[str],
     ) -> None:
         """A collection of Bars.
 
         Args:
-            raw_data (Dict[str, RawBarSet]]): The raw bar data from API keyed by Symbol.
+            raw_data (Dict[str, List[RawData]]): The collection of raw bar data from API keyed by Symbol.
             timeframe (TimeFrame): The interval of time price data has been aggregated over
-            symbol (str): The ticker identifier for the security whose data forms the bar. Defaults to None.
+            symbols (List[str]): The list of ticker identifiers for the securities whose data forms the set of bars. 
         """
 
         parsed_bars = {}
@@ -144,7 +144,7 @@ class BarSet(BaseModel, TimeSeriesMixin):
             symbol (str): The ticker idenfitier for the desired data
 
         Raises:
-            KeyError: No keys available when single symbol data
+            KeyError: Cannot access data for symbol not in BarSet
 
         Returns:
             List[Bar]: The BarSet data for the given symbol

@@ -4,7 +4,7 @@ from typing import List, Optional, Union
 from alpaca.common.enums import BaseURL
 from alpaca.common.rest import RESTClient
 from alpaca.common.time import TimeFrame
-from alpaca.common.types import RawBarSet
+from alpaca.common.types import RawData
 
 from .models import BarSet
 
@@ -38,7 +38,7 @@ class HistoricalDataClient(RESTClient):
         start: datetime,
         end: Optional[datetime] = None,
         limit: Optional[int] = None,
-    ) -> Union[BarSet, RawBarSet]:
+    ) -> Union[BarSet, RawData]:
         """Returns bar data for a security or list of securities over a given
         time period and timeframe
 
@@ -50,7 +50,7 @@ class HistoricalDataClient(RESTClient):
             limit (Optional[int], optional): Upper limit of number of data points to return. Defaults to None.
 
         Returns:
-            Union[BarSet, RawBarSet]: The bar data either in raw or wrapped form
+            Union[BarSet, RawData]: The bar data either in raw or wrapped form
         """
         timeframe_value = timeframe.value
 

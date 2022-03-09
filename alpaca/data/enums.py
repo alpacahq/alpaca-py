@@ -12,10 +12,8 @@ class Exchange(Enum):
         IEX (str): Investors Exchange
     """
 
-    FTX: str = 'FTX'
-    CBSE: str = 'CBSE'
-    GNSS: str = 'GNSS'
-    ERSX: str = 'ERSX'
-    IEX: str = 'IEX'
-
-
+    FTX: str = "FTX"
+    CBSE: str = "CBSE"
+    GNSS: str = "GNSS"
+    ERSX: str = "ERSX"
+    IEX: str = "IEX"

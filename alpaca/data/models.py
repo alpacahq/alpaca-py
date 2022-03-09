@@ -125,7 +125,7 @@ class BarSet(BaseModel, TimeSeriesMixin):
         Args:
             raw_data (Dict[str, List[RawData]]): The collection of raw bar data from API keyed by Symbol.
             timeframe (TimeFrame): The interval of time price data has been aggregated over
-            symbols (List[str]): The list of ticker identifiers for the securities whose data forms the set of bars. 
+            symbols (List[str]): The list of ticker identifiers for the securities whose data forms the set of bars.
         """
 
         parsed_bars = {}

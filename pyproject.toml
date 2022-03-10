@@ -5,12 +5,13 @@ description = ""
 authors = ["Your Name <you@example.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.7.0"
+python = "^3.8.0"
 black = "^22.1.0"
 isort = "^5.10.1"
 requests = "^2.27.1"
 furo = "^2022.2.14"
 pydantic = "^1.9.0"
+pandas = "^1.4.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

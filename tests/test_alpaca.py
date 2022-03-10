@@ -1,4 +1,4 @@
-from alpaca_py import __version__
+from alpaca import __version__
 
 
 def test_version():

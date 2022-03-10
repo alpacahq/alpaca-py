@@ -11,6 +11,7 @@ from requests.exceptions import HTTPError
 from alpaca import __version__
 from alpaca.common.constants import DATA_V2_MAX_LIMIT
 from alpaca.common.exceptions import APIError, RetryException
+from alpaca.common.types import RawData
 from alpaca.common.utils import get_api_version, get_credentials
 
 from .enums import BaseURL
@@ -90,7 +91,7 @@ class RESTClient(ABC):
             headers["APCA-API-SECRET-KEY"] = self._secret_key
 
         headers["User-Agent"] = "APCA-PY/" + __version__
-        
+
         opts = {
             "headers": headers,
             # Since we allow users to set endpoint URL via env var,
@@ -283,19 +284,20 @@ class RESTClient(ABC):
         """
         return self._request("DELETE", path, data)
 
-    def response_wrapper(self, model: BaseModel, **kwargs) -> Union[dict, BaseModel]:
+    def response_wrapper(self, model: BaseModel, raw_data: RawData, **kwargs) -> Union[BaseModel, RawData]:
         """To allow the user to get raw response from the api, we wrap all
         functions with this method, checking if the user has set raw_data
         bool. if they didn't, we wrap the response with a BaseModel object.
 
         Args:
             model (BaseModel): Class that response will be wrapped in
-            kwargs : The constructor parameters for that base model
+            raw_data (RawData): The raw data from API in dictionary 
+            kwargs : Any constructor parameters necessary for the base model
 
         Returns:
-            Union[dict, BaseModel]: either raw or parsed data
+            Union[BaseModel, RawData]: either raw or parsed data
         """
         if self._use_raw_data:
-            return kwargs
+            return raw_data
         else:
-            return model(**kwargs)
+            return model(raw_data=raw_data, **kwargs)

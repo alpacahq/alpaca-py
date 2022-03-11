@@ -2,7 +2,7 @@ import base64
 import os
 import time
 from abc import ABC
-from typing import Generator, List, Optional, Union
+from typing import Generator, List, Optional, Union, Type
 
 from pydantic import BaseModel
 from requests import Session
@@ -284,16 +284,14 @@ class RESTClient(ABC):
         """
         return self._request("DELETE", path, data)
 
-    def response_wrapper(
-        self, model: BaseModel, raw_data: RawData, **kwargs
-    ) -> Union[BaseModel, RawData]:
+    def response_wrapper(self, model: Type[BaseModel], raw_data: RawData, **kwargs) -> Union[BaseModel, RawData]:
         """To allow the user to get raw response from the api, we wrap all
         functions with this method, checking if the user has set raw_data
         bool. if they didn't, we wrap the response with a BaseModel object.
 
         Args:
-            model (BaseModel): Class that response will be wrapped in
-            raw_data (RawData): The raw data from API in dictionary
+            model (Type[BaseModel]): Class that response will be wrapped in
+            raw_data (RawData): The raw data from API in dictionary 
             kwargs : Any constructor parameters necessary for the base model
 
         Returns:

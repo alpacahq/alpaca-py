@@ -9,7 +9,7 @@ from alpaca.common.time import TimeFrame
 from alpaca.common.types import RawData
 
 from .enums import Exchange
-from .mappings import BAR_MAPPING, QUOTE_MAPPING
+from .mappings import BAR_MAPPING, QUOTE_MAPPING, TRADE_MAPPING
 
 
 class TimeSeriesMixin:
@@ -185,8 +185,8 @@ class Quote(BaseModel):
         """Instantiates a Quote
 
         Args:
-            symbol (str): _description_
-            quote (RawData): _description_
+            symbol (str): The security identifer for the quote
+            quote (RawData): The quote data as received by API
         """
 
         mapped_quote = {
@@ -203,7 +203,7 @@ class QuoteSet(BaseModel, TimeSeriesMixin):
 
     Attributes:
         symbols (List[str]): The list of ticker identifiers for the securities whose data forms the set of quotes.
-        quote_set(Dict[str, List[Bar]]]): The collection of Quotes keyed by symbol.
+        quote_set(Dict[str, List[Quote]]]): The collection of Quotes keyed by symbol.
         raw (Dict[str, List[RawData]): The collection of raw data from the API call keyed by symbol.
         _key_mapping (Dict[str, str]): The mapping for names of data fields from raw format received from API to data models
     """
@@ -243,3 +243,90 @@ class QuoteSet(BaseModel, TimeSeriesMixin):
             raise KeyError(f"No key {symbol} was found")
 
         return self.quote_set[symbol]
+
+
+class Trade(BaseModel):
+    """A transaction from the price and sales history of a security.
+
+    Attributes:
+        symbol (str): The ticker identifier for the security whose data forms the trade.
+        timestamp (datetime): The time of submission of the quote.
+        exchange (Optional[Exchange]): The exchange the trade occurred.
+        price (float): The price that the transaction occurred at.
+        size (float): The quantity traded
+        id (float): The trade ID
+        conditions (Optional[List[str]]): The trade conditions. Defaults to None.
+        tape (Optional[str]): The trade tape. Defaults to None.
+    """
+
+    symbol: str
+    timestamp: datetime
+    exchange: Union[str, Exchange]
+    price: float
+    size: float
+    id: float
+    conditions: Optional[List[str]] = None
+    tape: Optional[str] = None
+
+    def __init__(self, symbol: str, trade: RawData) -> None:
+        """Instantiates a Trade history object
+
+        Args:
+            symbol (str): The security identifer for the trade that occurred
+            quote (RawData): The trade data as received by API
+        """
+
+        mapped_trade = {
+            TRADE_MAPPING.get(key): val
+            for key, val in trade.items()
+            if key in TRADE_MAPPING
+        }
+
+        super().__init__(symbol=symbol, **mapped_trade)
+
+
+class TradeSet(BaseModel, TimeSeriesMixin):
+    """A collection of Trade history objects.
+
+    Attributes:
+        symbols (List[str]): The list of ticker identifiers for the securities whose data forms the set of trades.
+        quote_set(Dict[str, List[Trade]]]): The collection of Trades keyed by symbol.
+        raw (Dict[str, List[RawData]): The collection of raw data from the API call keyed by symbol.
+        _key_mapping (Dict[str, str]): The mapping for names of data fields from raw format received from API to data models
+    """
+
+    symbols: List[str]
+    trade_set: Dict[str, List[Trade]]
+    raw: Dict[str, List[RawData]]
+    _key_mapping: Dict[str, str] = TRADE_MAPPING
+
+    def __init__(self, raw_data: Dict[str, List[RawData]], symbols: List[str]) -> None:
+        """Instantiates a TradeSet - a collection of Trades.
+
+        Args:
+            raw_data (Dict[str, List[RawData]]): The raw trade data received from API keyed by symbol
+            symbols (List[str]): The list of ticker identifiers for the securities whose data forms the set of trades.
+        """
+        parsed_trades = {}
+
+        for _symbol, trades in raw_data.items():
+            parsed_trades[_symbol] = [Trade(_symbol, trade) for trade in trades]
+
+        super().__init__(symbols=symbols, trade_set=parsed_trades, raw=raw_data)
+
+    def __getitem__(self, symbol: str) -> List[Trade]:
+        """Retrieves the trades for a given symbol
+
+        Args:
+            symbol (str): The ticker idenfitier for the desired data
+
+        Raises:
+            KeyError: Cannot access data for symbol not in TradeSet
+
+        Returns:
+            List[Bar]: The TradeSet data for the given symbol
+        """
+        if symbol not in self.symbols:
+            raise KeyError(f"No key {symbol} was found")
+
+        return self.trade_set[symbol]

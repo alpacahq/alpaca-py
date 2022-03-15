@@ -9,7 +9,7 @@ from alpaca.common.time import TimeFrame
 from alpaca.common.types import RawData
 
 from .enums import Exchange
-from .models import BarSet, QuoteSet
+from .models import BarSet, QuoteSet, TradeSet
 
 
 class HistoricalDataClient(RESTClient):
@@ -115,6 +115,43 @@ class HistoricalDataClient(RESTClient):
             model=QuoteSet,
         )
 
+    def get_trades(
+        self,
+        symbol_or_symbols: Union[str, List[str]],
+        start: datetime,
+        end: Optional[datetime] = None,
+        limit: Optional[int] = None,
+    ) -> Union[TradeSet, RawData]:
+        """Returns the price and sales history over a given time period for a security or list of securities.
+
+        Args:
+            symbol_or_symbols (Union[str, List[str]]): The security or multiple security ticker identifiers
+            start (datetime): The beginning of the time interval for desired data
+            end (Optional[datetime], optional): The beginning of the time interval for desired data. Defaults to None.
+            limit (Optional[int], optional): Upper limit of number of data points to return. Defaults to None.
+
+        Returns:
+            Union[TradeSet, RawData]: The trade data either in raw or wrapped form
+        """
+
+        # paginated get request for market data api
+        trades_generator = self._data_get(
+            endpoint="trades",
+            symbol_or_symbols=symbol_or_symbols,
+            start=start,
+            end=end,
+            limit=limit,
+        )
+
+        # casting generator type outputted from _data_get to list
+        raw_trades = list(trades_generator)
+
+        return self._format_data_response(
+            symbol_or_symbols=symbol_or_symbols,
+            raw_data=raw_trades,
+            model=TradeSet,
+        )
+
     def get_crypto_bars(
         self,
         symbol_or_symbols: Union[str, List[str]],
@@ -124,7 +161,7 @@ class HistoricalDataClient(RESTClient):
         limit: Optional[int] = None,
         exchanges: Optional[List[Exchange]] = [],
     ) -> Union[BarSet, RawData]:
-        """Gets bar/candle data for cryptocurrencies.
+        """Gets bar/candle data for a cryptocurrency or list of cryptocurrencies.
 
         Args:
             symbol_or_symbols (Union[str, List[str]]): The cryptocurrencysecurity or multiple security ticker identifiers
@@ -170,7 +207,7 @@ class HistoricalDataClient(RESTClient):
         end: Optional[datetime] = None,
         limit: Optional[int] = None,
     ) -> Union[QuoteSet, RawData]:
-        """Returns Quote level 1 data over a given time period for a security or list of securities.
+        """Returns Quote level 1 data over a given time period for a cryptocurrency or list of cryptocurrencies.
 
         Args:
             symbol_or_symbols (Union[str, List[str]]): The security or multiple security ticker identifiers
@@ -200,6 +237,45 @@ class HistoricalDataClient(RESTClient):
             symbol_or_symbols=symbol_or_symbols,
             raw_data=raw_quotes,
             model=QuoteSet,
+        )
+
+    def get_crypto_trades(
+        self,
+        symbol_or_symbols: Union[str, List[str]],
+        start: datetime,
+        end: Optional[datetime] = None,
+        limit: Optional[int] = None,
+    ) -> Union[TradeSet, RawData]:
+        """Returns the price and sales history over a given time period for a cryptocurrency or list of cryptocurrencies.
+
+        Args:
+            symbol_or_symbols (Union[str, List[str]]): The security or multiple security ticker identifiers
+            start (datetime): The beginning of the time interval for desired data
+            end (Optional[datetime], optional): The beginning of the time interval for desired data. Defaults to None.
+            limit (Optional[int], optional): Upper limit of number of data points to return. Defaults to None.
+
+        Returns:
+            Union[TradeSet, RawData]: The trade data either in raw or wrapped form
+        """
+
+        # paginated get request for market data api
+        trades_generator = self._data_get(
+            endpoint="trades",
+            endpoint_base="crypto",
+            api_version="v1beta1",
+            symbol_or_symbols=symbol_or_symbols,
+            start=start,
+            end=end,
+            limit=limit,
+        )
+
+        # casting generator type outputted from _data_get to list
+        raw_trades = list(trades_generator)
+
+        return self._format_data_response(
+            symbol_or_symbols=symbol_or_symbols,
+            raw_data=raw_trades,
+            model=TradeSet,
         )
 
     def _format_data_response(

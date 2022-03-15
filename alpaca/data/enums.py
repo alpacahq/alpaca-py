@@ -12,8 +12,10 @@ class Exchange(Enum):
         IEX (str): Investors Exchange
     """
 
-    FTX: str = "FTX"
+    FTXU: str = "FTXU"
     CBSE: str = "CBSE"
     GNSS: str = "GNSS"
     ERSX: str = "ERSX"
-    IEX: str = "IEX"
+
+    def __str__(self):
+        return self.value

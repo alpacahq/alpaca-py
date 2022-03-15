@@ -1,37 +1,41 @@
-from alpaca.data.clients import HistoricalDataClient
-from alpaca.common.time import TimeFrame
-from alpaca.data.models import BarSet, QuoteSet
-
 import pytest
 import requests_mock
+
+from alpaca.common.time import TimeFrame
+from alpaca.data.clients import HistoricalDataClient
+from alpaca.data.models import BarSet, QuoteSet
+
 
 @pytest.fixture
 def reqmock():
     with requests_mock.Mocker() as m:
         yield m
 
+
 @pytest.fixture
 def client():
-    client = HistoricalDataClient('key-id', 'secret-key')
+    client = HistoricalDataClient("key-id", "secret-key")
     return client
+
 
 @pytest.fixture
 def raw_client():
-    raw_client = HistoricalDataClient('key-id', 'secret-key', raw_data=True)
+    raw_client = HistoricalDataClient("key-id", "secret-key", raw_data=True)
     return raw_client
 
 
 def test_get_bars(reqmock, client, raw_client):
 
-    
     # Test single symbol request
 
-    symbol = 'AAPL'
+    symbol = "AAPL"
     timeframe = TimeFrame.Day
-    start = '2022-02-01'
+    start = "2022-02-01"
     limit = 2
 
-    reqmock.get(f"https://data.alpaca.markets/v2/stocks/{symbol}/bars?timeframe={timeframe}&start={start}&limit={limit}", text='''
+    reqmock.get(
+        f"https://data.alpaca.markets/v2/stocks/{symbol}/bars?timeframe={timeframe}&start={start}&limit={limit}",
+        text="""
     {
         "bars": [
             {
@@ -58,10 +62,12 @@ def test_get_bars(reqmock, client, raw_client):
         "symbol": "AAPL",
         "next_page_token": "QUFQTHxEfDIwMjItMDItMDJUMDU6MDA6MDAuMDAwMDAwMDAwWg=="
     }   
-        ''',
-    )   
+        """,
+    )
 
-    barset = client.get_bars(symbol_or_symbols=symbol, timeframe=timeframe, start=start, limit=limit)
+    barset = client.get_bars(
+        symbol_or_symbols=symbol, timeframe=timeframe, start=start, limit=limit
+    )
 
     assert type(barset) == BarSet
 
@@ -72,19 +78,23 @@ def test_get_bars(reqmock, client, raw_client):
     assert barset.df.index[0].day == 1
 
     # raw data client
-    raw_barset = raw_client.get_bars(symbol_or_symbols=symbol, timeframe=timeframe, start=start, limit=limit)
+    raw_barset = raw_client.get_bars(
+        symbol_or_symbols=symbol, timeframe=timeframe, start=start, limit=limit
+    )
 
     assert type(raw_barset) == dict
-    assert raw_barset[symbol][0]['o'] == 174
-    assert raw_barset[symbol][0]['h'] == 174.84
-    
+    assert raw_barset[symbol][0]["o"] == 174
+    assert raw_barset[symbol][0]["h"] == 174.84
+
     # test multisymbol request
     symbols = ["AAPL", "TSLA"]
     start = "2022-03-09"
     end = "2022-03-09"
-    _symbols_in_url = '%2C'.join(s for s in symbols)
+    _symbols_in_url = "%2C".join(s for s in symbols)
 
-    reqmock.get(f"https://data.alpaca.markets/v2/stocks/bars?timeframe={timeframe}&start={start}&end={end}&symbols={_symbols_in_url}", text='''
+    reqmock.get(
+        f"https://data.alpaca.markets/v2/stocks/bars?timeframe={timeframe}&start={start}&end={end}&symbols={_symbols_in_url}",
+        text="""
     {
         "bars": {
             "AAPL": [
@@ -114,11 +124,13 @@ def test_get_bars(reqmock, client, raw_client):
         },
         "next_page_token": null
     }   
-        ''',
+        """,
     )
-    barset = client.get_bars(symbol_or_symbols=symbols, timeframe=timeframe, start=start, end=end)
+    barset = client.get_bars(
+        symbol_or_symbols=symbols, timeframe=timeframe, start=start, end=end
+    )
 
-    assert(type(barset) == BarSet)
+    assert type(barset) == BarSet
 
     assert barset["TSLA"][0].open == 839
     assert barset["AAPL"][0].low == 159.41
@@ -127,23 +139,27 @@ def test_get_bars(reqmock, client, raw_client):
     assert barset.df.index.nlevels == 2
 
     # raw data client
-    raw_barset = raw_client.get_bars(symbol_or_symbols=symbols, timeframe=timeframe, start=start, end=end)
+    raw_barset = raw_client.get_bars(
+        symbol_or_symbols=symbols, timeframe=timeframe, start=start, end=end
+    )
 
     assert type(raw_barset) == dict
 
-    assert raw_barset["TSLA"][0]['o'] == 839
-    assert raw_barset["AAPL"][0]['l']== 159.41
+    assert raw_barset["TSLA"][0]["o"] == 839
+    assert raw_barset["AAPL"][0]["l"] == 159.41
+
 
 def test_get_quotes(reqmock, client, raw_client):
 
-    
     # Test single symbol request
 
-    symbol = 'AAPL'
-    start = '2022-03-09'
+    symbol = "AAPL"
+    start = "2022-03-09"
     limit = 2
 
-    reqmock.get(f"https://data.alpaca.markets/v2/stocks/{symbol}/quotes?start={start}&limit={limit}", text='''
+    reqmock.get(
+        f"https://data.alpaca.markets/v2/stocks/{symbol}/quotes?start={start}&limit={limit}",
+        text="""
     {
         "quotes": [
             {
@@ -176,8 +192,8 @@ def test_get_quotes(reqmock, client, raw_client):
         "symbol": "AAPL",
         "next_page_token": "QUFQTHwyMDIyLTAzLTA5VDA5OjAwOjAwLjAwMDA1OTAwMFp8Q0ZEQUU5QTg="
     }   
-        ''',
-    )   
+        """,
+    )
 
     quoteset = client.get_quotes(symbol_or_symbols=symbol, start=start, limit=limit)
 
@@ -186,28 +202,32 @@ def test_get_quotes(reqmock, client, raw_client):
     assert quoteset[symbol][0].ask_price == 158.65
     assert quoteset[symbol][0].bid_size == 4
 
-    assert quoteset[symbol][0].ask_exchange == 'K'
+    assert quoteset[symbol][0].ask_exchange == "K"
 
     assert quoteset.df.index.nlevels == 1
     assert quoteset.df.index[0].day == 9
 
     # raw data client
-    raw_quoteset = raw_client.get_quotes(symbol_or_symbols=symbol, start=start, limit=limit)
+    raw_quoteset = raw_client.get_quotes(
+        symbol_or_symbols=symbol, start=start, limit=limit
+    )
 
     assert type(raw_quoteset) == dict
 
-    assert raw_quoteset[symbol][0]['ap'] == 158.65
-    assert raw_quoteset[symbol][0]['bs'] == 4
+    assert raw_quoteset[symbol][0]["ap"] == 158.65
+    assert raw_quoteset[symbol][0]["bs"] == 4
 
-    assert raw_quoteset[symbol][0]['ax'] == 'K'
-    
+    assert raw_quoteset[symbol][0]["ax"] == "K"
+
     # test multisymbol request
     symbols = ["AAPL", "TSLA"]
     start = "2022-03-09"
     end = "2022-03-09"
-    _symbols_in_url = '%2C'.join(s for s in symbols)
+    _symbols_in_url = "%2C".join(s for s in symbols)
 
-    reqmock.get(f"https://data.alpaca.markets/v2/stocks/quotes?start={start}&symbols={_symbols_in_url}", text='''
+    reqmock.get(
+        f"https://data.alpaca.markets/v2/stocks/quotes?start={start}&symbols={_symbols_in_url}",
+        text="""
     {
         "quotes": {
             "AAPL": [
@@ -243,27 +263,28 @@ def test_get_quotes(reqmock, client, raw_client):
         },
         "next_page_token": null
     }   
-        ''',
+        """,
     )
     quoteset = client.get_quotes(symbol_or_symbols=symbols, start=start)
 
-    assert(type(quoteset) == QuoteSet)
+    assert type(quoteset) == QuoteSet
 
     assert quoteset["AAPL"][0].ask_size == 1
     assert quoteset["TSLA"][0].bid_price == 840.75
 
-    assert quoteset["AAPL"][0].bid_exchange == 'Q'
+    assert quoteset["AAPL"][0].bid_exchange == "Q"
 
     assert quoteset.df.index[0][1].day == 9
     assert quoteset.df.index.nlevels == 2
 
     # raw data client
-    raw_quoteset = raw_client.get_quotes(symbol_or_symbols=symbols, start=start, end=end)
+    raw_quoteset = raw_client.get_quotes(
+        symbol_or_symbols=symbols, start=start, end=end
+    )
 
     assert type(raw_quoteset) == dict
 
-    assert raw_quoteset["AAPL"][0]['ap'] == 158.65
-    assert raw_quoteset["TSLA"][0]['bs'] == 1
+    assert raw_quoteset["AAPL"][0]["ap"] == 158.65
+    assert raw_quoteset["TSLA"][0]["bs"] == 1
 
-    assert raw_quoteset["AAPL"][0]['ax'] == 'K'
-
+    assert raw_quoteset["AAPL"][0]["ax"] == "K"

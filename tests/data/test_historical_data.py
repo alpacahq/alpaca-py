@@ -23,8 +23,15 @@ def raw_client():
 
 def test_get_bars(reqmock, client, raw_client):
 
+    
     # Test single symbol request
-    reqmock.get("https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Day&start=2022-02-01&limit=2", text='''
+
+    symbol = 'AAPL'
+    timeframe = TimeFrame.Day
+    start = '2022-02-01'
+    limit = 2
+
+    reqmock.get(f"https://data.alpaca.markets/v2/stocks/{symbol}/bars?timeframe={timeframe}&start={start}&limit={limit}", text='''
     {
         "bars": [
             {
@@ -54,25 +61,30 @@ def test_get_bars(reqmock, client, raw_client):
         ''',
     )   
 
-    barset = client.get_bars("AAPL", TimeFrame.Day, "2022-02-01", limit=2)
+    barset = client.get_bars(symbol_or_symbols=symbol, timeframe=timeframe, start=start, limit=limit)
 
     assert type(barset) == BarSet
 
-    assert barset["AAPL"][0].open == 174
-    assert barset["AAPL"][0].high == 174.84
+    assert barset[symbol][0].open == 174
+    assert barset[symbol][0].high == 174.84
 
     assert barset.df.index.nlevels == 1
     assert barset.df.index[0].day == 1
 
     # raw data client
-    raw_barset = raw_client.get_bars("AAPL", TimeFrame.Day, "2022-02-01", limit=2)
+    raw_barset = raw_client.get_bars(symbol_or_symbols=symbol, timeframe=timeframe, start=start, limit=limit)
 
     assert type(raw_barset) == dict
-    assert raw_barset["AAPL"][0]['o'] == 174
-    assert raw_barset["AAPL"][0]['h'] == 174.84
+    assert raw_barset[symbol][0]['o'] == 174
+    assert raw_barset[symbol][0]['h'] == 174.84
     
     # test multisymbol request
-    reqmock.get("https://data.alpaca.markets/v2/stocks/bars?timeframe=1Day&start=2022-03-09&end=2022-03-09&symbols=AAPL%2CTSLA", text='''
+    symbols = ["AAPL", "TSLA"]
+    start = "2022-03-09"
+    end = "2022-03-09"
+    _symbols_in_url = '%2C'.join(s for s in symbols)
+
+    reqmock.get(f"https://data.alpaca.markets/v2/stocks/bars?timeframe={timeframe}&start={start}&end={end}&symbols={_symbols_in_url}", text='''
     {
         "bars": {
             "AAPL": [
@@ -104,7 +116,7 @@ def test_get_bars(reqmock, client, raw_client):
     }   
         ''',
     )
-    barset = client.get_bars(["AAPL", "TSLA"], TimeFrame.Day, "2022-03-09", end="2022-03-09")
+    barset = client.get_bars(symbol_or_symbols=symbols, timeframe=timeframe, start=start, end=end)
 
     assert(type(barset) == BarSet)
 
@@ -115,12 +127,9 @@ def test_get_bars(reqmock, client, raw_client):
     assert barset.df.index.nlevels == 2
 
     # raw data client
-    raw_barset = raw_client.get_bars(["AAPL", "TSLA"], TimeFrame.Day, "2022-03-09", end="2022-03-09")
+    raw_barset = raw_client.get_bars(symbol_or_symbols=symbols, timeframe=timeframe, start=start, end=end)
 
     assert type(raw_barset) == dict
 
     assert raw_barset["TSLA"][0]['o'] == 839
     assert raw_barset["AAPL"][0]['l']== 159.41
-
-
-   

@@ -9,7 +9,7 @@ from alpaca.common.time import TimeFrame
 from alpaca.common.types import RawData
 
 from .enums import Exchange
-from .models import BarSet
+from .models import BarSet, QuoteSet
 
 
 class HistoricalDataClient(RESTClient):
@@ -68,7 +68,7 @@ class HistoricalDataClient(RESTClient):
             limit=limit,
         )
 
-        # casting generator type outputted from to list
+        # casting generator type outputted from _data_get to list
         raw_bars = list(bars_generator)
 
         return self._format_data_response(
@@ -76,6 +76,43 @@ class HistoricalDataClient(RESTClient):
             raw_data=raw_bars,
             model=BarSet,
             timeframe=timeframe,
+        )
+
+    def get_quotes(
+        self,
+        symbol_or_symbols: Union[str, List[str]],
+        start: datetime,
+        end: Optional[datetime] = None,
+        limit: Optional[int] = None,
+    ) -> Union[QuoteSet, RawData]:
+        """Returns Quote level 1 data over a given time period for a security or list of securities.
+
+        Args:
+            symbol_or_symbols (Union[str, List[str]]): The security or multiple security ticker identifiers
+            start (datetime): The beginning of the time interval for desired data
+            end (Optional[datetime], optional): The beginning of the time interval for desired data. Defaults to None.
+            limit (Optional[int], optional): Upper limit of number of data points to return. Defaults to None.
+
+        Returns:
+            Union[QuoteSet, RawData]: The quote data either in raw or wrapped form
+        """
+
+        # paginated get request for market data api
+        quotes_generator = self._data_get(
+            endpoint="quotes",
+            symbol_or_symbols=symbol_or_symbols,
+            start=start,
+            end=end,
+            limit=limit,
+        )
+
+        # casting generator type outputted from _data_get to list
+        raw_quotes = list(quotes_generator)
+
+        return self._format_data_response(
+            symbol_or_symbols=symbol_or_symbols,
+            raw_data=raw_quotes,
+            model=QuoteSet,
         )
 
     def get_crypto_bars(
@@ -116,7 +153,7 @@ class HistoricalDataClient(RESTClient):
             exchanges=exchanges,
         )
 
-        # casting generator type outputted from to list
+        # casting generator type outputted from _data_get to list
         raw_bars = list(bars_generator)
 
         return self._format_data_response(
@@ -124,6 +161,45 @@ class HistoricalDataClient(RESTClient):
             raw_data=raw_bars,
             model=BarSet,
             timeframe=timeframe,
+        )
+
+    def get_crypto_quotes(
+        self,
+        symbol_or_symbols: Union[str, List[str]],
+        start: datetime,
+        end: Optional[datetime] = None,
+        limit: Optional[int] = None,
+    ) -> Union[QuoteSet, RawData]:
+        """Returns Quote level 1 data over a given time period for a security or list of securities.
+
+        Args:
+            symbol_or_symbols (Union[str, List[str]]): The security or multiple security ticker identifiers
+            start (datetime): The beginning of the time interval for desired data
+            end (Optional[datetime], optional): The beginning of the time interval for desired data. Defaults to None.
+            limit (Optional[int], optional): Upper limit of number of data points to return. Defaults to None.
+
+        Returns:
+            Union[QuoteSet, RawData]: The quote data either in raw or wrapped form
+        """
+
+        # paginated get request for market data api
+        quotes_generator = self._data_get(
+            endpoint="quotes",
+            endpoint_base="crypto",
+            api_version="v1beta1",
+            symbol_or_symbols=symbol_or_symbols,
+            start=start,
+            end=end,
+            limit=limit,
+        )
+
+        # casting generator type outputted from _data_get to list
+        raw_quotes = list(quotes_generator)
+
+        return self._format_data_response(
+            symbol_or_symbols=symbol_or_symbols,
+            raw_data=raw_quotes,
+            model=QuoteSet,
         )
 
     def _format_data_response(

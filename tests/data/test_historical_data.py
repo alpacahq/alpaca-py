@@ -1,6 +1,6 @@
 from alpaca.data.clients import HistoricalDataClient
 from alpaca.common.time import TimeFrame
-from alpaca.data.models import BarSet
+from alpaca.data.models import BarSet, QuoteSet
 
 import pytest
 import requests_mock
@@ -133,3 +133,137 @@ def test_get_bars(reqmock, client, raw_client):
 
     assert raw_barset["TSLA"][0]['o'] == 839
     assert raw_barset["AAPL"][0]['l']== 159.41
+
+def test_get_quotes(reqmock, client, raw_client):
+
+    
+    # Test single symbol request
+
+    symbol = 'AAPL'
+    start = '2022-03-09'
+    limit = 2
+
+    reqmock.get(f"https://data.alpaca.markets/v2/stocks/{symbol}/quotes?start={start}&limit={limit}", text='''
+    {
+        "quotes": [
+            {
+                "t": "2022-03-09T09:00:00.000059Z",
+                "ax": "K",
+                "ap": 158.65,
+                "as": 1,
+                "bx": "Q",
+                "bp": 159.52,
+                "bs": 4,
+                "c": [
+                    "R"
+                ],
+                "z": "C"
+            },
+            {
+                "t": "2022-03-09T09:00:00.000059Z",
+                "ax": "K",
+                "ap": 158.8,
+                "as": 1,
+                "bx": "Q",
+                "bp": 159.52,
+                "bs": 4,
+                "c": [
+                    "R"
+                ],
+                "z": "C"
+            }
+        ],
+        "symbol": "AAPL",
+        "next_page_token": "QUFQTHwyMDIyLTAzLTA5VDA5OjAwOjAwLjAwMDA1OTAwMFp8Q0ZEQUU5QTg="
+    }   
+        ''',
+    )   
+
+    quoteset = client.get_quotes(symbol_or_symbols=symbol, start=start, limit=limit)
+
+    assert type(quoteset) == QuoteSet
+
+    assert quoteset[symbol][0].ask_price == 158.65
+    assert quoteset[symbol][0].bid_size == 4
+
+    assert quoteset[symbol][0].ask_exchange == 'K'
+
+    assert quoteset.df.index.nlevels == 1
+    assert quoteset.df.index[0].day == 9
+
+    # raw data client
+    raw_quoteset = raw_client.get_quotes(symbol_or_symbols=symbol, start=start, limit=limit)
+
+    assert type(raw_quoteset) == dict
+
+    assert raw_quoteset[symbol][0]['ap'] == 158.65
+    assert raw_quoteset[symbol][0]['bs'] == 4
+
+    assert raw_quoteset[symbol][0]['ax'] == 'K'
+    
+    # test multisymbol request
+    symbols = ["AAPL", "TSLA"]
+    start = "2022-03-09"
+    end = "2022-03-09"
+    _symbols_in_url = '%2C'.join(s for s in symbols)
+
+    reqmock.get(f"https://data.alpaca.markets/v2/stocks/quotes?start={start}&symbols={_symbols_in_url}", text='''
+    {
+        "quotes": {
+            "AAPL": [
+                {
+                    "t": "2022-03-09T09:00:00.000059Z",
+                    "ax": "K",
+                    "ap": 158.65,
+                    "as": 1,
+                    "bx": "Q",
+                    "bp": 159.52,
+                    "bs": 4,
+                    "c": [
+                        "R"
+                    ],
+                    "z": "C"
+                }
+            ],
+            "TSLA": [
+                {
+                    "t": "2022-03-09T09:00:00.000805Z",
+                    "ax": "K",
+                    "ap": 830,
+                    "as": 1,
+                    "bx": "P",
+                    "bp": 840.75,
+                    "bs": 1,
+                    "c": [
+                        "R"
+                    ],
+                    "z": "C"
+                }
+            ]
+        },
+        "next_page_token": null
+    }   
+        ''',
+    )
+    quoteset = client.get_quotes(symbol_or_symbols=symbols, start=start)
+
+    assert(type(quoteset) == QuoteSet)
+
+    assert quoteset["AAPL"][0].ask_size == 1
+    assert quoteset["TSLA"][0].bid_price == 840.75
+
+    assert quoteset["AAPL"][0].bid_exchange == 'Q'
+
+    assert quoteset.df.index[0][1].day == 9
+    assert quoteset.df.index.nlevels == 2
+
+    # raw data client
+    raw_quoteset = raw_client.get_quotes(symbol_or_symbols=symbols, start=start, end=end)
+
+    assert type(raw_quoteset) == dict
+
+    assert raw_quoteset["AAPL"][0]['ap'] == 158.65
+    assert raw_quoteset["TSLA"][0]['bs'] == 1
+
+    assert raw_quoteset["AAPL"][0]['ax'] == 'K'
+

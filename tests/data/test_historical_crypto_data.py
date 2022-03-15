@@ -1,7 +1,6 @@
-from ast import ExceptHandler
 from alpaca.data.clients import HistoricalDataClient
 from alpaca.common.time import TimeFrame
-from alpaca.data.models import BarSet
+from alpaca.data.models import BarSet, QuoteSet
 from alpaca.data.enums import Exchange
 
 import pytest
@@ -148,4 +147,134 @@ def test_get_crypto_bars(reqmock, client, raw_client):
 
     assert raw_barset["BTCUSD"][0]['x'] == "CBSE"
     assert raw_barset["ETHUSD"][0]['x']== "ERSX"
+
+def test_get_crypto_quotes(reqmock, client, raw_client):
+
+    
+    # Test single symbol request
+
+    symbol = 'BTCUSD'
+    start = "2022-03-09T00:00:00"
+    end = "2022-03-09T00:00:30"
+    limit = 2
+
+    reqmock.get(f"https://data.alpaca.markets/v2/stocks/{symbol}/quotes?start={start}&limit={limit}", text='''
+    {
+        "quotes": [
+            {
+                "t": "2022-03-09T06:00:00.03994496Z",
+                "x": "FTXU",
+                "bp": 41397.43,
+                "bs": 0.1847,
+                "ap": 41659.6,
+                "as": 0.385
+            },
+            {
+                "t": "2022-03-09T06:00:00.060563155Z",
+                "x": "ERSX",
+                "bp": 41414.38,
+                "bs": 1.5,
+                "ap": 41672.24,
+                "as": 1.444128
+            }
+        ],
+        "symbol": "BTCUSD",
+        "next_page_token": null
+    }   
+        ''',
+    )   
+
+    quoteset = client.get_quotes(symbol_or_symbols=symbol, start=start, limit=limit)
+
+    assert type(quoteset) == QuoteSet
+
+    assert quoteset[symbol][0].ask_price == 41659.6
+    assert quoteset[symbol][0].bid_size == 0.1847
+
+    assert quoteset[symbol][0].exchange.value == 'FTXU'
+
+    assert quoteset.df.index.nlevels == 1
+    assert quoteset.df.index[0].day == 9
+
+    # raw data client
+    raw_quoteset = raw_client.get_quotes(symbol_or_symbols=symbol, start=start, limit=limit)
+
+    assert type(raw_quoteset) == dict
+
+    assert raw_quoteset[symbol][1]['ap'] == 41672.24
+    assert raw_quoteset[symbol][1]['bs'] == 1.5
+
+    assert raw_quoteset[symbol][1]['x'] == 'ERSX'
+    
+    # test multisymbol request
+    symbols = ["BTCUSD", "ETHUSD"]
+    start = "2022-03-09T00:00:00"
+    end = "2022-03-09T00:00:30"
+    _symbols_in_url = '%2C'.join(s for s in symbols)
+
+    reqmock.get(f"https://data.alpaca.markets/v2/stocks/quotes?start={start}&end={end}&symbols={_symbols_in_url}", text='''
+    {
+        "quotes": {
+            "BTCUSD": [
+                {
+                    "t": "2022-03-09T06:00:00.03994496Z",
+                    "x": "FTXU",
+                    "bp": 41397.43,
+                    "bs": 0.1847,
+                    "ap": 41659.6,
+                    "as": 0.385
+                },
+                {
+                    "t": "2022-03-09T06:00:00.060563155Z",
+                    "x": "ERSX",
+                    "bp": 41414.38,
+                    "bs": 1.5,
+                    "ap": 41672.24,
+                    "as": 1.444128
+                }
+            ],
+            "ETHUSD": [
+                {
+                    "t": "2022-03-09T06:00:00.23589632Z",
+                    "x": "FTXU",
+                    "bp": 2706.95,
+                    "bs": 5.46,
+                    "ap": 2723.85,
+                    "as": 3.9
+                },
+                {
+                    "t": "2022-03-09T06:00:00.290033408Z",
+                    "x": "FTXU",
+                    "bp": 2706.95,
+                    "bs": 5.46,
+                    "ap": 2723.85,
+                    "as": 3.9
+                }
+            ]
+        },
+        "next_page_token": null
+    }   
+        ''',
+    )
+    quoteset = client.get_quotes(symbol_or_symbols=symbols, start=start, end=end)
+
+    assert(type(quoteset) == QuoteSet)
+
+    assert quoteset["BTCUSD"][0].ask_size == 0.385
+    assert quoteset["ETHUSD"][0].bid_price == 2706.95
+
+    assert quoteset["BTCUSD"][0].exchange.value == 'FTXU'
+
+    assert quoteset.df.index[0][1].day == 9
+    assert quoteset.df.index.nlevels == 2
+
+    # raw data client
+    raw_quoteset = raw_client.get_quotes(symbol_or_symbols=symbols, start=start, end=end)
+
+    assert type(raw_quoteset) == dict
+
+    assert raw_quoteset["BTCUSD"][0]['ap'] == 41659.6
+    assert raw_quoteset["ETHUSD"][0]['bs'] == 5.46
+
+    assert raw_quoteset["ETHUSD"][0]['x'] == 'FTXU'
 

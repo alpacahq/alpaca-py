@@ -275,7 +275,7 @@ class Trade(BaseModel):
             symbol (str): The security identifer for the trade that occurred
             raw_data (RawData): The trade data as received by API
         """
-        print(raw_data)
+
         mapped_trade = {
             TRADE_MAPPING.get(key): val
             for key, val in raw_data.items()
@@ -330,3 +330,4 @@ class TradeSet(BaseModel, TimeSeriesMixin):
             raise KeyError(f"No key {symbol} was found")
 
         return self.trade_set[symbol]
+

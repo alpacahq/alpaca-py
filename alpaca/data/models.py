@@ -79,16 +79,16 @@ class Bar(BaseModel):
     vwap: Optional[float] = None
     exchange: Optional[Exchange] = None
 
-    def __init__(self, symbol: str, timeframe: TimeFrame, bar: RawData) -> None:
+    def __init__(self, symbol: str, timeframe: TimeFrame, raw_data: RawData) -> None:
         """Instantiates a bar
 
         Args:
             symbol (str): The ticker identifier for the security
             timeframe (TimeFrame): The interval of time that price data has been aggregated
-            bar (RawData): Raw unparsed bar data from API, contains ohlc and other fields.
+            raw_data (RawData): Raw unparsed bar data from API, contains ohlc and other fields.
         """
         mapped_bar = {
-            BAR_MAPPING[key]: val for key, val in bar.items() if key in BAR_MAPPING
+            BAR_MAPPING[key]: val for key, val in raw_data.items() if key in BAR_MAPPING
         }
 
         super().__init__(symbol=symbol, timeframe=timeframe, **mapped_bar)
@@ -181,17 +181,17 @@ class Quote(BaseModel):
     conditions: Optional[List[str]] = None
     tape: Optional[str] = None
 
-    def __init__(self, symbol: str, quote: RawData) -> None:
+    def __init__(self, symbol: str, raw_data: RawData) -> None:
         """Instantiates a Quote
 
         Args:
             symbol (str): The security identifer for the quote
-            quote (RawData): The quote data as received by API
+            raw_data (RawData): The quote data as received by API
         """
 
         mapped_quote = {
             QUOTE_MAPPING.get(key): val
-            for key, val in quote.items()
+            for key, val in raw_data.items()
             if key in QUOTE_MAPPING
         }
 
@@ -268,17 +268,17 @@ class Trade(BaseModel):
     conditions: Optional[List[str]] = None
     tape: Optional[str] = None
 
-    def __init__(self, symbol: str, trade: RawData) -> None:
+    def __init__(self, symbol: str, raw_data: RawData) -> None:
         """Instantiates a Trade history object
 
         Args:
             symbol (str): The security identifer for the trade that occurred
-            quote (RawData): The trade data as received by API
+            raw_data (RawData): The trade data as received by API
         """
-
+        print(raw_data)
         mapped_trade = {
             TRADE_MAPPING.get(key): val
-            for key, val in trade.items()
+            for key, val in raw_data.items()
             if key in TRADE_MAPPING
         }
 

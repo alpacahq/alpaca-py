@@ -35,3 +35,11 @@ TRADE_MAPPING: Dict[str, str] = {
     "z": "tape",
     "x": "exchange",
 }
+
+SNAPSHOT_MAPPING: Dict[str, str] = {
+    "latestTrade": "latest_trade",
+    "latestQuote": "latest_quote",
+    "minuteBar": "minute_bar",
+    "dailyBar": "daily_bar",
+    "prevDailyBar": "previous_daily_bar",
+}

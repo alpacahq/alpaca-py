@@ -4,7 +4,7 @@ import requests_mock
 from alpaca.common.time import TimeFrame
 from alpaca.data.clients import HistoricalDataClient
 from alpaca.data.enums import Exchange
-from alpaca.data.models import BarSet, QuoteSet, TradeSet
+from alpaca.data.models import BarSet, Quote, QuoteSet, Trade, TradeSet
 
 
 @pytest.fixture
@@ -420,3 +420,89 @@ def test_get_trades(reqmock, client, raw_client):
     assert raw_tradeset["BTCUSD"][0]["s"] == 0.00315427
 
     assert raw_tradeset["ETHUSD"][0]["x"] == "CBSE"
+
+
+def test_get_crypto_latest_trade(reqmock, client, raw_client):
+
+    # Test single symbol request
+    symbol = "BTCUSD"
+    exchange = Exchange.FTXU
+
+    reqmock.get(
+        f"https://data.alpaca.markets/v1beta1/crypto/{symbol}/trades/latest?exchange=FTXU",
+        text="""
+    {
+        "symbol": "BTCUSD",
+        "trade": {
+            "t": "2022-03-18T14:03:31.960672Z",
+            "x": "FTXU",
+            "p": 40650,
+            "s": 0.1517,
+            "tks": "B",
+            "i": 26932440
+        }
+    } 
+        """,
+    )
+
+    trade = client.get_crypto_latest_trade(symbol=symbol, exchange=exchange)
+
+    assert type(trade) == Trade
+
+    assert trade.price == 40650
+    assert trade.size == 0.1517
+
+    assert trade.exchange == "FTXU"
+
+    # raw data client
+    raw_trade = raw_client.get_crypto_latest_trade(symbol=symbol, exchange=exchange)
+
+    assert type(raw_trade) == dict
+
+    assert raw_trade["tks"] == "B"
+    assert raw_trade["i"] == 26932440
+
+    assert raw_trade["x"] == "FTXU"
+
+
+def test_get_crypto_latest_quote(reqmock, client, raw_client):
+
+    # Test single symbol request
+    symbol = "BTCUSD"
+    exchange = Exchange.FTXU
+
+    reqmock.get(
+        f"https://data.alpaca.markets/v1beta1/crypto/{symbol}/quotes/latest?exchange=FTXU",
+        text="""
+    {
+        "symbol": "BTCUSD",
+        "quote": {
+            "t": "2022-03-18T14:03:13.661518592Z",
+            "x": "FTXU",
+            "bp": 40517.08,
+            "bs": 4.0178,
+            "ap": 40765.93,
+            "as": 1.5516
+        }
+    }
+        """,
+    )
+
+    quote = client.get_crypto_latest_quote(symbol=symbol, exchange=exchange)
+
+    assert type(quote) == Quote
+
+    assert quote.ask_price == 40765.93
+    assert quote.bid_size == 4.0178
+
+    assert quote.exchange == Exchange.FTXU
+
+    # raw data client
+    raw_quote = raw_client.get_crypto_latest_quote(symbol=symbol, exchange=exchange)
+
+    assert type(raw_quote) == dict
+
+    assert raw_quote["bp"] == 40517.08
+    assert raw_quote["as"] == 1.5516
+
+    assert raw_quote["x"] == "FTXU"

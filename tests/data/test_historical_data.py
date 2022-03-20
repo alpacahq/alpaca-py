@@ -3,7 +3,7 @@ import requests_mock
 
 from alpaca.common.time import TimeFrame
 from alpaca.data.clients import HistoricalDataClient
-from alpaca.data.models import BarSet, QuoteSet, TradeSet
+from alpaca.data.models import BarSet, Quote, QuoteSet, Trade, TradeSet
 
 
 @pytest.fixture
@@ -428,3 +428,95 @@ def test_get_trades(reqmock, client, raw_client):
     assert raw_tradeset["TSLA"][0]["s"] == 1
 
     assert raw_tradeset["AAPL"][0]["x"] == "D"
+
+
+def test_get_latest_trade(reqmock, client, raw_client):
+
+    # Test single symbol request
+    symbol = "AAPL"
+
+    reqmock.get(
+        f"https://data.alpaca.markets/v2/stocks/{symbol}/trades/latest",
+        text="""
+    {
+        "symbol": "AAPL",
+        "trade": {
+            "t": "2022-03-18T14:02:09.722539521Z",
+            "x": "D",
+            "p": 161.2958,
+            "s": 100,
+            "c": [
+                "@"
+            ],
+            "i": 22730,
+            "z": "C"
+        }
+    } 
+        """,
+    )
+
+    trade = client.get_latest_trade(symbol=symbol)
+
+    assert type(trade) == Trade
+
+    assert trade.price == 161.2958
+    assert trade.size == 100
+
+    assert trade.exchange == "D"
+
+    # raw data client
+    raw_trade = raw_client.get_latest_trade(symbol=symbol)
+
+    assert type(raw_trade) == dict
+
+    assert raw_trade["i"] == 22730
+    assert raw_trade["s"] == 100
+
+    assert raw_trade["z"] == "C"
+
+
+def test_get_latest_quote(reqmock, client, raw_client):
+
+    # Test single symbol request
+    symbol = "AAPL"
+
+    reqmock.get(
+        f"https://data.alpaca.markets/v2/stocks/{symbol}/quotes/latest",
+        text="""
+    {
+        "symbol": "AAPL",
+        "quote": {
+            "t": "2022-03-18T14:02:43.651613184Z",
+            "ax": "P",
+            "ap": 161.11,
+            "as": 13,
+            "bx": "K",
+            "bp": 161.1,
+            "bs": 2,
+            "c": [
+                "R"
+            ],
+            "z": "C"
+        }
+    }  
+        """,
+    )
+
+    quote = client.get_latest_quote(symbol=symbol)
+
+    assert type(quote) == Quote
+
+    assert quote.ask_price == 161.11
+    assert quote.bid_size == 2
+
+    assert quote.bid_exchange == "K"
+
+    # raw data client
+    raw_quote = raw_client.get_latest_quote(symbol=symbol)
+
+    assert type(raw_quote) == dict
+
+    assert raw_quote["bp"] == 161.1
+    assert raw_quote["as"] == 13
+
+    assert raw_quote["ax"] == "P"

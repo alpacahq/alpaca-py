@@ -10,7 +10,7 @@ from alpaca.common.time import TimeFrame
 from alpaca.common.types import RawData
 
 from .enums import Exchange
-from .models import BarSet, QuoteSet, Quote, Trade, TradeSet
+from .models import BarSet, QuoteSet, Quote, SnapshotSet, Trade, TradeSet
 
 
 class HistoricalDataClient(RESTClient):
@@ -163,7 +163,7 @@ class HistoricalDataClient(RESTClient):
             Union[Trade, RawData]: The latest trade in raw or wrapped format
         """
         response = self.get(path=f"/stocks/{symbol}/trades/latest")
-        
+
         raw_latest_trade = response["trade"]
 
         return self.response_wrapper(
@@ -185,6 +185,43 @@ class HistoricalDataClient(RESTClient):
         return self.response_wrapper(
             model=Quote, raw_data=raw_latest_quote, symbol=symbol
         )
+
+    def get_snapshot(
+        self,
+        symbol_or_symbols: Union[str, List[str]],
+    ) -> Union[SnapshotSet, RawData]:
+        """Returns snapshots of queried symbols. Snapshots contain latest trade, latest quote, latest minute bar,
+        latest daily bar and previous daily bar data for the queried symbols.
+
+        Args:
+            symbol_or_symbols (Union[str, List[str]]): The security or multiple security ticker identifiers
+
+        Returns:
+            Union[SnapshotSet, RawData]: The snapshot data either in raw or wrapped form
+        """
+
+        raw_snapshots = {}
+
+        if isinstance(symbol_or_symbols, str):
+
+            raw_snapshot = self.get(
+                path=f"/stocks/{symbol_or_symbols}/snapshot",
+            )
+
+            raw_snapshots[symbol_or_symbols] = raw_snapshot
+            symbol_or_symbols = [symbol_or_symbols]
+            
+        else:
+            comma_seperated_symbols = ",".join(s for s in symbol_or_symbols)
+            raw_snapshots = self.get(path="/stocks/snapshots", data={ "symbols": comma_seperated_symbols })
+
+        # casting generator type outputted from _data_get to list
+        return self.response_wrapper(
+            model=SnapshotSet,
+            raw_data=raw_snapshots,
+            symbols=symbol_or_symbols,
+        )
+
 
     def get_crypto_bars(
         self,

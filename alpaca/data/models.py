@@ -9,7 +9,8 @@ from alpaca.common.time import TimeFrame
 from alpaca.common.types import RawData
 
 from .enums import Exchange
-from .mappings import BAR_MAPPING, QUOTE_MAPPING, SNAPSHOT_MAPPING, TRADE_MAPPING
+from .mappings import (BAR_MAPPING, QUOTE_MAPPING, SNAPSHOT_MAPPING,
+                       TRADE_MAPPING)
 
 
 class TimeSeriesMixin:
@@ -332,19 +333,19 @@ class TradeSet(BaseModel, TimeSeriesMixin):
         return self.trade_set[symbol]
 
 
-
 class Snapshot(BaseModel):
-    """A Snapshot contains the latest trade, latest quote, minute bar daily bar 
+    """A Snapshot contains the latest trade, latest quote, minute bar daily bar
     and previous daily bar data for a given ticker symbol.
 
     Attributes:
         symbol (str): The identifier for the snapshot security.
-        latest_trade(Trade): The latest transaction on the price and sales tape 
-        latest_quote (Quote): Level 1 ask/bid pair quote data. 
+        latest_trade(Trade): The latest transaction on the price and sales tape
+        latest_quote (Quote): Level 1 ask/bid pair quote data.
         minute_bar (Bar): The latest minute OHLC bar data
         daily_bar (Bar): The latest daily OHLC bar data
         previous_daily_bar (Bar): The 2nd to latest (2 trading days ago) daily OHLC bar data
     """
+
     symbol: str
     latest_trade: Trade
     latest_quote: Quote
@@ -365,14 +366,19 @@ class Snapshot(BaseModel):
             if key in SNAPSHOT_MAPPING
         }
 
-        mapped_snapshot['latest_trade'] = Trade(symbol, mapped_snapshot['latest_trade'])
-        mapped_snapshot['latest_quote'] = Quote(symbol, mapped_snapshot['latest_quote'])
-        mapped_snapshot['minute_bar'] = Bar(symbol, TimeFrame.Minute, mapped_snapshot['minute_bar'])
-        mapped_snapshot['daily_bar'] = Bar(symbol, TimeFrame.Day, mapped_snapshot['daily_bar'])
-        mapped_snapshot['previous_daily_bar'] = Bar(symbol, TimeFrame.Day, mapped_snapshot['previous_daily_bar'])
+        mapped_snapshot["latest_trade"] = Trade(symbol, mapped_snapshot["latest_trade"])
+        mapped_snapshot["latest_quote"] = Quote(symbol, mapped_snapshot["latest_quote"])
+        mapped_snapshot["minute_bar"] = Bar(
+            symbol, TimeFrame.Minute, mapped_snapshot["minute_bar"]
+        )
+        mapped_snapshot["daily_bar"] = Bar(
+            symbol, TimeFrame.Day, mapped_snapshot["daily_bar"]
+        )
+        mapped_snapshot["previous_daily_bar"] = Bar(
+            symbol, TimeFrame.Day, mapped_snapshot["previous_daily_bar"]
+        )
 
         super().__init__(symbol=symbol, **mapped_snapshot)
-
 
 
 class SnapshotSet(BaseModel):
@@ -382,18 +388,18 @@ class SnapshotSet(BaseModel):
         symbols (List[str]): The list of ticker identifiers for the snapshot securities.
         snapshot_set (Dict[str, Snapshot]): Snapshot data keyed by symbol
     """
+
     symbols: List[str]
     snapshot_set: Dict[str, Snapshot]
 
     def __init__(self, symbols: List[str], raw_data: Dict[str, RawData]) -> None:
 
         parsed_snapshots = {}
-        
+
         for _symbol, snapshot in raw_data.items():
             parsed_snapshots[_symbol] = Snapshot(_symbol, snapshot)
 
         super().__init__(symbols=symbols, snapshot_set=parsed_snapshots)
-
 
     def __getitem__(self, symbol: str) -> List[Trade]:
         """Retrieves the snapshot for a given symbol
@@ -410,4 +416,4 @@ class SnapshotSet(BaseModel):
         if symbol not in self.symbols:
             raise KeyError(f"No key {symbol} was found")
 
-        return self.snapshot_set[symbol]   
+        return self.snapshot_set[symbol]

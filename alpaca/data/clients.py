@@ -10,7 +10,7 @@ from alpaca.common.time import TimeFrame
 from alpaca.common.types import RawData
 
 from .enums import Exchange
-from .models import BarSet, QuoteSet, Quote, SnapshotSet, Trade, TradeSet
+from .models import BarSet, Quote, QuoteSet, SnapshotSet, Trade, TradeSet
 
 
 class HistoricalDataClient(RESTClient):
@@ -210,10 +210,12 @@ class HistoricalDataClient(RESTClient):
 
             raw_snapshots[symbol_or_symbols] = raw_snapshot
             symbol_or_symbols = [symbol_or_symbols]
-            
+
         else:
             comma_seperated_symbols = ",".join(s for s in symbol_or_symbols)
-            raw_snapshots = self.get(path="/stocks/snapshots", data={ "symbols": comma_seperated_symbols })
+            raw_snapshots = self.get(
+                path="/stocks/snapshots", data={"symbols": comma_seperated_symbols}
+            )
 
         # casting generator type outputted from _data_get to list
         return self.response_wrapper(
@@ -221,7 +223,6 @@ class HistoricalDataClient(RESTClient):
             raw_data=raw_snapshots,
             symbols=symbol_or_symbols,
         )
-
 
     def get_crypto_bars(
         self,

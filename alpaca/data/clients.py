@@ -90,12 +90,12 @@ class HistoricalDataClient(RESTClient):
         """Gets bar/candle data for cryptocurrencies.
 
         Args:
-            symbol_or_symbols (Union[str, List[str]]): The cryptocurrencysecurity or multiple security ticker identifiers
-            timeframe (TimeFrame): The period over which the bars should be aggregated. (i.e. 5 Min bars, 1 Day bars)
-            start (datetime): The beginning of the time interval for desired data
+            symbol_or_symbols (Union[str, List[str]]): The cryptocurrency or list of multiple cryptocurrency ticker identifiers.
+            timeframe (TimeFrame): The period over which the bars should be aggregated. (i.e. 5 Min bars, 1 Day bars).
+            start (datetime): The beginning of the time interval for desired data.
             end (Optional[datetime], optional): The end of the time interval for desired data. Defaults to None.. Defaults to None.
             limit (Optional[int], optional): Upper limit of number of data points to return. Defaults to None.. Defaults to None.
-            exchanges (Optional[List[Exchange]]): The crypto exchanges to retrieve bar data from. Defaults to None
+            exchanges (Optional[List[Exchange]]): The crypto exchanges to retrieve bar data from. Defaults to None.
 
         Returns:
             Union[BarSet, RawData]: The crypto bar data either in raw or wrapped form
@@ -130,7 +130,7 @@ class HistoricalDataClient(RESTClient):
     def _format_data_response(
         self,
         symbol_or_symbols: Union[str, List[str]],
-        raw_data: RawData,
+        raw_data: Union[RawData, List[RawData]],
         model: Type[BaseModel],
         **kwargs
     ) -> Union[BarSet, RawData]:
@@ -138,7 +138,7 @@ class HistoricalDataClient(RESTClient):
 
         Args:
             symbol_or_symbols (Union[str, List[str]]): The security or multiple security ticker identifiers
-            raw_data (RawData): The data returned by the _data_get method
+            raw_data (Union[RawData, List[RawData]]): The data returned by the API
             model (Type[BaseModel]): The model we want to wrap the data in
 
         Returns:

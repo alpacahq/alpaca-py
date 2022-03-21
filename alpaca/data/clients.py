@@ -49,7 +49,7 @@ class HistoricalDataClient(RESTClient):
             symbol_or_symbols (Union[str, List[str]]): The security or multiple security ticker identifiers
             timeframe (TimeFrame): The period over which the bars should be aggregated. (i.e. 5 Min bars, 1 Day bars)
             start (datetime): The beginning of the time interval for desired data
-            end (Optional[datetime], optional): The beginning of the time interval for desired data. Defaults to None.
+            end (Optional[datetime], optional): The end of the time interval for desired data. Defaults to None.
             limit (Optional[int], optional): Upper limit of number of data points to return. Defaults to None.
 
         Returns:
@@ -85,16 +85,17 @@ class HistoricalDataClient(RESTClient):
         start: datetime,
         end: Optional[datetime] = None,
         limit: Optional[int] = None,
-        exchanges: Optional[List[Exchange]] = [],
+        exchanges: Optional[List[Exchange]] = None,
     ) -> Union[BarSet, RawData]:
         """Gets bar/candle data for cryptocurrencies.
 
         Args:
             symbol_or_symbols (Union[str, List[str]]): The cryptocurrencysecurity or multiple security ticker identifiers
-            timeframe (TimeFrame): _description_
-            start (datetime): _description_
-            end (Optional[datetime], optional): _description_. Defaults to None.
-            limit (Optional[int], optional): _description_. Defaults to None.
+            timeframe (TimeFrame): The period over which the bars should be aggregated. (i.e. 5 Min bars, 1 Day bars)
+            start (datetime): The beginning of the time interval for desired data
+            end (Optional[datetime], optional): The end of the time interval for desired data. Defaults to None.. Defaults to None.
+            limit (Optional[int], optional): Upper limit of number of data points to return. Defaults to None.. Defaults to None.
+            exchanges (Optional[List[Exchange]]): The crypto exchanges to retrieve bar data from. Defaults to None
 
         Returns:
             Union[BarSet, RawData]: The crypto bar data either in raw or wrapped form

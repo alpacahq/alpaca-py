@@ -5,7 +5,7 @@ class Exchange(Enum):
     """The exchanges that provide data feeds to Alpaca
 
     Attributes:
-        FTX (str): FTX exchange
+        FTXU (str): FTX exchange
         CBSE (str): Coinbase exchange
         GNSS (str): Genesis exchange
         ERSX (str): ErisX exchange

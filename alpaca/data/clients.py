@@ -1,11 +1,14 @@
 from datetime import datetime
-from typing import List, Optional, Union
+from typing import List, Optional, Type, Union
+
+from pydantic import BaseModel
 
 from alpaca.common.enums import BaseURL
 from alpaca.common.rest import RESTClient
 from alpaca.common.time import TimeFrame
 from alpaca.common.types import RawData
 
+from .enums import Exchange
 from .models import BarSet
 
 
@@ -46,14 +49,16 @@ class HistoricalDataClient(RESTClient):
             symbol_or_symbols (Union[str, List[str]]): The security or multiple security ticker identifiers
             timeframe (TimeFrame): The period over which the bars should be aggregated. (i.e. 5 Min bars, 1 Day bars)
             start (datetime): The beginning of the time interval for desired data
-            end (Optional[datetime], optional): The beginning of the time interval for desired data. Defaults to None.
+            end (Optional[datetime], optional): The end of the time interval for desired data. Defaults to None.
             limit (Optional[int], optional): Upper limit of number of data points to return. Defaults to None.
 
         Returns:
             Union[BarSet, RawData]: The bar data either in raw or wrapped form
         """
+        # replace timeframe object with it's string representation
         timeframe_value = timeframe.value
 
+        # paginated get request for market data api
         bars_generator = self._data_get(
             endpoint="bars",
             symbol_or_symbols=symbol_or_symbols,
@@ -62,33 +67,108 @@ class HistoricalDataClient(RESTClient):
             end=end,
             limit=limit,
         )
+
+        # casting generator type outputted from to list
         raw_bars = list(bars_generator)
 
+        return self._format_data_response(
+            symbol_or_symbols=symbol_or_symbols,
+            raw_data=raw_bars,
+            model=BarSet,
+            timeframe=timeframe,
+        )
+
+    def get_crypto_bars(
+        self,
+        symbol_or_symbols: Union[str, List[str]],
+        timeframe: TimeFrame,
+        start: datetime,
+        end: Optional[datetime] = None,
+        limit: Optional[int] = None,
+        exchanges: Optional[List[Exchange]] = None,
+    ) -> Union[BarSet, RawData]:
+        """Gets bar/candle data for cryptocurrencies.
+
+        Args:
+            symbol_or_symbols (Union[str, List[str]]): The cryptocurrency or list of multiple cryptocurrency ticker identifiers.
+            timeframe (TimeFrame): The period over which the bars should be aggregated. (i.e. 5 Min bars, 1 Day bars).
+            start (datetime): The beginning of the time interval for desired data.
+            end (Optional[datetime], optional): The end of the time interval for desired data. Defaults to None.. Defaults to None.
+            limit (Optional[int], optional): Upper limit of number of data points to return. Defaults to None.. Defaults to None.
+            exchanges (Optional[List[Exchange]]): The crypto exchanges to retrieve bar data from. Defaults to None.
+
+        Returns:
+            Union[BarSet, RawData]: The crypto bar data either in raw or wrapped form
+        """
+
+        # replace timeframe object with it's string representation
+        timeframe_value = timeframe.value
+
+        # paginated get request for crypto market data api
+        bars_generator = self._data_get(
+            endpoint="bars",
+            endpoint_base="crypto",
+            api_version="v1beta1",
+            symbol_or_symbols=symbol_or_symbols,
+            timeframe=timeframe_value,
+            start=start,
+            end=end,
+            limit=limit,
+            exchanges=exchanges,
+        )
+
+        # casting generator type outputted from to list
+        raw_bars = list(bars_generator)
+
+        return self._format_data_response(
+            symbol_or_symbols=symbol_or_symbols,
+            raw_data=raw_bars,
+            model=BarSet,
+            timeframe=timeframe,
+        )
+
+    def _format_data_response(
+        self,
+        symbol_or_symbols: Union[str, List[str]],
+        raw_data: Union[RawData, List[RawData]],
+        model: Type[BaseModel],
+        **kwargs
+    ) -> Union[BarSet, RawData]:
+        """Formats the response from market data API.
+
+        Args:
+            symbol_or_symbols (Union[str, List[str]]): The security or multiple security ticker identifiers
+            raw_data (Union[RawData, List[RawData]]): The data returned by the API
+            model (Type[BaseModel]): The model we want to wrap the data in
+
+        Returns:
+            Union[BarSet, RawData]: The bar data either in raw or wrapped form
+        """
         if isinstance(symbol_or_symbols, str):
 
             # BarSet expects a symbol keyed dictionary of bar data from API
-            _raw_bars_dict = {symbol_or_symbols: raw_bars}
+            _raw_data_dict = {symbol_or_symbols: raw_data}
 
             return self.response_wrapper(
-                BarSet,
+                model,
                 symbols=[symbol_or_symbols],
-                timeframe=timeframe,
-                raw_data=_raw_bars_dict,
+                raw_data=_raw_data_dict,
+                **kwargs,
             )
 
         # merge list of dictionaries (symbol (key): List[Bar] (value)) yielded by _data_get
-        raw_multi_symbol_bars = {}
+        raw_multi_symbol_data = {}
 
-        for _bars_by_symbol in raw_bars:
-            for _symbol, _bars in _bars_by_symbol.items():
-                if _symbol not in raw_multi_symbol_bars:
-                    raw_multi_symbol_bars[_symbol] = _bars
+        for _data_by_symbol in raw_data:
+            for _symbol, _bars in _data_by_symbol.items():
+                if _symbol not in raw_multi_symbol_data:
+                    raw_multi_symbol_data[_symbol] = _bars
                 else:
-                    raw_multi_symbol_bars[_symbol].extend(_bars)
+                    raw_multi_symbol_data[_symbol].extend(_bars)
 
         return self.response_wrapper(
-            BarSet,
+            model,
             symbols=symbol_or_symbols,
-            timeframe=timeframe,
-            raw_data=raw_multi_symbol_bars,
+            raw_data=raw_multi_symbol_data,
+            **kwargs,
         )

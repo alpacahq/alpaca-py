@@ -51,7 +51,7 @@ class HistoricalDataClient(RESTClient):
         Args:
             symbol_or_symbols (Union[str, List[str]]): The security or multiple security ticker identifiers
             timeframe (TimeFrame): The period over which the bars should be aggregated. (i.e. 5 Min bars, 1 Day bars)
-            start (datetime, optional): The beginning of the time interval for desired data. Defaults to None.
+            start (Optional[datetime], optional): The beginning of the time interval for desired data. Defaults to None.
             end (Optional[datetime], optional): The beginning of the time interval for desired data. Defaults to None.
             limit (Optional[int], optional): Upper limit of number of data points to return. Defaults to None.
             adjustment (Optional[Adjustment], optional): The type of corporate action data normalization. Defaults to None.
@@ -192,6 +192,7 @@ class HistoricalDataClient(RESTClient):
             start (Optional[datetime], optional): The beginning of the time interval for desired data. Defaults to None.
             end (Optional[datetime], optional): The beginning of the time interval for desired data. Defaults to None.
             limit (Optional[int], optional): Upper limit of number of data points to return. Defaults to None.
+            exchanges (Optional[List[Exchange]]): The crypto exchanges to retrieve bar data from. Defaults to None.
 
         Returns:
             Union[QuoteSet, RawData]: The quote data either in raw or wrapped form
@@ -206,6 +207,7 @@ class HistoricalDataClient(RESTClient):
             start=start,
             end=end,
             limit=limit,
+            exchanges=exchanges,
         )
 
         # casting generator type outputted from _data_get to list

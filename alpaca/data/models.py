@@ -203,7 +203,7 @@ class QuoteSet(BaseModel, TimeSeriesMixin):
 
     Attributes:
         symbols (List[str]): The list of ticker identifiers for the securities whose data forms the set of quotes.
-        quote_set(Dict[str, List[Bar]]): The collection of Quotes keyed by symbol.
+        quote_set(Dict[str, List[Quote]]): The collection of Quotes keyed by symbol.
         raw (Dict[str, List[RawData]]): The collection of raw data from the API call keyed by symbol.
         _key_mapping (Dict[str, str]): The mapping for names of data fields from raw format received from API to data models
     """
@@ -237,7 +237,7 @@ class QuoteSet(BaseModel, TimeSeriesMixin):
             KeyError: Cannot access data for symbol not in QuoteSet
 
         Returns:
-            List[Bar]: The QuoteSet data for the given symbol
+            List[Quote]: The QuoteSet data for the given symbol
         """
         if symbol not in self.symbols:
             raise KeyError(f"No key {symbol} was found")

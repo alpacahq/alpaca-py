@@ -98,8 +98,8 @@ class HistoricalDataClient(RESTClient):
         """Returns Quote level 1 data over a given time period for a security or list of securities.
 
         Args:
-            symbol_or_symbols (Union[str, List[str]]): The security or multiple security ticker identifiers
-            start (datetime): The beginning of the time interval for desired data
+            symbol_or_symbols (Union[str, List[str]]): The security or multiple security ticker identifiers.
+            start (Optional[datetime], optional): The beginning of the time interval for desired data. Defaults to None.
             end (Optional[datetime], optional): The beginning of the time interval for desired data. Defaults to None.
             limit (Optional[int], optional): Upper limit of number of data points to return. Defaults to None.
             feed (Optional[DataFeed], optional): The equity data feed to retrieve from. Defaults to None.

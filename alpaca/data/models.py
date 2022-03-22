@@ -250,11 +250,11 @@ class Trade(BaseModel):
 
     Attributes:
         symbol (str): The ticker identifier for the security whose data forms the trade.
-        timestamp (datetime): The time of submission of the quote.
+        timestamp (datetime): The time of submission of the trade.
         exchange (Optional[Exchange]): The exchange the trade occurred.
         price (float): The price that the transaction occurred at.
         size (float): The quantity traded
-        id (float): The trade ID
+        id (int): The trade ID
         conditions (Optional[List[str]]): The trade conditions. Defaults to None.
         tape (Optional[str]): The trade tape. Defaults to None.
     """
@@ -264,7 +264,7 @@ class Trade(BaseModel):
     exchange: Union[str, Exchange]
     price: float
     size: float
-    id: float
+    id: int
     conditions: Optional[List[str]] = None
     tape: Optional[str] = None
 
@@ -290,8 +290,8 @@ class TradeSet(BaseModel, TimeSeriesMixin):
 
     Attributes:
         symbols (List[str]): The list of ticker identifiers for the securities whose data forms the set of trades.
-        quote_set(Dict[str, List[Trade]]]): The collection of Trades keyed by symbol.
-        raw (Dict[str, List[RawData]): The collection of raw data from the API call keyed by symbol.
+        trade_set(Dict[str, List[Trade]]]): The collection of Trades keyed by symbol.
+        raw (Dict[str, List[RawData]]): The collection of raw data from the API call keyed by symbol.
         _key_mapping (Dict[str, str]): The mapping for names of data fields from raw format received from API to data models
     """
 

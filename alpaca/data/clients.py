@@ -8,7 +8,7 @@ from alpaca.common.rest import RESTClient
 from alpaca.common.time import TimeFrame
 from alpaca.common.types import RawData
 
-from .enums import Adjustment, Currency, Exchange, DataFeed
+from .enums import Adjustment, Currency, DataFeed, Exchange
 from .models import BarSet, QuoteSet
 
 
@@ -132,17 +132,17 @@ class HistoricalDataClient(RESTClient):
         self,
         symbol_or_symbols: Union[str, List[str]],
         timeframe: TimeFrame,
-        start: datetime,
+        start: Optional[datetime] = None,
         end: Optional[datetime] = None,
         limit: Optional[int] = None,
-        exchanges: Optional[List[Exchange]] = [],
+        exchanges: Optional[List[Exchange]] = None,
     ) -> Union[BarSet, RawData]:
         """Gets bar/candle data for cryptocurrencies.
 
         Args:
             symbol_or_symbols (Union[str, List[str]]): The cryptocurrencysecurity or multiple security ticker identifiers
             timeframe (TimeFrame): _description_
-            start (datetime): _description_
+            start (Optional[datetime], optional): _description_
             end (Optional[datetime], optional): _description_. Defaults to None.
             limit (Optional[int], optional): _description_. Defaults to None.
 
@@ -179,15 +179,16 @@ class HistoricalDataClient(RESTClient):
     def get_crypto_quotes(
         self,
         symbol_or_symbols: Union[str, List[str]],
-        start: datetime,
+        start: Optional[datetime] = None,
         end: Optional[datetime] = None,
         limit: Optional[int] = None,
+        exchanges: Optional[List[Exchange]] = None,
     ) -> Union[QuoteSet, RawData]:
         """Returns Quote level 1 data over a given time period for a security or list of securities.
 
         Args:
             symbol_or_symbols (Union[str, List[str]]): The security or multiple security ticker identifiers
-            start (datetime): The beginning of the time interval for desired data
+            start (Optional[datetime], optional): The beginning of the time interval for desired data. Defaults to None.
             end (Optional[datetime], optional): The beginning of the time interval for desired data. Defaults to None.
             limit (Optional[int], optional): Upper limit of number of data points to return. Defaults to None.
 

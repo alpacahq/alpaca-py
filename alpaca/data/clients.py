@@ -9,8 +9,9 @@ from alpaca.common.rest import RESTClient
 from alpaca.common.time import TimeFrame
 from alpaca.common.types import RawData
 
-from .enums import Exchange
+from .enums import Adjustment, Currency, DataFeed, Exchange
 from .models import BarSet, QuoteSet, Quote, Trade, TradeSet
+
 
 
 class HistoricalDataClient(RESTClient):
@@ -39,9 +40,12 @@ class HistoricalDataClient(RESTClient):
         self,
         symbol_or_symbols: Union[str, List[str]],
         timeframe: TimeFrame,
-        start: datetime,
+        start: Optional[datetime] = None,
         end: Optional[datetime] = None,
         limit: Optional[int] = None,
+        adjustment: Optional[Adjustment] = None,
+        feed: Optional[DataFeed] = None,
+        currency: Optional[Currency] = None,
     ) -> Union[BarSet, RawData]:
         """Returns bar data for a security or list of securities over a given
         time period and timeframe
@@ -49,10 +53,12 @@ class HistoricalDataClient(RESTClient):
         Args:
             symbol_or_symbols (Union[str, List[str]]): The security or multiple security ticker identifiers
             timeframe (TimeFrame): The period over which the bars should be aggregated. (i.e. 5 Min bars, 1 Day bars)
-            start (datetime): The beginning of the time interval for desired data
+            start (Optional[datetime], optional): The beginning of the time interval for desired data. Defaults to None.
             end (Optional[datetime], optional): The beginning of the time interval for desired data. Defaults to None.
             limit (Optional[int], optional): Upper limit of number of data points to return. Defaults to None.
-
+            adjustment (Optional[Adjustment], optional): The type of corporate action data normalization. Defaults to None.
+            feed (Optional[DataFeed], optional): The equity data feed to retrieve from. Defaults to None.
+            currency (Optional[Currency], optional): The type of fiat currency to display prices in. Defaults to None.
         Returns:
             Union[BarSet, RawData]: The bar data either in raw or wrapped form
         """
@@ -67,6 +73,9 @@ class HistoricalDataClient(RESTClient):
             start=start,
             end=end,
             limit=limit,
+            adjustment=adjustment,
+            feed=feed,
+            currency=currency,
         )
 
         # casting generator type outputted from _data_get to list
@@ -82,18 +91,21 @@ class HistoricalDataClient(RESTClient):
     def get_quotes(
         self,
         symbol_or_symbols: Union[str, List[str]],
-        start: datetime,
+        start: Optional[datetime] = None,
         end: Optional[datetime] = None,
         limit: Optional[int] = None,
+        feed: Optional[DataFeed] = None,
+        currency: Optional[Currency] = None,
     ) -> Union[QuoteSet, RawData]:
         """Returns Quote level 1 data over a given time period for a security or list of securities.
 
         Args:
-            symbol_or_symbols (Union[str, List[str]]): The security or multiple security ticker identifiers
-            start (datetime): The beginning of the time interval for desired data
+            symbol_or_symbols (Union[str, List[str]]): The security or multiple security ticker identifiers.
+            start (Optional[datetime], optional): The beginning of the time interval for desired data. Defaults to None.
             end (Optional[datetime], optional): The beginning of the time interval for desired data. Defaults to None.
             limit (Optional[int], optional): Upper limit of number of data points to return. Defaults to None.
-
+            feed (Optional[DataFeed], optional): The equity data feed to retrieve from. Defaults to None.
+            currency (Optional[Currency], optional): The type of fiat currency to display prices in. Defaults to None.
         Returns:
             Union[QuoteSet, RawData]: The quote data either in raw or wrapped form
         """
@@ -105,6 +117,8 @@ class HistoricalDataClient(RESTClient):
             start=start,
             end=end,
             limit=limit,
+            feed=feed,
+            currency=currency,
         )
 
         # casting generator type outputted from _data_get to list
@@ -190,19 +204,20 @@ class HistoricalDataClient(RESTClient):
         self,
         symbol_or_symbols: Union[str, List[str]],
         timeframe: TimeFrame,
-        start: datetime,
+        start: Optional[datetime] = None,
         end: Optional[datetime] = None,
         limit: Optional[int] = None,
-        exchanges: Optional[List[Exchange]] = [],
+        exchanges: Optional[List[Exchange]] = None,
     ) -> Union[BarSet, RawData]:
         """Gets bar/candle data for a cryptocurrency or list of cryptocurrencies.
 
         Args:
-            symbol_or_symbols (Union[str, List[str]]): The cryptocurrencysecurity or multiple security ticker identifiers
-            timeframe (TimeFrame): _description_
-            start (datetime): _description_
-            end (Optional[datetime], optional): _description_. Defaults to None.
-            limit (Optional[int], optional): _description_. Defaults to None.
+            symbol_or_symbols (Union[str, List[str]]): The cryptocurrency or list of multiple cryptocurrency ticker identifiers.
+            timeframe (TimeFrame): The period over which the bars should be aggregated. (i.e. 5 Min bars, 1 Day bars).
+            start (Optional[datetime], optional): The beginning of the time interval for desired data.
+            end (Optional[datetime], optional): The end of the time interval for desired data. Defaults to None.. Defaults to None.
+            limit (Optional[int], optional): Upper limit of number of data points to return. Defaults to None.. Defaults to None.
+            exchanges (Optional[List[Exchange]]): The crypto exchanges to retrieve bar data from. Defaults to None.
 
         Returns:
             Union[BarSet, RawData]: The crypto bar data either in raw or wrapped form
@@ -237,17 +252,19 @@ class HistoricalDataClient(RESTClient):
     def get_crypto_quotes(
         self,
         symbol_or_symbols: Union[str, List[str]],
-        start: datetime,
+        start: Optional[datetime] = None,
         end: Optional[datetime] = None,
         limit: Optional[int] = None,
+        exchanges: Optional[List[Exchange]] = None,
     ) -> Union[QuoteSet, RawData]:
         """Returns Quote level 1 data over a given time period for a cryptocurrency or list of cryptocurrencies.
 
         Args:
             symbol_or_symbols (Union[str, List[str]]): The security or multiple security ticker identifiers
-            start (datetime): The beginning of the time interval for desired data
+            start (Optional[datetime], optional): The beginning of the time interval for desired data. Defaults to None.
             end (Optional[datetime], optional): The beginning of the time interval for desired data. Defaults to None.
             limit (Optional[int], optional): Upper limit of number of data points to return. Defaults to None.
+            exchanges (Optional[List[Exchange]]): The crypto exchanges to retrieve bar data from. Defaults to None.
 
         Returns:
             Union[QuoteSet, RawData]: The quote data either in raw or wrapped form
@@ -262,6 +279,7 @@ class HistoricalDataClient(RESTClient):
             start=start,
             end=end,
             limit=limit,
+            exchanges=exchanges,
         )
 
         # casting generator type outputted from _data_get to list
@@ -365,7 +383,7 @@ class HistoricalDataClient(RESTClient):
     def _format_data_response(
         self,
         symbol_or_symbols: Union[str, List[str]],
-        raw_data: RawData,
+        raw_data: Union[RawData, List[RawData]],
         model: Type[BaseModel],
         **kwargs,
     ) -> Union[BarSet, RawData]:
@@ -373,7 +391,7 @@ class HistoricalDataClient(RESTClient):
 
         Args:
             symbol_or_symbols (Union[str, List[str]]): The security or multiple security ticker identifiers
-            raw_data (RawData): The data returned by the _data_get method
+            raw_data (Union[RawData, List[RawData]]): The data returned by the API
             model (Type[BaseModel]): The model we want to wrap the data in
 
         Returns:

@@ -1,5 +1,4 @@
 from datetime import datetime
-from sys import api_version
 from typing import List, Optional, Type, Union
 
 from pydantic import BaseModel

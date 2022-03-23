@@ -251,7 +251,7 @@ class Trade(BaseModel):
     Attributes:
         symbol (str): The ticker identifier for the security whose data forms the trade.
         timestamp (datetime): The time of submission of the trade.
-        exchange (Optional[Exchange]): The exchange the trade occurred.
+        exchange (Exchange): The exchange the trade occurred.
         price (float): The price that the transaction occurred at.
         size (float): The quantity traded
         id (int): The trade ID
@@ -261,7 +261,7 @@ class Trade(BaseModel):
 
     symbol: str
     timestamp: datetime
-    exchange: Union[str, Exchange]
+    exchange: Exchange
     price: float
     size: float
     id: int

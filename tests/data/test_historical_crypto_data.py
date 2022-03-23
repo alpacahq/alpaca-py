@@ -4,7 +4,7 @@ import requests_mock
 from alpaca.common.time import TimeFrame
 from alpaca.data.clients import HistoricalDataClient
 from alpaca.data.enums import Exchange
-from alpaca.data.models import BarSet, QuoteSet
+from alpaca.data.models import BarSet, Quote, QuoteSet, Trade, TradeSet
 
 
 @pytest.fixture
@@ -307,3 +307,202 @@ def test_get_crypto_quotes(reqmock, client, raw_client):
     assert raw_quoteset["ETHUSD"][0]["bs"] == 5.46
 
     assert raw_quoteset["ETHUSD"][0]["x"] == "FTXU"
+
+
+def test_get_trades(reqmock, client, raw_client):
+
+    # Test single symbol request
+    symbol = "BTCUSD"
+    start = "2022-03-09"
+    limit = 2
+
+    reqmock.get(
+        f"https://data.alpaca.markets/v1beta1/crypto/{symbol}/trades?start={start}&limit={limit}",
+        text="""
+    {
+        "trades": [
+            {
+            "t": "2022-03-09T06:00:00.059832Z",
+            "x": "CBSE",
+            "p": 41521.33,
+            "s": 0.00024136,
+            "tks": "S",
+            "i": 293648597
+            }
+        ],
+        "symbol": "BTCUSD",
+        "next_page_token": null
+    }  
+        """,
+    )
+
+    tradeset = client.get_crypto_trades(
+        symbol_or_symbols=symbol, start=start, limit=limit
+    )
+
+    assert type(tradeset) == TradeSet
+
+    assert tradeset[symbol][0].price == 41521.33
+    assert tradeset[symbol][0].size == 0.00024136
+
+    assert tradeset[symbol][0].exchange == "CBSE"
+
+    assert tradeset.df.index.nlevels == 1
+    assert tradeset.df.index[0].day == 9
+
+    # raw data client
+    raw_tradeset = raw_client.get_crypto_trades(
+        symbol_or_symbols=symbol, start=start, limit=limit
+    )
+
+    assert type(raw_tradeset) == dict
+
+    assert raw_tradeset[symbol][0]["p"] == 41521.33
+    assert raw_tradeset[symbol][0]["s"] == 0.00024136
+
+    assert raw_tradeset[symbol][0]["x"] == "CBSE"
+
+    # test multisymbol request
+    symbols = ["BTCUSD", "ETHUSD"]
+    start = "2022-03-09"
+    end = "2022-03-09"
+    _symbols_in_url = "%2C".join(s for s in symbols)
+
+    reqmock.get(
+        f"https://data.alpaca.markets/v1beta1/crypto/trades?start={start}&symbols={_symbols_in_url}",
+        text="""
+    {
+        "trades": {
+            "BTCUSD": [
+                {
+                    "t": "2022-03-09T06:00:00.080264Z",
+                    "x": "CBSE",
+                    "p": 41516.08,
+                    "s": 0.00315427,
+                    "tks": "B",
+                    "i": 293648598
+                }
+            ],
+            "ETHUSD": [
+                {
+                    "t": "2022-03-09T06:00:00.228546Z",
+                    "x": "CBSE",
+                    "p": 2715.06,
+                    "s": 0.001,
+                    "tks": "S",
+                    "i": 236866246
+                }
+            ]
+        },
+        "next_page_token": null
+    }   
+        """,
+    )
+    tradeset = client.get_crypto_trades(symbol_or_symbols=symbols, start=start)
+    assert type(tradeset) == TradeSet
+
+    assert tradeset["BTCUSD"][0].price == 41516.08
+    assert tradeset["ETHUSD"][0].size == 0.001
+
+    assert tradeset["BTCUSD"][0].exchange == "CBSE"
+
+    assert tradeset.df.index[0][1].day == 9
+    assert tradeset.df.index.nlevels == 2
+
+    # raw data client
+    raw_tradeset = raw_client.get_crypto_trades(
+        symbol_or_symbols=symbols, start=start, end=end
+    )
+
+    assert type(raw_tradeset) == dict
+
+    assert raw_tradeset["ETHUSD"][0]["p"] == 2715.06
+    assert raw_tradeset["BTCUSD"][0]["s"] == 0.00315427
+
+    assert raw_tradeset["ETHUSD"][0]["x"] == "CBSE"
+
+
+def test_get_crypto_latest_trade(reqmock, client, raw_client):
+
+    # Test single symbol request
+    symbol = "BTCUSD"
+    exchange = Exchange.FTXU
+
+    reqmock.get(
+        f"https://data.alpaca.markets/v1beta1/crypto/{symbol}/trades/latest?exchange=FTXU",
+        text="""
+    {
+        "symbol": "BTCUSD",
+        "trade": {
+            "t": "2022-03-18T14:03:31.960672Z",
+            "x": "FTXU",
+            "p": 40650,
+            "s": 0.1517,
+            "tks": "B",
+            "i": 26932440
+        }
+    } 
+        """,
+    )
+
+    trade = client.get_crypto_latest_trade(symbol=symbol, exchange=exchange)
+
+    assert type(trade) == Trade
+
+    assert trade.price == 40650
+    assert trade.size == 0.1517
+
+    assert trade.exchange == "FTXU"
+
+    # raw data client
+    raw_trade = raw_client.get_crypto_latest_trade(symbol=symbol, exchange=exchange)
+
+    assert type(raw_trade) == dict
+
+    assert raw_trade["tks"] == "B"
+    assert raw_trade["i"] == 26932440
+
+    assert raw_trade["x"] == "FTXU"
+
+
+def test_get_crypto_latest_quote(reqmock, client, raw_client):
+
+    # Test single symbol request
+    symbol = "BTCUSD"
+    exchange = Exchange.FTXU
+
+    reqmock.get(
+        f"https://data.alpaca.markets/v1beta1/crypto/{symbol}/quotes/latest?exchange=FTXU",
+        text="""
+    {
+        "symbol": "BTCUSD",
+        "quote": {
+            "t": "2022-03-18T14:03:13.661518592Z",
+            "x": "FTXU",
+            "bp": 40517.08,
+            "bs": 4.0178,
+            "ap": 40765.93,
+            "as": 1.5516
+        }
+    }
+        """,
+    )
+
+    quote = client.get_crypto_latest_quote(symbol=symbol, exchange=exchange)
+
+    assert type(quote) == Quote
+
+    assert quote.ask_price == 40765.93
+    assert quote.bid_size == 4.0178
+
+    assert quote.exchange == Exchange.FTXU
+
+    # raw data client
+    raw_quote = raw_client.get_crypto_latest_quote(symbol=symbol, exchange=exchange)
+
+    assert type(raw_quote) == dict
+
+    assert raw_quote["bp"] == 40517.08
+    assert raw_quote["as"] == 1.5516
+
+    assert raw_quote["x"] == "FTXU"

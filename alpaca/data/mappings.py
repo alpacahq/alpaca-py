@@ -24,3 +24,13 @@ QUOTE_MAPPING: Dict[str, str] = {
     "z": "tape",
     "x": "exchange",
 }
+
+TRADE_MAPPING: Dict[str, str] = {
+    "t": "timestamp",
+    "p": "price",
+    "s": "size",
+    "x": "exchange",
+    "i": "id",
+    "c": "conditions",
+    "z": "tape",
+}

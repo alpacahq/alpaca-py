@@ -9,7 +9,7 @@ from alpaca.common.time import TimeFrame
 from alpaca.common.types import RawData
 
 from .enums import Adjustment, Currency, DataFeed, Exchange
-from .models import BarSet, QuoteSet
+from .models import BarSet, QuoteSet, Quote, Trade, TradeSet
 
 
 class HistoricalDataClient(RESTClient):
@@ -19,7 +19,7 @@ class HistoricalDataClient(RESTClient):
         secret_key: Optional[str] = None,
         raw_data: bool = False,
     ) -> None:
-        """_summary_
+        """Instantiates a Historical Data Client.
         Args:
         api_key (Optional[str], optional): Alpaca API key. Defaults to None.
         secret_key (Optional[str], optional): Alpaca API secret key. Defaults to None.
@@ -57,6 +57,7 @@ class HistoricalDataClient(RESTClient):
             adjustment (Optional[Adjustment], optional): The type of corporate action data normalization. Defaults to None.
             feed (Optional[DataFeed], optional): The equity data feed to retrieve from. Defaults to None.
             currency (Optional[Currency], optional): The type of fiat currency to display prices in. Defaults to None.
+
         Returns:
             Union[BarSet, RawData]: The bar data either in raw or wrapped form
         """
@@ -104,6 +105,7 @@ class HistoricalDataClient(RESTClient):
             limit (Optional[int], optional): Upper limit of number of data points to return. Defaults to None.
             feed (Optional[DataFeed], optional): The equity data feed to retrieve from. Defaults to None.
             currency (Optional[Currency], optional): The type of fiat currency to display prices in. Defaults to None.
+
         Returns:
             Union[QuoteSet, RawData]: The quote data either in raw or wrapped form
         """
@@ -128,6 +130,82 @@ class HistoricalDataClient(RESTClient):
             model=QuoteSet,
         )
 
+    def get_trades(
+        self,
+        symbol_or_symbols: Union[str, List[str]],
+        start: Optional[datetime] = None,
+        end: Optional[datetime] = None,
+        limit: Optional[int] = None,
+        feed: Optional[DataFeed] = None,
+        currency: Optional[Currency] = None,
+    ) -> Union[TradeSet, RawData]:
+        """Returns the price and sales history over a given time period for a security or list of securities.
+
+        Args:
+            symbol_or_symbols (Union[str, List[str]]): The security or multiple security ticker identifiers
+            start (Optional[datetime], optional): The beginning of the time interval for desired data. Defaults to None.
+            end (Optional[datetime], optional): The beginning of the time interval for desired data. Defaults to None.
+            limit (Optional[int], optional): Upper limit of number of data points to return. Defaults to None.
+            feed (Optional[DataFeed], optional): The equity data feed to retrieve from. Defaults to None.
+            currency (Optional[Currency], optional): The type of fiat currency to display prices in. Defaults to None.
+
+        Returns:
+            Union[TradeSet, RawData]: The trade data either in raw or wrapped form
+        """
+
+        # paginated get request for market data api
+        trades_generator = self._data_get(
+            endpoint="trades",
+            symbol_or_symbols=symbol_or_symbols,
+            start=start,
+            end=end,
+            limit=limit,
+            currency=currency,
+            feed=feed,
+        )
+
+        # casting generator type outputted from _data_get to list
+        raw_trades = list(trades_generator)
+
+        return self._format_data_response(
+            symbol_or_symbols=symbol_or_symbols,
+            raw_data=raw_trades,
+            model=TradeSet,
+        )
+
+    def get_latest_trade(self, symbol: str) -> Union[Trade, RawData]:
+        """Retrieves the latest trade for a equity symbol
+
+        Args:
+            symbol (str): The equity ticker identifier
+
+        Returns:
+            Union[Trade, RawData]: The latest trade in raw or wrapped format
+        """
+        response = self.get(path=f"/stocks/{symbol}/trades/latest")
+
+        raw_latest_trade = response["trade"]
+
+        return self.response_wrapper(
+            model=Trade, raw_data=raw_latest_trade, symbol=symbol
+        )
+
+    def get_latest_quote(self, symbol: str) -> Union[Quote, RawData]:
+        """Retrieves the latest quote for a equity symbol
+
+        Args:
+            symbol (str): The equity ticker identifier
+
+        Returns:
+            Union[Quote, RawData]: The latest quote in raw or wrapped format
+        """
+        response = self.get(path=f"/stocks/{symbol}/quotes/latest")
+        raw_latest_quote = response["quote"]
+
+        return self.response_wrapper(
+            model=Quote, raw_data=raw_latest_quote, symbol=symbol
+        )
+
     def get_crypto_bars(
         self,
         symbol_or_symbols: Union[str, List[str]],
@@ -137,7 +215,7 @@ class HistoricalDataClient(RESTClient):
         limit: Optional[int] = None,
         exchanges: Optional[List[Exchange]] = None,
     ) -> Union[BarSet, RawData]:
-        """Gets bar/candle data for cryptocurrencies.
+        """Gets bar/candle data for a cryptocurrency or list of cryptocurrencies.
 
         Args:
             symbol_or_symbols (Union[str, List[str]]): The cryptocurrency or list of multiple cryptocurrency ticker identifiers.
@@ -185,7 +263,7 @@ class HistoricalDataClient(RESTClient):
         limit: Optional[int] = None,
         exchanges: Optional[List[Exchange]] = None,
     ) -> Union[QuoteSet, RawData]:
-        """Returns Quote level 1 data over a given time period for a security or list of securities.
+        """Returns Quote level 1 data over a given time period for a cryptocurrency or list of cryptocurrencies.
 
         Args:
             symbol_or_symbols (Union[str, List[str]]): The security or multiple security ticker identifiers
@@ -219,12 +297,104 @@ class HistoricalDataClient(RESTClient):
             model=QuoteSet,
         )
 
+    def get_crypto_trades(
+        self,
+        symbol_or_symbols: Union[str, List[str]],
+        start: Optional[datetime] = None,
+        end: Optional[datetime] = None,
+        limit: Optional[int] = None,
+        exchanges: Optional[List[Exchange]] = None,
+    ) -> Union[TradeSet, RawData]:
+        """Returns the price and sales history over a given time period for a cryptocurrency or list of cryptocurrencies.
+
+        Args:
+            symbol_or_symbols (Union[str, List[str]]): The security or multiple security ticker identifiers
+            start (Optional[datetime], optional): The beginning of the time interval for desired data
+            end (Optional[datetime], optional): The beginning of the time interval for desired data. Defaults to None.
+            limit (Optional[int], optional): Upper limit of number of data points to return. Defaults to None.
+            exchanges (Optional[List[Exchange]]): The crypto exchanges to retrieve bar data from. Defaults to None.
+
+        Returns:
+            Union[TradeSet, RawData]: The trade data either in raw or wrapped form
+        """
+
+        # paginated get request for market data api
+        trades_generator = self._data_get(
+            endpoint="trades",
+            endpoint_base="crypto",
+            api_version="v1beta1",
+            symbol_or_symbols=symbol_or_symbols,
+            start=start,
+            end=end,
+            limit=limit,
+            exchanges=exchanges,
+        )
+
+        # casting generator type outputted from _data_get to list
+        raw_trades = list(trades_generator)
+
+        return self._format_data_response(
+            symbol_or_symbols=symbol_or_symbols,
+            raw_data=raw_trades,
+            model=TradeSet,
+        )
+
+    def get_crypto_latest_trade(
+        self, symbol: str, exchange: Exchange
+    ) -> Union[Trade, RawData]:
+        """Returns the latest trade for a coin for a specific exchange
+
+        Args:
+            symbol (str): The ticker symbol for the coin
+            exchange (Exchange): The exchange for the latest trade
+
+        Returns:
+            Union[Trade, RawData]: The latest trade in raw or wrapped format
+        """
+
+        data = {"exchange": exchange}
+
+        response = self.get(
+            path=f"/crypto/{symbol}/trades/latest", data=data, api_version="v1beta1"
+        )
+
+        raw_latest_trade = response["trade"]
+
+        return self.response_wrapper(
+            model=Trade, raw_data=raw_latest_trade, symbol=symbol
+        )
+
+    def get_crypto_latest_quote(
+        self, symbol: str, exchange: Exchange
+    ) -> Union[Quote, RawData]:
+        """Returns the latest quote for a coin for a specific exchange
+
+        Args:
+            symbol (str): The ticker symbol for the coin
+            exchange (Exchange): The exchange for the latest quote
+
+        Returns:
+            Union[Quote, RawData]: The latest quote in raw or wrapped format
+        """
+
+        data = {"exchange": exchange}
+
+        response = self.get(
+            path=f"/crypto/{symbol}/quotes/latest", data=data, api_version="v1beta1"
+        )
+
+        raw_latest_quote = response["quote"]
+
+        return self.response_wrapper(
+            model=Quote, raw_data=raw_latest_quote, symbol=symbol
+        )
+
     def _format_data_response(
         self,
         symbol_or_symbols: Union[str, List[str]],
         raw_data: Union[RawData, List[RawData]],
         model: Type[BaseModel],
-        **kwargs
+        **kwargs,
     ) -> Union[BarSet, RawData]:
         """Formats the response from market data API.
 

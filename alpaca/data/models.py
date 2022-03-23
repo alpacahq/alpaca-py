@@ -330,4 +330,3 @@ class TradeSet(BaseModel, TimeSeriesMixin):
             raise KeyError(f"No key {symbol} was found")
 
         return self.trade_set[symbol]
-

@@ -12,7 +12,6 @@ from .enums import Adjustment, Currency, DataFeed, Exchange
 from .models import BarSet, QuoteSet, Quote, Trade, TradeSet
 
 
-
 class HistoricalDataClient(RESTClient):
     def __init__(
         self,
@@ -20,7 +19,7 @@ class HistoricalDataClient(RESTClient):
         secret_key: Optional[str] = None,
         raw_data: bool = False,
     ) -> None:
-        """_summary_
+        """Instantiates a Historical Data Client.
         Args:
         api_key (Optional[str], optional): Alpaca API key. Defaults to None.
         secret_key (Optional[str], optional): Alpaca API secret key. Defaults to None.
@@ -58,6 +57,7 @@ class HistoricalDataClient(RESTClient):
             adjustment (Optional[Adjustment], optional): The type of corporate action data normalization. Defaults to None.
             feed (Optional[DataFeed], optional): The equity data feed to retrieve from. Defaults to None.
             currency (Optional[Currency], optional): The type of fiat currency to display prices in. Defaults to None.
+
         Returns:
             Union[BarSet, RawData]: The bar data either in raw or wrapped form
         """
@@ -105,6 +105,7 @@ class HistoricalDataClient(RESTClient):
             limit (Optional[int], optional): Upper limit of number of data points to return. Defaults to None.
             feed (Optional[DataFeed], optional): The equity data feed to retrieve from. Defaults to None.
             currency (Optional[Currency], optional): The type of fiat currency to display prices in. Defaults to None.
+
         Returns:
             Union[QuoteSet, RawData]: The quote data either in raw or wrapped form
         """
@@ -132,17 +133,21 @@ class HistoricalDataClient(RESTClient):
     def get_trades(
         self,
         symbol_or_symbols: Union[str, List[str]],
-        start: datetime,
+        start: Optional[datetime] = None,
         end: Optional[datetime] = None,
         limit: Optional[int] = None,
+        feed: Optional[DataFeed] = None,
+        currency: Optional[Currency] = None,
     ) -> Union[TradeSet, RawData]:
         """Returns the price and sales history over a given time period for a security or list of securities.
 
         Args:
             symbol_or_symbols (Union[str, List[str]]): The security or multiple security ticker identifiers
-            start (datetime): The beginning of the time interval for desired data
+            start (Optional[datetime], optional): The beginning of the time interval for desired data. Defaults to None.
             end (Optional[datetime], optional): The beginning of the time interval for desired data. Defaults to None.
             limit (Optional[int], optional): Upper limit of number of data points to return. Defaults to None.
+            feed (Optional[DataFeed], optional): The equity data feed to retrieve from. Defaults to None.
+            currency (Optional[Currency], optional): The type of fiat currency to display prices in. Defaults to None.
 
         Returns:
             Union[TradeSet, RawData]: The trade data either in raw or wrapped form
@@ -155,6 +160,8 @@ class HistoricalDataClient(RESTClient):
             start=start,
             end=end,
             limit=limit,
+            currency=currency,
+            feed=feed,
         )
 
         # casting generator type outputted from _data_get to list
@@ -176,7 +183,7 @@ class HistoricalDataClient(RESTClient):
             Union[Trade, RawData]: The latest trade in raw or wrapped format
         """
         response = self.get(path=f"/stocks/{symbol}/trades/latest")
-        
+
         raw_latest_trade = response["trade"]
 
         return self.response_wrapper(
@@ -293,17 +300,19 @@ class HistoricalDataClient(RESTClient):
     def get_crypto_trades(
         self,
         symbol_or_symbols: Union[str, List[str]],
-        start: datetime,
+        start: Optional[datetime] = None,
         end: Optional[datetime] = None,
         limit: Optional[int] = None,
+        exchanges: Optional[List[Exchange]] = None,
     ) -> Union[TradeSet, RawData]:
         """Returns the price and sales history over a given time period for a cryptocurrency or list of cryptocurrencies.
 
         Args:
             symbol_or_symbols (Union[str, List[str]]): The security or multiple security ticker identifiers
-            start (datetime): The beginning of the time interval for desired data
+            start (Optional[datetime], optional): The beginning of the time interval for desired data
             end (Optional[datetime], optional): The beginning of the time interval for desired data. Defaults to None.
             limit (Optional[int], optional): Upper limit of number of data points to return. Defaults to None.
+            exchanges (Optional[List[Exchange]]): The crypto exchanges to retrieve bar data from. Defaults to None.
 
         Returns:
             Union[TradeSet, RawData]: The trade data either in raw or wrapped form
@@ -318,6 +327,7 @@ class HistoricalDataClient(RESTClient):
             start=start,
             end=end,
             limit=limit,
+            exchanges=exchanges,
         )
 
         # casting generator type outputted from _data_get to list

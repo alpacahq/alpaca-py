@@ -33,7 +33,6 @@ TRADE_MAPPING: Dict[str, str] = {
     "i": "id",
     "c": "conditions",
     "z": "tape",
-    "x": "exchange",
 }
 
 SNAPSHOT_MAPPING: Dict[str, str] = {

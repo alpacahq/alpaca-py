@@ -101,8 +101,8 @@ class BarSet(BaseModel, TimeSeriesMixin):
     Attributes:
         symbols (List[str]): The list of ticker identifiers for the securities whose data forms the set of bars.
         timeframe (TimeFrame): The interval of time price data has been aggregated over.
-        bar_set(Dict[str, List[Bar]]]): The collection of Bars keyed by symbol.
-        raw (Dict[str, List[RawData]): The collection of raw data from the API call keyed by symbol.
+        bar_set(Dict[str, List[Bar]]): The collection of Bars keyed by symbol.
+        raw (Dict[str, List[RawData]]): The collection of raw data from the API call keyed by symbol.
         _key_mapping (Dict[str, str]): The mapping for names of data fields from raw format received from API to data models
     """
 
@@ -139,7 +139,7 @@ class BarSet(BaseModel, TimeSeriesMixin):
         """Gives dictionary-like access to BarSet for multisymbol data
 
         Args:
-            symbol (str): The ticker idenfitier for the desired data
+            symbol (str): The ticker identifier for the desired data
 
         Raises:
             KeyError: Cannot access data for symbol not in BarSet
@@ -160,10 +160,10 @@ class Quote(BaseModel):
         symbol (str): The ticker identifier for the security whose data forms the quote.
         timestamp (datetime): The time of submission of the quote.
         exchange (Optional[Exchange]): The exchange the quote originates. Used when single origin for both ask and bid. Defaults to None.
-        ask_exchange (Optional[str, Exchange]): The exchange the quote ask origginates. Defaults to None.
+        ask_exchange (Optional[str, Exchange]): The exchange the quote ask originates. Defaults to None.
         ask_price (float): The asking price of the quote.
         ask_size (float): The size of the quote ask.
-        bid_exchange (Optional[str, Exchange]): The exchange the quote bid origginates. Defaults to None.
+        bid_exchange (Optional[str, Exchange]): The exchange the quote bid originates. Defaults to None.
         bid_price (float): The bidding price of the quote.
         bid_size (float): The size of the quote bid.
         conditions (Optional[List[str]]): The quote conditions. Defaults to None.
@@ -204,8 +204,8 @@ class QuoteSet(BaseModel, TimeSeriesMixin):
 
     Attributes:
         symbols (List[str]): The list of ticker identifiers for the securities whose data forms the set of quotes.
-        quote_set(Dict[str, List[Quote]]]): The collection of Quotes keyed by symbol.
-        raw (Dict[str, List[RawData]): The collection of raw data from the API call keyed by symbol.
+        quote_set(Dict[str, List[Quote]]): The collection of Quotes keyed by symbol.
+        raw (Dict[str, List[RawData]]): The collection of raw data from the API call keyed by symbol.
         _key_mapping (Dict[str, str]): The mapping for names of data fields from raw format received from API to data models
     """
 
@@ -238,7 +238,7 @@ class QuoteSet(BaseModel, TimeSeriesMixin):
             KeyError: Cannot access data for symbol not in QuoteSet
 
         Returns:
-            List[Bar]: The QuoteSet data for the given symbol
+            List[Quote]: The QuoteSet data for the given symbol
         """
         if symbol not in self.symbols:
             raise KeyError(f"No key {symbol} was found")
@@ -251,21 +251,21 @@ class Trade(BaseModel):
 
     Attributes:
         symbol (str): The ticker identifier for the security whose data forms the trade.
-        timestamp (datetime): The time of submission of the quote.
-        exchange (Optional[Exchange]): The exchange the trade occurred.
+        timestamp (datetime): The time of submission of the trade.
+        exchange (Exchange): The exchange the trade occurred.
         price (float): The price that the transaction occurred at.
         size (float): The quantity traded
-        id (float): The trade ID
+        id (int): The trade ID
         conditions (Optional[List[str]]): The trade conditions. Defaults to None.
         tape (Optional[str]): The trade tape. Defaults to None.
     """
 
     symbol: str
     timestamp: datetime
-    exchange: Union[str, Exchange]
+    exchange: Exchange
     price: float
     size: float
-    id: float
+    id: int
     conditions: Optional[List[str]] = None
     tape: Optional[str] = None
 
@@ -291,8 +291,8 @@ class TradeSet(BaseModel, TimeSeriesMixin):
 
     Attributes:
         symbols (List[str]): The list of ticker identifiers for the securities whose data forms the set of trades.
-        quote_set(Dict[str, List[Trade]]]): The collection of Trades keyed by symbol.
-        raw (Dict[str, List[RawData]): The collection of raw data from the API call keyed by symbol.
+        trade_set(Dict[str, List[Trade]]]): The collection of Trades keyed by symbol.
+        raw (Dict[str, List[RawData]]): The collection of raw data from the API call keyed by symbol.
         _key_mapping (Dict[str, str]): The mapping for names of data fields from raw format received from API to data models
     """
 

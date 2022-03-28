@@ -3,8 +3,8 @@ import requests_mock
 
 from alpaca.common.time import TimeFrame
 from alpaca.data.clients import HistoricalDataClient
-from alpaca.data.models import (BarSet, Quote, QuoteSet, SnapshotSet, Trade,
-                                TradeSet)
+from alpaca.data.enums import Exchange
+from alpaca.data.models import BarSet, Quote, QuoteSet, SnapshotSet, Trade, TradeSet
 
 
 @pytest.fixture
@@ -223,7 +223,6 @@ def test_get_quotes(reqmock, client, raw_client):
     # test multisymbol request
     symbols = ["AAPL", "TSLA"]
     start = "2022-03-09"
-    end = "2022-03-09"
     _symbols_in_url = "%2C".join(s for s in symbols)
 
     reqmock.get(
@@ -344,7 +343,7 @@ def test_get_trades(reqmock, client, raw_client):
     assert tradeset[symbol][0].price == 159.07
     assert tradeset[symbol][0].size == 1
 
-    assert tradeset[symbol][0].exchange == "D"
+    assert tradeset[symbol][0].exchange == Exchange.D
 
     assert tradeset.df.index.nlevels == 1
     assert tradeset.df.index[0].day == 9
@@ -413,7 +412,7 @@ def test_get_trades(reqmock, client, raw_client):
     assert tradeset["AAPL"][0].size == 1
     assert tradeset["TSLA"][0].price == 833
 
-    assert tradeset["AAPL"][0].exchange == "D"
+    assert tradeset["AAPL"][0].exchange == Exchange.D
 
     assert tradeset.df.index[0][1].day == 9
     assert tradeset.df.index.nlevels == 2
@@ -463,7 +462,7 @@ def test_get_latest_trade(reqmock, client, raw_client):
     assert trade.price == 161.2958
     assert trade.size == 100
 
-    assert trade.exchange == "D"
+    assert trade.exchange == Exchange.D
 
     # raw data client
     raw_trade = raw_client.get_latest_trade(symbol=symbol)

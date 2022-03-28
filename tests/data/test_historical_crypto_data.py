@@ -83,7 +83,7 @@ def test_get_crypto_bars(reqmock, client, raw_client):
     assert barset[symbol][0].open == 174
     assert barset[symbol][0].high == 174.84
 
-    assert barset[symbol][0].exchange.value == "FTXU"
+    assert barset[symbol][0].exchange == Exchange.FTXU
 
     assert barset.df.index.nlevels == 1
     assert barset.df.index[0].day == 1
@@ -154,8 +154,8 @@ def test_get_crypto_bars(reqmock, client, raw_client):
     assert barset["BTCUSD"][0].open == 161.51
     assert barset["ETHUSD"][0].low == 832.01
 
-    assert barset["BTCUSD"][0].exchange.value == "CBSE"
-    assert barset["ETHUSD"][0].exchange.value == "ERSX"
+    assert barset["BTCUSD"][0].exchange == Exchange.CBSE
+    assert barset["ETHUSD"][0].exchange == Exchange.ERSX
 
     assert barset.df.index[0][1].day == 9
     assert barset.df.index.nlevels == 2
@@ -215,7 +215,7 @@ def test_get_crypto_quotes(reqmock, client, raw_client):
     assert quoteset[symbol][0].ask_price == 41659.6
     assert quoteset[symbol][0].bid_size == 0.1847
 
-    assert quoteset[symbol][0].exchange.value == "FTXU"
+    assert quoteset[symbol][0].exchange == Exchange.FTXU
 
     assert quoteset.df.index.nlevels == 1
     assert quoteset.df.index[0].day == 9
@@ -291,7 +291,7 @@ def test_get_crypto_quotes(reqmock, client, raw_client):
     assert quoteset["BTCUSD"][0].ask_size == 0.385
     assert quoteset["ETHUSD"][0].bid_price == 2706.95
 
-    assert quoteset["BTCUSD"][0].exchange.value == "FTXU"
+    assert quoteset["BTCUSD"][0].exchange == Exchange.FTXU
 
     assert quoteset.df.index[0][1].day == 9
     assert quoteset.df.index.nlevels == 2
@@ -345,7 +345,7 @@ def test_get_trades(reqmock, client, raw_client):
     assert tradeset[symbol][0].price == 41521.33
     assert tradeset[symbol][0].size == 0.00024136
 
-    assert tradeset[symbol][0].exchange == "CBSE"
+    assert tradeset[symbol][0].exchange == Exchange.CBSE
 
     assert tradeset.df.index.nlevels == 1
     assert tradeset.df.index[0].day == 9
@@ -404,7 +404,7 @@ def test_get_trades(reqmock, client, raw_client):
     assert tradeset["BTCUSD"][0].price == 41516.08
     assert tradeset["ETHUSD"][0].size == 0.001
 
-    assert tradeset["BTCUSD"][0].exchange == "CBSE"
+    assert tradeset["BTCUSD"][0].exchange == Exchange.CBSE
 
     assert tradeset.df.index[0][1].day == 9
     assert tradeset.df.index.nlevels == 2
@@ -452,7 +452,7 @@ def test_get_crypto_latest_trade(reqmock, client, raw_client):
     assert trade.price == 40650
     assert trade.size == 0.1517
 
-    assert trade.exchange == "FTXU"
+    assert trade.exchange == Exchange.FTXU
 
     # raw data client
     raw_trade = raw_client.get_crypto_latest_trade(symbol=symbol, exchange=exchange)

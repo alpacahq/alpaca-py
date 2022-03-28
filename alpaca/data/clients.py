@@ -1,4 +1,5 @@
 from datetime import datetime
+from sys import api_version
 from typing import List, Optional, Type, Union
 
 from pydantic import BaseModel
@@ -222,6 +223,7 @@ class HistoricalDataClient(RESTClient):
 
         raw_snapshots = {}
 
+        # single symbol request
         if isinstance(symbol_or_symbols, str):
 
             raw_snapshot = self.get(
@@ -231,6 +233,7 @@ class HistoricalDataClient(RESTClient):
             raw_snapshots[symbol_or_symbols] = raw_snapshot
             symbol_or_symbols = [symbol_or_symbols]
 
+        # multisymbol request
         else:
             comma_seperated_symbols = ",".join(s for s in symbol_or_symbols)
             raw_snapshots = self.get(
@@ -425,6 +428,50 @@ class HistoricalDataClient(RESTClient):
 
         return self.response_wrapper(
             model=Quote, raw_data=raw_latest_quote, symbol=symbol
+        )
+
+    def get_crypto_snapshot(
+        self, symbol_or_symbols: Union[str, List[str]], exchange: Exchange
+    ) -> Union[SnapshotSet, RawData]:
+        """Returns snapshots of queried crypto symbols. Snapshots contain latest trade, latest quote, latest minute bar,
+        latest daily bar and previous daily bar data for the queried symbols.
+
+        Args:
+            symbol_or_symbols (Union[str, List[str]]): The security or multiple security ticker identifiers
+            exchange (Exchange): The exchange for the latest quote
+
+        Returns:
+            Union[SnapshotSet, RawData]: The snapshot data either in raw or wrapped form
+        """
+
+        raw_snapshots = {}
+
+        # single symbol
+        if isinstance(symbol_or_symbols, str):
+
+            raw_snapshot = self.get(
+                path=f"/crypto/{symbol_or_symbols}/snapshot",
+                api_version="v1beta1",
+                data={"exchange": exchange},
+            )
+
+            raw_snapshots[symbol_or_symbols] = raw_snapshot
+            symbol_or_symbols = [symbol_or_symbols]
+
+        # multisymbol
+        else:
+            comma_seperated_symbols = ",".join(s for s in symbol_or_symbols)
+            raw_snapshots = self.get(
+                path="/crypto/snapshots",
+                api_version="v1beta1",
+                data={"symbols": comma_seperated_symbols, "exchange": exchange},
+            )
+
+        # casting generator type outputted from _data_get to list
+        return self.response_wrapper(
+            model=SnapshotSet,
+            raw_data=raw_snapshots,
+            symbols=symbol_or_symbols,
         )
 
     def _format_data_response(

@@ -4,7 +4,7 @@ import requests_mock
 from alpaca.common.time import TimeFrame
 from alpaca.data.clients import HistoricalDataClient
 from alpaca.data.enums import Exchange
-from alpaca.data.models import BarSet, Quote, QuoteSet, Trade, TradeSet
+from alpaca.data.models import BarSet, Quote, QuoteSet, SnapshotSet, Trade, TradeSet
 
 
 @pytest.fixture
@@ -506,3 +506,231 @@ def test_get_crypto_latest_quote(reqmock, client, raw_client):
     assert raw_quote["as"] == 1.5516
 
     assert raw_quote["x"] == "FTXU"
+
+
+def test_crypto_get_snapshot(reqmock, client, raw_client):
+
+    # Test single symbol request
+    symbol = "BTCUSD"
+    exchange = Exchange.CBSE
+    reqmock.get(
+        f"https://data.alpaca.markets/v1beta1/crypto/{symbol}/snapshot?exchange={exchange}",
+        text="""
+    {
+        "symbol": "BTCUSD",
+        "latestTrade": {
+            "t": "2022-03-28T17:27:57.794134Z",
+            "x": "CBSE",
+            "p": 47458.69,
+            "s": 0.00008231,
+            "tks": "S",
+            "i": 304771804
+        },
+        "latestQuote": {
+            "t": "2022-03-28T17:27:42.591Z",
+            "x": "CBSE",
+            "bp": 47466.1,
+            "bs": 0.001,
+            "ap": 47467.49,
+            "as": 0.001197
+        },
+        "minuteBar": {
+            "t": "2022-03-28T17:26:00Z",
+            "x": "CBSE",
+            "o": 47431.48,
+            "h": 47449.87,
+            "l": 47418.34,
+            "c": 47447.73,
+            "v": 3.28432365,
+            "n": 472,
+            "vw": 47436.1727214804
+        },
+        "dailyBar": {
+            "t": "2022-03-28T05:00:00Z",
+            "x": "CBSE",
+            "o": 47149.3,
+            "h": 47900,
+            "l": 46770.7,
+            "c": 47447.73,
+            "v": 8720.15520728,
+            "n": 345005,
+            "vw": 47383.1123162664
+        },
+        "prevDailyBar": {
+            "t": "2022-03-27T05:00:00Z",
+            "x": "CBSE",
+            "o": 44598.44,
+            "h": 47694,
+            "l": 44437.22,
+            "c": 47148.98,
+            "v": 12278.6017929,
+            "n": 559695,
+            "vw": 46041.2023793348
+        }
+    }        
+    """,
+    )
+
+    snapshot = client.get_crypto_snapshot(symbol_or_symbols=symbol, exchange=exchange)
+
+    assert type(snapshot) == SnapshotSet
+
+    assert snapshot[symbol].latest_trade.price == 47458.69
+    assert snapshot[symbol].latest_quote.bid_size == 0.001
+    assert snapshot[symbol].minute_bar.close == 47447.73
+    assert snapshot[symbol].daily_bar.volume == 8720.15520728
+    assert snapshot[symbol].previous_daily_bar.high == 47694
+
+    # raw data client
+    raw_snapshot = raw_client.get_crypto_snapshot(
+        symbol_or_symbols=symbol, exchange=exchange
+    )
+
+    assert type(raw_snapshot) == dict
+
+    assert raw_snapshot[symbol]["latestTrade"]["p"] == 47458.69
+    assert raw_snapshot[symbol]["latestQuote"]["bs"] == 0.001
+    assert raw_snapshot[symbol]["minuteBar"]["c"] == 47447.73
+    assert raw_snapshot[symbol]["dailyBar"]["v"] == 8720.15520728
+    assert raw_snapshot[symbol]["prevDailyBar"]["h"] == 47694
+
+    # test multisymbol request
+    symbols = ["BTCUSD", "ETHUSD"]
+
+    _symbols_in_url = "%2C".join(s for s in symbols)
+
+    reqmock.get(
+        f"https://data.alpaca.markets/v1beta1/crypto/snapshots?symbols={_symbols_in_url}&exchange={exchange}",
+        text="""
+    {
+        "snapshots": {
+            "ETHUSD": {
+                "latestTrade": {
+                    "t": "2022-03-28T17:33:20.180926Z",
+                    "x": "CBSE",
+                    "p": 3373.04,
+                    "s": 0.2436732,
+                    "tks": "S",
+                    "i": 247644006
+                },
+                "latestQuote": {
+                    "t": "2022-03-28T17:32:30.318Z",
+                    "x": "CBSE",
+                    "bp": 3374.33,
+                    "bs": 0.001,
+                    "ap": 3374.34,
+                    "as": 0.001
+                },
+                "minuteBar": {
+                    "t": "2022-03-28T17:32:00Z",
+                    "x": "CBSE",
+                    "o": 3368.5,
+                    "h": 3376.31,
+                    "l": 3366.76,
+                    "c": 3374.07,
+                    "v": 907.81905184,
+                    "n": 1149,
+                    "vw": 3372.4441210299
+                },
+                "dailyBar": {
+                    "t": "2022-03-28T05:00:00Z",
+                    "x": "CBSE",
+                    "o": 3319.63,
+                    "h": 3402.17,
+                    "l": 3305,
+                    "c": 3374.07,
+                    "v": 112120.6572392,
+                    "n": 382244,
+                    "vw": 3353.1926442533
+                },
+                "prevDailyBar": {
+                    "t": "2022-03-27T05:00:00Z",
+                    "x": "CBSE",
+                    "o": 3140.35,
+                    "h": 3328.83,
+                    "l": 3127.74,
+                    "c": 3319.46,
+                    "v": 143163.68434276,
+                    "n": 493112,
+                    "vw": 3240.5911005308
+                }
+            },
+            "BTCUSD": {
+                "latestTrade": {
+                    "t": "2022-03-28T17:33:20.19842Z",
+                    "x": "CBSE",
+                    "p": 47537.64,
+                    "s": 0.00023096,
+                    "tks": "B",
+                    "i": 304775291
+                },
+                "latestQuote": {
+                    "t": "2022-03-28T17:32:30.824Z",
+                    "x": "CBSE",
+                    "bp": 47530.99,
+                    "bs": 1.65666998,
+                    "ap": 47531.66,
+                    "as": 0.00209349
+                },
+                "minuteBar": {
+                    "t": "2022-03-28T17:32:00Z",
+                    "x": "CBSE",
+                    "o": 47494.71,
+                    "h": 47542.23,
+                    "l": 47471.56,
+                    "c": 47532.2,
+                    "v": 41.34429609,
+                    "n": 873,
+                    "vw": 47515.679114746
+                },
+                "dailyBar": {
+                    "t": "2022-03-28T05:00:00Z",
+                    "x": "CBSE",
+                    "o": 47149.3,
+                    "h": 47900,
+                    "l": 46770.7,
+                    "c": 47532.2,
+                    "v": 8888.08292165,
+                    "n": 348798,
+                    "vw": 47385.1549250663
+                },
+                "prevDailyBar": {
+                    "t": "2022-03-27T05:00:00Z",
+                    "x": "CBSE",
+                    "o": 44598.44,
+                    "h": 47694,
+                    "l": 44437.22,
+                    "c": 47148.98,
+                    "v": 12278.6017929,
+                    "n": 559695,
+                    "vw": 46041.2023793348
+                }
+            }
+        }
+    }  
+        """,
+    )
+    snapshots = client.get_crypto_snapshot(symbol_or_symbols=symbols, exchange=exchange)
+
+    assert type(snapshot) == SnapshotSet
+
+    assert snapshots["ETHUSD"].latest_trade.price == 3373.04
+    assert snapshots["ETHUSD"].latest_quote.bid_size == 0.001
+    assert snapshots["ETHUSD"].daily_bar.low == 3305
+    assert snapshots["BTCUSD"].minute_bar.close == 47532.2
+    assert snapshots["BTCUSD"].daily_bar.volume == 8888.08292165
+    assert snapshots["BTCUSD"].previous_daily_bar.high == 47694
+
+    # raw data client
+    raw_snapshots = raw_client.get_crypto_snapshot(
+        symbol_or_symbols=symbols, exchange=exchange
+    )
+
+    assert type(raw_snapshot) == dict
+
+    assert raw_snapshots["ETHUSD"]["latestTrade"]["p"] == 3373.04
+    assert raw_snapshots["ETHUSD"]["latestQuote"]["bs"] == 0.001
+    assert raw_snapshots["ETHUSD"]["dailyBar"]["l"] == 3305
+    assert raw_snapshots["BTCUSD"]["minuteBar"]["c"] == 47532.2
+    assert raw_snapshots["BTCUSD"]["dailyBar"]["v"] == 8888.08292165
+    assert raw_snapshots["BTCUSD"]["prevDailyBar"]["h"] == 47694

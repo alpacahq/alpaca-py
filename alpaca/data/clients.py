@@ -486,6 +486,37 @@ class HistoricalDataClient(RESTClient):
             symbols=symbol_or_symbols,
         )
 
+    def get_crypto_xbbo(
+        self, symbol: str, exchanges: Optional[List[Exchange]] = None
+    ) -> Union[Quote, RawData]:
+        """Returns the Best Bid and Offer across multiple crypto exchanges.
+
+        Args:
+            symbol (str): The ticker identifier for the cryptocurrency
+            exchanges (Optional[List[Exchange]], optional): The exchanges to query across for the best bid and offer. Defaults to None.
+
+        Returns:
+            Union[Quote, RawData]: The raw XBBO data or the XBBO parsed in Quote model.
+        """
+
+        data = {}
+
+        if exchanges:
+            _exchanges_comma_separated = ",".join(s.value for s in exchanges)
+
+            data["exchanges"] = _exchanges_comma_separated
+
+        response = self.get(
+            path=f"/crypto/{symbol}/xbbo/latest", data=data, api_version="v1beta1"
+        )
+
+        raw_latest_xbbo = response["xbbo"]
+
+        # XBBO is a quote
+        return self.response_wrapper(
+            model=Quote, raw_data=raw_latest_xbbo, symbol=symbol
+        )
+
     def _format_data_response(
         self,
         symbol_or_symbols: Union[str, List[str]],

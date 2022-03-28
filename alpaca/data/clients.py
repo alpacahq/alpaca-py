@@ -476,6 +476,8 @@ class HistoricalDataClient(RESTClient):
                 api_version="v1beta1",
                 data={"symbols": comma_seperated_symbols, "exchange": exchange},
             )
+            # crypto multisymbol snapshot endpoint has an extra "snapshots" key that contains the data
+            raw_snapshots = raw_snapshots["snapshots"]
 
         # casting generator type outputted from _data_get to list
         return self.response_wrapper(

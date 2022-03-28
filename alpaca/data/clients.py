@@ -210,12 +210,16 @@ class HistoricalDataClient(RESTClient):
     def get_snapshot(
         self,
         symbol_or_symbols: Union[str, List[str]],
+        feed: Optional[DataFeed] = None,
+        currency: Optional[Currency] = None,
     ) -> Union[SnapshotSet, RawData]:
         """Returns snapshots of queried symbols. Snapshots contain latest trade, latest quote, latest minute bar,
         latest daily bar and previous daily bar data for the queried symbols.
 
         Args:
             symbol_or_symbols (Union[str, List[str]]): The security or multiple security ticker identifiers
+            feed (Optional[DataFeed], optional): The equity data feed to retrieve from. Defaults to None.
+            currency (Optional[Currency], optional): The type of fiat currency to display prices in. Defaults to None.
 
         Returns:
             Union[SnapshotSet, RawData]: The snapshot data either in raw or wrapped form
@@ -228,6 +232,7 @@ class HistoricalDataClient(RESTClient):
 
             raw_snapshot = self.get(
                 path=f"/stocks/{symbol_or_symbols}/snapshot",
+                data={"feed": feed, "currency": currency},
             )
 
             raw_snapshots[symbol_or_symbols] = raw_snapshot
@@ -237,7 +242,12 @@ class HistoricalDataClient(RESTClient):
         else:
             comma_seperated_symbols = ",".join(s for s in symbol_or_symbols)
             raw_snapshots = self.get(
-                path="/stocks/snapshots", data={"symbols": comma_seperated_symbols}
+                path="/stocks/snapshots",
+                data={
+                    "symbols": comma_seperated_symbols,
+                    "feed": feed,
+                    "currency": currency,
+                },
             )
 
         # casting generator type outputted from _data_get to list

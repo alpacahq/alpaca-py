@@ -1,6 +1,6 @@
 name: Run Tests and other CI Steps
 
-on: [push, pull_request]
+on: [push]
 
 jobs:
   tests-ci:

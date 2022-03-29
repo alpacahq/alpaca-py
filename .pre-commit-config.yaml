@@ -15,3 +15,4 @@ repos:
         language: system
         entry: "poetry run black --check alpaca/ tests/"
         pass_filenames: false
+        always_run: true

@@ -22,16 +22,5 @@ jobs:
           poetry-version: ${{ matrix.poetry-version }}
       - name: Poetry install and run tests
         run: poetry install && poetry run pytest
-  lint-check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        with:
-          python-version: 3.8
-      - name: setup poetry
-        uses: abatilo/actions-poetry@v2.0.0
-        with:
-          poetry-version: 1.1.13
-      - name: Poetry install and run tests
-        run: poetry install && poetry run black --check alpaca/ tests/
+      - name: run lint checks
+        run: poetry run black --check alpaca/ tests/

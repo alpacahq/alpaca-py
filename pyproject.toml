@@ -19,7 +19,6 @@ pytest = "^5.2"
 requests-mock = "^1.9.3"
 black = "^22.1.0"
 isort = "^5.10.1"
-flake8 = "^4.0.1"
 pre-commit = "^2.17.0"
 
 [build-system]

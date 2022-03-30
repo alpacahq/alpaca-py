@@ -1,4 +1,3 @@
-
 class APIError(Exception):
     """
     Represent API related error.
@@ -6,18 +5,18 @@ class APIError(Exception):
     """
 
     def __init__(self, error, http_error=None):
-        super().__init__(error['message'])
+        super().__init__(error["message"])
         self._error = error
         self._http_error = http_error
 
     @property
     def code(self):
-        return self._error['code']
+        return self._error["code"]
 
     @property
     def status_code(self):
         http_error = self._http_error
-        if http_error is not None and hasattr(http_error, 'response'):
+        if http_error is not None and hasattr(http_error, "response"):
             return http_error.response.status_code
 
     @property
@@ -30,8 +29,8 @@ class APIError(Exception):
         if self._http_error is not None:
             return self._http_error.response
 
-class RetryException(Exception):
-    """Request 
-    """
-    pass
 
+class RetryException(Exception):
+    """Request"""
+
+    pass

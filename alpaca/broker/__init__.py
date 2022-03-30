@@ -1,2 +1,2 @@
 from .client import BrokerClient
-from .enums import AccountStatus 
+from .enums import AccountStatus

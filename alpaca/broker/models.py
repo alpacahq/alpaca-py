@@ -2,8 +2,15 @@ from typing import List, Optional
 
 from pydantic import BaseModel, parse_obj_as, validator
 
-from .enums import (AccountStatus, AgreementType, DocumentType,
-                    EmploymentStatus, FundingSource, TaxIdType, VisaType)
+from .enums import (
+    AccountStatus,
+    AgreementType,
+    DocumentType,
+    EmploymentStatus,
+    FundingSource,
+    TaxIdType,
+    VisaType,
+)
 
 
 class Contact(BaseModel):
@@ -99,6 +106,7 @@ class Identity(BaseModel):
     total_net_worth_min: Optional[float] = None
     total_net_worth_max: Optional[float] = None
 
+
 class Disclosures(BaseModel):
     """User disclosures within Account Model
 
@@ -123,6 +131,7 @@ class Disclosures(BaseModel):
     employer_name: Optional[str] = None
     employer_address: Optional[str] = None
     employment_position: Optional[str] = None
+
 
 class Agreement(BaseModel):
     """User agreements signed within Account Model
@@ -214,7 +223,7 @@ class TrustedContact(BaseModel):
 
 class Account(BaseModel):
     """Contains information pertaining to a specific brokerage account
-    
+
     see https://alpaca.markets/docs/broker/api-references/accounts/accounts/#the-account-model
 
     Attributes:
@@ -249,30 +258,32 @@ class Account(BaseModel):
 
     def __init__(self, **response):
 
-        contact = parse_obj_as(Contact, response['contact'])
-        identity = parse_obj_as(Identity, response['identity'])
-        disclosures = parse_obj_as(Disclosures, response['disclosures'])
-        agreements = parse_obj_as(List[Agreement], response['agreements'])
+        contact = parse_obj_as(Contact, response["contact"])
+        identity = parse_obj_as(Identity, response["identity"])
+        disclosures = parse_obj_as(Disclosures, response["disclosures"])
+        agreements = parse_obj_as(List[Agreement], response["agreements"])
 
-        id = response['id']
-        account_number = response['account_number']
-        status = response['status']
-        crypto_status = response['crypto_status']
-        currency = response['currency']
-        last_equity = response['last_equity']
-        created_at = response['created_at']
+        id = response["id"]
+        account_number = response["account_number"]
+        status = response["status"]
+        crypto_status = response["crypto_status"]
+        currency = response["currency"]
+        last_equity = response["last_equity"]
+        created_at = response["created_at"]
 
-        super().__init__(id=id,
-                        account_number=account_number,
-                        status=status,
-                        crypto_status=crypto_status,
-                        currency=currency, 
-                        last_equity=last_equity, 
-                        created_at=created_at, 
-                        contact=contact, 
-                        identity=identity, 
-                        disclosures=disclosures,
-                        agreements=agreements)
+        super().__init__(
+            id=id,
+            account_number=account_number,
+            status=status,
+            crypto_status=crypto_status,
+            currency=currency,
+            last_equity=last_equity,
+            created_at=created_at,
+            contact=contact,
+            identity=identity,
+            disclosures=disclosures,
+            agreements=agreements,
+        )
 
 
 class AccountCreationRequest(BaseModel):

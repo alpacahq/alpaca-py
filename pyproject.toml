@@ -1,13 +1,14 @@
 [tool.poetry]
 name = "alpaca-py"
 version = "0.1.0"
-description = ""
-authors = ["Your Name <you@example.com>"]
+description = "The new official Python SDK for the https://alpaca.markets/ API"
+authors = [
+    "Rahul Chowdhury <rahul.chowdhury@alpaca.markets>",
+    "Andrew Mcdonald Притула <andrew.mcdonald@alpaca.markets>"
+]
 
 [tool.poetry.dependencies]
 python = "^3.8.0"
-black = "^22.1.0"
-isort = "^5.10.1"
 requests = "^2.27.1"
 furo = "^2022.2.14"
 pydantic = "^1.9.0"
@@ -16,6 +17,9 @@ pandas = "^1.4.1"
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
 requests-mock = "^1.9.3"
+black = "^22.1.0"
+isort = "^5.10.1"
+pre-commit = "^2.17.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

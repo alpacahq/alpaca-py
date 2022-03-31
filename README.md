@@ -1,4 +1,4 @@
-# alpaca-py-research
+# AlpacaPy
 
 
 ### Dev setup

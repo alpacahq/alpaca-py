@@ -6,6 +6,17 @@ Welcome to alpaca-py's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   data
+   
+   getting_started
+   market_data
+   trade
    broker
+   api_reference/index
 
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`

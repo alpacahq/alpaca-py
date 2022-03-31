@@ -2,7 +2,10 @@
    :maxdepth: 2
    :caption: Contents:
 
-Broker API
-==========
+Trade API
+=========
 
-Coming soon!
+Coming Soon!
+
+
+

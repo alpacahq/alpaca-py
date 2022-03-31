@@ -9,8 +9,7 @@ from alpaca.common.time import TimeFrame
 from alpaca.common.types import RawData
 
 from .enums import Exchange
-from .mappings import (BAR_MAPPING, QUOTE_MAPPING, SNAPSHOT_MAPPING,
-                       TRADE_MAPPING)
+from .mappings import BAR_MAPPING, QUOTE_MAPPING, SNAPSHOT_MAPPING, TRADE_MAPPING
 
 
 class TimeSeriesMixin:

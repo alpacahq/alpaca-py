@@ -8,7 +8,8 @@ Market Data Models
 Bar
 ---
 
-A bar is a unit of aggregrated price data of a defined interval of time. 
+A bar is a unit of aggregrated price data of a defined interval of time. Bars, also known as candlesticks, contain
+open, high, low, close, volume (OHLCV) information.
 
 .. autoclass:: alpaca.data.models.Bar
    :members:
@@ -16,7 +17,7 @@ A bar is a unit of aggregrated price data of a defined interval of time.
 BarSet
 ------
 
-A collection of Bars keyed by Symbol. Barset
+A dictionary of Bars keyed by string valued symbol identifiers. See Bar. 
 
 .. autoclass:: alpaca.data.models.BarSet
    :members:
@@ -25,18 +26,17 @@ A collection of Bars keyed by Symbol. Barset
 Quote
 -----
 
-A bar is a unit of aggregrated price data of a defined interval of time. 
+A quote is a level 1 best bid and offer. Quotes can be across exchanges or for a single exchange. Quotes contain a bid
+an ask, each with a price and size.
 
 .. autoclass:: alpaca.data.models.Quote
    :members:
 
 
-
-
 QuoteSet
 --------
 
-A bar is a unit of aggregrated price data of a defined interval of time. 
+A dictionary of Quotes keyed by string valued symbol identifiers. See Quote. 
 
 .. autoclass:: alpaca.data.models.QuoteSet
    :members:
@@ -45,7 +45,7 @@ A bar is a unit of aggregrated price data of a defined interval of time.
 Trade
 -----
 
-A bar is a unit of aggregrated price data of a defined interval of time. 
+A Trade is a transaction that has occurred on an exchange. 
 
 .. autoclass:: alpaca.data.models.Trade
    :members:
@@ -54,7 +54,7 @@ A bar is a unit of aggregrated price data of a defined interval of time.
 TradeSet
 --------
 
-A bar is a unit of aggregrated price data of a defined interval of time. 
+A dictionary of Trades keyed by string valued symbol identifiers. See Trade. 
 
 .. autoclass:: alpaca.data.models.TradeSet
    :members:

@@ -9,7 +9,7 @@ from alpaca.common.time import TimeFrame
 from alpaca.common.types import RawData
 
 from .enums import Adjustment, Currency, DataFeed, Exchange
-from .models import BarSet, Quote, QuoteSet, SnapshotSet, Trade, TradeSet
+from .models import XBBO, BarSet, Quote, QuoteSet, SnapshotSet, Trade, TradeSet
 
 
 class HistoricalDataClient(RESTClient):
@@ -487,7 +487,7 @@ class HistoricalDataClient(RESTClient):
 
     def get_crypto_xbbo(
         self, symbol: str, exchanges: Optional[List[Exchange]] = None
-    ) -> Union[Quote, RawData]:
+    ) -> Union[XBBO, RawData]:
         """Returns the Best Bid and Offer across multiple crypto exchanges.
 
         Args:
@@ -495,7 +495,7 @@ class HistoricalDataClient(RESTClient):
             exchanges (Optional[List[Exchange]], optional): The exchanges to query across for the best bid and offer. Defaults to None.
 
         Returns:
-            Union[Quote, RawData]: The raw XBBO data or the XBBO parsed in Quote model.
+            Union[XBBO, RawData]: The raw or parsed XBBO data.
         """
 
         data = {}
@@ -511,9 +511,8 @@ class HistoricalDataClient(RESTClient):
 
         raw_latest_xbbo = response["xbbo"]
 
-        # XBBO is a quote
         return self.response_wrapper(
-            model=Quote, raw_data=raw_latest_xbbo, symbol=symbol
+            model=XBBO, raw_data=raw_latest_xbbo, symbol=symbol
         )
 
     def _format_data_response(

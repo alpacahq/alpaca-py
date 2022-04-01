@@ -9,7 +9,13 @@ from alpaca.common.time import TimeFrame
 from alpaca.common.types import RawData
 
 from .enums import Exchange
-from .mappings import BAR_MAPPING, QUOTE_MAPPING, SNAPSHOT_MAPPING, TRADE_MAPPING
+from .mappings import (
+    BAR_MAPPING,
+    QUOTE_MAPPING,
+    SNAPSHOT_MAPPING,
+    TRADE_MAPPING,
+    XBBO_MAPPING,
+)
 
 
 class TimeSeriesMixin:
@@ -416,3 +422,44 @@ class SnapshotSet(BaseModel):
             raise KeyError(f"No key {symbol} was found")
 
         return self.snapshot_set[symbol]
+
+
+class XBBO(BaseModel):
+    """Exchange Best Bid and Offer (XBBO). The best bid and offer across multiple exchanges. The best bid and offer are returned as a
+    level 1 quote, containing information about quote size and quote origin exchange.
+
+    Attributes:
+        symbol (str): The ticker identifier for the security.
+        timestamp (datetime): The timestamp of the XBBO.
+        ask_exchange (Exchange): The exchange the ask originates. Defaults to None.
+        ask_price (float): The best asking price.
+        ask_size (float): The size of the ask.
+        bid_exchange (Exchange): The exchange the bid originates. Defaults to None.
+        bid_price (float): The best bidding price.
+        bid_size (float): The size of the bid.
+    """
+
+    symbol: str
+    timestamp: datetime
+    ask_exchange: Exchange
+    ask_price: float
+    ask_size: float
+    bid_exchange: Exchange
+    bid_price: float
+    bid_size: float
+
+    def __init__(self, symbol: str, raw_data: RawData) -> None:
+        """Instantiates an exchange best bid and offer (XBBO) data point
+
+        Args:
+            symbol (str): The security identifer for the quote
+            raw_data (RawData): The XBBO data as received by API
+        """
+
+        mapped_xbbo = {
+            XBBO_MAPPING.get(key): val
+            for key, val in raw_data.items()
+            if key in XBBO_MAPPING
+        }
+
+        super().__init__(symbol=symbol, **mapped_xbbo)

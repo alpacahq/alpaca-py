@@ -4,7 +4,15 @@ import requests_mock
 from alpaca.common.time import TimeFrame
 from alpaca.data.clients import HistoricalDataClient
 from alpaca.data.enums import Exchange
-from alpaca.data.models import BarSet, Quote, QuoteSet, SnapshotSet, Trade, TradeSet
+from alpaca.data.models import (
+    XBBO,
+    BarSet,
+    Quote,
+    QuoteSet,
+    SnapshotSet,
+    Trade,
+    TradeSet,
+)
 
 
 @pytest.fixture
@@ -763,13 +771,13 @@ def test_get_crypto_xbbo(reqmock, client, raw_client):
 
     xbbo = client.get_crypto_xbbo(symbol=symbol, exchanges=exchanges)
 
-    assert type(xbbo) == Quote
+    assert type(xbbo) == XBBO
 
     assert xbbo.ask_price == 47726
     assert xbbo.bid_size == 0.001
 
-    assert xbbo.ask_exchange == Exchange.FTXU.value
-    assert xbbo.bid_exchange == Exchange.CBSE.value
+    assert xbbo.ask_exchange == Exchange.FTXU
+    assert xbbo.bid_exchange == Exchange.CBSE
 
     # raw data client
     raw_xbbo = raw_client.get_crypto_xbbo(symbol=symbol, exchanges=exchanges)

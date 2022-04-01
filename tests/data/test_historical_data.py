@@ -3,7 +3,8 @@ import requests_mock
 
 from alpaca.common.time import TimeFrame
 from alpaca.data.clients import HistoricalDataClient
-from alpaca.data.models import BarSet, Quote, QuoteSet, Trade, TradeSet
+from alpaca.data.enums import Exchange
+from alpaca.data.models import BarSet, Quote, QuoteSet, SnapshotSet, Trade, TradeSet
 
 
 @pytest.fixture
@@ -222,7 +223,6 @@ def test_get_quotes(reqmock, client, raw_client):
     # test multisymbol request
     symbols = ["AAPL", "TSLA"]
     start = "2022-03-09"
-    end = "2022-03-09"
     _symbols_in_url = "%2C".join(s for s in symbols)
 
     reqmock.get(
@@ -343,7 +343,7 @@ def test_get_trades(reqmock, client, raw_client):
     assert tradeset[symbol][0].price == 159.07
     assert tradeset[symbol][0].size == 1
 
-    assert tradeset[symbol][0].exchange == "D"
+    assert tradeset[symbol][0].exchange == Exchange.D
 
     assert tradeset.df.index.nlevels == 1
     assert tradeset.df.index[0].day == 9
@@ -412,7 +412,7 @@ def test_get_trades(reqmock, client, raw_client):
     assert tradeset["AAPL"][0].size == 1
     assert tradeset["TSLA"][0].price == 833
 
-    assert tradeset["AAPL"][0].exchange == "D"
+    assert tradeset["AAPL"][0].exchange == Exchange.D
 
     assert tradeset.df.index[0][1].day == 9
     assert tradeset.df.index.nlevels == 2
@@ -462,7 +462,7 @@ def test_get_latest_trade(reqmock, client, raw_client):
     assert trade.price == 161.2958
     assert trade.size == 100
 
-    assert trade.exchange == "D"
+    assert trade.exchange == Exchange.D
 
     # raw data client
     raw_trade = raw_client.get_latest_trade(symbol=symbol)
@@ -520,3 +520,242 @@ def test_get_latest_quote(reqmock, client, raw_client):
     assert raw_quote["as"] == 13
 
     assert raw_quote["ax"] == "P"
+
+
+def test_get_snapshot(reqmock, client, raw_client):
+
+    # Test single symbol request
+    symbol = "AAPL"
+
+    reqmock.get(
+        f"https://data.alpaca.markets/v2/stocks/{symbol}/snapshot",
+        text="""
+    {
+        "symbol": "AAPL",
+        "latestTrade": {
+            "t": "2022-03-18T14:33:58.448432206Z",
+            "x": "D",
+            "p": 161.1998,
+            "s": 200,
+            "c": [
+                "@"
+            ],
+            "i": 39884,
+            "z": "C"
+        },
+        "latestQuote": {
+            "t": "2022-03-18T14:33:58.547942Z",
+            "ax": "K",
+            "ap": 161.2,
+            "as": 2,
+            "bx": "K",
+            "bp": 161.19,
+            "bs": 5,
+            "c": [
+                "R"
+            ],
+            "z": "C"
+        },
+        "minuteBar": {
+            "t": "2022-03-18T14:32:00Z",
+            "o": 161.595,
+            "h": 161.63,
+            "l": 161.31,
+            "c": 161.365,
+            "v": 195503,
+            "n": 1880,
+            "vw": 161.448073
+        },
+        "dailyBar": {
+            "t": "2022-03-18T04:00:00Z",
+            "o": 160.59,
+            "h": 161.92,
+            "l": 159.76,
+            "c": 161.365,
+            "v": 31749988,
+            "n": 186143,
+            "vw": 160.683364
+        },
+        "prevDailyBar": {
+            "t": "2022-03-17T04:00:00Z",
+            "o": 158.6,
+            "h": 161,
+            "l": 157.63,
+            "c": 160.62,
+            "v": 73839892,
+            "n": 609067,
+            "vw": 159.425082
+        }
+    }  
+        """,
+    )
+
+    snapshot = client.get_snapshot(symbol_or_symbols=symbol)
+
+    assert type(snapshot) == SnapshotSet
+
+    assert snapshot[symbol].latest_trade.price == 161.1998
+    assert snapshot[symbol].latest_quote.bid_size == 5
+    assert snapshot[symbol].minute_bar.close == 161.365
+    assert snapshot[symbol].daily_bar.volume == 31749988
+    assert snapshot[symbol].previous_daily_bar.high == 161
+
+    # raw data client
+    raw_snapshot = raw_client.get_snapshot(symbol_or_symbols=symbol)
+
+    assert type(raw_snapshot) == dict
+
+    assert raw_snapshot[symbol]["latestTrade"]["p"] == 161.1998
+    assert raw_snapshot[symbol]["latestQuote"]["bs"] == 5
+    assert raw_snapshot[symbol]["minuteBar"]["c"] == 161.365
+    assert raw_snapshot[symbol]["dailyBar"]["v"] == 31749988
+    assert raw_snapshot[symbol]["prevDailyBar"]["h"] == 161
+
+    # test multisymbol request
+    symbols = ["AAPL", "QQQ"]
+
+    _symbols_in_url = "%2C".join(s for s in symbols)
+
+    reqmock.get(
+        f"https://data.alpaca.markets/v2/stocks/snapshots?symbols={_symbols_in_url}",
+        text="""
+    {
+        "AAPL": {
+            "latestTrade": {
+                "t": "2022-03-18T14:34:34.271824896Z",
+                "x": "N",
+                "p": 161.27,
+                "s": 100,
+                "c": [
+                    "@",
+                    "F"
+                ],
+                "i": 1818,
+                "z": "C"
+            },
+            "latestQuote": {
+                "t": "2022-03-18T14:34:34.186718005Z",
+                "ax": "N",
+                "ap": 161.27,
+                "as": 1,
+                "bx": "Q",
+                "bp": 161.26,
+                "bs": 7,
+                "c": [
+                    "R"
+                ],
+                "z": "C"
+            },
+            "minuteBar": {
+                "t": "2022-03-18T14:33:00Z",
+                "o": 161.37,
+                "h": 161.39,
+                "l": 161.04,
+                "c": 161.2,
+                "v": 239239,
+                "n": 2194,
+                "vw": 161.210361
+            },
+            "dailyBar": {
+                "t": "2022-03-18T04:00:00Z",
+                "o": 160.59,
+                "h": 161.92,
+                "l": 159.76,
+                "c": 161.2,
+                "v": 31989242,
+                "n": 188338,
+                "vw": 160.687305
+            },
+            "prevDailyBar": {
+                "t": "2022-03-17T04:00:00Z",
+                "o": 158.6,
+                "h": 161,
+                "l": 157.63,
+                "c": 160.62,
+                "v": 73839892,
+                "n": 609067,
+                "vw": 159.425082
+            }
+        },
+        "QQQ": {
+            "latestTrade": {
+                "t": "2022-03-18T14:34:34.16829312Z",
+                "x": "P",
+                "p": 346.18,
+                "s": 100,
+                "c": [
+                    "@",
+                    "F"
+                ],
+                "i": 40267,
+                "z": "C"
+            },
+            "latestQuote": {
+                "t": "2022-03-18T14:34:34.188485Z",
+                "ax": "Z",
+                "ap": 346.19,
+                "as": 2,
+                "bx": "Z",
+                "bp": 346.17,
+                "bs": 9,
+                "c": [
+                    "R"
+                ],
+                "z": "C"
+            },
+            "minuteBar": {
+                "t": "2022-03-18T14:33:00Z",
+                "o": 346.54,
+                "h": 346.54,
+                "l": 345.96,
+                "c": 346.1418,
+                "v": 201396,
+                "n": 2256,
+                "vw": 346.154343
+            },
+            "dailyBar": {
+                "t": "2022-03-18T04:00:00Z",
+                "o": 342.805,
+                "h": 347.49,
+                "l": 341.55,
+                "c": 346.1418,
+                "v": 21970063,
+                "n": 190685,
+                "vw": 344.32075
+            },
+            "prevDailyBar": {
+                "t": "2022-03-17T04:00:00Z",
+                "o": 338.47,
+                "h": 344.49,
+                "l": 337.0406,
+                "c": 344.44,
+                "v": 66671636,
+                "n": 597272,
+                "vw": 340.878748
+            }
+        }
+    }   
+        """,
+    )
+    snapshots = client.get_snapshot(symbol_or_symbols=symbols)
+
+    assert type(snapshot) == SnapshotSet
+
+    assert snapshots["AAPL"].latest_trade.price == 161.27
+    assert snapshots["AAPL"].latest_quote.bid_size == 7
+    assert snapshots["AAPL"].daily_bar.low == 159.76
+    assert snapshots["QQQ"].minute_bar.close == 346.1418
+    assert snapshots["QQQ"].daily_bar.volume == 21970063
+    assert snapshots["QQQ"].previous_daily_bar.high == 344.49
+
+    # raw data client
+    raw_snapshots = raw_client.get_snapshot(symbol_or_symbols=symbols)
+
+    assert type(raw_snapshot) == dict
+
+    assert raw_snapshots["AAPL"]["latestTrade"]["p"] == 161.27
+    assert raw_snapshots["AAPL"]["latestQuote"]["bs"] == 7
+    assert raw_snapshots["AAPL"]["dailyBar"]["l"] == 159.76
+    assert raw_snapshots["QQQ"]["minuteBar"]["c"] == 346.1418
+    assert raw_snapshots["QQQ"]["dailyBar"]["v"] == 21970063
+    assert raw_snapshots["QQQ"]["prevDailyBar"]["h"] == 344.49

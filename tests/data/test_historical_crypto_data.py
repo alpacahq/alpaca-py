@@ -4,7 +4,15 @@ import requests_mock
 from alpaca.common.time import TimeFrame
 from alpaca.data.clients import HistoricalDataClient
 from alpaca.data.enums import Exchange
-from alpaca.data.models import BarSet, Quote, QuoteSet, SnapshotSet, Trade, TradeSet
+from alpaca.data.models import (
+    XBBO,
+    BarSet,
+    Quote,
+    QuoteSet,
+    SnapshotSet,
+    Trade,
+    TradeSet,
+)
 
 
 @pytest.fixture
@@ -734,3 +742,50 @@ def test_crypto_get_snapshot(reqmock, client, raw_client):
     assert raw_snapshots["BTCUSD"]["minuteBar"]["c"] == 47532.2
     assert raw_snapshots["BTCUSD"]["dailyBar"]["v"] == 8888.08292165
     assert raw_snapshots["BTCUSD"]["prevDailyBar"]["h"] == 47694
+
+
+def test_get_crypto_xbbo(reqmock, client, raw_client):
+
+    # Test single symbol request
+    symbol = "BTCUSD"
+    exchanges = [Exchange.FTXU, Exchange.CBSE, Exchange.ERSX]
+
+    _exchanges_in_url = "%2C".join(s.value for s in exchanges)
+    reqmock.get(
+        f"https://data.alpaca.markets/v1beta1/crypto/{symbol}/xbbo/latest?exchanges={_exchanges_in_url}",
+        text="""
+    {
+        "symbol": "BTCUSD",
+        "xbbo": {
+            "t": "2022-03-28T18:27:25.962996224Z",
+            "ax": "FTXU",
+            "ap": 47726,
+            "as": 0.325,
+            "bx": "CBSE",
+            "bp": 47757.59,
+            "bs": 0.001
+        }
+    }
+        """,
+    )
+
+    xbbo = client.get_crypto_xbbo(symbol=symbol, exchanges=exchanges)
+
+    assert type(xbbo) == XBBO
+
+    assert xbbo.ask_price == 47726
+    assert xbbo.bid_size == 0.001
+
+    assert xbbo.ask_exchange == Exchange.FTXU
+    assert xbbo.bid_exchange == Exchange.CBSE
+
+    # raw data client
+    raw_xbbo = raw_client.get_crypto_xbbo(symbol=symbol, exchanges=exchanges)
+
+    assert type(raw_xbbo) == dict
+
+    assert raw_xbbo["bp"] == 47757.59
+    assert raw_xbbo["as"] == 0.325
+
+    assert raw_xbbo["ax"] == "FTXU"
+    assert raw_xbbo["bx"] == "CBSE"

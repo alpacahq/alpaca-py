@@ -320,7 +320,7 @@ class BaseStream:
 
         Args:
             handler (Callable): The coroutine callback function to handle live trade data
-            *symbols: Variable arguments for ticker identifiers to be subscribed to.
+            *symbols: Variable string arguments for ticker identifiers to be subscribed to.
         """
         self._subscribe(handler, symbols, self._handlers["trades"])
 
@@ -329,7 +329,7 @@ class BaseStream:
 
         Args:
             handler (Callable): The coroutine callback function to handle live quote data
-            *symbols: Variable arguments for ticker identifiers to be subscribed to.
+            *symbols: Variable string arguments for ticker identifiers to be subscribed to.
         """
         self._subscribe(handler, symbols, self._handlers["quotes"])
 
@@ -338,7 +338,7 @@ class BaseStream:
 
         Args:
             handler (Callable): The coroutine callback function to handle live minute bar data
-            *symbols: Variable arguments for ticker identifiers to be subscribed to.
+            *symbols: Variable string arguments for ticker identifiers to be subscribed to.
         """
         self._subscribe(handler, symbols, self._handlers["bars"])
 
@@ -347,7 +347,7 @@ class BaseStream:
 
         Args:
             handler (Callable): The coroutine callback function to handle live updated bar data
-            *symbols: Variable arguments for ticker identifiers to be subscribed to.
+            *symbols: Variable string arguments for ticker identifiers to be subscribed to.
         """
         self._subscribe(handler, symbols, self._handlers["updatedBars"])
 
@@ -356,7 +356,7 @@ class BaseStream:
 
         Args:
             handler (Callable): The coroutine callback function to handle live daily bar data
-            *symbols: variable arguments for ticker identifiers to be subscribed to.
+            *symbols: Variable string arguments for ticker identifiers to be subscribed to.
         """
         self._subscribe(handler, symbols, self._handlers["dailyBars"])
 
@@ -364,7 +364,7 @@ class BaseStream:
         """Unsubscribe from trade data for symbol inputs
 
         Args:
-            *symbols: Variable arguments for ticker identifiers to be unsubscribed from.
+            *symbols: Variable string arguments for ticker identifiers to be unsubscribed from.
         """
         if self._running:
             asyncio.run_coroutine_threadsafe(
@@ -377,7 +377,7 @@ class BaseStream:
         """Unsubscribe from quote data for symbol inputs
 
         Args:
-            *symbols: Variable arguments for ticker identifiers to be unsubscribed from.
+            *symbols: Variable string arguments for ticker identifiers to be unsubscribed from.
         """
         if self._running:
             asyncio.run_coroutine_threadsafe(
@@ -390,7 +390,7 @@ class BaseStream:
         """Unsubscribe from minute bar data for symbol inputs
 
         Args:
-            *symbols: Variable arguments for ticker identifiers to be unsubscribed from."""
+            *symbols: Variable string arguments for ticker identifiers to be unsubscribed from."""
         if self._running:
             asyncio.run_coroutine_threadsafe(
                 self._unsubscribe(bars=symbols), self._loop
@@ -402,7 +402,7 @@ class BaseStream:
         """Unsubscribe from updated bar data for symbol inputs
 
         Args:
-            *symbols: Variable arguments for ticker identifiers to be unsubscribed from."""
+            *symbols: Variable string arguments for ticker identifiers to be unsubscribed from."""
         if self._running:
             asyncio.get_event_loop().run_until_complete(
                 self._unsubscribe(updated_bars=symbols)
@@ -414,7 +414,7 @@ class BaseStream:
         """Unsubscribe from daily bar data for symbol inputs
 
         Args:
-            *symbols: Variable arguments for ticker identifiers to be unsubscribed from."""
+            *symbols: Variable string arguments for ticker identifiers to be unsubscribed from."""
         if self._running:
             asyncio.run_coroutine_threadsafe(
                 self._unsubscribe(daily_bars=symbols), self._loop

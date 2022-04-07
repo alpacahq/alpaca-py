@@ -314,6 +314,8 @@ class BaseStream:
                 log.exception(
                     "error during websocket " "communication: {}".format(str(e))
                 )
+            finally:
+                await asyncio.sleep(0)
 
     def subscribe_trades(self, handler: Callable, *symbols) -> None:
         """Subscribe to trade data for symbol inputs

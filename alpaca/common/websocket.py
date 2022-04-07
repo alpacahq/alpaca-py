@@ -2,7 +2,7 @@ import asyncio
 import logging
 import queue
 from collections import defaultdict
-from typing import Callable, Dict, List, Optional, Union
+from typing import Callable, Dict, Optional, Union, Tuple
 
 import msgpack
 import websockets
@@ -216,12 +216,14 @@ class BaseStream:
         elif msg_type == "error":
             log.error(f'error: {msg.get("msg")} ({msg.get("code")})')
 
-    def _subscribe(self, handler: Callable, symbols: List[str], handlers: Dict) -> None:
-        """Subscribes a coroutine callback function to receive data for a list of symbols
+    def _subscribe(
+        self, handler: Callable, symbols: Tuple[str], handlers: Dict
+    ) -> None:
+        """Subscribes a coroutine callback function to receive data for a tuple of symbols
 
         Args:
             handler (Callable): The coroutine callback function to receive data
-            symbols (List[str]): The list of symbols to be subscribed to
+            symbols (Tuple[str]): The tuple containing the symbols to be subscribed to
             handlers (Dict): The dictionary of coroutine callback functions keyed by symbol
         """
         self._ensure_coroutine(handler)
@@ -288,7 +290,7 @@ class BaseStream:
                 # we break
                 self._stop_stream_queue.get(timeout=1)
                 return
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(0)
         log.info(f"started {self._name} stream")
         self._should_run = True
         self._running = False
@@ -307,13 +309,11 @@ class BaseStream:
             except websockets.WebSocketException as wse:
                 await self.close()
                 self._running = False
-                log.warn("data websocket error, restarting connection: " + str(wse))
+                log.warning("data websocket error, restarting connection: " + str(wse))
             except Exception as e:
                 log.exception(
                     "error during websocket " "communication: {}".format(str(e))
                 )
-            finally:
-                await asyncio.sleep(0.01)
 
     def subscribe_trades(self, handler: Callable, *symbols) -> None:
         """Subscribe to trade data for symbol inputs

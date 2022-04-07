@@ -320,6 +320,7 @@ class BaseStream:
 
         Args:
             handler (Callable): The coroutine callback function to handle live trade data
+            *symbols: Variable arguments for ticker identifiers to be subscribed to.
         """
         self._subscribe(handler, symbols, self._handlers["trades"])
 
@@ -328,6 +329,7 @@ class BaseStream:
 
         Args:
             handler (Callable): The coroutine callback function to handle live quote data
+            *symbols: Variable arguments for ticker identifiers to be subscribed to.
         """
         self._subscribe(handler, symbols, self._handlers["quotes"])
 
@@ -336,6 +338,7 @@ class BaseStream:
 
         Args:
             handler (Callable): The coroutine callback function to handle live minute bar data
+            *symbols: Variable arguments for ticker identifiers to be subscribed to.
         """
         self._subscribe(handler, symbols, self._handlers["bars"])
 
@@ -344,6 +347,7 @@ class BaseStream:
 
         Args:
             handler (Callable): The coroutine callback function to handle live updated bar data
+            *symbols: Variable arguments for ticker identifiers to be subscribed to.
         """
         self._subscribe(handler, symbols, self._handlers["updatedBars"])
 
@@ -352,11 +356,16 @@ class BaseStream:
 
         Args:
             handler (Callable): The coroutine callback function to handle live daily bar data
+            *symbols: variable arguments for ticker identifiers to be subscribed to.
         """
         self._subscribe(handler, symbols, self._handlers["dailyBars"])
 
     def unsubscribe_trades(self, *symbols) -> None:
-        """Unsubscribe from trade data for symbol inputs"""
+        """Unsubscribe from trade data for symbol inputs
+
+        Args:
+            *symbols: Variable arguments for ticker identifiers to be unsubscribed from.
+        """
         if self._running:
             asyncio.run_coroutine_threadsafe(
                 self._unsubscribe(trades=symbols), self._loop
@@ -365,7 +374,11 @@ class BaseStream:
             del self._handlers["trades"][symbol]
 
     def unsubscribe_quotes(self, *symbols) -> None:
-        """Unsubscribe from quote data for symbol inputs"""
+        """Unsubscribe from quote data for symbol inputs
+
+        Args:
+            *symbols: Variable arguments for ticker identifiers to be unsubscribed from.
+        """
         if self._running:
             asyncio.run_coroutine_threadsafe(
                 self._unsubscribe(quotes=symbols), self._loop
@@ -374,7 +387,10 @@ class BaseStream:
             del self._handlers["quotes"][symbol]
 
     def unsubscribe_bars(self, *symbols) -> None:
-        """Unsubscribe from minute bar data for symbol inputs"""
+        """Unsubscribe from minute bar data for symbol inputs
+
+        Args:
+            *symbols: Variable arguments for ticker identifiers to be unsubscribed from."""
         if self._running:
             asyncio.run_coroutine_threadsafe(
                 self._unsubscribe(bars=symbols), self._loop
@@ -383,7 +399,10 @@ class BaseStream:
             del self._handlers["bars"][symbol]
 
     def unsubscribe_updated_bars(self, *symbols) -> None:
-        """Unsubscribe from updated bar data for symbol inputs"""
+        """Unsubscribe from updated bar data for symbol inputs
+
+        Args:
+            *symbols: Variable arguments for ticker identifiers to be unsubscribed from."""
         if self._running:
             asyncio.get_event_loop().run_until_complete(
                 self._unsubscribe(updated_bars=symbols)
@@ -392,7 +411,10 @@ class BaseStream:
             del self._handlers["updatedBars"][symbol]
 
     def unsubscribe_daily_bars(self, *symbols) -> None:
-        """Unsubscribe from daily bar data for symbol inputs"""
+        """Unsubscribe from daily bar data for symbol inputs
+
+        Args:
+            *symbols: Variable arguments for ticker identifiers to be unsubscribed from."""
         if self._running:
             asyncio.run_coroutine_threadsafe(
                 self._unsubscribe(daily_bars=symbols), self._loop

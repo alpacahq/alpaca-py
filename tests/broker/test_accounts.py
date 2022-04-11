@@ -141,3 +141,6 @@ def test_get_account_account_not_found(reqmock, client: BrokerClient):
 def test_get_account_validates_non_uuid_str(client: BrokerClient):
     with pytest.raises(ValueError):
         client.get_account_by_id("not a valid uuid")
+
+    with pytest.raises(ValueError):
+        client.get_account_by_id(4)

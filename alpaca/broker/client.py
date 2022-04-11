@@ -68,8 +68,10 @@ class BrokerClient(RESTClient):
         """
 
         # should raise ValueError
-        if type(account_id) != UUID:
+        if type(account_id) == str:
             account_id = UUID(account_id)
+        elif type(account_id) != UUID:
+            raise ValueError("account_id must be a UUID or a UUID str")
 
         resp = self.get(f"/accounts/{account_id}")
         return Account(**resp)

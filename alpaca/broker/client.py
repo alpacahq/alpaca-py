@@ -1,5 +1,6 @@
 import os
-from typing import Optional
+from typing import Optional, Union
+from uuid import UUID
 
 from ..common.enums import BaseURL
 from ..common.rest import RESTClient
@@ -37,12 +38,41 @@ class BrokerClient(RESTClient):
             int(o) for o in os.environ.get("APCA_RETRY_CODES", "429,504").split(",")
         ]
 
-    def create_account(self, account: AccountCreationRequest) -> Account:
+    def create_account(self, account_data: AccountCreationRequest) -> Account:
+        """
+        Create an account.
 
-        data = account.json()
+        Args:
+            account_data(AccountCreationRequest): The data representing the Account you wish to create
+
+        Returns:
+
+        """
+
+        data = account_data.json()
         response = self.post("/accounts", data)
-        account = Account(**response)
-        return response
+
+        return Account(**response)
+
+    def get_account_by_id(self, account_id: Union[UUID, str]) -> Account:
+        """
+        Get an Account by its associated account_id.
+
+        Note: If no account is found the api returns a 401, not a 404
+
+        Args:
+            account_id(Union[UUID,str]): The id of the account you wish to get
+
+        Returns:
+            Account: Returns the requested account.
+        """
+
+        # should raise ValueError
+        if type(account_id) != UUID:
+            account_id = UUID(account_id)
+
+        resp = self.get(f"/accounts/{account_id}")
+        return Account(**resp)
 
     def get_account_details(self) -> Account:
         pass

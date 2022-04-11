@@ -150,6 +150,8 @@ class RESTClient(ABC):
                 error = resp.json()
                 if "code" in error:
                     raise APIError(error, http_error)
+            else:
+                raise
 
         if resp.text != "":
             return resp.json()

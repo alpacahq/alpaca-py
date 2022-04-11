@@ -39,7 +39,7 @@ class Contact(BaseModel):
     country: Optional[str] = None
 
     @validator("state")
-    def usa_state_has_value(cls, v: str, values: dict, **kwargs) -> None:
+    def usa_state_has_value(cls, v: str, values: dict, **kwargs) -> str:
         """Validates that the state has a value if the country is USA
 
         Args:
@@ -148,7 +148,7 @@ class Agreement(BaseModel):
     agreement: AgreementType
     signed_at: str
     ip_address: str
-    revision: str
+    revision: Optional[str]
 
 
 class Document(BaseModel):
@@ -257,32 +257,18 @@ class Account(BaseModel):
     trusted_contact: Optional[TrustedContact] = None
 
     def __init__(self, **response):
-
-        contact = parse_obj_as(Contact, response["contact"])
-        identity = parse_obj_as(Identity, response["identity"])
-        disclosures = parse_obj_as(Disclosures, response["disclosures"])
-        agreements = parse_obj_as(List[Agreement], response["agreements"])
-
-        id = response["id"]
-        account_number = response["account_number"]
-        status = response["status"]
-        crypto_status = response["crypto_status"]
-        currency = response["currency"]
-        last_equity = response["last_equity"]
-        created_at = response["created_at"]
-
         super().__init__(
-            id=id,
-            account_number=account_number,
-            status=status,
-            crypto_status=crypto_status,
-            currency=currency,
-            last_equity=last_equity,
-            created_at=created_at,
-            contact=contact,
-            identity=identity,
-            disclosures=disclosures,
-            agreements=agreements,
+            id=(response["id"]),
+            account_number=(response["account_number"]),
+            status=(response["status"]),
+            crypto_status=(response["crypto_status"]),
+            currency=(response["currency"]),
+            last_equity=(response["last_equity"]),
+            created_at=(response["created_at"]),
+            contact=(parse_obj_as(Contact, response["contact"])),
+            identity=(parse_obj_as(Identity, response["identity"])),
+            disclosures=(parse_obj_as(Disclosures, response["disclosures"])),
+            agreements=(parse_obj_as(List[Agreement], response["agreements"])),
         )
 
 

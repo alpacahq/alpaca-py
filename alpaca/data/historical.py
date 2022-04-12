@@ -8,8 +8,8 @@ from alpaca.common.rest import RESTClient
 from alpaca.common.time import TimeFrame
 from alpaca.common.types import RawData
 
-from .enums import Adjustment, Currency, DataFeed, Exchange
-from .models import BarSet, Quote, QuoteSet, SnapshotSet, Trade, TradeSet
+from .enums import Adjustment, DataFeed, Exchange
+from .models import XBBO, BarSet, Quote, QuoteSet, SnapshotSet, Trade, TradeSet
 
 
 class HistoricalDataClient(RESTClient):
@@ -43,7 +43,6 @@ class HistoricalDataClient(RESTClient):
         limit: Optional[int] = None,
         adjustment: Optional[Adjustment] = None,
         feed: Optional[DataFeed] = None,
-        currency: Optional[Currency] = None,
     ) -> Union[BarSet, RawData]:
         """Returns bar data for a security or list of securities over a given
         time period and timeframe
@@ -56,7 +55,6 @@ class HistoricalDataClient(RESTClient):
             limit (Optional[int], optional): Upper limit of number of data points to return. Defaults to None.
             adjustment (Optional[Adjustment], optional): The type of corporate action data normalization. Defaults to None.
             feed (Optional[DataFeed], optional): The equity data feed to retrieve from. Defaults to None.
-            currency (Optional[Currency], optional): The type of fiat currency to display prices in. Defaults to None.
 
         Returns:
             Union[BarSet, RawData]: The bar data either in raw or wrapped form
@@ -74,7 +72,6 @@ class HistoricalDataClient(RESTClient):
             limit=limit,
             adjustment=adjustment,
             feed=feed,
-            currency=currency,
         )
 
         # casting generator type outputted from _data_get to list
@@ -94,7 +91,6 @@ class HistoricalDataClient(RESTClient):
         end: Optional[datetime] = None,
         limit: Optional[int] = None,
         feed: Optional[DataFeed] = None,
-        currency: Optional[Currency] = None,
     ) -> Union[QuoteSet, RawData]:
         """Returns Quote level 1 data over a given time period for a security or list of securities.
 
@@ -104,7 +100,6 @@ class HistoricalDataClient(RESTClient):
             end (Optional[datetime], optional): The beginning of the time interval for desired data. Defaults to None.
             limit (Optional[int], optional): Upper limit of number of data points to return. Defaults to None.
             feed (Optional[DataFeed], optional): The equity data feed to retrieve from. Defaults to None.
-            currency (Optional[Currency], optional): The type of fiat currency to display prices in. Defaults to None.
 
         Returns:
             Union[QuoteSet, RawData]: The quote data either in raw or wrapped form
@@ -118,7 +113,6 @@ class HistoricalDataClient(RESTClient):
             end=end,
             limit=limit,
             feed=feed,
-            currency=currency,
         )
 
         # casting generator type outputted from _data_get to list
@@ -137,7 +131,6 @@ class HistoricalDataClient(RESTClient):
         end: Optional[datetime] = None,
         limit: Optional[int] = None,
         feed: Optional[DataFeed] = None,
-        currency: Optional[Currency] = None,
     ) -> Union[TradeSet, RawData]:
         """Returns the price and sales history over a given time period for a security or list of securities.
 
@@ -147,7 +140,6 @@ class HistoricalDataClient(RESTClient):
             end (Optional[datetime], optional): The beginning of the time interval for desired data. Defaults to None.
             limit (Optional[int], optional): Upper limit of number of data points to return. Defaults to None.
             feed (Optional[DataFeed], optional): The equity data feed to retrieve from. Defaults to None.
-            currency (Optional[Currency], optional): The type of fiat currency to display prices in. Defaults to None.
 
         Returns:
             Union[TradeSet, RawData]: The trade data either in raw or wrapped form
@@ -160,7 +152,6 @@ class HistoricalDataClient(RESTClient):
             start=start,
             end=end,
             limit=limit,
-            currency=currency,
             feed=feed,
         )
 
@@ -210,7 +201,6 @@ class HistoricalDataClient(RESTClient):
         self,
         symbol_or_symbols: Union[str, List[str]],
         feed: Optional[DataFeed] = None,
-        currency: Optional[Currency] = None,
     ) -> Union[SnapshotSet, RawData]:
         """Returns snapshots of queried symbols. Snapshots contain latest trade, latest quote, latest minute bar,
         latest daily bar and previous daily bar data for the queried symbols.
@@ -218,7 +208,6 @@ class HistoricalDataClient(RESTClient):
         Args:
             symbol_or_symbols (Union[str, List[str]]): The security or multiple security ticker identifiers
             feed (Optional[DataFeed], optional): The equity data feed to retrieve from. Defaults to None.
-            currency (Optional[Currency], optional): The type of fiat currency to display prices in. Defaults to None.
 
         Returns:
             Union[SnapshotSet, RawData]: The snapshot data either in raw or wrapped form
@@ -231,7 +220,7 @@ class HistoricalDataClient(RESTClient):
 
             raw_snapshot = self.get(
                 path=f"/stocks/{symbol_or_symbols}/snapshot",
-                data={"feed": feed, "currency": currency},
+                data={"feed": feed},
             )
 
             raw_snapshots[symbol_or_symbols] = raw_snapshot
@@ -245,7 +234,6 @@ class HistoricalDataClient(RESTClient):
                 data={
                     "symbols": comma_seperated_symbols,
                     "feed": feed,
-                    "currency": currency,
                 },
             )
 
@@ -483,6 +471,36 @@ class HistoricalDataClient(RESTClient):
             model=SnapshotSet,
             raw_data=raw_snapshots,
             symbols=symbol_or_symbols,
+        )
+
+    def get_crypto_xbbo(
+        self, symbol: str, exchanges: Optional[List[Exchange]] = None
+    ) -> Union[XBBO, RawData]:
+        """Returns the Best Bid and Offer across multiple crypto exchanges.
+
+        Args:
+            symbol (str): The ticker identifier for the cryptocurrency
+            exchanges (Optional[List[Exchange]], optional): The exchanges to query across for the best bid and offer. Defaults to None.
+
+        Returns:
+            Union[XBBO, RawData]: The raw or parsed XBBO data.
+        """
+
+        data = {}
+
+        if exchanges:
+            _exchanges_comma_separated = ",".join(s.value for s in exchanges)
+
+            data["exchanges"] = _exchanges_comma_separated
+
+        response = self.get(
+            path=f"/crypto/{symbol}/xbbo/latest", data=data, api_version="v1beta1"
+        )
+
+        raw_latest_xbbo = response["xbbo"]
+
+        return self.response_wrapper(
+            model=XBBO, raw_data=raw_latest_xbbo, symbol=symbol
         )
 
     def _format_data_response(

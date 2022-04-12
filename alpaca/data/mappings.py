@@ -42,3 +42,13 @@ SNAPSHOT_MAPPING: Dict[str, str] = {
     "dailyBar": "daily_bar",
     "prevDailyBar": "previous_daily_bar",
 }
+
+XBBO_MAPPING: Dict[str, str] = {
+    "t": "timestamp",
+    "ax": "ask_exchange",
+    "ap": "ask_price",
+    "as": "ask_size",
+    "bx": "bid_exchange",
+    "bp": "bid_price",
+    "bs": "bid_size",
+}

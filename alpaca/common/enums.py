@@ -9,3 +9,4 @@ class BaseURL(Enum):
     TRADING_PAPER = "https://paper-api.alpaca.markets"
     TRADING_LIVE = "https://api.alpaca.markets"
     DATA = "https://data.alpaca.markets"
+    MARKET_DATA_LIVE = "wss://stream.data.alpaca.markets"

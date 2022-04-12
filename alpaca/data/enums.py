@@ -85,21 +85,6 @@ class DataFeed(Enum):
         return self.value
 
 
-class Currency(Enum):
-    """International fiat currency types
-
-    Attributes:
-        USD (str): United States Dollar
-        JPY (str): Japanese Yen
-    """
-
-    USD: str = "USD"
-    JPY: str = "JPY"
-
-    def __str__(self):
-        return self.value
-
-
 class Adjustment(Enum):
     """Data normalization based on types of corporate actions.
 

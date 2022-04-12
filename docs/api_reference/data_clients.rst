@@ -14,7 +14,7 @@ allows you to easily access this data and format it into object models or datafr
 the object models check out the market data models section.
 
 
-.. autoclass:: alpaca.data.historical.HistoricalDataClient
+.. autoclass:: alpaca.data.historicald.HistoricalDataClient
    :members:
 
 

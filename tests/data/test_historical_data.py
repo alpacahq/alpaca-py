@@ -2,7 +2,7 @@ import pytest
 import requests_mock
 
 from alpaca.common.time import TimeFrame
-from alpaca.data.clients import HistoricalDataClient
+from alpaca.data.historical import HistoricalDataClient
 from alpaca.data.enums import Exchange
 from alpaca.data.models import BarSet, Quote, QuoteSet, SnapshotSet, Trade, TradeSet
 

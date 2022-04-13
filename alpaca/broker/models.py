@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from pydantic import BaseModel, parse_obj_as, validator
 
@@ -52,7 +52,7 @@ class Contact(BaseModel):
         Returns:
             str: The value of the state field
         """
-        if "country" in values and values["country"] == "USA" and v == None:
+        if "country" in values and values["country"] == "USA" and v is None:
             raise ValueError("State is required for country USA.")
         return v
 
@@ -209,11 +209,13 @@ class TrustedContact(BaseModel):
         Returns:
             str: the value of the email address field
         """
-        has_phone_number = "phone_number" in values and values["phone_number"] != None
-        has_street_address = (
-            "street_address" in values and values["street_address"] != None
+        has_phone_number = (
+            "phone_number" in values and values["phone_number"] is not None
         )
-        has_email_address = v != None
+        has_street_address = (
+            "street_address" in values and values["street_address"] is not None
+        )
+        has_email_address = v is not None
 
         if has_phone_number or has_street_address or has_email_address:
             return v
@@ -275,7 +277,7 @@ class Account(BaseModel):
 class AccountCreationRequest(BaseModel):
     """Class used to format data necessary for making a request to create a brokerage account
 
-    Args:
+    Attributes:
         contact (Contact): The contact details for the account holder
         identity (Identity): The identity details for the account holder
         disclosures (Disclosures): The account holder's political disclosures
@@ -290,3 +292,6 @@ class AccountCreationRequest(BaseModel):
     agreements: List[Agreement]
     documents: Optional[List[Document]] = None
     trusted_contact: Optional[TrustedContact] = None
+
+    def __init__(__pydantic_self__, **data: Any) -> None:
+        super().__init__(**data)

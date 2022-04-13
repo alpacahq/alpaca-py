@@ -76,9 +76,6 @@ class BrokerClient(RESTClient):
         resp = self.get(f"/accounts/{account_id}")
         return Account(**resp)
 
-    def get_account_details(self) -> Account:
-        pass
-
     def update_account(self) -> Account:
         pass
 

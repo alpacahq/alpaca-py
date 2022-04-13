@@ -113,6 +113,7 @@ class AgreementType(Enum):
     MARGIN = "margin_agreement"
     ACCOUNT = "account_agreement"
     CUSTOMER = "customer_agreement"
+    CRYPTO = "crypto_agreement"
 
     def toJSON(self):
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)

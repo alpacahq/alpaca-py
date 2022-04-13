@@ -9,4 +9,5 @@ to keep the repo clean. To set these up after you've run `poetry install` just r
 install` to have pre-commit setup these hooks
 
 
-**Note: AlpacaPy is in the very early stages of alpha development and is not production ready**
+**Note: AlpacaPy is in the very early stages of alpha development and is not production ready. Currently AlpacaPy interfaces with only the Market Data API, however the other APIs are coming soon.**
+

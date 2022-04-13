@@ -242,8 +242,8 @@ class Account(BaseModel):
     Attributes:
         id (str): The account uuid used to reference this account
         account_number (str): A more human friendly identifier for this account
-        status (str): The approval status of this account
-        crypto_status (str): The crypto trading status; either paper or live.
+        status (AccountStatus): The approval status of this account
+        crypto_status (Optional[AccountStatus]): The crypto trading status. Only present if crypto trading is enabled.
         currency (str): The currency the account's values are returned in
         last_equity (str): The total equity value stored in the account
         created_at (str): The timestamp when the account was created
@@ -258,7 +258,7 @@ class Account(BaseModel):
     id: str
     account_number: str
     status: AccountStatus
-    crypto_status: str
+    crypto_status: Optional[AccountStatus] = None
     currency: str
     last_equity: str
     created_at: str
@@ -274,7 +274,9 @@ class Account(BaseModel):
             id=(response["id"]),
             account_number=(response["account_number"]),
             status=(response["status"]),
-            crypto_status=(response["crypto_status"]),
+            crypto_status=(
+                response["crypto_status"] if "crypto_status" in response else None
+            ),
             currency=(response["currency"]),
             last_equity=(response["last_equity"]),
             created_at=(response["created_at"]),
@@ -304,5 +306,20 @@ class AccountCreationRequest(BaseModel):
     documents: Optional[List[Document]] = None
     trusted_contact: Optional[TrustedContact] = None
 
-    def __init__(__pydantic_self__, **data: Any) -> None:
-        super().__init__(**data)
+
+class AccountUpdateRequest(BaseModel):
+    """
+    Represents the data allowed in a request to update an Account. Note not all fields of an account
+    are currently modifiable.
+
+    Attributes:
+        contact (Optional[Contact]): Contact details to update to
+        identity (Optional[Identity]): Identity details to update to
+        disclosures (Optional[Disclosures]): Disclosure details to update to
+        trusted_contact (Optional[TrustedContact]): TrustedContact details to update to
+    """
+
+    contact: Optional[Contact] = None
+    identity: Optional[Identity] = None
+    disclosures: Optional[Disclosures] = None
+    trusted_contact: Optional[TrustedContact] = None

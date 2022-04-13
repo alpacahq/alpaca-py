@@ -1,8 +1,8 @@
+Broker API
+==========
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
-Broker API
-==========
-
-Coming soon!
+   broker_client

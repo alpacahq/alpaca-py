@@ -1,10 +1,29 @@
-import os
 from typing import Optional, Union
 from uuid import UUID
 
 from ..common.enums import BaseURL
 from ..common.rest import RESTClient
-from .models import Account, AccountCreationRequest
+from .models import Account, AccountCreationRequest, AccountUpdateRequest
+
+
+def validate_account_id_param(account_id: Union[UUID, str]) -> UUID:
+    """
+    A small helper function to eliminate duplicate checks of account_id parameters to ensure they are
+    valid UUIDs
+
+    Args:
+        account_id (Union[UUID, str]): The parameter to be validated
+
+    Returns:
+        UUID: The valid UUID instance
+    """
+    # should raise ValueError
+    if type(account_id) == str:
+        account_id = UUID(account_id)
+    elif type(account_id) != UUID:
+        raise ValueError("account_id must be a UUID or a UUID str")
+
+    return account_id
 
 
 class BrokerClient(RESTClient):
@@ -41,7 +60,8 @@ class BrokerClient(RESTClient):
             account_data(AccountCreationRequest): The data representing the Account you wish to create
 
         Returns:
-
+            Account: The newly created Account instance as returned from the API. Should now have id
+            and other generated fields filled out.
         """
 
         data = account_data.json()
@@ -56,23 +76,40 @@ class BrokerClient(RESTClient):
         Note: If no account is found the api returns a 401, not a 404
 
         Args:
-            account_id(Union[UUID,str]): The id of the account you wish to get
+            account_id(Union[UUID,str]): The id of the account you wish to get. str uuid values will be upcast
+            into UUID instances
 
         Returns:
             Account: Returns the requested account.
         """
 
-        # should raise ValueError
-        if type(account_id) == str:
-            account_id = UUID(account_id)
-        elif type(account_id) != UUID:
-            raise ValueError("account_id must be a UUID or a UUID str")
+        account_id = validate_account_id_param(account_id)
 
         resp = self.get(f"/accounts/{account_id}")
         return Account(**resp)
 
-    def update_account(self) -> Account:
-        pass
+    def update_account(
+        self, account_id: Union[UUID, str], update_data: AccountUpdateRequest
+    ) -> Account:
+        """
+        Updates data for an account with an id of `account_id`. Note that not all data for an account is modifiable
+        after creation so there is a special data type of AccountUpdateRequest representing the data that is
+        allowed to be modified
+
+        Args:
+            account_id (Union[UUID, str]): The id for the account you with to update. str uuid values will be upcast
+            into UUID instances
+            update_data (AccountUpdateRequest): The data you wish to update this account to
+
+        Returns:
+            Account: Returns an Account instance with the updated data as returned from the api
+        """
+
+        account_id = validate_account_id_param(account_id)
+
+        response = self.patch(f"/accounts/{account_id}", update_data.json())
+
+        return Account(**response)
 
     def delete_account(self) -> Account:
         pass

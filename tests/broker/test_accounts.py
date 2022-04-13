@@ -3,7 +3,7 @@ import requests_mock
 
 from alpaca.common import APIError
 from alpaca.broker.client import BrokerClient
-from alpaca.broker.models import Account, AccountCreationRequest
+from alpaca.broker.models import Account, AccountCreationRequest, AccountUpdateRequest
 
 from factories import common as factory
 
@@ -218,6 +218,7 @@ def test_get_account(reqmock, client: BrokerClient):
 
     account = client.get_account_by_id(account_id)
 
+    assert reqmock.called_once
     assert type(account) == Account
     assert account.id == account_id
 
@@ -244,9 +245,134 @@ def test_get_account_account_not_found(reqmock, client: BrokerClient):
     assert error.value.status_code == status_code
 
 
-def test_get_account_validates_non_uuid_str(client: BrokerClient):
+def test_get_account_validates_account_id(client: BrokerClient):
     with pytest.raises(ValueError):
         client.get_account_by_id("not a valid uuid")
 
     with pytest.raises(ValueError):
         client.get_account_by_id(4)
+
+
+def test_update_account(reqmock, client: BrokerClient):
+    account_id = "0d969814-40d6-4b2b-99ac-2e37427f1ad2"
+    family_name = "New Name"
+    identity = factory.create_dummy_identity()
+
+    identity.family_name = family_name
+
+    update_data = AccountUpdateRequest(identity=identity)
+
+    reqmock.patch(
+        f"https://broker-api.sandbox.alpaca.markets/v1/accounts/{account_id}",
+        text="""
+        {
+          "id": "0d969814-40d6-4b2b-99ac-2e37427f1ad2",
+          "account_number": "682389557",
+          "status": "ACTIVE",
+          "kyc_results": {
+            "reject": {},
+            "accept": {},
+            "indeterminate": {},
+            "summary": "pass"
+          },
+          "currency": "USD",
+          "last_equity": "0",
+          "created_at": "2022-04-12T17:24:31.30283Z",
+          "contact": {
+            "email_address": "cool_alpaca@example.com",
+            "phone_number": "555-666-7788",
+            "street_address": [
+              "20 N San Mateo Dr"
+            ],
+            "unit": "Apt 1A",
+            "city": "San Mateo",
+            "state": "CA",
+            "postal_code": "94401"
+          },
+          "identity": {
+            "given_name": "John",
+            "family_name": "New Name",
+            "middle_name": "Smith",
+            "date_of_birth": "1990-01-01",
+            "tax_id_type": "USA_SSN",
+            "country_of_citizenship": "USA",
+            "country_of_birth": "USA",
+            "country_of_tax_residence": "USA",
+            "funding_source": [
+              "employment_income"
+            ],
+            "visa_type": null,
+            "visa_expiration_date": null,
+            "date_of_departure_from_usa": null,
+            "permanent_resident": null
+          },
+          "disclosures": {
+            "is_control_person": false,
+            "is_affiliated_exchange_or_finra": false,
+            "is_politically_exposed": false,
+            "immediate_family_exposed": false,
+            "is_discretionary": false
+          },
+          "agreements": [
+            {
+              "agreement": "margin_agreement",
+              "signed_at": "2020-09-11T18:09:33Z",
+              "ip_address": "185.13.21.99",
+              "revision": "16.2021.05"
+            },
+            {
+              "agreement": "account_agreement",
+              "signed_at": "2020-09-11T18:13:44Z",
+              "ip_address": "185.13.21.99",
+              "revision": "16.2021.05"
+            },
+            {
+              "agreement": "customer_agreement",
+              "signed_at": "2020-09-11T18:13:44Z",
+              "ip_address": "185.13.21.99",
+              "revision": "16.2021.05"
+            },
+            {
+              "agreement": "crypto_agreement",
+              "signed_at": "2020-09-11T18:13:44Z",
+              "ip_address": "185.13.21.99",
+              "revision": "04.2021.10"
+            }
+          ],
+          "documents": [
+            {
+              "document_type": "identity_verification",
+              "document_sub_type": "passport",
+              "id": "6458a6f5-0cd1-4206-a240-2666dd7089a8",
+              "content": "https://s3.amazonaws.com/stg.alpaca.markets/documents/accounts/0d969814-40d6-4b2b-99ac-2e37427f1ad2/544869c3-483e-4844-9de8-33166e04acdf.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAJLDF4SCWSL6HUQKA%2F20220413%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20220413T182315Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=9d2b6a38329a3f35723d018983fb9783a6b39d9a59f0ce414bcfdfde858119de",
+              "created_at": "2022-04-12T17:24:32.282494Z"
+            }
+          ],
+          "trusted_contact": {
+            "given_name": "Jane",
+            "family_name": "Doe",
+            "email_address": "jane.doe@example.com"
+          },
+          "account_type": "trading",
+          "trading_configurations": null
+        }
+        """,
+    )
+
+    account = client.update_account(account_id, update_data)
+
+    assert reqmock.called_once
+    assert type(account) == Account
+    assert account.id == account_id
+    assert account.identity.family_name == family_name
+
+
+def test_update_account_validates_account_id(client: BrokerClient):
+    # dummy update request just to test param parsing
+    update_data = AccountUpdateRequest()
+
+    with pytest.raises(ValueError):
+        client.update_account("not a uuid", update_data)
+
+    with pytest.raises(ValueError):
+        client.update_account(4, update_data)

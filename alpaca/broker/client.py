@@ -32,11 +32,6 @@ class BrokerClient(RESTClient):
             BaseURL.BROKER_SANDBOX if sandbox else BaseURL.BROKER_PRODUCTION
         )
         super().__init__(api_key, secret_key, api_version, base_url, sandbox, raw_data)
-        self._retry = int(os.environ.get("APCA_RETRY_MAX", 3))
-        self._retry_wait = int(os.environ.get("APCA_RETRY_WAIT", 3))
-        self._retry_codes = [
-            int(o) for o in os.environ.get("APCA_RETRY_CODES", "429,504").split(",")
-        ]
 
     def create_account(self, account_data: AccountCreationRequest) -> Account:
         """

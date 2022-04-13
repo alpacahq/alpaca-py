@@ -117,7 +117,9 @@ def test_create_account(client: BrokerClient):
             agreements=factory.create_dummy_agreements(),
             contact=factory.create_dummy_contact(),
             disclosures=factory.create_dummy_disclosures(),
+            documents=factory.create_dummy_documents(),
             identity=factory.create_dummy_identity(),
+            trusted_contact=factory.create_dummy_trusted_contact(),
         )
 
         returned_account = client.create_account(create_data)

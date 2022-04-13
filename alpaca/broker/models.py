@@ -1,4 +1,5 @@
 from typing import Any, List, Optional
+from uuid import UUID
 
 from pydantic import BaseModel, parse_obj_as, validator
 
@@ -163,10 +164,20 @@ class Document(BaseModel):
         mime_type (str): The format of content encoded by the string
     """
 
+    id: UUID
     document_type: DocumentType
     document_sub_type: Optional[str] = None
     content: str
-    mime_type: str
+    mime_type: Optional[str] = None
+
+    def __init__(__pydantic_self__, **data: Any) -> None:
+        # validate the incoming id field for uuid
+        if type(data["id"]) == str:
+            data["id"] = UUID(data["id"])
+        elif type(data["id"]) != UUID:
+            raise ValueError("id must be a UUID or a UUID str")
+
+        super().__init__(**data)
 
 
 class TrustedContact(BaseModel):

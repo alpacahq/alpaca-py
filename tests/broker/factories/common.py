@@ -99,3 +99,28 @@ def create_dummy_disclosures() -> Disclosures:
         immediate_family_exposed=False,
         is_discretionary=False,
     )
+
+
+def create_dummy_trusted_contact() -> TrustedContact:
+    """
+    Create a basic TrustedContact instance with prefilled dummy data
+    Returns:
+        TrustedContact: A basic TrustedContact instance with prefilled data for testing
+    """
+    return TrustedContact(
+        given_name="Jane",
+        family_name="Doe",
+        email_address="jane.doe@example.com",
+    )
+
+
+def create_dummy_documents() -> List[Document]:
+    return [
+        Document(
+            id="bb6de14c-9393-4b6c-8e93-c6724ac7b703",
+            created_at="2022-01-21T21:25:28.189455Z",
+            content="https://example.com/not-a-real-url",
+            document_sub_type="passport",
+            document_type="identity_verification",
+        )
+    ]

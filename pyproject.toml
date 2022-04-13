@@ -6,6 +6,13 @@ authors = [
     "Rahul Chowdhury <rahul.chowdhury@alpaca.markets>",
     "Andrew Mcdonald Притула <andrew.mcdonald@alpaca.markets>"
 ]
+readme = "README.md"
+license = "Apache-2.0"
+repository = "https://github.com/alpacahq/alpaca-py"
+documentation = "https://alpaca.markets/docs/python-sdk/"
+packages = [
+    { include = "alpaca" }
+]
 
 [tool.poetry.dependencies]
 python = "^3.8.0"

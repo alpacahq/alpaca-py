@@ -106,10 +106,13 @@ class BrokerClient(RESTClient):
         Returns:
             Account: Returns an Account instance with the updated data as returned from the api
         """
-
         account_id = validate_account_id_param(account_id)
+        params = update_data.to_request_fields()
 
-        response = self.patch(f"/accounts/{account_id}", update_data.json())
+        if len(params) < 1:
+            raise ValueError("update_data must contain at least 1 field to change")
+
+        response = self.patch(f"/accounts/{account_id}", params)
 
         return Account(**response)
 

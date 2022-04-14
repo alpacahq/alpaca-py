@@ -1,8 +1,7 @@
-import json
 from enum import Enum
 
 
-class TaxIdType(Enum):
+class TaxIdType(str, Enum):
     """The various country specific tax identification numbers
 
     see https://alpaca.markets/docs/broker/api-references/accounts/accounts/#tax-id-type
@@ -48,7 +47,7 @@ class TaxIdType(Enum):
     NOT_SPECIFIED = "NOT_SPECIFIED"
 
 
-class VisaType(Enum):
+class VisaType(str, Enum):
     """
     In addition to the following USA visa categories, we accept any sub visas of the list below.
     Sub visas must be passed in according to their parent category.
@@ -75,7 +74,7 @@ class VisaType(Enum):
     TN1 = "TN1"
 
 
-class FundingSource(Enum):
+class FundingSource(str, Enum):
     """
     Various sources of funding for brokerage accounts.
 
@@ -90,7 +89,7 @@ class FundingSource(Enum):
     FAMILY = "family"
 
 
-class EmploymentStatus(Enum):
+class EmploymentStatus(str, Enum):
     """
     The possible employment statuses of the user
 
@@ -103,7 +102,7 @@ class EmploymentStatus(Enum):
     RETIRED = "retired"
 
 
-class AgreementType(Enum):
+class AgreementType(str, Enum):
     """
     The types of agreements that are to be signed by the user
 
@@ -115,11 +114,8 @@ class AgreementType(Enum):
     CUSTOMER = "customer_agreement"
     CRYPTO = "crypto_agreement"
 
-    def toJSON(self):
-        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
 
-
-class DocumentType(Enum):
+class DocumentType(str, Enum):
     """
     The types of documents that can be uploaded by the user
 
@@ -134,7 +130,7 @@ class DocumentType(Enum):
     W8_BEN = "w8ben"
 
 
-class AccountStatus(Enum):
+class AccountStatus(str, Enum):
     """
     The various statuses each brokerage account can take during its lifetime
 

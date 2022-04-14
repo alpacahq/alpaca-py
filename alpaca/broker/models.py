@@ -432,3 +432,25 @@ class AccountUpdateRequest(BaseModel, validate_assignment=True):
     identity: Optional[UpdatableIdentity] = None
     disclosures: Optional[UpdatableDisclosures] = None
     trusted_contact: Optional[UpdatableTrustedContact] = None
+
+    def to_request_fields(self) -> dict:
+        """
+        the equivalent of self::dict but removes empty values.
+
+        Ie say we only set trusted_contact.given_name instead of generating a dict like:
+          {contact: {city: None, country: None...}, etc}
+        we generate just:
+          {trusted_contact:{given_name: "new value"}}
+        Returns:
+            dict: a dict containing any set fields
+        """
+
+        # pydantic almost has what we need by passing exclude_none to dict() but it returns:
+        #  {trusted_contact: {}, contact: {}, identity: None, etc}
+        # so we do a simple list comprehension to filter out None and {}
+
+        return {
+            key: val
+            for key, val in self.dict(exclude_none=True).items()
+            if val and len(val) > 0
+        }

@@ -1,7 +1,7 @@
 from typing import Any, List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, parse_obj_as, validator
+from pydantic import BaseModel, parse_obj_as, validator, root_validator
 
 from .enums import (
     AccountStatus,
@@ -14,7 +14,7 @@ from .enums import (
 )
 
 
-class Contact(BaseModel):
+class Contact(BaseModel, validate_assignment=True):
     """User contact details within Account Model
 
     see https://alpaca.markets/docs/broker/api-references/accounts/accounts/#the-account-model
@@ -23,9 +23,9 @@ class Contact(BaseModel):
         email_address (str): The user's email address
         phone_number (str): The user's phone number. It should include the country code.
         street_address (List[str]): The user's street address lines.
-        unit (str): The user's apartment unit, if any.
+        unit (Optional[str]): The user's apartment unit, if any.
         city (str): The city the user resides in.
-        state (str): The state the user resides in. This is required if country is 'USA'.
+        state (Optional[str]): The state the user resides in. This is required if country is 'USA'.
         postal_code (str): The user's postal
         country (str): The country the user resides in. 3 letter country code is permissible.
     """
@@ -58,32 +58,32 @@ class Contact(BaseModel):
         return v
 
 
-class Identity(BaseModel):
+class Identity(BaseModel, validate_assignment=True):
     """User identity details within Account Model
 
     see https://alpaca.markets/docs/broker/api-references/accounts/accounts/#the-account-model
 
     Attributes:
         given_name (str): The user's first name
-        middle_name (str): The user's middle name, if any
+        middle_name (Optional[str]): The user's middle name, if any
         family_name (str): The user's last name
         date_of_birth (str): The user's date of birth
-        tax_id (str): The user's country specific tax id, required if tax_id_type is provided
-        tax_id_type (TaxIdType): The tax_id_type for the tax_id provided, required if tax_id provided
-        country_of_citizenship (str): The country the user is a citizen
-        country_of_birth (str): The country the user was born
+        tax_id (Optional[str]): The user's country specific tax id, required if tax_id_type is provided
+        tax_id_type (Optional[TaxIdType]): The tax_id_type for the tax_id provided, required if tax_id provided
+        country_of_citizenship (Optional[str]): The country the user is a citizen
+        country_of_birth (Optional[str]): The country the user was born
         country_of_tax_residence (str): The country the user files taxes
-        visa_type (VisaType): Only used to collect visa types for users residing in the USA.
-        visa_expiration_date (str): The date of expiration for visa, Required if visa_type is set.
-        date_of_departure_from_usa (str): Required if visa_type = B1 or B2
-        permanent_resident (bool): Only used to collect permanent residence status in the USA.
-        funding_source (List[FundingSource]): How the user will fund their account
-        annual_income_min (flot): The minimum of the user's income range
-        annual_income_max (float): The maximum of the user's income range
-        liquid_net_worth_min (float): The minimum of the user's liquid net worth range
-        liquid_net_worth_max (float): The maximum of the user's liquid net worth range
-        total_net_worth_min (float): The minimum of the user's total net worth range
-        total_net_worth_max (float): The maximum of the user's total net worth range
+        visa_type (Optional[VisaType]): Only used to collect visa types for users residing in the USA.
+        visa_expiration_date (Optional[str]): The date of expiration for visa, Required if visa_type is set.
+        date_of_departure_from_usa (Optional[str]): Required if visa_type = B1 or B2
+        permanent_resident (Optional[bool]): Only used to collect permanent residence status in the USA.
+        funding_source (Optional[List[FundingSource]]): How the user will fund their account
+        annual_income_min (Optional[float]): The minimum of the user's income range
+        annual_income_max (Optional[float]): The maximum of the user's income range
+        liquid_net_worth_min (Optional[float]): The minimum of the user's liquid net worth range
+        liquid_net_worth_max (Optional[float]): The maximum of the user's liquid net worth range
+        total_net_worth_min (Optional[float]): The minimum of the user's total net worth range
+        total_net_worth_max (Optional[float]): The maximum of the user's total net worth range
     """
 
     given_name: str
@@ -98,8 +98,8 @@ class Identity(BaseModel):
     visa_type: Optional[VisaType] = None
     visa_expiration_date: Optional[str] = None
     date_of_departure_from_usa: Optional[str] = None
-    permanent_resident: Optional[str] = None
-    funding_source: Optional[List[FundingSource]]
+    permanent_resident: Optional[bool] = None
+    funding_source: Optional[List[FundingSource]] = None
     annual_income_min: Optional[float] = None
     annual_income_max: Optional[float] = None
     liquid_net_worth_min: Optional[float] = None
@@ -108,7 +108,7 @@ class Identity(BaseModel):
     total_net_worth_max: Optional[float] = None
 
 
-class Disclosures(BaseModel):
+class Disclosures(BaseModel, validate_assignment=True):
     """User disclosures within Account Model
 
     see https://alpaca.markets/docs/broker/api-references/accounts/accounts/#the-account-model
@@ -134,7 +134,7 @@ class Disclosures(BaseModel):
     employment_position: Optional[str] = None
 
 
-class Agreement(BaseModel):
+class Agreement(BaseModel, validate_assignment=True):
     """User agreements signed within Account Model
 
     see https://alpaca.markets/docs/broker/api-references/accounts/accounts/#the-account-model
@@ -152,7 +152,7 @@ class Agreement(BaseModel):
     revision: Optional[str]
 
 
-class Document(BaseModel):
+class Document(BaseModel, validate_assignment=True):
     """User documents provided within Account Model
 
     see https://alpaca.markets/docs/broker/api-references/accounts/accounts/#the-account-model
@@ -180,20 +180,20 @@ class Document(BaseModel):
         super().__init__(**data)
 
 
-class TrustedContact(BaseModel):
+class TrustedContact(BaseModel, validate_assignment=True):
     """User's trusted contact details within Account Model
 
     see https://alpaca.markets/docs/broker/api-references/accounts/accounts/#the-account-model
 
-    Attributes:
+    Attributes:given_name
         given_name (str): The first name of the user's trusted contact
         family_name (str): The last name of the user's trusted contact
-        email_address (str): The email address of the user's trusted contact
-        phone_number (str): The email address of the user's trusted contact
-        city (str): The email address of the user's trusted contact
-        state (str): The email address of the user's trusted contact
-        postal_code (str): The email address of the user's trusted contact
-        country (str): The email address of the user's trusted contact
+        email_address (Optional[str]): The email address of the user's trusted contact
+        phone_number (Optional[str]): The email address of the user's trusted contact
+        city (Optional[str]): The email address of the user's trusted contact
+        state (Optional[str]): The email address of the user's trusted contact
+        postal_code (Optional[str]): The email address of the user's trusted contact
+        country (Optional[str]): The email address of the user's trusted contact
     """
 
     given_name: str
@@ -206,35 +206,25 @@ class TrustedContact(BaseModel):
     postal_code: Optional[str] = None
     country: Optional[str] = None
 
-    @validator("email_address")
-    def has_at_least_one_contact(cls, v: str, values: dict, **kwargs) -> str:
-        """Validates whether there is at least one form of contact for the trusted contact
-
-        Args:
-            v (str): The email address field value
-            values (dict): The values of each field
-
-        Raises:
-            ValueError: At least one contact field is required
-
-        Returns:
-            str: the value of the email address field
-        """
+    @root_validator()
+    def root_validator(cls, values: dict) -> dict:
         has_phone_number = (
             "phone_number" in values and values["phone_number"] is not None
         )
         has_street_address = (
             "street_address" in values and values["street_address"] is not None
         )
-        has_email_address = v is not None
+        has_email_address = (
+            "email_address" in values and values["email_address"] is not None
+        )
 
         if has_phone_number or has_street_address or has_email_address:
-            return v
+            return values
 
         raise ValueError("At least one method of contact required for trusted contact")
 
 
-class Account(BaseModel):
+class Account(BaseModel, validate_assignment=True):
     """Contains information pertaining to a specific brokerage account
 
     see https://alpaca.markets/docs/broker/api-references/accounts/accounts/#the-account-model
@@ -287,7 +277,7 @@ class Account(BaseModel):
         )
 
 
-class AccountCreationRequest(BaseModel):
+class AccountCreationRequest(BaseModel, validate_assignment=True):
     """Class used to format data necessary for making a request to create a brokerage account
 
     Attributes:
@@ -307,19 +297,138 @@ class AccountCreationRequest(BaseModel):
     trusted_contact: Optional[TrustedContact] = None
 
 
-class AccountUpdateRequest(BaseModel):
+class UpdatableContact(Contact, validate_assignment=True):
     """
-    Represents the data allowed in a request to update an Account. Note not all fields of an account
-    are currently modifiable.
+    An extended version of Contact that has all fields as optional, so you don't need to specify all fields if you only
+    want to update a subset of them.
 
     Attributes:
-        contact (Optional[Contact]): Contact details to update to
-        identity (Optional[Identity]): Identity details to update to
-        disclosures (Optional[Disclosures]): Disclosure details to update to
-        trusted_contact (Optional[TrustedContact]): TrustedContact details to update to
+        email_address (Optional[str]): The user's email address
+        phone_number (Optional[str]): The user's phone number. It should include the country code.
+        street_address (Optional[List[str]]): The user's street address lines.
+        unit (Optional[str]): The user's apartment unit, if any.
+        city (Optional[str]): The city the user resides in.
+        state (Optional[str]): The state the user resides in. This is required if country is 'USA'.
+        postal_code (Optional[str]): The user's postal
+        country (Optional[str]): The country the user resides in. 3 letter country code is permissible.
     """
 
-    contact: Optional[Contact] = None
-    identity: Optional[Identity] = None
-    disclosures: Optional[Disclosures] = None
-    trusted_contact: Optional[TrustedContact] = None
+    # override the non optional fields to now be optional
+    email_address: Optional[str] = None
+    phone_number: Optional[str] = None
+    street_address: Optional[List[str]] = None
+    city: Optional[str] = None
+
+
+# We don't extend the Identity model because we have to remove fields, not all of them are updatable
+class UpdatableIdentity(BaseModel, validate_assignment=True):
+    """
+       This class is a subset version of Identity. Currently, not all fields on accounts are modifiable so this class
+       represents which ones are modifiable on the `identity` field of an account when making an
+       BrokerClient::update_account call.
+
+       Also has all fields as optional, so you don't need to specify all fields if you only want to update a subset
+
+    Attributes:
+           given_name (Optional[str]): The user's first name
+           middle_name (Optional[str]): The user's middle name, if any
+           family_name (Optional[str]): The user's last name
+           tax_id (Optional[str]): The user's country specific tax id, required if tax_id_type is provided
+           tax_id_type (Optional[TaxIdType]): The tax_id_type for the tax_id provided, required if tax_id provided
+           country_of_citizenship (Optional[str]): The country the user is a citizen
+           country_of_birth (Optional[str]): The country the user was born
+           country_of_tax_residence (Optional[str]): The country the user files taxes
+           visa_type (Optional[VisaType]): Only used to collect visa types for users residing in the USA.
+           visa_expiration_date (Optional[str]): The date of expiration for visa, Required if visa_type is set.
+           date_of_departure_from_usa (Optional[str]): Required if visa_type = B1 or B2
+           permanent_resident (Optional[bool]): Only used to collect permanent residence status in the USA.
+           funding_source (Optional[List[FundingSource]]): How the user will fund their account
+           annual_income_min (Optional[float]): The minimum of the user's income range
+           annual_income_max (Optional[float]): The maximum of the user's income range
+           liquid_net_worth_min (Optional[float]): The minimum of the user's liquid net worth range
+           liquid_net_worth_max (Optional[float]): The maximum of the user's liquid net worth range
+           total_net_worth_min (Optional[float]): The minimum of the user's total net worth range
+           total_net_worth_max (Optional[float]): The maximum of the user's total net worth range
+    """
+
+    given_name: Optional[str] = None
+    middle_name: Optional[str] = None
+    family_name: Optional[str] = None
+    visa_type: Optional[VisaType] = None
+    visa_expiration_date: Optional[str] = None
+    date_of_departure_from_usa: Optional[str] = None
+    permanent_resident: Optional[bool] = None
+    funding_source: Optional[List[FundingSource]] = None
+    annual_income_min: Optional[float] = None
+    annual_income_max: Optional[float] = None
+    liquid_net_worth_min: Optional[float] = None
+    liquid_net_worth_max: Optional[float] = None
+    total_net_worth_min: Optional[float] = None
+    total_net_worth_max: Optional[float] = None
+
+
+class UpdatableDisclosures(Disclosures, validate_assignment=True):
+    """
+    An extended version of Disclosures that has all fields as optional, so you don't need to specify all fields if you
+    only want to update a subset of them.
+
+    Attributes:
+        is_control_person (Optional[bool]): Whether user holds a controlling position in a publicly traded company
+        is_affiliated_exchange_or_finra (Optional[bool]): If user is affiliated with any exchanges or FINRA
+        is_politically_exposed (Optional[bool]): If user is politically exposed
+        immediate_family_exposed (Optional[bool]): If user’s immediate family member is either politically exposed or holds a control position.
+        employment_status (Optional[EmploymentStatus]): The employment status of the user
+        employer_name (Optional[str]): The user's employer's name, if any
+        employer_address (Optional[str]): The user's employer's address, if any
+        employment_position (Optional[str]): The user's employment position, if any
+    """
+
+    is_control_person: Optional[bool] = None
+    is_affiliated_exchange_or_finra: Optional[bool] = None
+    is_politically_exposed: Optional[bool] = None
+    immediate_family_exposed: Optional[bool] = None
+
+
+class UpdatableTrustedContact(TrustedContact, validate_assignment=True):
+    """
+    An extended version of TrustedContact that has all fields as optional, so you don't need to specify all fields if
+    you only want to update a subset of them.
+
+    Attributes:
+        given_name (Optional[str]): The first name of the user's trusted contact
+        family_name (Optional[str]): The last name of the user's trusted contact
+        email_address (Optional[str]): The email address of the user's trusted contact
+        phone_number (Optional[str]): The email address of the user's trusted contact
+        city (Optional[str]): The email address of the user's trusted contact
+        state (Optional[str]): The email address of the user's trusted contact
+        postal_code (Optional[str]): The email address of the user's trusted contact
+        country (Optional[str]): The email address of the user's trusted contact
+    """
+
+    # only need to override these 2 as other fields were already optional
+    given_name: Optional[str] = None
+    family_name: Optional[str] = None
+
+    # override the parent and set a new root validator that just allows all
+    @root_validator()
+    def root_validator(cls, values: dict) -> dict:
+        """Override parent method to allow null contact info"""
+        return values
+
+
+class AccountUpdateRequest(BaseModel, validate_assignment=True):
+    """
+    Represents the data allowed in a request to update an Account. Note not all fields of an account
+    are currently modifiable so this model uses models that represent the subset of modifiable fields.
+
+    Attributes:
+        contact (Optional[UpdatableContact]): Contact details to update to
+        identity (Optional[UpdatableIdentity]): Identity details to update to
+        disclosures (Optional[UpdatableDisclosures]): Disclosure details to update to
+        trusted_contact (Optional[UpdatableTrustedContact]): TrustedContact details to update to
+    """
+
+    contact: Optional[UpdatableContact] = None
+    identity: Optional[UpdatableIdentity] = None
+    disclosures: Optional[UpdatableDisclosures] = None
+    trusted_contact: Optional[UpdatableTrustedContact] = None

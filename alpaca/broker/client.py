@@ -94,7 +94,9 @@ class BrokerClient(RESTClient):
         """
         Updates data for an account with an id of `account_id`. Note that not all data for an account is modifiable
         after creation so there is a special data type of AccountUpdateRequest representing the data that is
-        allowed to be modified
+        allowed to be modified.
+
+        see: https://alpaca.markets/docs/api-references/broker-api/accounts/accounts/#updating-an-account for more info
 
         Args:
             account_id (Union[UUID, str]): The id for the account you with to update. str uuid values will be upcast

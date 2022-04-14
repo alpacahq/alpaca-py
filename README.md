@@ -17,7 +17,7 @@ install` to have pre-commit setup these hooks
 To retrieve historical market data, you’ll need to instantiate a historical data client with your API keys. There are many different methods that allow you to access various stock and crypto data. To see the full range of data types available, read the [API reference for market data](https://alpaca.markets/docs/python-sdk/api_reference/data_api.html). In this example, we will query daily bar data for Apple Inc (AAPL) between January 1st 2021 and December 31st 2021. Then we will convert the data to a dataframe and print it out to the console.
 
 ```python
-from alpaca.data.clients import HistoricalDataClient
+from alpaca.data.historical import HistoricalDataClient
 from alpaca.common.time import TimeFrame
 
 API_KEY = 'api-key'
@@ -52,7 +52,7 @@ print(bars.df)
 Live market data is available for both crypto and stocks via websocket interfaces. Keep in mind live stock data is only available during market hours on trading days, whereas live crypto data is available 24/7. In this example, we will subscribe to live quote data for Bitcoin (BTCUSD). To do so, first we will need to create an instance of the CryptoDataStream client with our API keys. Then we can create an asynchronous callback method to handle our live data as it is available.
 
 ```python
-from alpaca.data.stream_clients import CryptoDataStream
+from alpaca.data.live import CryptoDataStream
 
 API_KEY = 'api-key'
 SECRET_KEY = 'secret-key'

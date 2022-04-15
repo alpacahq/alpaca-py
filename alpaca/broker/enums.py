@@ -158,3 +158,20 @@ class AccountStatus(str, Enum):
     SIGNED_UP = "SIGNED_UP"
     SUBMISSION_FAILED = "SUBMISSION_FAILED"
     SUBMITTED = "SUBMITTED"
+
+
+class AccountEntities(str, Enum):
+    """
+    An enum representing the different fields to query for when listing accounts.
+
+    ie: asking for CONTACT and IDENTITY will have the api fill those fields when returning the list of Accounts however
+    other fields on the account will be nulled out where possible.
+    """
+
+    CONTACT = "contact"
+    IDENTITY = "identity"
+    DISCLOSURES = "disclosures"
+    AGREEMENTS = "agreements"
+    DOCUMENTS = "documents"
+    TRUSTED_CONTACT = "trusted_contact"
+    USER_CONFIGURATIONS = "trading_configurations"

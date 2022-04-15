@@ -1,9 +1,15 @@
-from typing import Optional, Union
+from typing import List, Optional, Union
 from uuid import UUID
+from pydantic import parse_obj_as
 
 from ..common.enums import BaseURL
 from ..common.rest import RESTClient
-from .models import Account, AccountCreationRequest, AccountUpdateRequest
+from .models import (
+    Account,
+    AccountCreationRequest,
+    AccountUpdateRequest,
+    ListAccountsRequest,
+)
 
 
 def validate_account_id_param(account_id: Union[UUID, str]) -> UUID:
@@ -136,3 +142,15 @@ class BrokerClient(RESTClient):
         account_id = validate_account_id_param(account_id)
 
         self.delete(f"/accounts/{account_id}")
+
+    def list_accounts(
+        self, search_parameters: Optional[ListAccountsRequest] = None
+    ) -> List[Account]:
+        # this is a get request so we're safe not checking to see if we specified at least one param
+
+        response = self.get(
+            f"/accounts",
+            search_parameters.dict() if search_parameters is not None else {},
+        )
+
+        return parse_obj_as(List[Account], response)

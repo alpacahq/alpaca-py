@@ -6,3 +6,4 @@ Broker API
    :caption: Contents:
 
    broker_client
+   broker_models

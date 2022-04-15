@@ -1,9 +1,11 @@
+from datetime import datetime
 from typing import Any, List, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, parse_obj_as, validator, root_validator
 
 from .enums import (
+    AccountEntities,
     AccountStatus,
     AgreementType,
     DocumentType,
@@ -12,6 +14,36 @@ from .enums import (
     TaxIdType,
     VisaType,
 )
+from ..common.enums import Sort
+
+
+class NonEmptyRequest(BaseModel):
+    """
+    Mixin for models that represent requests where we don't want to send nulls for optional fields.
+    """
+
+    def to_request_fields(self) -> dict:
+        """
+        the equivalent of self::dict but removes empty values.
+
+        Ie say we only set trusted_contact.given_name instead of generating a dict like:
+          {contact: {city: None, country: None...}, etc}
+        we generate just:
+          {trusted_contact:{given_name: "new value"}}
+
+        Returns:
+            dict: a dict containing any set fields
+        """
+
+        # pydantic almost has what we need by passing exclude_none to dict() but it returns:
+        #  {trusted_contact: {}, contact: {}, identity: None, etc}
+        # so we do a simple list comprehension to filter out None and {}
+
+        return {
+            key: val
+            for key, val in self.dict(exclude_none=True).items()
+            if val and len(val) > 0
+        }
 
 
 class Contact(BaseModel, validate_assignment=True):
@@ -229,6 +261,10 @@ class Account(BaseModel, validate_assignment=True):
 
     see https://alpaca.markets/docs/broker/api-references/accounts/accounts/#the-account-model
 
+    The fields contact, identity, disclosures, agreements, documents, trusted_contact, and trading_configurations
+    are all optional and won't always be provided by the api depending on what endpoint you use and what options you
+    pass
+
     Attributes:
         id (str): The account uuid used to reference this account
         account_number (str): A more human friendly identifier for this account
@@ -237,12 +273,12 @@ class Account(BaseModel, validate_assignment=True):
         currency (str): The currency the account's values are returned in
         last_equity (str): The total equity value stored in the account
         created_at (str): The timestamp when the account was created
-        contact (Contact): The contact details for the account holder
-        identity (Identity): The identity details for the account holder
-        disclosures (Disclosures): The account holder's political disclosures
-        agreements (List[Agreement]): The agreements the account holder has signed
-        documents (List[Document]): The documents the account holder has submitted
-        trusted_contact (TrustedContact): The account holder's trusted contact details
+        contact (Optional[Contact]): The contact details for the account holder
+        identity (Optional[Identity]): The identity details for the account holder
+        disclosures (Optional[Disclosures]): The account holder's political disclosures
+        agreements (Optional[List[Agreement]]): The agreements the account holder has signed
+        documents (Optional[List[Document]]): The documents the account holder has submitted
+        trusted_contact (Optional[TrustedContact]): The account holder's trusted contact details
     """
 
     id: str
@@ -252,10 +288,10 @@ class Account(BaseModel, validate_assignment=True):
     currency: str
     last_equity: str
     created_at: str
-    contact: Contact
-    identity: Identity
-    disclosures: Disclosures
-    agreements: List[Agreement]
+    contact: Optional[Contact] = None
+    identity: Optional[Identity] = None
+    disclosures: Optional[Disclosures] = None
+    agreements: Optional[List[Agreement]] = None
     documents: Optional[List[Document]] = None
     trusted_contact: Optional[TrustedContact] = None
 
@@ -270,10 +306,36 @@ class Account(BaseModel, validate_assignment=True):
             currency=(response["currency"]),
             last_equity=(response["last_equity"]),
             created_at=(response["created_at"]),
-            contact=(parse_obj_as(Contact, response["contact"])),
-            identity=(parse_obj_as(Identity, response["identity"])),
-            disclosures=(parse_obj_as(Disclosures, response["disclosures"])),
-            agreements=(parse_obj_as(List[Agreement], response["agreements"])),
+            contact=(
+                parse_obj_as(Contact, response["contact"])
+                if "contact" in response
+                else None
+            ),
+            identity=(
+                parse_obj_as(Identity, response["identity"])
+                if "identity" in response
+                else None
+            ),
+            disclosures=(
+                parse_obj_as(Disclosures, response["disclosures"])
+                if "disclosures" in response
+                else None
+            ),
+            agreements=(
+                parse_obj_as(List[Agreement], response["agreements"])
+                if "agreements" in response
+                else None
+            ),
+            documents=(
+                parse_obj_as(List[Document], response["documents"])
+                if "documents" in response
+                else None
+            ),
+            trusted_contact=(
+                parse_obj_as(TrustedContact, response["trusted_contact"])
+                if "trusted_contact" in response
+                else None
+            ),
         )
 
 
@@ -313,7 +375,7 @@ class UpdatableContact(Contact, validate_assignment=True):
         country (Optional[str]): The country the user resides in. 3 letter country code is permissible.
     """
 
-    # override the non optional fields to now be optional
+    # override the non-optional fields to now be optional
     email_address: Optional[str] = None
     phone_number: Optional[str] = None
     street_address: Optional[List[str]] = None
@@ -416,7 +478,7 @@ class UpdatableTrustedContact(TrustedContact, validate_assignment=True):
         return values
 
 
-class AccountUpdateRequest(BaseModel, validate_assignment=True):
+class AccountUpdateRequest(NonEmptyRequest, validate_assignment=True):
     """
     Represents the data allowed in a request to update an Account. Note not all fields of an account
     are currently modifiable so this model uses models that represent the subset of modifiable fields.
@@ -433,25 +495,37 @@ class AccountUpdateRequest(BaseModel, validate_assignment=True):
     disclosures: Optional[UpdatableDisclosures] = None
     trusted_contact: Optional[UpdatableTrustedContact] = None
 
-    def to_request_fields(self) -> dict:
-        """
-        the equivalent of self::dict but removes empty values.
 
-        Ie say we only set trusted_contact.given_name instead of generating a dict like:
-          {contact: {city: None, country: None...}, etc}
-        we generate just:
-          {trusted_contact:{given_name: "new value"}}
+class ListAccountsRequest(BaseModel, validate_assignment=True):
+    """
+    Represents the values you can specify when making a request to list accounts
 
-        Returns:
-            dict: a dict containing any set fields
-        """
+    Attributes:
+        query (Optional[str]): Pass space-delimited tokens. The response will contain accounts that match with each of
+         the tokens (logical AND). A match means the token is present in either the account’s associated account number,
+         phone number, name, or e-mail address (logical OR).
+        created_before (Optional[datetime]): Accounts that were created before this date
+        created_after (Optional[datetime]): Accounts that were created after this date
+        status (Optional[AccountStatus]): Accounts that have their status field as one of these
+        sort (Sort, optional): The chronological order of response based on the submission time. Defaults to DESC.
+        entities (Optional[List[AccountEntities]]): By default, this endpoint doesn't return all information for each
+         account to save space in the response. This field lets you specify what additional information you want to be
+         included on each account.
 
-        # pydantic almost has what we need by passing exclude_none to dict() but it returns:
-        #  {trusted_contact: {}, contact: {}, identity: None, etc}
-        # so we do a simple list comprehension to filter out None and {}
+         ie, specifying [IDENTITY, CONTACT] would ensure that each returned account has its `identity` and `contact`
+         fields filled out.
+    """
 
-        return {
-            key: val
-            for key, val in self.dict(exclude_none=True).items()
-            if val and len(val) > 0
-        }
+    query: Optional[str] = None
+    created_before: Optional[datetime] = None
+    created_after: Optional[datetime] = None
+    status: Optional[List[AccountStatus]] = None
+    sort: Sort
+    entities: Optional[List[AccountEntities]] = None
+
+    def __init__(self, *args, **kwargs):
+        # The api itself actually defaults to DESC, but this way our docs won't be incorrect if the api changes under us
+        if "sort" not in kwargs or kwargs["sort"] is None:
+            kwargs["sort"] = Sort.DESC
+
+        super().__init__(*args, **kwargs)

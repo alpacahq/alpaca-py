@@ -7,11 +7,13 @@ from alpaca.broker.models import (
     Account,
     AccountCreationRequest,
     AccountUpdateRequest,
+    ListAccountsRequest,
     UpdatableContact,
     UpdatableTrustedContact,
     UpdatableIdentity,
     UpdatableDisclosures,
 )
+from alpaca.common.enums import BaseURL
 
 from factories import common as factory
 
@@ -418,3 +420,61 @@ def test_delete_account_validates_account_id(reqmock, client: BrokerClient):
 
     with pytest.raises(ValueError):
         client.delete_account(4)
+
+
+def test_list_accounts_no_params(reqmock, client: BrokerClient):
+    reqmock.get(
+        BaseURL.BROKER_SANDBOX + "/v1/accounts",
+        text="""
+        [
+          {
+            "id": "5fc0795e-1f16-40cc-aa90-ede67c39d7a9",
+            "account_number": "684486106",
+            "status": "ACTIVE",
+            "crypto_status": "ACTIVE",
+            "kyc_results": {
+              "reject": {},
+              "accept": {},
+              "indeterminate": {},
+              "summary": "pass"
+            },
+            "currency": "USD",
+            "last_equity": "0",
+            "created_at": "2022-04-14T15:51:14.523349Z",
+            "account_type": "trading"
+          },
+          {
+            "id": "0d969814-40d6-4b2b-99ac-2e37427f1ad2",
+            "account_number": "682389557",
+            "status": "ACTIVE",
+            "crypto_status": "ACTIVE",
+            "kyc_results": {
+              "reject": {},
+              "accept": {},
+              "indeterminate": {},
+              "summary": "pass"
+            },
+            "currency": "USD",
+            "last_equity": "0",
+            "created_at": "2022-04-12T17:24:31.30283Z",
+            "account_type": "trading"
+          }
+        ]
+        """,
+    )
+
+    accounts = client.list_accounts()
+
+    assert reqmock.called_once
+    assert len(accounts) == 2
+
+    for account in accounts:
+        assert type(account) == Account
+
+        # assert the optional fields we didn't request are None
+        assert account.identity is None
+        assert account.contact is None
+        assert account.disclosures is None
+        assert account.documents is None
+        assert account.trusted_contact is None
+        assert account.agreements is None

@@ -401,4 +401,20 @@ def test_update_account_validates_non_empty_request(reqmock, client: BrokerClien
 
 
 def test_delete_account(reqmock, client: BrokerClient):
-    pass
+    account_id = "0d969814-40d6-4b2b-99ac-2e37427f1ad2"
+
+    reqmock.delete(
+        f"https://broker-api.sandbox.alpaca.markets/v1/accounts/{account_id}",
+        status_code=204,
+    )
+
+    assert client.delete_account(account_id) is None
+    assert reqmock.called_once
+
+
+def test_delete_account_validates_account_id(reqmock, client: BrokerClient):
+    with pytest.raises(ValueError):
+        client.delete_account("not a uuid")
+
+    with pytest.raises(ValueError):
+        client.delete_account(4)

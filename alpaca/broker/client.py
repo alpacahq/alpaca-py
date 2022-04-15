@@ -132,3 +132,7 @@ class BrokerClient(RESTClient):
         Returns:
             None:
         """
+
+        account_id = validate_account_id_param(account_id)
+
+        self.delete(f"/accounts/{account_id}")

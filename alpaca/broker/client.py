@@ -50,6 +50,8 @@ class BrokerClient(RESTClient):
         base_url: BaseURL = (
             BaseURL.BROKER_SANDBOX if sandbox else BaseURL.BROKER_PRODUCTION
         )
+
+        # TODO: Actually check raw_data everywhere
         super().__init__(api_key, secret_key, api_version, base_url, sandbox, raw_data)
 
     def create_account(self, account_data: AccountCreationRequest) -> Account:
@@ -116,5 +118,17 @@ class BrokerClient(RESTClient):
 
         return Account(**response)
 
-    def delete_account(self) -> Account:
-        pass
+    def delete_account(self, account_id: Union[UUID, str]) -> None:
+        """
+        Delete an Account by its id.
+
+        As the api itself returns a 204 on success this function returns nothing in the successful case and will raise
+        and exception in any other case.
+
+        Args:
+            account_id (Union[UUID, str]): the id of the Account you wish to delete. str values will attempt to be
+            upcast to UUID to validate.
+
+        Returns:
+            None:
+        """

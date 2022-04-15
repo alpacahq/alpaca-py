@@ -22,3 +22,9 @@ repos:
         entry: "poetry run pytest"
         pass_filenames: false
         always_run: true
+      - id: doc check
+        name: sphinx doc check
+        language: system
+        entry: "./tools/scripts/generate-docs.sh"
+        pass_filenames: false
+        always_run: true

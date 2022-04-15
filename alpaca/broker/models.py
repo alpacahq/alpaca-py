@@ -441,6 +441,7 @@ class AccountUpdateRequest(BaseModel, validate_assignment=True):
           {contact: {city: None, country: None...}, etc}
         we generate just:
           {trusted_contact:{given_name: "new value"}}
+
         Returns:
             dict: a dict containing any set fields
         """

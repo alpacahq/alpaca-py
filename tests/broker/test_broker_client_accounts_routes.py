@@ -398,3 +398,7 @@ def test_update_account_validates_non_empty_request(reqmock, client: BrokerClien
         client.update_account(account_id, update_data)
 
     assert str(e.value) == "update_data must contain at least 1 field to change"
+
+
+def test_delete_account(reqmock, client: BrokerClient):
+    pass

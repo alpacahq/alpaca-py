@@ -1,19 +1,22 @@
 import pytest
 import requests_mock
 
+from alpaca.broker.enums import AccountEntities
 from alpaca.common import APIError
 from alpaca.broker.client import BrokerClient
 from alpaca.broker.models import (
     Account,
     AccountCreationRequest,
     AccountUpdateRequest,
+    Contact,
+    Identity,
     ListAccountsRequest,
     UpdatableContact,
     UpdatableTrustedContact,
     UpdatableIdentity,
     UpdatableDisclosures,
 )
-from alpaca.common.enums import BaseURL
+from alpaca.common.enums import BaseURL, Sort
 
 from factories import common as factory
 
@@ -466,6 +469,12 @@ def test_list_accounts_no_params(reqmock, client: BrokerClient):
     accounts = client.list_accounts()
 
     assert reqmock.called_once
+
+    request = reqmock.request_history[0]
+
+    assert request.method == "GET"
+    assert request.qs == {}
+
     assert len(accounts) == 2
 
     for account in accounts:
@@ -474,6 +483,126 @@ def test_list_accounts_no_params(reqmock, client: BrokerClient):
         # assert the optional fields we didn't request are None
         assert account.identity is None
         assert account.contact is None
+        assert account.disclosures is None
+        assert account.documents is None
+        assert account.trusted_contact is None
+        assert account.agreements is None
+
+
+def test_list_accounts_parses_entities_if_present(reqmock, client: BrokerClient):
+    reqmock.get(
+        BaseURL.BROKER_SANDBOX + "/v1/accounts",
+        text="""
+        [
+          {
+            "id": "5fc0795e-1f16-40cc-aa90-ede67c39d7a9",
+            "account_number": "684486106",
+            "status": "ACTIVE",
+            "crypto_status": "ACTIVE",
+            "kyc_results": {
+              "reject": {},
+              "accept": {},
+              "indeterminate": {},
+              "summary": "pass"
+            },
+            "currency": "USD",
+            "last_equity": "0",
+            "created_at": "2022-04-14T15:51:14.523349Z",
+            "contact": {
+              "email_address": "test_dummy-1@example.com",
+              "phone_number": "555-666-7788",
+              "street_address": [
+                "20 N San Mateo Dr"
+              ],
+              "unit": "Apt 1A",
+              "city": "San Mateo",
+              "state": "CA",
+              "postal_code": "94401"
+            },
+            "identity": {
+              "given_name": "John",
+              "family_name": "Doe",
+              "middle_name": "Smith",
+              "date_of_birth": "1990-01-01",
+              "tax_id_type": "USA_SSN",
+              "country_of_citizenship": "USA",
+              "country_of_birth": "USA",
+              "country_of_tax_residence": "USA",
+              "funding_source": null,
+              "visa_type": null,
+              "visa_expiration_date": null,
+              "date_of_departure_from_usa": null,
+              "permanent_resident": null
+            },
+            "account_type": "trading"
+          },
+          {
+            "id": "0d969814-40d6-4b2b-99ac-2e37427f1ad2",
+            "account_number": "682389557",
+            "status": "ACTIVE",
+            "crypto_status": "ACTIVE",
+            "kyc_results": {
+              "reject": {},
+              "accept": {},
+              "indeterminate": {},
+              "summary": "pass"
+            },
+            "currency": "USD",
+            "last_equity": "0",
+            "created_at": "2022-04-12T17:24:31.30283Z",
+            "contact": {
+              "email_address": "cool_alpaca@example.com",
+              "phone_number": "555-666-7788",
+              "street_address": [
+                "20 N San Mateo Dr"
+              ],
+              "unit": "Apt 1A",
+              "city": "San Mateo",
+              "state": "CA",
+              "postal_code": "94401"
+            },
+            "identity": {
+              "given_name": "John",
+              "family_name": "Doe",
+              "middle_name": "Smith",
+              "date_of_birth": "1990-01-01",
+              "tax_id_type": "USA_SSN",
+              "country_of_citizenship": "USA",
+              "country_of_birth": "USA",
+              "country_of_tax_residence": "USA",
+              "funding_source": [
+                "employment_income"
+              ],
+              "visa_type": null,
+              "visa_expiration_date": null,
+              "date_of_departure_from_usa": null,
+              "permanent_resident": null
+            },
+            "account_type": "trading"
+          }
+        ]
+        """,
+    )
+
+    params = ListAccountsRequest(
+        entities=[AccountEntities.IDENTITY, AccountEntities.CONTACT]
+    )
+
+    accounts = client.list_accounts(params)
+
+    assert reqmock.called_once
+
+    request = reqmock.request_history[0]
+
+    assert request.qs == {"sort": ["desc"], "entities": ["identity,contact"]}
+    assert len(accounts) == 2
+
+    for account in accounts:
+        assert type(account) == Account
+
+        # assert the optional fields we didn't request are None and the ones we did request are set
+        assert type(account.identity) == Identity
+        assert type(account.contact) == Contact
         assert account.disclosures is None
         assert account.documents is None
         assert account.trusted_contact is None

@@ -146,11 +146,16 @@ class BrokerClient(RESTClient):
     def list_accounts(
         self, search_parameters: Optional[ListAccountsRequest] = None
     ) -> List[Account]:
-        # this is a get request so we're safe not checking to see if we specified at least one param
+        # this is a get request, so we're safe not checking to see if we specified at least one param
+        params = search_parameters.dict() if search_parameters is not None else {}
+
+        # API expects comma separated for entities not multiple params
+        if "entities" in params and params["entities"] is not None:
+            params["entities"] = ",".join(params["entities"])
 
         response = self.get(
             f"/accounts",
-            search_parameters.dict() if search_parameters is not None else {},
+            params,
         )
 
         return parse_obj_as(List[Account], response)

@@ -175,3 +175,22 @@ class AccountEntities(str, Enum):
     DOCUMENTS = "documents"
     TRUSTED_CONTACT = "trusted_contact"
     USER_CONFIGURATIONS = "trading_configurations"
+
+
+class ClearingBroker(str, Enum):
+    """
+    An enum for representing what Clearing broker an Account is assigned to
+    """
+
+    Apex = "APEX"
+    ETC = "ETC"
+    IC = "IC"
+    Velox = "VELOX"
+    Vision = "VISION"
+    Self = "SELF"
+
+    # These values are only visible in paper
+    # TODO: Verify if these values should be here or left undocumented
+    Paper = "PAPER"
+    PaperV2 = "PAPERV2"
+    PaperV3 = "PAPERV3"

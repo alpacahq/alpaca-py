@@ -13,6 +13,7 @@ from alpaca.broker.models import (
     Contact,
     Identity,
     ListAccountsRequest,
+    TradeAccount,
     UpdatableContact,
     UpdatableTrustedContact,
     UpdatableIdentity,
@@ -609,3 +610,79 @@ def test_list_accounts_parses_entities_if_present(reqmock, client: BrokerClient)
         assert account.documents is None
         assert account.trusted_contact is None
         assert account.agreements is None
+
+
+def test_get_trade_account_by_id(reqmock, client: BrokerClient):
+    account_id = "5fc0795e-1f16-40cc-aa90-ede67c39d7a9"
+
+    reqmock.get(
+        BaseURL.BROKER_SANDBOX + f"/v1/trading/accounts/{account_id}/account",
+        text="""
+        {
+          "id": "5fc0795e-1f16-40cc-aa90-ede67c39d7a9",
+          "account_number": "684486106",
+          "status": "ACTIVE",
+          "crypto_status": "ACTIVE",
+          "currency": "USD",
+          "buying_power": "0",
+          "regt_buying_power": "0",
+          "daytrading_buying_power": "0",
+          "non_marginable_buying_power": "0",
+          "cash": "0",
+          "cash_withdrawable": "0",
+          "cash_transferable": "0",
+          "accrued_fees": "0",
+          "pending_transfer_out": "0",
+          "pending_transfer_in": "0",
+          "portfolio_value": "0",
+          "pattern_day_trader": false,
+          "trading_blocked": false,
+          "transfers_blocked": false,
+          "account_blocked": false,
+          "created_at": "2022-04-14T15:51:14.523349Z",
+          "trade_suspended_by_user": false,
+          "multiplier": "1",
+          "shorting_enabled": false,
+          "equity": "0",
+          "last_equity": "0",
+          "long_market_value": "0",
+          "short_market_value": "0",
+          "initial_margin": "0",
+          "maintenance_margin": "0",
+          "last_maintenance_margin": "0",
+          "sma": "0",
+          "daytrade_count": 0,
+          "previous_close": "2022-04-13T20:00:00-04:00",
+          "last_long_market_value": "0",
+          "last_short_market_value": "0",
+          "last_cash": "0",
+          "last_initial_margin": "0",
+          "last_regt_buying_power": "0",
+          "last_daytrading_buying_power": "0",
+          "last_buying_power": "0",
+          "last_daytrade_count": 0,
+          "clearing_broker": "VELOX"
+        }
+              """,
+    )
+
+    account = client.get_trade_account_for_id(account_id)
+
+    assert reqmock.called_once
+
+    request = reqmock.request_history[0]
+    assert request.method == "GET"
+    assert request.qs == {}
+
+    assert type(account) == TradeAccount
+    assert account.id == UUID(account_id)
+
+
+def test_get_trade_account_by_id_validates_account_id(reqmock, client: BrokerClient):
+    with pytest.raises(ValueError) as e:
+        client.get_trade_account_for_id("not a uuid")
+
+    with pytest.raises(ValueError) as e:
+        client.get_trade_account_for_id(4)
+
+    assert "account_id must be a UUID or a UUID str" in str(e.value)

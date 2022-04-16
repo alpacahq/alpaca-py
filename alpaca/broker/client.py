@@ -9,6 +9,7 @@ from .models import (
     AccountCreationRequest,
     AccountUpdateRequest,
     ListAccountsRequest,
+    TradeAccount,
 )
 
 
@@ -160,5 +161,9 @@ class BrokerClient(RESTClient):
 
         return parse_obj_as(List[Account], response)
 
-    def get_trade_account_for_id(self):
-        pass
+    def get_trade_account_for_id(self, account_id: Union[UUID, str]) -> TradeAccount:
+        account_id = validate_account_id_param(account_id)
+
+        result = self.get(f"/trading/accounts/{account_id}/account")
+
+        return TradeAccount(**result)

@@ -1,3 +1,5 @@
+from uuid import UUID
+
 import pytest
 import requests_mock
 
@@ -138,7 +140,7 @@ def test_create_account(reqmock, client: BrokerClient):
 
     assert reqmock.called_once
     assert type(returned_account) == Account
-    assert returned_account.id == created_id
+    assert returned_account.id == UUID(created_id)
 
 
 def test_get_account(reqmock, client: BrokerClient):
@@ -232,7 +234,7 @@ def test_get_account(reqmock, client: BrokerClient):
 
     assert reqmock.called_once
     assert type(account) == Account
-    assert account.id == account_id
+    assert account.id == UUID(account_id)
 
 
 def test_get_account_account_not_found(reqmock, client: BrokerClient):
@@ -375,7 +377,7 @@ def test_update_account(reqmock, client: BrokerClient):
 
     assert reqmock.called_once
     assert type(account) == Account
-    assert account.id == account_id
+    assert account.id == UUID(account_id)
     assert account.identity.family_name == family_name
 
 

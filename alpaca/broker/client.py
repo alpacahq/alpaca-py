@@ -159,3 +159,6 @@ class BrokerClient(RESTClient):
         )
 
         return parse_obj_as(List[Account], response)
+
+    def get_trade_account_for_id(self):
+        pass

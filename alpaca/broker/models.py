@@ -281,7 +281,7 @@ class Account(BaseModel, validate_assignment=True):
         trusted_contact (Optional[TrustedContact]): The account holder's trusted contact details
     """
 
-    id: str
+    id: UUID
     account_number: str
     status: AccountStatus
     crypto_status: Optional[AccountStatus] = None
@@ -297,7 +297,7 @@ class Account(BaseModel, validate_assignment=True):
 
     def __init__(self, **response):
         super().__init__(
-            id=(response["id"]),
+            id=(UUID(response["id"])),
             account_number=(response["account_number"]),
             status=(response["status"]),
             crypto_status=(
@@ -337,6 +337,64 @@ class Account(BaseModel, validate_assignment=True):
                 else None
             ),
         )
+
+
+class TradeAccount(BaseModel, validate_assignment=True):
+    """
+    Represents trading account information for an Account.
+
+    Attributes:
+
+    """
+
+    id: UUID
+    account_number: str
+    status: AccountStatus
+    currency: Optional[str]
+    buying_power: str
+    regt_buying_power: str
+    daytrading_buying_power: str
+    non_marginable_buying_power: str
+    cash: str
+    cash_withdrawable: Optional[str]
+    cash_transferable: Optional[str]
+    accrued_fees: str
+    pending_transfer_out: Optional[str]
+    pending_transfer_in: Optional[str]
+    portfolio_value: str
+    pattern_day_trader: bool
+    trading_blocked: bool
+    transfers_blocked: bool
+    account_blocked: bool
+    created_at: datetime
+    trade_suspended_by_user: bool
+    multiplier: str
+    shorting_enabled: bool
+    equity: str
+    last_equity: str
+    long_market_value: str
+    short_market_value: str
+    initial_margin: str
+    maintenance_margin: str
+    last_maintenance_margin: str
+    sma: str
+    daytrade_count: int
+    previous_close: Optional[datetime]
+    last_long_market_value: Optional[str]
+    last_short_market_value: Optional[str]
+    last_cash: Optional[str]
+    last_initial_margin: Optional[str]
+    last_regt_buying_power: Optional[str]
+    last_daytrading_buying_power: Optional[str]
+    last_daytrade_count: Optional[int]
+    last_buying_power: Optional[str]
+    clearing_broker: Optional[str]
+
+    def __init__(self, **data: Any) -> None:
+        if "id" in data and data["id"] is not None:
+            data["id"] = UUID(data["id"])
+
+        super().__init__(**data)
 
 
 class AccountCreationRequest(BaseModel, validate_assignment=True):

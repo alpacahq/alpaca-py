@@ -14,6 +14,7 @@ from .enums import (
     TaxIdType,
     VisaType,
     ClearingBroker,
+    CIPProvider,
 )
 from ..common.enums import Sort
 
@@ -441,7 +442,7 @@ class TradeAccount(BaseModel, validate_assignment=True):
     clearing_broker: Optional[ClearingBroker]
 
     def __init__(self, **data: Any) -> None:
-        if "id" in data and data["id"] is not None:
+        if "id" in data and type(data["id"]) == str:
             data["id"] = UUID(data["id"])
 
         super().__init__(**data)
@@ -635,5 +636,45 @@ class ListAccountsRequest(BaseModel, validate_assignment=True):
         # The api itself actually defaults to DESC, but this way our docs won't be incorrect if the api changes under us
         if "sort" not in kwargs or kwargs["sort"] is None:
             kwargs["sort"] = Sort.DESC
+
+        super().__init__(*args, **kwargs)
+
+
+class KYCInfo(BaseModel, validate_assignment=True):
+    pass
+
+
+class CIPDocument(BaseModel, validate_assignment=True):
+    pass
+
+
+class CIPPhoto(BaseModel, validate_assignment=True):
+    pass
+
+
+class CIPIdentity(BaseModel, validate_assignment=True):
+    pass
+
+
+class CIPWatchlist(BaseModel, validate_assignment=True):
+    pass
+
+
+class CIPInfo(BaseModel, validate_assignment=True):
+    id: str
+    account_id: UUID
+    provider_name: List[CIPProvider]
+    created_at: datetime
+    updated_at: datetime
+    kyc: Optional[KYCInfo] = None
+    document: Optional[CIPDocument] = None
+    photo: Optional[CIPPhoto] = None
+    identity: Optional[CIPIdentity] = None
+    watchlist: Optional[CIPWatchlist] = None
+
+    def __init__(self, *args, **kwargs):
+        # upcast into uuid
+        if "account_id" in kwargs and type(kwargs["account_id"]) == str:
+            kwargs["account_id"] = UUID(kwargs["account_id"])
 
         super().__init__(*args, **kwargs)

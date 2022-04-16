@@ -666,7 +666,7 @@ def test_get_trade_account_by_id(reqmock, client: BrokerClient):
               """,
     )
 
-    account = client.get_trade_account_for_id(account_id)
+    account = client.get_trade_account_by_id(account_id)
 
     assert reqmock.called_once
 
@@ -680,9 +680,9 @@ def test_get_trade_account_by_id(reqmock, client: BrokerClient):
 
 def test_get_trade_account_by_id_validates_account_id(reqmock, client: BrokerClient):
     with pytest.raises(ValueError) as e:
-        client.get_trade_account_for_id("not a uuid")
+        client.get_trade_account_by_id("not a uuid")
 
     with pytest.raises(ValueError) as e:
-        client.get_trade_account_for_id(4)
+        client.get_trade_account_by_id(4)
 
     assert "account_id must be a UUID or a UUID str" in str(e.value)

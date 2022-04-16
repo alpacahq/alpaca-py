@@ -7,3 +7,4 @@ Broker API
 
    broker_client
    broker_models
+   broker_enums

@@ -8,6 +8,7 @@ from .models import (
     Account,
     AccountCreationRequest,
     AccountUpdateRequest,
+    CIPInfo,
     ListAccountsRequest,
     TradeAccount,
 )
@@ -60,6 +61,8 @@ class BrokerClient(RESTClient):
 
         # TODO: Actually check raw_data everywhere
         super().__init__(api_key, secret_key, api_version, base_url, sandbox, raw_data)
+
+    # ############################## ACCOUNTS/TRADING ACCOUNTS ################################# #
 
     def create_account(self, account_data: AccountCreationRequest) -> Account:
         """
@@ -161,9 +164,18 @@ class BrokerClient(RESTClient):
 
         return parse_obj_as(List[Account], response)
 
-    def get_trade_account_for_id(self, account_id: Union[UUID, str]) -> TradeAccount:
+    def get_trade_account_by_id(self, account_id: Union[UUID, str]) -> TradeAccount:
         account_id = validate_account_id_param(account_id)
 
         result = self.get(f"/trading/accounts/{account_id}/account")
 
         return TradeAccount(**result)
+
+    def get_cip_data_for_account_by_id(self, account_id: Union[UUID, str]) -> CIPInfo:
+        account_id = validate_account_id_param(account_id)
+
+        pass
+
+    def upload_cip_data_for_account_by_id(self, account_id: Union[UUID, str]):
+        # TODO: Create this, making the get endpoint first to test models
+        pass

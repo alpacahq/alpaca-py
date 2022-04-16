@@ -189,8 +189,37 @@ class ClearingBroker(str, Enum):
     Vision = "VISION"
     Self = "SELF"
 
-    # These values are only visible in paper
-    # TODO: Verify if these values should be here or left undocumented
-    Paper = "PAPER"
-    PaperV2 = "PAPERV2"
-    PaperV3 = "PAPERV3"
+
+class CIPProvider(str, Enum):
+    """
+    Enum representing what CIP provider was used.
+
+    see https://alpaca.markets/docs/api-references/broker-api/accounts/accounts/#cip-provider for more info
+    """
+
+    ALLOY = "alloy"
+    TRULIOO = "trulioo"
+    ONFIDO = "onfido"
+    VERIFF = "veriff"
+    JUMIO = "jumio"
+    GETMATI = "getmati"
+
+
+class CIPStatus(str, Enum):
+    """
+    An enum representing the status of the CIPInfo
+
+    see https://alpaca.markets/docs/api-references/broker-api/accounts/accounts/#cip-status for more info
+    """
+
+    COMPLETE = "complete"
+    WITHDRAWN = "withdrawn"
+
+
+class CIPResult(str, Enum):
+    """
+    see https://alpaca.markets/docs/api-references/broker-api/accounts/accounts/#cip-result for more info
+    """
+
+    CLEAR = "clear"
+    CONSIDER = "consider"

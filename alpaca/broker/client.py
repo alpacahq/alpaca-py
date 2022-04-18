@@ -172,6 +172,15 @@ class BrokerClient(RESTClient):
         return TradeAccount(**result)
 
     def get_cip_data_for_account_by_id(self, account_id: Union[UUID, str]) -> CIPInfo:
+        """
+        Get CIP Info for an account.
+
+        Args:
+            account_id (Union[UUID, str]): The Account id you wish to retrieve CIPInfo for
+
+        Returns:
+            CIPInfo: The CIP info for the Account
+        """
         account_id = validate_account_id_param(account_id)
 
         pass

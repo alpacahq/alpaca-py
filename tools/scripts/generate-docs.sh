@@ -11,4 +11,5 @@ set +e
 poetry run make clean
 
 #run make html with a flag to make sphinx treat warnings as errors instead of generating incomplete docs
-poetry run make html SPHINXOPTS="-W"
+#we also run doctest to ensure any doctests are successful before generating html
+poetry run make doctest html SPHINXOPTS="-W"

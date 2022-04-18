@@ -17,7 +17,7 @@ from .models import (
 def validate_account_id_param(account_id: Union[UUID, str]) -> UUID:
     """
     A small helper function to eliminate duplicate checks of account_id parameters to ensure they are
-    valid UUIDs
+    valid UUIDs. Upcasts str instances that are valid UUIDs into UUID instances.
 
     Args:
         account_id (Union[UUID, str]): The parameter to be validated

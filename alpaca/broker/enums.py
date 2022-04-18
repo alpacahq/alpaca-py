@@ -223,3 +223,12 @@ class CIPResult(str, Enum):
 
     CLEAR = "clear"
     CONSIDER = "consider"
+
+
+class CIPApprovalStatus(str, Enum):
+    """
+    Either `approved` or `rejected`
+    """
+
+    APPROVED = "approved"
+    REJECTED = "rejected"

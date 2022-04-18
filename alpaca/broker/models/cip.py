@@ -198,12 +198,32 @@ class CIPIdentity(BaseModel, validate_assignment=True):
 
 class CIPWatchlist(BaseModel, validate_assignment=True):
     """
-    CIPWatchlist
+    Represents the result of checking to see if the applicant is in any watchlists for a CIPInfo
+
+    TODO: We're missing almost entirely documentation in prod for this as well as even internal documentation
+      no clue what these fields are supposed to be or if they're even close to correct.
 
     Attributes:
+        id (str): Your internal ID of check
+        result (Optional[CIPResult]): Overall result of specific check
+        status (Optional[CIPStatus]): Overall status of specific check
+        created_at (Optional[datetime]): datetime when check happened
+        records (Optional[str]): a json object. Example [{“text”: “Record info”}]
+        politically_exposed_person (Optional[CIPResult]): Result if it was cleared against a data source
+        sanction (Optional[CIPResult]): Result if it was cleared against a data source
+        adverse_media (Optional[CIPResult]): Result if it was cleared against a data source
+        monitored_lists (Optional[CIPResult]): Result if it was cleared against a data source
     """
 
-    pass
+    id: str
+    result: Optional[CIPResult] = None
+    status: Optional[CIPStatus] = None
+    created_at: Optional[datetime] = None
+    records: Optional[str] = None
+    politically_exposed_person: Optional[CIPResult] = None
+    sanction: Optional[CIPResult] = None
+    adverse_media: Optional[CIPResult] = None
+    monitored_lists: Optional[CIPResult] = None
 
 
 class CIPInfo(BaseModel, validate_assignment=True):

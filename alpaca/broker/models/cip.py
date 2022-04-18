@@ -155,7 +155,45 @@ class CIPPhoto(BaseModel, validate_assignment=True):
 
 
 class CIPIdentity(BaseModel, validate_assignment=True):
-    pass
+    """
+    Represents the results of running an identity check for a CIPInfo
+
+    Attributes:
+        id (str): Your internal ID of check
+        result (Optional[CIPResult]): Overall result of check
+        status (Optional[CIPStatus]): OVerall status of check
+        created_at (Optional[datetime]): datetime when identity check happened
+        matched_address (Optional[CIPResult]): Represents of the address matched for the applicant
+        matched_addresses (Optional[str]): a json object representing the results of the check done in `matched_address`
+          Example: [{“id”: “19099121”,“match_types”:[“credit_agencies”,“voting_register”]}]
+        sources (Optional[CIPResult]):  Shows the total number of sources found for applicant’s identity.
+          (TODO: What? This doesnt make any sense its a CIPResult not a number)
+        sources_breakdown (Optional[str]): a json object representing the breakdown of `sources` field. For example:
+          {“total_sources”: {“result”: “clear”,“properties”: {“total_number_of_sources”: “3”}}}
+        address (Optional[CIPResult]): Result if it was cleared against a data source
+        address_breakdown (Optional[str]): a json object representing the breakdown of the `address` field. For example:
+          {“credit_agencies”: {“result”: “clear”,“properties”:{“number_of_matches”:“1”}}
+        date_of_birth (Optional[CIPResult]): Result if it was cleared against a data source
+        date_of_birth_breakdown (Optional[str]): a json object representing the breakdown of the `date_of_birth` field.
+          For example: example: {“credit_agencies”:{“result”: “clear”,“properties”: {“number_of_matches”: “1”}}
+        tax_id (Optional[CIPResult]): Result if it was cleared against a data source
+        tax_id_breakdown (Optional[str]): a json object representing the breakdown of the `tax_id` field
+    """
+
+    id: str
+    result: Optional[CIPResult] = None
+    status: Optional[CIPStatus] = None
+    created_at: Optional[datetime] = None
+    matched_address: Optional[CIPResult] = None
+    matched_addresses: Optional[str] = None
+    sources: Optional[CIPResult] = None
+    sources_breakdown: Optional[str] = None
+    address: Optional[CIPResult] = None
+    address_breakdown: Optional[str] = None
+    date_of_birth: Optional[CIPResult] = None
+    date_of_birth_breakdown: Optional[str] = None
+    tax_id: Optional[CIPResult] = None
+    tax_id_breakdown: Optional[str] = None
 
 
 class CIPWatchlist(BaseModel, validate_assignment=True):

@@ -34,24 +34,24 @@ class CIPKYCInfo(BaseModel, validate_assignment=True):
     """
 
     id: str
-    risk_score: Optional[int]
-    risk_level: Optional[str]
-    risk_categories: Optional[List[str]]
-    applicant_name: Optional[str]
-    email_address: Optional[str]
-    nationality: Optional[str]
-    date_of_birth: Optional[datetime]
-    address: Optional[str]
-    postal_code: Optional[str]
-    country_of_residency: Optional[str]
-    kyc_completed_at: Optional[datetime]
-    ip_address: Optional[str]
-    check_initiated_at: Optional[datetime]
-    check_completed_at: Optional[datetime]
-    approval_status: Optional[CIPApprovalStatus]
-    approved_by: Optional[str]
-    approved_reason: Optional[str]
-    approved_at: Optional[datetime]
+    risk_score: Optional[int] = None
+    risk_level: Optional[str] = None
+    risk_categories: Optional[List[str]] = None
+    applicant_name: Optional[str] = None
+    email_address: Optional[str] = None
+    nationality: Optional[str] = None
+    date_of_birth: Optional[datetime] = None
+    address: Optional[str] = None
+    postal_code: Optional[str] = None
+    country_of_residency: Optional[str] = None
+    kyc_completed_at: Optional[datetime] = None
+    ip_address: Optional[str] = None
+    check_initiated_at: Optional[datetime] = None
+    check_completed_at: Optional[datetime] = None
+    approval_status: Optional[CIPApprovalStatus] = None
+    approved_by: Optional[str] = None
+    approved_reason: Optional[str] = None
+    approved_at: Optional[datetime] = None
 
 
 class CIPDocument(BaseModel, validate_assignment=True):
@@ -97,29 +97,60 @@ class CIPDocument(BaseModel, validate_assignment=True):
     """
 
     id: str
-    result: Optional[CIPResult]
-    status: Optional[CIPStatus]
-    created_at: Optional[datetime]
-    date_of_birth: Optional[datetime]
-    date_of_expiry: Optional[datetime]
-    document_numbers: Optional[List[str]]
-    document_type: Optional[str]
-    first_name: Optional[str]
-    last_name: Optional[str]
-    gender: Optional[str]
-    issuing_country: Optional[str]
-    nationality: Optional[str]
-    age_validation: Optional[CIPResult]
-    compromised_document: Optional[CIPResult]
-    police_record: Optional[CIPStatus]
-    data_comparison: Optional[CIPResult]
-    data_comparison_breakdown: Optional[str]
-    image_integrity: Optional[CIPResult]
-    image_integrity_breakdown: Optional[str]
-    visual_authenticity: Optional[str]
+    result: Optional[CIPResult] = None
+    status: Optional[CIPStatus] = None
+    created_at: Optional[datetime] = None
+    date_of_birth: Optional[datetime] = None
+    date_of_expiry: Optional[datetime] = None
+    document_numbers: Optional[List[str]] = None
+    document_type: Optional[str] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    gender: Optional[str] = None
+    issuing_country: Optional[str] = None
+    nationality: Optional[str] = None
+    age_validation: Optional[CIPResult] = None
+    compromised_document: Optional[CIPResult] = None
+    police_record: Optional[CIPStatus] = None
+    data_comparison: Optional[CIPResult] = None
+    data_comparison_breakdown: Optional[str] = None
+    image_integrity: Optional[CIPResult] = None
+    image_integrity_breakdown: Optional[str] = None
+    visual_authenticity: Optional[str] = None
 
 
 class CIPPhoto(BaseModel, validate_assignment=True):
+    """
+    Represents the results of checking a Photo for CIPInfo
+
+    Attributes:
+        id (str): Your internal ID of check
+        result (Optional[CIPResult]): Overall result of check
+        status (Optional[CIPStatus]): Overall status of check
+        created_at (Optional[datetime]): datetime of when check happened
+        face_comparision (Optional[CIPResult]): Checks whether the face in the document matches the face in the
+          live photo
+        face_comparison_breakdown (Optional[str]): a json object representing the breakdown of sub-checks done in
+          `face_comparison`. Example: {“face_match”:{“result”: “clear”,“properties”:{“score”: “80”}}}
+        image_integrity (Optional[CIPResult]): Checks whether the quality and integrity of the uploaded files were
+          sufficient to perform a face comparison
+        image_integrity_breakdown (Optional[str]): a json object representing the breakdown of sub-checks done in
+          `image_integrity`. Example  {“face_detected”:{“result”: “clear”},“source_integrity”: {“result”: “clear”}}
+        visual_authenticity (Optional[CIPResult]): Checks whether the person in the live photo is real (not a spoof)
+        visual_authenticity_breakdown (Optional[str]): a json object representing the breakdown of sub-checks don in
+          `visual_authenticity`. Example {“spoofing_detection”: {“result”: “clear”,“properties”: {“score”: “26”}}}}
+    """
+
+    id: str
+    result: Optional[CIPResult] = None
+    status: Optional[CIPStatus] = None
+    created_at: Optional[datetime] = None
+    face_comparision: Optional[CIPResult] = None
+    face_comparison_breakdown: Optional[str] = None
+    image_integrity: Optional[CIPResult] = None
+    image_integrity_breakdown: Optional[str] = None
+    visual_authenticity: Optional[CIPResult] = None
+    visual_authenticity_breakdown: Optional[str] = None
     pass
 
 

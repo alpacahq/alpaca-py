@@ -151,7 +151,6 @@ class CIPPhoto(BaseModel, validate_assignment=True):
     image_integrity_breakdown: Optional[str] = None
     visual_authenticity: Optional[CIPResult] = None
     visual_authenticity_breakdown: Optional[str] = None
-    pass
 
 
 class CIPIdentity(BaseModel, validate_assignment=True):

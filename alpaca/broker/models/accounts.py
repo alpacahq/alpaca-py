@@ -176,7 +176,7 @@ class Document(BaseModel, validate_assignment=True):
     content: str
     mime_type: Optional[str] = None
 
-    def __init__(__pydantic_self__, **data: Any) -> None:
+    def __init__(self, **data: Any) -> None:
         # validate the incoming id field for uuid
         if type(data["id"]) == str:
             data["id"] = UUID(data["id"])

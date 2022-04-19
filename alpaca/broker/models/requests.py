@@ -241,3 +241,12 @@ class ListAccountsRequest(BaseModel, validate_assignment=True):
             kwargs["sort"] = Sort.DESC
 
         super().__init__(*args, **kwargs)
+
+
+class GetAccountActivitiesRequest(BaseModel, validate_assignment=True):
+    """
+    Represents the filtering values you can specify when getting AccountActivities for an Account
+
+    """
+
+    pass

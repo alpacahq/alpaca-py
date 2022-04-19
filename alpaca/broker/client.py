@@ -11,6 +11,8 @@ from .models import (
     CIPInfo,
     ListAccountsRequest,
     TradeAccount,
+    BaseActivity,
+    GetAccountActivitiesRequest,
 )
 
 
@@ -171,7 +173,7 @@ class BrokerClient(RESTClient):
 
         return TradeAccount(**result)
 
-    def get_cip_data_for_account_by_id(self, account_id: Union[UUID, str]) -> CIPInfo:
+    def get_cip_data_for_account_by_id(self, account_id: Union[UUID, str]) -> None:
         """
         Get CIP Info for an account.
 
@@ -182,9 +184,18 @@ class BrokerClient(RESTClient):
             CIPInfo: The CIP info for the Account
         """
         account_id = validate_account_id_param(account_id)
-
+        # TODO: can't verify the CIP routes in sandbox they always return 404.
+        #  Need to ask broker team how we'll even test this
         pass
 
     def upload_cip_data_for_account_by_id(self, account_id: Union[UUID, str]):
-        # TODO: Create this, making the get endpoint first to test models
+        # TODO: can't verify the CIP routes in sandbox they always return 404.
+        #  Need to ask broker team how we'll even test this
+        pass
+
+    # ############################## ACCOUNT ACTIVITIES ################################# #
+
+    def get_activities_for_account(
+        self, account_id: Union[UUID, str], activity_filter: GetAccountActivitiesRequest
+    ) -> List[BaseActivity]:
         pass

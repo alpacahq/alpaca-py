@@ -1,17 +1,21 @@
 from datetime import datetime
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Union
 from uuid import UUID
 
 from pydantic import BaseModel, parse_obj_as, root_validator, validator
 
 from ..enums import (
     AccountStatus,
+    ActivityType,
     AgreementType,
     ClearingBroker,
     DocumentType,
     EmploymentStatus,
     FundingSource,
+    OrderSide,
+    OrderStatus,
     TaxIdType,
+    TradeActivityType,
     VisaType,
 )
 
@@ -414,3 +418,58 @@ class TradeAccount(BaseModel, validate_assignment=True):
             data["id"] = UUID(data["id"])
 
         super().__init__(**data)
+
+
+class BaseActivity(BaseModel, validate_assignment=True):
+    """
+    Represents Base information for an event/activity for a specific Account.
+
+    You most likely will want an instance of one of the child classes TradeActivity and NonTradeActivity
+
+    Attributes:
+        id (UUID): Unique ID of this Activity
+        account_id (UUID): id of the Account this activity relates too
+        activity_type (ActivityType): What specific kind of Activity this was
+    """
+
+    id: UUID
+    account_id: UUID
+    activity_type: ActivityType
+
+    def __init__(self, *args, **data):
+        if "id" in data and type(data["id"]) == str:
+            data["id"] = UUID(data["id"])
+
+        if "account_id" in data and type(data["account_id"]) == str:
+            data["account_id"] = UUID(data["account_id"])
+
+        super().__init__(*args, **data)
+
+
+class TradeActivity(BaseActivity):
+    """
+    Attributes:
+        transaction_time (datetime): The time and date of when this trade was processed
+        type (TradeActivityType): What kind of trade this TradeActivity represents. See TradeActivityType for more
+          details
+        price (float): The per-share price that the trade was executed at.
+        qty (float): The number of shares involved in the trade execution.
+        side (OrderSide): What side the trade this TradeActivity represents was on. See OrderSide for more information
+        symbol (str): The symbol of the asset that was traded
+        leaves_qty (float): For partially filled orders, the quantity of shares that are left to be filled. Will be 0 if
+          order was not a partially filled order
+        order_id (UUID): The ID for the order filled
+        cum_qty (float): The cumulative quantity of shares involved in the execution.
+        order_status (OrderStatus): The status of the order that executed the trade. See OrderStatus for more details
+    """
+
+    transaction_time: datetime
+    type: TradeActivityType
+    price: float
+    qty: float
+    side: OrderSide
+    symbol: str
+    leaves_qty: float
+    order_id: UUID
+    cum_qty: float
+    order_status: OrderStatus

@@ -17,7 +17,7 @@ open, high, low, close, volume (OHLCV) information.
 BarSet
 ------
 
-A dictionary of Bars keyed by string valued symbol identifiers. See Bar. 
+A dictionary of Bars keyed by string valued symbol identifiers. 
 
 .. autoclass:: alpaca.data.models.BarSet
    :members:
@@ -36,7 +36,7 @@ an ask, each with a price and size.
 QuoteSet
 --------
 
-A dictionary of Quotes keyed by string valued symbol identifiers. See Quote. 
+A dictionary of Quotes keyed by string valued symbol identifiers. 
 
 .. autoclass:: alpaca.data.models.QuoteSet
    :members:
@@ -54,10 +54,23 @@ A Trade is a transaction that has occurred on an exchange.
 TradeSet
 --------
 
-A dictionary of Trades keyed by string valued symbol identifiers. See Trade. 
+A dictionary of Trades keyed by string valued symbol identifiers. 
 
 .. autoclass:: alpaca.data.models.TradeSet
    :members:
 
+Snapshot
+--------
+
+A snapshot is a collection of various market data types. A snapshot contains the
+latest quote, the latest trade, the latest minute bar and the latest daily bar.
+
+.. autoclass:: alpaca.data.models.Snapshot
+
+SnapshotSet
+-----------
+
+A dictionary of Snapshots keyed by string valued symbol identifiers. 
 
 
+.. autoclass:: alpaca.data.models.SnapshotSet

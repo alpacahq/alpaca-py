@@ -18,6 +18,11 @@ REST Base Client
 .. automodule:: alpaca.common.rest
    :members:
 
+Websocket Base Client
+---------------------
+
+.. automodule:: alpaca.common.websocket
+   :members:
 
 Enums
 -----
@@ -31,5 +36,6 @@ Exceptions
 
 .. automodule:: alpaca.common.exceptions
    :members:
+
 
 

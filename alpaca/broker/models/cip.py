@@ -2,12 +2,12 @@ from datetime import datetime
 from typing import List, Optional, Union
 from uuid import UUID
 
-from pydantic import BaseModel
+from ...common.models import ValidateBaseModel as BaseModel
 
 from ..enums import CIPApprovalStatus, CIPProvider, CIPResult, CIPStatus
 
 
-class CIPKYCInfo(BaseModel, validate_assignment=True):
+class CIPKYCInfo(BaseModel):
     """
     Represents Know Your Customer (KYC) info for a CIPInfo
 
@@ -54,7 +54,7 @@ class CIPKYCInfo(BaseModel, validate_assignment=True):
     approved_at: Optional[datetime] = None
 
 
-class CIPDocument(BaseModel, validate_assignment=True):
+class CIPDocument(BaseModel):
     """
     Represents results of checking a document for CIPInfo
 
@@ -119,7 +119,7 @@ class CIPDocument(BaseModel, validate_assignment=True):
     visual_authenticity: Optional[str] = None
 
 
-class CIPPhoto(BaseModel, validate_assignment=True):
+class CIPPhoto(BaseModel):
     """
     Represents the results of checking a Photo for CIPInfo
 
@@ -153,7 +153,7 @@ class CIPPhoto(BaseModel, validate_assignment=True):
     visual_authenticity_breakdown: Optional[str] = None
 
 
-class CIPIdentity(BaseModel, validate_assignment=True):
+class CIPIdentity(BaseModel):
     """
     Represents the results of running an identity check for a CIPInfo
 
@@ -195,7 +195,7 @@ class CIPIdentity(BaseModel, validate_assignment=True):
     tax_id_breakdown: Optional[str] = None
 
 
-class CIPWatchlist(BaseModel, validate_assignment=True):
+class CIPWatchlist(BaseModel):
     """
     Represents the result of checking to see if the applicant is in any watchlists for a CIPInfo
 
@@ -225,7 +225,7 @@ class CIPWatchlist(BaseModel, validate_assignment=True):
     monitored_lists: Optional[CIPResult] = None
 
 
-class CIPInfo(BaseModel, validate_assignment=True):
+class CIPInfo(BaseModel):
     """
     The Customer Identification Program (CIP) API allows you to submit the CIP results received from your KYC provider.
 

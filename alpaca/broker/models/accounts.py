@@ -2,7 +2,9 @@ from datetime import datetime
 from typing import Any, List, Optional, Union
 from uuid import UUID
 
-from pydantic import BaseModel, parse_obj_as, root_validator, validator
+from ...common.models import ValidateBaseModel as BaseModel
+
+from pydantic import parse_obj_as, root_validator, validator
 
 from ..enums import (
     AccountStatus,
@@ -20,7 +22,7 @@ from ..enums import (
 )
 
 
-class Contact(BaseModel, validate_assignment=True):
+class Contact(BaseModel):
     """User contact details within Account Model
 
     see https://alpaca.markets/docs/broker/api-references/accounts/accounts/#the-account-model
@@ -64,7 +66,7 @@ class Contact(BaseModel, validate_assignment=True):
         return v
 
 
-class Identity(BaseModel, validate_assignment=True):
+class Identity(BaseModel):
     """User identity details within Account Model
 
     see https://alpaca.markets/docs/broker/api-references/accounts/accounts/#the-account-model
@@ -114,7 +116,7 @@ class Identity(BaseModel, validate_assignment=True):
     total_net_worth_max: Optional[float] = None
 
 
-class Disclosures(BaseModel, validate_assignment=True):
+class Disclosures(BaseModel):
     """User disclosures within Account Model
 
     see https://alpaca.markets/docs/broker/api-references/accounts/accounts/#the-account-model
@@ -140,7 +142,7 @@ class Disclosures(BaseModel, validate_assignment=True):
     employment_position: Optional[str] = None
 
 
-class Agreement(BaseModel, validate_assignment=True):
+class Agreement(BaseModel):
     """User agreements signed within Account Model
 
     see https://alpaca.markets/docs/broker/api-references/accounts/accounts/#the-account-model
@@ -158,7 +160,7 @@ class Agreement(BaseModel, validate_assignment=True):
     revision: Optional[str]
 
 
-class Document(BaseModel, validate_assignment=True):
+class Document(BaseModel):
     """User documents provided within Account Model
 
     see https://alpaca.markets/docs/broker/api-references/accounts/accounts/#the-account-model
@@ -186,7 +188,7 @@ class Document(BaseModel, validate_assignment=True):
         super().__init__(**data)
 
 
-class TrustedContact(BaseModel, validate_assignment=True):
+class TrustedContact(BaseModel):
     """User's trusted contact details within Account Model
 
     see https://alpaca.markets/docs/broker/api-references/accounts/accounts/#the-account-model
@@ -230,7 +232,7 @@ class TrustedContact(BaseModel, validate_assignment=True):
         raise ValueError("At least one method of contact required for trusted contact")
 
 
-class Account(BaseModel, validate_assignment=True):
+class Account(BaseModel):
     """Contains information pertaining to a specific brokerage account
 
     see https://alpaca.markets/docs/broker/api-references/accounts/accounts/#the-account-model
@@ -313,7 +315,7 @@ class Account(BaseModel, validate_assignment=True):
         )
 
 
-class TradeAccount(BaseModel, validate_assignment=True):
+class TradeAccount(BaseModel):
     """
     Represents trading account information for an Account.
 
@@ -420,7 +422,7 @@ class TradeAccount(BaseModel, validate_assignment=True):
         super().__init__(**data)
 
 
-class BaseActivity(BaseModel, validate_assignment=True):
+class BaseActivity(BaseModel):
     """
     Represents Base information for an event/activity for a specific Account.
 

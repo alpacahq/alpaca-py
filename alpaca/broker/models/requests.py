@@ -1,7 +1,9 @@
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel, root_validator
+from ...common.models import ValidateBaseModel as BaseModel
+
+from pydantic import root_validator
 
 from .accounts import (
     Agreement,
@@ -51,7 +53,7 @@ class NonEmptyRequest(BaseModel):
         }
 
 
-class AccountCreationRequest(BaseModel, validate_assignment=True):
+class AccountCreationRequest(BaseModel):
     """Class used to format data necessary for making a request to create a brokerage account
 
     Attributes:
@@ -71,7 +73,7 @@ class AccountCreationRequest(BaseModel, validate_assignment=True):
     trusted_contact: Optional[TrustedContact] = None
 
 
-class UpdatableContact(Contact, validate_assignment=True):
+class UpdatableContact(Contact):
     """
     An extended version of Contact that has all fields as optional, so you don't need to specify all fields if you only
     want to update a subset of them.
@@ -95,7 +97,7 @@ class UpdatableContact(Contact, validate_assignment=True):
 
 
 # We don't extend the Identity model because we have to remove fields, not all of them are updatable
-class UpdatableIdentity(BaseModel, validate_assignment=True):
+class UpdatableIdentity(BaseModel):
     """
        This class is a subset version of Identity. Currently, not all fields on accounts are modifiable so this class
        represents which ones are modifiable on the `identity` field of an account when making an
@@ -141,7 +143,7 @@ class UpdatableIdentity(BaseModel, validate_assignment=True):
     total_net_worth_max: Optional[float] = None
 
 
-class UpdatableDisclosures(Disclosures, validate_assignment=True):
+class UpdatableDisclosures(Disclosures):
     """
     An extended version of Disclosures that has all fields as optional, so you don't need to specify all fields if you
     only want to update a subset of them.
@@ -163,7 +165,7 @@ class UpdatableDisclosures(Disclosures, validate_assignment=True):
     immediate_family_exposed: Optional[bool] = None
 
 
-class UpdatableTrustedContact(TrustedContact, validate_assignment=True):
+class UpdatableTrustedContact(TrustedContact):
     """
     An extended version of TrustedContact that has all fields as optional, so you don't need to specify all fields if
     you only want to update a subset of them.
@@ -190,7 +192,7 @@ class UpdatableTrustedContact(TrustedContact, validate_assignment=True):
         return values
 
 
-class AccountUpdateRequest(NonEmptyRequest, validate_assignment=True):
+class AccountUpdateRequest(NonEmptyRequest):
     """
     Represents the data allowed in a request to update an Account. Note not all fields of an account
     are currently modifiable so this model uses models that represent the subset of modifiable fields.
@@ -208,7 +210,7 @@ class AccountUpdateRequest(NonEmptyRequest, validate_assignment=True):
     trusted_contact: Optional[UpdatableTrustedContact] = None
 
 
-class ListAccountsRequest(BaseModel, validate_assignment=True):
+class ListAccountsRequest(BaseModel):
     """
     Represents the values you can specify when making a request to list accounts
 
@@ -243,7 +245,7 @@ class ListAccountsRequest(BaseModel, validate_assignment=True):
         super().__init__(*args, **kwargs)
 
 
-class GetAccountActivitiesRequest(BaseModel, validate_assignment=True):
+class GetAccountActivitiesRequest(BaseModel):
     """
     Represents the filtering values you can specify when getting AccountActivities for an Account
 

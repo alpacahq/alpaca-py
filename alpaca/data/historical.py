@@ -18,18 +18,22 @@ class HistoricalDataClient(RESTClient):
         api_key: Optional[str] = None,
         secret_key: Optional[str] = None,
         raw_data: bool = False,
+        url_override: Union[BaseURL, str] = None,
     ) -> None:
         """Instantiates a Historical Data Client.
         Args:
         api_key (Optional[str], optional): Alpaca API key. Defaults to None.
         secret_key (Optional[str], optional): Alpaca API secret key. Defaults to None.
-        raw_data (bool, optional): If true, API responses will not be wrapped and raw responses will returned from methods. Defaults to False.
+        raw_data (bool, optional): If true, API responses will not be wrapped and raw responses will be returned from
+          methods. Defaults to False.
+        url_override (Union[BaseURL, str], optional): If specified allows you to override the base url the client points
+          to for proxy/testing.
         """
         super().__init__(
             api_key=api_key,
             secret_key=secret_key,
             api_version="v2",
-            base_url=BaseURL.DATA,
+            base_url=url_override if url_override is not None else BaseURL.DATA,
             sandbox=False,
             raw_data=raw_data,
         )
@@ -521,7 +525,6 @@ class HistoricalDataClient(RESTClient):
             Union[BarSet, RawData]: The bar data either in raw or wrapped form
         """
         if isinstance(symbol_or_symbols, str):
-
             # BarSet expects a symbol keyed dictionary of bar data from API
             _raw_data_dict = {symbol_or_symbols: raw_data}
 

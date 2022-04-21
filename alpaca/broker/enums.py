@@ -289,6 +289,19 @@ class TradeActivityType(str, Enum):
     FILL = "fill"
 
 
+class NonTradeActivityStatus(str, Enum):
+    """
+    Represents the status of a NonTradeActivity.
+
+    Please see https://alpaca.markets/docs/api-references/broker-api/accounts/account-activities/#enumaccountactivity
+    for more info.
+    """
+
+    EXECUTED = "executed"
+    CORRECT = "correct"
+    CANCELED = "canceled"
+
+
 class OrderSide(str, Enum):
     """
     Represents what side this order was executed on.

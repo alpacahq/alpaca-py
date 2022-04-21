@@ -14,6 +14,7 @@ from ..enums import (
     DocumentType,
     EmploymentStatus,
     FundingSource,
+    NonTradeActivityStatus,
     OrderSide,
     OrderStatus,
     TaxIdType,
@@ -448,8 +449,40 @@ class BaseActivity(BaseModel):
         super().__init__(*args, **data)
 
 
+class NonTradeActivity(BaseActivity):
+    """
+    A NonTradeActivity represents an Activity that happened for an account that doesn't have to do with orders or trades.
+
+    Attributes:
+        date (datetime): The date on which the activity occurred or on which the transaction associated with the
+          activity settled.
+        net_amount (float): The net amount of money (positive or negative) associated with the activity.
+        description (str):
+        status (NonTradeActivityStatus): Status of the activity. Not present for all activity types.
+        symbol (Optional[str]): The symbol of the security involved with the activity. Not present for all activity
+          types.
+        qty (Optional[float]): For dividend activities, the number of shares that contributed to the payment. Not
+          present for other activity types.
+        price (Optional[float]) Not present for all activity types.
+        per_share_amount (Optional[float]): For dividend activities, the average amount paid per share. Not present for
+          other activity types.
+    """
+
+    date: datetime
+    net_amount: float
+    description: str
+    status: Optional[NonTradeActivityStatus] = None
+    symbol: Optional[str] = None
+    qty: Optional[float] = None
+    price: Optional[float] = None
+    per_share_amount: Optional[float] = None
+
+
 class TradeActivity(BaseActivity):
     """
+    Represents information for TradeActivities. TradeActivities are Activities that pertain to trades that happened for
+    an account. IE Fills or partial fills for orders.
+
     Attributes:
         transaction_time (datetime): The time and date of when this trade was processed
         type (TradeActivityType): What kind of trade this TradeActivity represents. See TradeActivityType for more

@@ -41,7 +41,7 @@ body:
         What versions of the SDK have you tried in which the issue is present.
         Before opening an issue please make sure you try the latest version of the SDK in case a fix has already been made.
       placeholder: |
-        alpaca-py version: 2.x.x
+        alpaca-py version: 0.x.x
     validations:
       required: true
 

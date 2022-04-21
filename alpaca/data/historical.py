@@ -20,14 +20,16 @@ class HistoricalDataClient(RESTClient):
         raw_data: bool = False,
         url_override: Union[BaseURL, str] = None,
     ) -> None:
-        """Instantiates a Historical Data Client.
+        """
+        Instantiates a Historical Data Client.
+
         Args:
-        api_key (Optional[str], optional): Alpaca API key. Defaults to None.
-        secret_key (Optional[str], optional): Alpaca API secret key. Defaults to None.
-        raw_data (bool, optional): If true, API responses will not be wrapped and raw responses will be returned from
-          methods. Defaults to False.
-        url_override (Union[BaseURL, str], optional): If specified allows you to override the base url the client points
-          to for proxy/testing.
+            api_key (Optional[str], optional): Alpaca API key. Defaults to None.
+            secret_key (Optional[str], optional): Alpaca API secret key. Defaults to None.
+            raw_data (bool, optional): If true, API responses will not be wrapped and raw responses will be returned from
+              methods. Defaults to False.
+            url_override (Union[BaseURL, str], optional): If specified allows you to override the base url the client points
+              to for proxy/testing.
         """
         super().__init__(
             api_key=api_key,

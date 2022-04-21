@@ -33,8 +33,8 @@ class RESTClient(ABC):
         Alpaca API endpoints.
 
         Args:
-            base_url (Optional[Union[BaseURL, str]]): The base url to target requests to.
-              Should be an instance of BaseURL, but allows for raw str if you need to override
+            base_url (Union[BaseURL, str]): The base url to target requests to. Should be an instance of BaseURL, but
+              allows for raw str if you need to override
             api_key (str, optional): description. Defaults to None.
             secret_key (str, optional): description. Defaults to None.
             api_version (str, optional): description. Defaults to 'v2'.

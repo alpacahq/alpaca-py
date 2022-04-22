@@ -152,7 +152,7 @@ class RESTClient(ABC):
                 if "code" in error:
                     raise APIError(error, http_error)
             else:
-                raise
+                raise http_error
 
         if resp.text != "":
             return resp.json()

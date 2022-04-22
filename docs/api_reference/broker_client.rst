@@ -3,7 +3,7 @@
    :caption: Contents:
 
 Broker API Client
-===================
+=================
 
 
 .. autoclass:: alpaca.broker.client.BrokerClient

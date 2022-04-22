@@ -368,7 +368,7 @@ class TradeAccount(BaseModel):
         last_daytrading_buying_power (Optional[str]): Value of daytrading_buying_power as of previous trading day at 16:00:00 ET
         last_daytrade_count (Optional[int]): Value of daytrade_count as of previous trading day at 16:00:00 ET
         last_buying_power (Optional[str]): Value of buying_power as of previous trading day at 16:00:00 ET
-        clearing_broker (Optional[ClearingBroker]):
+        clearing_broker (Optional[ClearingBroker]): The Clearing broker for this account
     """
 
     id: UUID

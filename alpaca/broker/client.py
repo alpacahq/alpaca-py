@@ -71,7 +71,7 @@ class BrokerClient(RESTClient):
         Create an account.
 
         Args:
-            account_data(AccountCreationRequest): The data representing the Account you wish to create
+            account_data (AccountCreationRequest): The data representing the Account you wish to create
 
         Returns:
             Account: The newly created Account instance as returned from the API. Should now have id
@@ -90,7 +90,7 @@ class BrokerClient(RESTClient):
         Note: If no account is found the api returns a 401, not a 404
 
         Args:
-            account_id(Union[UUID,str]): The id of the account you wish to get. str uuid values will be upcast
+            account_id (Union[UUID, str]): The id of the account you wish to get. str uuid values will be upcast
             into UUID instances
 
         Returns:
@@ -152,6 +152,16 @@ class BrokerClient(RESTClient):
     def list_accounts(
         self, search_parameters: Optional[ListAccountsRequest] = None
     ) -> List[Account]:
+        """
+        Get a List of Accounts allowing for passing in some filters.
+
+        Args:
+            search_parameters (Optional[ListAccountsRequest]): The various filtering criteria you can specify.
+
+        Returns:
+            List[Account]: The filtered list of Accounts
+        """
+
         # this is a get request, so we're safe not checking to see if we specified at least one param
         params = search_parameters.dict() if search_parameters is not None else {}
 
@@ -167,6 +177,17 @@ class BrokerClient(RESTClient):
         return parse_obj_as(List[Account], response)
 
     def get_trade_account_by_id(self, account_id: Union[UUID, str]) -> TradeAccount:
+        """
+        Gets TradeAccount information for a given Account id.
+
+        Args:
+            account_id (Union[UUID, str]): The UUID identifier for the Account you wish to get the info for. str values
+              will be upcast into UUID instances and checked for validity.
+
+        Returns:
+            TradeAccount: TradeAccount info for the given account if found.
+        """
+
         account_id = validate_account_id_param(account_id)
 
         result = self.get(f"/trading/accounts/{account_id}/account")

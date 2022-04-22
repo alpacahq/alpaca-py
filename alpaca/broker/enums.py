@@ -299,6 +299,12 @@ class OrderSide(str, Enum):
 
 
 class OrderStatus(str, Enum):
+    """
+    Represents the various states an Order can be in.
+
+    please see https://alpaca.markets/docs/api-references/broker-api/trading/orders/#order-status for more info
+    """
+
     NEW = "new"
     PARTIALLY_FILLED = "partially_filled"
     FILLED = "filled"

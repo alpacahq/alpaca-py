@@ -3,7 +3,7 @@
    :caption: Contents:
 
 Broker API Enums
-===================
+================
 
 
 .. automodule:: alpaca.broker.enums

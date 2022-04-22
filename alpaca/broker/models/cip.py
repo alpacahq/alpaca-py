@@ -71,7 +71,7 @@ class CIPDocument(BaseModel):
         last_name (Optional[str]): Last name extracted from the document
         gender (Optional[str]): Gender info extracted from the document
         issuing_country (Optional[str]): Country for which issued the document
-        nationality (Optional[str]):
+        nationality (Optional[str]): Nationality extracted from the document
         age_validation (Optional[CIPResult]): Result of checks on whether the age calculated from the document’s date
           of birth data point is greater than or equal to the minimum accepted age set at account level
         compromised_document (Optional[CIPResult]): Result of check on whether the image of the document has been found
@@ -160,13 +160,13 @@ class CIPIdentity(BaseModel):
     Attributes:
         id (str): Your internal ID of check
         result (Optional[CIPResult]): Overall result of check
-        status (Optional[CIPStatus]): OVerall status of check
+        status (Optional[CIPStatus]): Overall status of check
         created_at (Optional[datetime]): datetime when identity check happened
         matched_address (Optional[CIPResult]): Represents of the address matched for the applicant
         matched_addresses (Optional[str]): a json object representing the results of the check done in `matched_address`
           Example: [{“id”: “19099121”,“match_types”:[“credit_agencies”,“voting_register”]}]
         sources (Optional[CIPResult]):  Shows the total number of sources found for applicant’s identity.
-          (TODO: What? This doesnt make any sense its a CIPResult not a number)
+          (TODO: What? This doesnt make any sense its a CIPResult not a number but that's whats in the docs)
         sources_breakdown (Optional[str]): a json object representing the breakdown of `sources` field. For example:
           {“total_sources”: {“result”: “clear”,“properties”: {“total_number_of_sources”: “3”}}}
         address (Optional[CIPResult]): Result if it was cleared against a data source

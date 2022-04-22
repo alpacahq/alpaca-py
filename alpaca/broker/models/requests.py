@@ -1,5 +1,6 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Union
+from uuid import UUID
 
 from ...common.models import ValidateBaseModel as BaseModel
 
@@ -16,6 +17,7 @@ from .accounts import (
 from ..enums import (
     AccountEntities,
     AccountStatus,
+    ActivityType,
     EmploymentStatus,
     FundingSource,
     TaxIdType,
@@ -245,10 +247,51 @@ class ListAccountsRequest(BaseModel):
         super().__init__(*args, **kwargs)
 
 
-class GetAccountActivitiesRequest(BaseModel):
+class GetAccountActivitiesRequest(NonEmptyRequest):
     """
     Represents the filtering values you can specify when getting AccountActivities for an Account
 
+    **Notes on pagination and the `page_size` and `page_token` fields**.
+
+    The BrokerClient::get_account_activies function by default will automatically handle the pagination of results
+    for you to get all results at once. However, if you're requesting a very large amount of results this can use a
+    large amount of memory and time to gather all the results. If you instead want to handle
+    pagination yourself `page_size` and `page_token` are how you would handle this.
+
+    Say you put in a request with `page_size` set to 4, you'll only get 4 results back to get
+    the next "page" of results you would set `page_token` to be the `id` field of the last Activity returned in the
+    result set.
+
+    This gets more indepth if you start specifying the `sort` field as well. If specified with a direction of Sort.DESC,
+    for example, the results will end before the activity with the specified ID. However, specified with a direction of
+    Sort.ASC, results will begin with the activity immediately after the one specified.
+
+    Also, to note if `date` is not specified, the default and maximum `page_size` value is 100. If `date` is specified,
+    the default behavior is to return all results, and there is no maximum page size.
+
+    Please see https://alpaca.markets/docs/api-references/broker-api/accounts/account-activities/#retrieving-account-activities
+    for more information
+
+    Attributes:
+        account_id (Optional[Union[UUID, str]]): Specifies to filter to only activities for this Account
+        activity_types (Optional[List[ActivityType]]): A list of ActivityType's to filter results down to
+        date (Optional[datetime]): Filter to Activities only on this date. Both formats YYYY-MM-DD and
+          YYYY-MM-DDTHH:MM:SSZ supported.
+        until (Optional[datetime]): Filter to Activities before this date. Both formats YYYY-MM-DD and
+          YYYY-MM-DDTHH:MM:SSZ supported. Cannot be used if `date` is also specified.
+        after (Optional[datetime]): Filter to Activities after this date. Both formats YYYY-MM-DD and
+          YYYY-MM-DDTHH:MM:SSZ supported. Cannot be used if `date` is also specified.
+        direction (Optional[Sort]): Which direction to sort results in. Defaults to Sort.DESC
+        page_size (Optional[int]): The maximum number of entries to return in the response
+        page_token (Optional[Union[UUID, str]]): If you're not using the built-in pagination this field is what you
+          would use to mark the end of the results of your last page.
     """
 
-    pass
+    account_id: Optional[Union[UUID, str]] = None
+    activity_types: Optional[List[ActivityType]] = None
+    date: Optional[datetime] = None
+    until: Optional[datetime] = None
+    after: Optional[datetime] = None
+    direction: Optional[Sort] = None
+    page_size: Optional[int] = None
+    page_token: Optional[Union[UUID, str]] = None

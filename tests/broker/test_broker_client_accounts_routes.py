@@ -1,11 +1,14 @@
+from typing import Iterator, List
 from uuid import UUID
 
 import pytest
 import requests_mock
+from requests_mock import Mocker
 
+from alpaca.broker import BaseActivity, GetAccountActivitiesRequest
 from alpaca.broker.enums import AccountEntities
 from alpaca.common import APIError
-from alpaca.broker.client import BrokerClient
+from alpaca.broker.client import BrokerClient, PaginationType
 from alpaca.broker.models import (
     Account,
     AccountCreationRequest,
@@ -25,14 +28,18 @@ from factories import common as factory
 
 
 @pytest.fixture
-def reqmock():
+def reqmock() -> Mocker:
     with requests_mock.Mocker() as m:
         yield m
 
 
 @pytest.fixture
 def client():
-    client = BrokerClient("key-id", "secret-key")
+    client = BrokerClient(
+        "key-id",
+        "secret-key",
+        sandbox=True,  # Expressly call out sandbox as true for correct urls in reqmock
+    )
     return client
 
 
@@ -686,3 +693,150 @@ def test_get_trade_account_by_id_validates_account_id(reqmock, client: BrokerCli
         client.get_trade_account_by_id(4)
 
     assert "account_id must be a UUID or a UUID str" in str(e.value)
+
+
+def setup_reqmock_for_paginated_account_activities_response(reqmock: Mocker):
+    resp_one = """
+    [
+      {
+        "id": "20220419000000000::fd84741b-59c5-4ddd-a303-69f70eb7753f",
+        "account_id": "aba134b6-217d-4fd2-b460-e3c80bbfb9b4",
+        "activity_type": "CSD",
+        "date": "2022-04-19",
+        "net_amount": "33324.35",
+        "description": "",
+        "status": "executed"
+      },
+      {
+        "id": "20220419000000000::fb876acb-76b0-405c-8c7f-96a1c171ec5c",
+        "account_id": "673272aa-2aa7-484b-9d5b-dd2bd19e9bca",
+        "activity_type": "CSD",
+        "date": "2022-04-19",
+        "net_amount": "29161.91",
+        "description": "",
+        "status": "executed"
+      },
+      {
+        "id": "20220419000000000::f9baafc5-29e1-42bf-8bb8-05a36cf334f2",
+        "account_id": "2ba34083-51dc-42b9-b2ff-2b17bd2f62de",
+        "activity_type": "CSD",
+        "date": "2022-04-19",
+        "net_amount": "13809.54",
+        "description": "",
+        "status": "executed"
+      },
+      {
+        "id": "20220419000000000::f77b60bf-ea39-4551-a3d6-000548e6f11c",
+        "account_id": "6188a8e4-4551-4c00-9387-fcb38ff8eef3",
+        "activity_type": "CSD",
+        "date": "2022-04-19",
+        "net_amount": "45850.47",
+        "description": "",
+        "status": "executed"
+      }
+    ]
+    """
+    resp_two = """
+    [
+      {
+        "id": "20220419000000000::ed22fc4d-897c-474b-876a-b492d40f83d2",
+        "account_id": "e1bade5e-7988-4449-8791-86d47d721d19",
+        "activity_type": "CSD",
+        "date": "2022-04-19",
+        "net_amount": "43864.18",
+        "description": "",
+        "status": "executed"
+      },
+      {
+        "id": "20220419000000000::ec75b06d-1d29-4d1e-9143-c7e59aa842bc",
+        "account_id": "a3f59eac-7c03-42b2-a336-d078b3671308",
+        "activity_type": "CSD",
+        "date": "2022-04-19",
+        "net_amount": "32155.97",
+        "description": "",
+        "status": "executed"
+      },
+      {
+        "id": "20220419000000000::ec624f60-ca70-42d6-9086-f47a1eeebeb7",
+        "account_id": "34f33a89-390d-4001-aced-a5e978864b8d",
+        "activity_type": "CSD",
+        "date": "2022-04-19",
+        "net_amount": "20979.69",
+        "description": "",
+        "status": "executed"
+      },
+      {
+        "id": "20220419000000000::e96b84c0-15b8-4821-9c78-cce1d836ff5b",
+        "account_id": "f78eb5ae-76c0-48ef-b5d9-07613da2e827",
+        "activity_type": "CSD",
+        "date": "2022-04-19",
+        "net_amount": "22386.64",
+        "description": "",
+        "status": "executed"
+      }
+    ]
+    """
+
+    reqmock.get(
+        BaseURL.BROKER_SANDBOX + "/v1/accounts/activities",
+        [{"text": resp_one}, {"text": resp_two}, {"text": """[]"""}],
+    )
+
+
+@pytest.mark.skip("Skipping for know as these are known red tests")
+def test_get_activities_for_account_full_pagination(reqmock, client: BrokerClient):
+    setup_reqmock_for_paginated_account_activities_response(reqmock)
+
+    result = client.get_account_activities(
+        GetAccountActivitiesRequest(), PaginationType.FULL
+    )
+
+    assert reqmock.called_count == 3
+    assert isinstance(result, List)
+    assert len(result) == 8
+    assert isinstance(result[0], BaseActivity)
+
+
+@pytest.mark.skip("Skipping for know as these are known red tests")
+def test_get_activities_for_account_none_pagination(reqmock, client: BrokerClient):
+    setup_reqmock_for_paginated_account_activities_response(reqmock)
+
+    result = client.get_account_activities(
+        GetAccountActivitiesRequest(), PaginationType.FULL
+    )
+
+    assert reqmock.called_count == 1
+    assert isinstance(result, List)
+    assert len(result) == 4
+    assert isinstance(result[0], BaseActivity)
+
+
+@pytest.mark.skip("Skipping for know as these are known red tests")
+def test_get_account_activities_iterator_pagination(reqmock, client: BrokerClient):
+    setup_reqmock_for_paginated_account_activities_response(reqmock)
+
+    generator = client.get_account_activities(
+        GetAccountActivitiesRequest(), PaginationType.ITERATOR
+    )
+
+    assert isinstance(generator, Iterator)
+
+    # When asking for an iterator we should not have made any requests yet
+    assert not reqmock.called
+
+    results = next(generator)
+
+    assert isinstance(results, List)
+    assert len(results) == 4
+    assert isinstance(results[0], BaseActivity)
+    assert reqmock.called_once
+
+    results = next(generator)
+    assert isinstance(results, List)
+    assert len(results) == 4
+
+    # generator should now be empty
+    results = next(generator, None)
+    assert reqmock.called_count == 3
+
+    assert results is None

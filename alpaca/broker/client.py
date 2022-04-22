@@ -1,4 +1,5 @@
-from typing import List, Optional, Union
+from enum import Enum
+from typing import Iterator, List, Optional, Union
 from uuid import UUID
 from pydantic import parse_obj_as
 
@@ -34,6 +35,22 @@ def validate_account_id_param(account_id: Union[UUID, str]) -> UUID:
         raise ValueError("account_id must be a UUID or a UUID str")
 
     return account_id
+
+
+class PaginationType(Enum):
+    """
+    An enum for choosing what type of pagination of results you'd like for BrokerClient functions that support
+    pagination.
+
+    * NONE: Requests that we perform no pagination of results and just return the single response the API gave us.
+    * FULL: Requests that we perform all the pagination and return just a single List/dict/etc containing all the
+      results. This is the default for most functions.
+    * ITERATOR: Requests that we return an Iterator that yields one "page" of results at a time
+    """
+
+    NONE = "none"
+    FULL = "full"
+    ITERATOR = "iterator"
 
 
 class BrokerClient(RESTClient):
@@ -216,7 +233,41 @@ class BrokerClient(RESTClient):
 
     # ############################## ACCOUNT ACTIVITIES ################################# #
 
-    def get_activities_for_account(
-        self, account_id: Union[UUID, str], activity_filter: GetAccountActivitiesRequest
-    ) -> List[BaseActivity]:
+    def get_account_activities(
+        self,
+        activity_filter: GetAccountActivitiesRequest,
+        handle_pagination: Optional[PaginationType] = None,
+    ) -> Union[List[BaseActivity], Iterator[List[BaseActivity]]]:
+        """
+        Gets a list of Account activities, with various filtering options. Please see the documentation for
+        GetAccountActivitiesRequest for more information as to what filters are available.
+
+        The return type of this function is List[BaseActivity] however the list will contain concrete instances of one
+        of the child classes of BaseActivity, either TradeActivity or NonTradeActivity. It can be a mixed list depending
+        on what filtering criteria you pass through `activity_filter`
+
+        **Note on the `handle_pagination` param**
+
+        By default, this function will attempt to handle the fact that the API paginates results for this endpoint for
+        you returning it all as one List. However, that could:
+
+        1. Take a long time if there are many results to paginate or if you request a small page size and have moderate
+        network latency
+
+        2. Use up a large amount of memory to build all the results at once
+
+        So for those cases where a single list all at once would be prohibitive you can
+
+
+        Args:
+            activity_filter (GetAccountActivitiesRequest): The various filtering fields you can specify to restrict
+              results
+            handle_pagination (Optional[PaginationType]): What kind of pagination you want. If None then defaults to
+              PaginationType.FULL
+
+        Returns:
+            Union[List[BaseActivity], Iterator[List[BaseActivity]]]: Either a list or an Iterator of lists of
+              BaseActivity child classes
+        """
+
         pass

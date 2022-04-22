@@ -2,7 +2,7 @@ import base64
 import os
 import time
 from abc import ABC
-from typing import Generator, List, Optional, Union, Type
+from typing import Generator, Iterator, List, Optional, Union, Type
 
 from pydantic import BaseModel
 from requests import Session
@@ -165,7 +165,7 @@ class RESTClient(ABC):
         api_version: str = "v2",
         page_limit: int = DATA_V2_MAX_LIMIT,
         **kwargs,
-    ) -> Generator[dict, None, None]:
+    ) -> Iterator[dict]:
         """Performs Data API GET requests accounting for pagination. Data in responses are limited to 10,000 items.
         If any more data is requested, the data will be paginated.
 

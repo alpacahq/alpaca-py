@@ -12,7 +12,7 @@ class MarketDataStream(BaseStream):
         raw_data: bool = False,
         feed: DataFeed = DataFeed.IEX,
         websocket_params: Optional[Dict] = None,
-        url_override: Optional[Union[BaseURL, str]] = None,
+        url_override: Optional[str] = None,
     ) -> None:
         """WebSocket client for accessing live equity data.
 
@@ -22,7 +22,7 @@ class MarketDataStream(BaseStream):
             raw_data (bool, optional): Whether to return wrapped data or raw API data. Defaults to False.
             feed (DataFeed, optional): Which market data feed to use; IEX or SIP. Defaults to IEX.
             websocket_params (Optional[Dict], optional): Any parameters for configuring websocket connection. Defaults to None.
-            url_override (Optional[Union[BaseURL, str]]): If specified allows you to override the base url the client
+            url_override (Optional[str]): If specified allows you to override the base url the client
               points to for proxy/testing.
 
         Raises:

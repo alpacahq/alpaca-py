@@ -22,10 +22,10 @@ class RESTClient(ABC):
 
     def __init__(
         self,
+        base_url: Union[BaseURL, str],
         api_key: str = None,
         secret_key: str = None,
         api_version: str = "v2",
-        base_url: Optional[BaseURL] = None,
         sandbox: bool = False,
         raw_data: bool = False,
     ) -> None:
@@ -33,17 +33,18 @@ class RESTClient(ABC):
         Alpaca API endpoints.
 
         Args:
+            base_url (Union[BaseURL, str]): The base url to target requests to. Should be an instance of BaseURL, but
+              allows for raw str if you need to override
             api_key (str, optional): description. Defaults to None.
             secret_key (str, optional): description. Defaults to None.
             api_version (str, optional): description. Defaults to 'v2'.
-            base_url (Optional[BaseURL], optional): description. Defaults to None.
             sandbox (bool, optional): description. Defaults to False.
             raw_data (bool, optional): description. Defaults to False.
         """
 
         self._api_key, self._secret_key = get_credentials(api_key, secret_key)
         self._api_version: str = get_api_version(api_version)
-        self._base_url: BaseURL = base_url
+        self._base_url: Union[BaseURL, str] = base_url
         self._sandbox: bool = sandbox
         self._use_raw_data: bool = raw_data
         self._session: Session = Session()

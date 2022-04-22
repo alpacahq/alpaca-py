@@ -17,7 +17,7 @@ open, high, low, close, volume (OHLCV) information.
 BarSet
 ------
 
-A dictionary of Bars keyed by string valued symbol identifiers. See Bar. 
+A dictionary of Bars keyed by string valued symbol identifiers. See Bar.
 
 .. autoclass:: alpaca.data.models.BarSet
    :members:
@@ -36,7 +36,7 @@ an ask, each with a price and size.
 QuoteSet
 --------
 
-A dictionary of Quotes keyed by string valued symbol identifiers. See Quote. 
+A dictionary of Quotes keyed by string valued symbol identifiers. See Quote.
 
 .. autoclass:: alpaca.data.models.QuoteSet
    :members:
@@ -45,7 +45,7 @@ A dictionary of Quotes keyed by string valued symbol identifiers. See Quote.
 Trade
 -----
 
-A Trade is a transaction that has occurred on an exchange. 
+A Trade is a transaction that has occurred on an exchange.
 
 .. autoclass:: alpaca.data.models.Trade
    :members:
@@ -54,10 +54,7 @@ A Trade is a transaction that has occurred on an exchange.
 TradeSet
 --------
 
-A dictionary of Trades keyed by string valued symbol identifiers. See Trade. 
+A dictionary of Trades keyed by string valued symbol identifiers. See Trade.
 
 .. autoclass:: alpaca.data.models.TradeSet
    :members:
-
-
-

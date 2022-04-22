@@ -79,7 +79,14 @@ class BrokerClient(RESTClient):
         )
 
         # TODO: Actually check raw_data everywhere
-        super().__init__(api_key, secret_key, api_version, base_url, sandbox, raw_data)
+        super().__init__(
+            base_url=base_url,
+            api_key=api_key,
+            secret_key=secret_key,
+            api_version=api_version,
+            sandbox=sandbox,
+            raw_data=raw_data,
+        )
 
     # ############################## ACCOUNTS/TRADING ACCOUNTS ################################# #
 

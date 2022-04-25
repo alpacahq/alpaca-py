@@ -1,5 +1,5 @@
 from alpaca.common.websocket import BaseStream
-from typing import Optional, Dict
+from typing import Optional, Dict, Union
 from alpaca.common.enums import BaseURL
 from .enums import DataFeed
 
@@ -12,6 +12,7 @@ class MarketDataStream(BaseStream):
         raw_data: bool = False,
         feed: DataFeed = DataFeed.IEX,
         websocket_params: Optional[Dict] = None,
+        url_override: Optional[str] = None,
     ) -> None:
         """WebSocket client for accessing live equity data.
 
@@ -21,6 +22,8 @@ class MarketDataStream(BaseStream):
             raw_data (bool, optional): Whether to return wrapped data or raw API data. Defaults to False.
             feed (DataFeed, optional): Which market data feed to use; IEX or SIP. Defaults to IEX.
             websocket_params (Optional[Dict], optional): Any parameters for configuring websocket connection. Defaults to None.
+            url_override (Optional[str]): If specified allows you to override the base url the client
+              points to for proxy/testing.
 
         Raises:
             ValueError: Only IEX or SIP market data feeds are supported
@@ -29,7 +32,11 @@ class MarketDataStream(BaseStream):
             raise ValueError("OTC not supported for live data feeds")
 
         super().__init__(
-            endpoint=BaseURL.MARKET_DATA_LIVE.value + "/v2/" + feed.value,
+            endpoint=(
+                url_override
+                if url_override is not None
+                else BaseURL.MARKET_DATA_LIVE.value + "/v2/" + feed.value
+            ),
             api_key=api_key,
             secret_key=secret_key,
             raw_data=raw_data,

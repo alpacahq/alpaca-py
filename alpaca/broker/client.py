@@ -270,7 +270,7 @@ class BrokerClient(RESTClient):
             activity_filter (GetAccountActivitiesRequest): The various filtering fields you can specify to restrict
               results
             handle_pagination (Optional[PaginationType]): What kind of pagination you want. If None then defaults to
-              PaginationType.FULL
+              `PaginationType.FULL`
 
         Returns:
             Union[List[BaseActivity], Iterator[List[BaseActivity]]]: Either a list or an Iterator of lists of

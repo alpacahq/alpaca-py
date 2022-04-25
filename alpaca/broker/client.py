@@ -60,6 +60,21 @@ class PaginationType(Enum):
 class BrokerClient(RESTClient):
     """
     Client for accessing Broker API services
+
+    **Note on the `handle_pagination` param you'll see across these methods**
+
+    By default, these methods will attempt to handle the fact that the API paginates results for the specific endpoint
+    for you by returning it all as one List.
+
+    However, that could:
+
+    1. Take a long time if there are many results to paginate or if you request a small page size and have moderate
+    network latency
+    2. Use up a large amount of memory to build all the results at once
+
+    So for those cases where a single list all at once would be prohibitive you can specify what kind of pagination you
+    want with the `handle_pagination` parameter. Please see the PaginationType enum for an explanation as to what the
+    different values mean for what you get back.
     """
 
     def __init__(
@@ -257,18 +272,6 @@ class BrokerClient(RESTClient):
         of the child classes of BaseActivity, either TradeActivity or NonTradeActivity. It can be a mixed list depending
         on what filtering criteria you pass through `activity_filter`
 
-        **Note on the `handle_pagination` param**
-
-        By default, this function will attempt to handle the fact that the API paginates results for this endpoint for
-        you returning it all as one List. However, that could:
-
-        1. Take a long time if there are many results to paginate or if you request a small page size and have moderate
-        network latency
-
-        2. Use up a large amount of memory to build all the results at once
-
-        So for those cases where a single list all at once would be prohibitive you can
-
 
         Args:
             activity_filter (GetAccountActivitiesRequest): The various filtering fields you can specify to restrict
@@ -280,6 +283,9 @@ class BrokerClient(RESTClient):
             Union[List[BaseActivity], Iterator[List[BaseActivity]]]: Either a list or an Iterator of lists of
               BaseActivity child classes
         """
+
+        if handle_pagination is None:
+            handle_pagination = PaginationType.FULL
 
         # user wants no pagination, so just do a single request, convert the results we got and move on
         if handle_pagination == PaginationType.NONE:

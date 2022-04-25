@@ -5,7 +5,6 @@ import pytest
 import requests_mock
 from requests_mock import Mocker
 
-from alpaca.broker import BaseActivity, GetAccountActivitiesRequest
 from alpaca.broker.enums import AccountEntities
 from alpaca.common import APIError
 from alpaca.broker.client import BrokerClient, PaginationType
@@ -21,6 +20,10 @@ from alpaca.broker.models import (
     UpdatableTrustedContact,
     UpdatableIdentity,
     UpdatableDisclosures,
+    BaseActivity,
+    GetAccountActivitiesRequest,
+    NonTradeActivity,
+    TradeActivity,
 )
 from alpaca.common.enums import BaseURL, Sort
 
@@ -799,7 +802,8 @@ def test_get_activities_for_account_full_pagination(reqmock, client: BrokerClien
     assert reqmock.call_count == 3
     assert isinstance(result, List)
     assert len(result) == 8
-    assert isinstance(result[0], BaseActivity)
+    assert isinstance(result[0], NonTradeActivity)
+    assert isinstance(result[2], TradeActivity)
 
 
 def test_get_activities_for_account_none_pagination(reqmock, client: BrokerClient):

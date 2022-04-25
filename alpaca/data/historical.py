@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional, Type, Union
+from typing import Iterator, List, Optional, Type, Union
 
 from pydantic import BaseModel
 
@@ -10,6 +10,7 @@ from alpaca.common.types import RawData
 
 from .enums import Adjustment, DataFeed, Exchange
 from .models import XBBO, BarSet, Quote, QuoteSet, SnapshotSet, Trade, TradeSet
+from ..common.constants import DATA_V2_MAX_LIMIT
 
 
 class HistoricalDataClient(RESTClient):
@@ -508,6 +509,76 @@ class HistoricalDataClient(RESTClient):
         return self.response_wrapper(
             model=XBBO, raw_data=raw_latest_xbbo, symbol=symbol
         )
+
+    def _data_get(
+        self,
+        endpoint: str,
+        symbol_or_symbols: Union[str, List[str]],
+        endpoint_base: str = "stocks",
+        api_version: str = "v2",
+        page_limit: int = DATA_V2_MAX_LIMIT,
+        **kwargs,
+    ) -> Iterator[dict]:
+        """Performs Data API GET requests accounting for pagination. Data in responses are limited to 10,000 items.
+        If any more data is requested, the data will be paginated.
+
+        Args:
+            endpoint (str): The data API endpoint path - /bars, /quotes, etc
+            symbol_or_symbols (Union[str, List[str]]): The symbol or list of symbols that we want to query for
+            endpoint_base (str, optional): The data API security type path. Defaults to 'stocks'.
+            api_version (str, optional): Data API version. Defaults to "v2".
+            resp_grouped_by_symbol (Optional[bool], optional): _description_. Defaults to None.
+            page_limit (int, optional): _description_. Defaults to DATA_V2_MAX_LIMIT.
+
+        Yields:
+            Iterator[dict]: raw dict instances to be converted into concrete types
+        """
+        page_token = None
+        total_items = 0
+        limit = kwargs.get("limit")
+
+        data = kwargs
+
+        path = f"/{endpoint_base}"
+
+        if isinstance(symbol_or_symbols, str) and symbol_or_symbols:
+            path += f"/{symbol_or_symbols}"
+        else:
+            data["symbols"] = ",".join(symbol_or_symbols)
+
+        if endpoint:
+            path += f"/{endpoint}"
+
+        resp_grouped_by_symbol = not isinstance(symbol_or_symbols, str)
+
+        while True:
+
+            actual_limit = None
+            if limit:
+                actual_limit = min(int(limit) - total_items, page_limit)
+                if actual_limit < 1:
+                    break
+
+            data["limit"] = actual_limit
+            data["page_token"] = page_token
+
+            resp = self.get(path, data, api_version=api_version)
+
+            if not resp_grouped_by_symbol:
+                # required for /news endpoint
+                k = endpoint or endpoint_base
+                for item in resp.get(k, []) or []:
+                    total_items += 1
+                    yield item
+            else:
+                by_symbol = resp.get(endpoint, {}) or {}
+                total_items += 1
+                yield by_symbol
+
+            page_token = resp.get("next_page_token")
+
+            if not page_token:
+                break
 
     def _format_data_response(
         self,

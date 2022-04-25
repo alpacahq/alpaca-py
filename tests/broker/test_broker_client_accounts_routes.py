@@ -717,13 +717,19 @@ def setup_reqmock_for_paginated_account_activities_response(reqmock: Mocker):
         "status": "executed"
       },
       {
-        "id": "20220419000000000::f9baafc5-29e1-42bf-8bb8-05a36cf334f2",
-        "account_id": "2ba34083-51dc-42b9-b2ff-2b17bd2f62de",
-        "activity_type": "CSD",
-        "date": "2022-04-19",
-        "net_amount": "13809.54",
-        "description": "",
-        "status": "executed"
+        "id": "20220304095318500::092cd749-b783-49cb-a36e-4d8666be201f",
+        "account_id": "6e8cb861-e8b9-4278-8ed2-c8452535a165",
+        "activity_type": "FILL",
+        "transaction_time": "2022-03-04T14:53:18.500245Z",
+        "type": "fill",
+        "price": "2630.95",
+        "qty": "9",
+        "side": "buy",
+        "symbol": "GOOGL",
+        "leaves_qty": "0",
+        "order_id": "b677e464-c2d0-4fdd-a4b1-8830b386aa50",
+        "cum_qty": "10.177047834",
+        "order_status": "filled"
       },
       {
         "id": "20220419000000000::f77b60bf-ea39-4551-a3d6-000548e6f11c",
@@ -783,7 +789,6 @@ def setup_reqmock_for_paginated_account_activities_response(reqmock: Mocker):
     )
 
 
-@pytest.mark.skip("Skipping for know as these are known red tests")
 def test_get_activities_for_account_full_pagination(reqmock, client: BrokerClient):
     setup_reqmock_for_paginated_account_activities_response(reqmock)
 
@@ -791,27 +796,25 @@ def test_get_activities_for_account_full_pagination(reqmock, client: BrokerClien
         GetAccountActivitiesRequest(), PaginationType.FULL
     )
 
-    assert reqmock.called_count == 3
+    assert reqmock.call_count == 3
     assert isinstance(result, List)
     assert len(result) == 8
     assert isinstance(result[0], BaseActivity)
 
 
-@pytest.mark.skip("Skipping for know as these are known red tests")
 def test_get_activities_for_account_none_pagination(reqmock, client: BrokerClient):
     setup_reqmock_for_paginated_account_activities_response(reqmock)
 
     result = client.get_account_activities(
-        GetAccountActivitiesRequest(), PaginationType.FULL
+        GetAccountActivitiesRequest(), PaginationType.NONE
     )
 
-    assert reqmock.called_count == 1
+    assert reqmock.call_count == 1
     assert isinstance(result, List)
     assert len(result) == 4
     assert isinstance(result[0], BaseActivity)
 
 
-@pytest.mark.skip("Skipping for know as these are known red tests")
 def test_get_account_activities_iterator_pagination(reqmock, client: BrokerClient):
     setup_reqmock_for_paginated_account_activities_response(reqmock)
 
@@ -837,6 +840,6 @@ def test_get_account_activities_iterator_pagination(reqmock, client: BrokerClien
 
     # generator should now be empty
     results = next(generator, None)
-    assert reqmock.called_count == 3
+    assert reqmock.call_count == 3
 
     assert results is None

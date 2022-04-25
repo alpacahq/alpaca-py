@@ -1,10 +1,11 @@
 from enum import Enum
-from typing import Iterator, List, Optional, Union
+from typing import Callable, Iterator, List, Optional, TypeVar, Union
 from uuid import UUID
 from pydantic import parse_obj_as
+from itertools import chain
 
 from ..common.enums import BaseURL
-from ..common.rest import RESTClient
+from ..common.rest import HTTPResult, RESTClient
 from .models import (
     Account,
     AccountCreationRequest,
@@ -14,6 +15,9 @@ from .models import (
     TradeAccount,
     BaseActivity,
     GetAccountActivitiesRequest,
+    ActivityType,
+    NonTradeActivity,
+    TradeActivity,
 )
 
 
@@ -277,4 +281,59 @@ class BrokerClient(RESTClient):
               BaseActivity child classes
         """
 
-        pass
+        # user wants no pagination, so just do a single request, convert the results we got and move on
+        if handle_pagination == PaginationType.NONE:
+            result = self.get(
+                "/accounts/activities", activity_filter.to_request_fields()
+            )
+            return [self._parse_activity(activity) for activity in result]
+
+        def get_as_iterator(
+            mapping: Callable[[HTTPResult], List[BaseActivity]]
+        ) -> Iterator[List[BaseActivity]]:
+            while True:
+                result = self.get(
+                    "/accounts/activities", activity_filter.to_request_fields()
+                )
+
+                # the api returns [] when it's done
+
+                if not isinstance(result, List) or len(result) == 0:
+                    break
+
+                yield mapping(result)
+
+        # otherwise, user wants pagination so we grab an interator
+        iterator = get_as_iterator(lambda x: [self._parse_activity(x) for x in x])
+
+        if handle_pagination == PaginationType.FULL:
+            # the iterator returns "pages", so we use chain to flatten them all into 1 list
+            return list(chain.from_iterable(iterator))
+        elif handle_pagination == PaginationType.ITERATOR:
+            return iterator
+
+    # ############################## HELPER/PRIVATE FUNCS ################################# #
+
+    @staticmethod
+    def _parse_activity(data: dict) -> Union[TradeActivity, NonTradeActivity]:
+        """
+        We cannae just use parse_obj_as for Activity types since we need to know what child instance to cast it into.
+
+        So this method does just that.
+
+        Args:
+            data (dict): a dict of raw data to attempt to convert into an Activity instance
+
+        Raises:
+            ValueError: Will raise a ValueError if `data` doesn't contain an `activity_type` field to compare
+        """
+
+        if "activity_type" not in data or data["activity_type"] is None:
+            raise ValueError(
+                "Failed parsing raw activity data, `activity_type` is not present in fields"
+            )
+
+        if ActivityType.is_str_trade_activity(data["activity_type"]):
+            return parse_obj_as(TradeActivity, data)
+        else:
+            return parse_obj_as(NonTradeActivity, data)

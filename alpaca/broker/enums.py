@@ -277,6 +277,21 @@ class ActivityType(str, Enum):
 
         return self.value == self.FILL
 
+    @staticmethod
+    def is_str_trade_activity(value: str) -> bool:
+        """
+        similar to is_trade_activity but for raw data that hasn't been parsed into an enum yet.
+        Useful for deserialization.
+
+        Args:
+            value (str): Value to check to see if it would be a valid ActivityType for a TradeActivity
+
+        Returns:
+            bool: returns true if `value` would represent a TradeActivity ActivityType
+        """
+
+        return value == ActivityType.FILL
+
 
 class TradeActivityType(str, Enum):
     """

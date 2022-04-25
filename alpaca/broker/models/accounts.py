@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 from typing import Any, List, Optional, Union
 from uuid import UUID
 
@@ -430,19 +430,18 @@ class BaseActivity(BaseModel):
     You most likely will want an instance of one of the child classes TradeActivity and NonTradeActivity
 
     Attributes:
-        id (UUID): Unique ID of this Activity
+        id (str): Unique ID of this Activity. Note that IDs for Activity instances are formatted like
+          `20220203000000000::045b3b8d-c566-4bef-b741-2bf598dd6ae7` the first part before the `::` is a date string
+          while the part after is a UUID
         account_id (UUID): id of the Account this activity relates too
         activity_type (ActivityType): What specific kind of Activity this was
     """
 
-    id: UUID
+    id: str
     account_id: UUID
     activity_type: ActivityType
 
     def __init__(self, *args, **data):
-        if "id" in data and type(data["id"]) == str:
-            data["id"] = UUID(data["id"])
-
         if "account_id" in data and type(data["account_id"]) == str:
             data["account_id"] = UUID(data["account_id"])
 
@@ -454,7 +453,7 @@ class NonTradeActivity(BaseActivity):
     A NonTradeActivity represents an Activity that happened for an account that doesn't have to do with orders or trades.
 
     Attributes:
-        date (datetime): The date on which the activity occurred or on which the transaction associated with the
+        date (date): The date on which the activity occurred or on which the transaction associated with the
           activity settled.
         net_amount (float): The net amount of money (positive or negative) associated with the activity.
         description (str):
@@ -468,7 +467,7 @@ class NonTradeActivity(BaseActivity):
           other activity types.
     """
 
-    date: datetime
+    date: date
     net_amount: float
     description: str
     status: Optional[NonTradeActivityStatus] = None

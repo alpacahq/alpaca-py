@@ -253,7 +253,7 @@ class GetAccountActivitiesRequest(NonEmptyRequest):
 
     **Notes on pagination and the `page_size` and `page_token` fields**.
 
-    The BrokerClient::get_account_activies function by default will automatically handle the pagination of results
+    The BrokerClient::get_account_activities function by default will automatically handle the pagination of results
     for you to get all results at once. However, if you're requesting a very large amount of results this can use a
     large amount of memory and time to gather all the results. If you instead want to handle
     pagination yourself `page_size` and `page_token` are how you would handle this.

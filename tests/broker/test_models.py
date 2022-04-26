@@ -3,7 +3,7 @@ from datetime import datetime
 import pytest
 
 from alpaca.broker.models import (
-    Document,
+    AccountDocument,
     AccountUpdateRequest,
     UpdatableTrustedContact,
     UpdatableContact,
@@ -20,7 +20,7 @@ def test_document_validates_id():
     """
 
     with pytest.raises(ValueError):
-        Document(
+        AccountDocument(
             id="not a uuid str",
             created_at="2022-01-21T21:25:28.189455Z",
             content="https://example.com/not-a-real-url",
@@ -29,7 +29,7 @@ def test_document_validates_id():
         )
 
     with pytest.raises(ValueError):
-        Document(
+        AccountDocument(
             id=12,
             created_at="2022-01-21T21:25:28.189455Z",
             content="https://example.com/not-a-real-url",

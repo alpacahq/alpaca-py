@@ -142,7 +142,7 @@ def test_create_account(reqmock, client: BrokerClient):
         agreements=factory.create_dummy_agreements(),
         contact=factory.create_dummy_contact(),
         disclosures=factory.create_dummy_disclosures(),
-        documents=factory.create_dummy_documents(),
+        documents=factory.create_dummy_account_documents(),
         identity=factory.create_dummy_identity(),
         trusted_contact=factory.create_dummy_trusted_contact(),
     )

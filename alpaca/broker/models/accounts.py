@@ -161,14 +161,20 @@ class Agreement(BaseModel):
     revision: Optional[str]
 
 
-class Document(BaseModel):
-    """User documents provided within Account Model
+class AccountDocument(BaseModel):
+    """
+    User documents provided within Account Model.
+
+    This model is different from the TradeDocument model in that this model represents documents having to do with a
+    brokerage Account.
 
     see https://alpaca.markets/docs/broker/api-references/accounts/accounts/#the-account-model
 
     Attributes:
+        id (UUID): ID of the Document
         document_type (DocumentType): The type of document uploaded
-        document_sub_type (str): The specific type of document, e.g. passport
+        document_sub_type (Optional[str]): The specific type of document, e.g. passport
+        name (Optional(str)): Name of the document if present
         content (str): Base64 string representing the document
         mime_type (str): The format of content encoded by the string
     """
@@ -181,10 +187,8 @@ class Document(BaseModel):
 
     def __init__(self, **data: Any) -> None:
         # validate the incoming id field for uuid
-        if type(data["id"]) == str:
+        if isinstance(data["id"], str):
             data["id"] = UUID(data["id"])
-        elif type(data["id"]) != UUID:
-            raise ValueError("id must be a UUID or a UUID str")
 
         super().__init__(**data)
 
@@ -254,7 +258,7 @@ class Account(BaseModel):
         identity (Optional[Identity]): The identity details for the account holder
         disclosures (Optional[Disclosures]): The account holder's political disclosures
         agreements (Optional[List[Agreement]]): The agreements the account holder has signed
-        documents (Optional[List[Document]]): The documents the account holder has submitted
+        documents (Optional[List[AccountDocument]]): The documents the account holder has submitted
         trusted_contact (Optional[TrustedContact]): The account holder's trusted contact details
     """
 
@@ -269,7 +273,7 @@ class Account(BaseModel):
     identity: Optional[Identity] = None
     disclosures: Optional[Disclosures] = None
     agreements: Optional[List[Agreement]] = None
-    documents: Optional[List[Document]] = None
+    documents: Optional[List[AccountDocument]] = None
     trusted_contact: Optional[TrustedContact] = None
 
     def __init__(self, **response):
@@ -304,7 +308,7 @@ class Account(BaseModel):
                 else None
             ),
             documents=(
-                parse_obj_as(List[Document], response["documents"])
+                parse_obj_as(List[AccountDocument], response["documents"])
                 if "documents" in response
                 else None
             ),

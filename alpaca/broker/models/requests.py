@@ -10,7 +10,7 @@ from .accounts import (
     Agreement,
     Contact,
     Disclosures,
-    Document,
+    AccountDocument,
     Identity,
     TrustedContact,
 )
@@ -63,7 +63,7 @@ class AccountCreationRequest(BaseModel):
         identity (Identity): The identity details for the account holder
         disclosures (Disclosures): The account holder's political disclosures
         agreements (List[Agreement]): The agreements the account holder has signed
-        documents (List[Document]): The documents the account holder has submitted
+        documents (List[AccountDocument]): The documents the account holder has submitted
         trusted_contact (TrustedContact): The account holder's trusted contact details
     """
 
@@ -71,7 +71,7 @@ class AccountCreationRequest(BaseModel):
     identity: Identity
     disclosures: Disclosures
     agreements: List[Agreement]
-    documents: Optional[List[Document]] = None
+    documents: Optional[List[AccountDocument]] = None
     trusted_contact: Optional[TrustedContact] = None
 
 

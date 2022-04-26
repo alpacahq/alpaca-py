@@ -5,7 +5,7 @@ from alpaca.broker.models import (
     Contact,
     Disclosures,
     Agreement,
-    Document,
+    AccountDocument,
     TrustedContact,
 )
 from alpaca.broker.enums import FundingSource, TaxIdType, AgreementType
@@ -114,9 +114,9 @@ def create_dummy_trusted_contact() -> TrustedContact:
     )
 
 
-def create_dummy_documents() -> List[Document]:
+def create_dummy_account_documents() -> List[AccountDocument]:
     return [
-        Document(
+        AccountDocument(
             id="bb6de14c-9393-4b6c-8e93-c6724ac7b703",
             created_at="2022-01-21T21:25:28.189455Z",
             content="https://example.com/not-a-real-url",

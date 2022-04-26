@@ -222,7 +222,10 @@ class RESTClient(ABC):
             else:
                 data_by_symbol = resp.get(endpoint, {}) or {}
 
-                total_items += actual_limit
+                # if we've sent a request with a limit, increment count
+                if actual_limit:
+                    total_items += actual_limit
+
                 yield data_by_symbol
 
             page_token = resp.get("next_page_token")

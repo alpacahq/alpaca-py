@@ -75,7 +75,7 @@ class HistoricalDataClient(RESTClient):
             timeframe=timeframe_value,
             start=start,
             end=end,
-            limit=limit,
+            max_items_limit=limit,
             adjustment=adjustment,
             feed=feed,
         )
@@ -117,7 +117,7 @@ class HistoricalDataClient(RESTClient):
             symbol_or_symbols=symbol_or_symbols,
             start=start,
             end=end,
-            limit=limit,
+            max_items_limit=limit,
             feed=feed,
         )
 
@@ -157,7 +157,7 @@ class HistoricalDataClient(RESTClient):
             symbol_or_symbols=symbol_or_symbols,
             start=start,
             end=end,
-            limit=limit,
+            max_items_limit=limit,
             feed=feed,
         )
 
@@ -285,7 +285,7 @@ class HistoricalDataClient(RESTClient):
             timeframe=timeframe_value,
             start=start,
             end=end,
-            limit=limit,
+            max_items_limit=limit,
             exchanges=exchanges,
         )
 
@@ -328,7 +328,7 @@ class HistoricalDataClient(RESTClient):
             symbol_or_symbols=symbol_or_symbols,
             start=start,
             end=end,
-            limit=limit,
+            max_items_limit=limit,
             exchanges=exchanges,
         )
 
@@ -370,7 +370,7 @@ class HistoricalDataClient(RESTClient):
             symbol_or_symbols=symbol_or_symbols,
             start=start,
             end=end,
-            limit=limit,
+            max_items_limit=limit,
             exchanges=exchanges,
         )
 

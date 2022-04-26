@@ -160,6 +160,7 @@ class RESTClient(ABC):
         symbol_or_symbols: Union[str, List[str]],
         endpoint_base: str = "stocks",
         api_version: str = "v2",
+        max_items_limit: Optional[int] = None,
         page_limit: int = DATA_V2_MAX_LIMIT,
         **kwargs,
     ) -> Generator[dict, None, None]:
@@ -171,14 +172,14 @@ class RESTClient(ABC):
             symbol_or_symbols (Union[str, List[str]]): The symbol or list of symbols that we want to query for
             endpoint_base (str, optional): The data API security type path. Defaults to 'stocks'.
             api_version (str, optional): Data API version. Defaults to "v2".
-            page_limit (int, optional): The maximum number of items returned in one request - different from limit. Defaults to DATA_V2_MAX_LIMIT.
+            max_items_limit (Optional[int]): The maximum number of items to query. Defaults to None.
+            page_limit (int, optional): The maximum number of items returned per page - different from limit. Defaults to DATA_V2_MAX_LIMIT.
 
         Yields:
             Generator[dict, None, None]: Market data from API
         """
         page_token = None
         total_items = 0
-        limit = kwargs.get("limit")
 
         data = kwargs
 
@@ -199,9 +200,9 @@ class RESTClient(ABC):
             actual_limit = None
 
             # adjusts the limit parameter value if it is over the page_limit
-            if limit:
+            if max_items_limit:
                 # actual_limit is the adjusted total number of items to query per request
-                actual_limit = min(int(limit) - total_items, page_limit)
+                actual_limit = min(int(max_items_limit) - total_items, page_limit)
                 if actual_limit < 1:
                     break
 

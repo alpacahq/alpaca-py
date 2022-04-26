@@ -349,3 +349,44 @@ class OrderStatus(str, Enum):
     REJECTED = "rejected"
     SUSPENDED = "suspended"
     CALCULATED = "calculated"
+
+
+class TradeDocumentType(str, Enum):
+    """
+    Represents what kind information is inside a TradeDocument
+
+    Most likely will be either of these 3:
+      -  ACCOUNT_STATEMENT
+      -  TRADE_CONFIRMATION
+      -  TAX_STATEMENT
+
+    However, for older accounts with legacy documents the other legacy values might show up.
+
+    please see https://alpaca.markets/docs/api-references/broker-api/documents/#enumdocumenttype for more info
+    """
+
+    ACCOUNT_STATEMENT = "account_statement"
+    TRADE_CONFIRMATION = "trade_confirmation"
+    TAX_STATEMENT = "tax_statement"
+
+    # Legacy Values
+    TAX_1099_B_DETAILS = "tax_1099_b_details"
+    TAX_1099_B_FORM = "tax_1099_b_form"
+    TAX_1099_DIV_DETAILS = "tax_1099_div_details"
+    TAX_1099_DIV_FORM = "tax_1099_div_form"
+    TAX_1099_INT_DETAILS = "tax_1099_int_details"
+    TAX_1099_INT_FORM = "tax_1099_int_form"
+    TAX_W8 = "tax_w8"
+
+
+class TradeDocumentSubType(str, Enum):
+    """
+    Represents additional information for whats inside a TradeDocument in combination with a TradeDocumentType
+
+    please see https://alpaca.markets/docs/api-references/broker-api/documents/#the-document-object for more info
+    """
+
+    TYPE_1099_COMP = "1099-Comp"
+    TYPE_1042_S = "1042-S"
+    TYPE_480_6 = "480.6"
+    COURTESY_STATEMENT = "courtesy_statement"

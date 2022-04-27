@@ -32,7 +32,7 @@ from factories import common as factory
 
 
 @pytest.fixture
-def reqmock() -> Mocker:
+def reqmock() -> Iterator[Mocker]:
     with requests_mock.Mocker() as m:
         yield m
 

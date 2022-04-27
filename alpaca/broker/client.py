@@ -262,6 +262,7 @@ class BrokerClient(RESTClient):
     def get_account_activities(
         self,
         activity_filter: GetAccountActivitiesRequest,
+        max_items_limit: Optional[int] = None,
         handle_pagination: Optional[PaginationType] = None,
     ) -> Union[List[BaseActivity], Iterator[List[BaseActivity]]]:
         """
@@ -276,6 +277,8 @@ class BrokerClient(RESTClient):
         Args:
             activity_filter (GetAccountActivitiesRequest): The various filtering fields you can specify to restrict
               results
+            max_items_limit (Optional[int]): A maximum number of items to return over all for when handle_pagination is
+              of type `PaginationType.FULL`. Ignored otherwise.
             handle_pagination (Optional[PaginationType]): What kind of pagination you want. If None then defaults to
               `PaginationType.FULL`
 
@@ -286,6 +289,11 @@ class BrokerClient(RESTClient):
 
         if handle_pagination is None:
             handle_pagination = PaginationType.FULL
+
+        if handle_pagination != PaginationType.FULL and max_items_limit is not None:
+            raise ValueError(
+                "max_items_limit can only be specified for PaginationType.FULL"
+            )
 
         # user wants no pagination, so just do a single request, convert the results we got and move on
         if handle_pagination == PaginationType.NONE:

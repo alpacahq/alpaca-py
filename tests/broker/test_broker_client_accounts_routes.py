@@ -796,7 +796,7 @@ def test_get_activities_for_account_full_pagination(reqmock, client: BrokerClien
     setup_reqmock_for_paginated_account_activities_response(reqmock)
 
     result = client.get_account_activities(
-        GetAccountActivitiesRequest(), PaginationType.FULL
+        GetAccountActivitiesRequest(), handle_pagination=PaginationType.FULL
     )
 
     assert reqmock.call_count == 3
@@ -810,7 +810,7 @@ def test_get_activities_for_account_none_pagination(reqmock, client: BrokerClien
     setup_reqmock_for_paginated_account_activities_response(reqmock)
 
     result = client.get_account_activities(
-        GetAccountActivitiesRequest(), PaginationType.NONE
+        GetAccountActivitiesRequest(), handle_pagination=PaginationType.NONE
     )
 
     assert reqmock.call_count == 1
@@ -823,7 +823,7 @@ def test_get_account_activities_iterator_pagination(reqmock, client: BrokerClien
     setup_reqmock_for_paginated_account_activities_response(reqmock)
 
     generator = client.get_account_activities(
-        GetAccountActivitiesRequest(), PaginationType.ITERATOR
+        GetAccountActivitiesRequest(), handle_pagination=PaginationType.ITERATOR
     )
 
     assert isinstance(generator, Iterator)
@@ -847,3 +847,16 @@ def test_get_account_activities_iterator_pagination(reqmock, client: BrokerClien
     assert reqmock.call_count == 3
 
     assert results is None
+
+
+def test_get_account_activities_validates_max_items(reqmock, client: BrokerClient):
+    with pytest.raises(ValueError) as e:
+        client.get_account_activities(
+            GetAccountActivitiesRequest(),
+            max_items_limit=45,
+            handle_pagination=PaginationType.ITERATOR,
+        )
+
+    assert "max_items_limit can only be specified for PaginationType.FULL" in str(
+        e.value
+    )

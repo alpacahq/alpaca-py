@@ -1,5 +1,6 @@
 from typing import Iterator, List
 from uuid import UUID
+from datetime import datetime
 
 import pytest
 import requests_mock
@@ -804,6 +805,142 @@ def test_get_activities_for_account_full_pagination(reqmock, client: BrokerClien
     assert len(result) == 8
     assert isinstance(result[0], NonTradeActivity)
     assert isinstance(result[2], TradeActivity)
+
+
+def test_get_activities_for_account_max_items_and_single_request_date(
+    reqmock, client: BrokerClient
+):
+    """
+    The api when `date` is specified is allowed to drop the pagination defaults and return all results at once.
+    This test is to ensure in this case if there is a max items requested that we still only request
+    that max items amount.
+    """
+
+    # Note we purposly have this returning more than requested, the api currently respects paging even in this state
+    # but we should still be able to handle the case where it doesn't, so we don't go over max items
+    reqmock.get(
+        BaseURL.BROKER_SANDBOX + "/v1/accounts/activities",
+        text="""
+        [
+          {
+            "id": "20220304135420903::047e252a-a8a3-4e35-84e2-29814cbf5057",
+            "account_id": "3dcb795c-3ccc-402a-abb9-07e26a1b1326",
+            "activity_type": "FILL",
+            "transaction_time": "2022-03-04T18:54:20.903569Z",
+            "type": "partial_fill",
+            "price": "2907.15",
+            "qty": "1.792161878",
+            "side": "buy",
+            "symbol": "AMZN",
+            "leaves_qty": "1",
+            "order_id": "cddf433b-1a41-497d-ae31-50b1fee56fff",
+            "cum_qty": "1.792161878",
+            "order_status": "partially_filled"
+          },
+          {
+            "id": "20220304135420898::2b9e8979-48b4-4b70-9ba0-008210b76ebf",
+            "account_id": "3dcb795c-3ccc-402a-abb9-07e26a1b1326",
+            "activity_type": "FILL",
+            "transaction_time": "2022-03-04T18:54:20.89822Z",
+            "type": "fill",
+            "price": "2907.15",
+            "qty": "1",
+            "side": "buy",
+            "symbol": "AMZN",
+            "leaves_qty": "0",
+            "order_id": "cddf433b-1a41-497d-ae31-50b1fee56fff",
+            "cum_qty": "2.792161878",
+            "order_status": "filled"
+          },
+          {
+            "id": "20220304123922801::3b8a937c-b1d9-4ebe-ae94-5e0b52c3f350",
+            "account_id": "3dcb795c-3ccc-402a-abb9-07e26a1b1326",
+            "activity_type": "FILL",
+            "transaction_time": "2022-03-04T17:39:22.801228Z",
+            "type": "fill",
+            "price": "2644.84",
+            "qty": "0.058773239",
+            "side": "sell",
+            "symbol": "GOOGL",
+            "leaves_qty": "0",
+            "order_id": "642695e3-def7-4637-9525-2e7f698ebfc7",
+            "cum_qty": "0.058773239",
+            "order_status": "filled"
+          },
+          {
+            "id": "20220304123922310::b53b6d71-a644-4be1-9f88-39d1c8d29831",
+            "account_id": "3dcb795c-3ccc-402a-abb9-07e26a1b1326",
+            "activity_type": "FILL",
+            "transaction_time": "2022-03-04T17:39:22.310917Z",
+            "type": "partial_fill",
+            "price": "837.45",
+            "qty": "1.998065556",
+            "side": "sell",
+            "symbol": "TSLA",
+            "leaves_qty": "4",
+            "order_id": "5f4a07dc-6503-4cbf-902a-8c6608401d97",
+            "cum_qty": "1.998065556",
+            "order_status": "partially_filled"
+          },
+          {
+            "id": "20220304123922305::bc84b8a8-8758-42aa-be3b-618d097c2867",
+            "account_id": "3dcb795c-3ccc-402a-abb9-07e26a1b1326",
+            "activity_type": "FILL",
+            "transaction_time": "2022-03-04T17:39:22.305629Z",
+            "type": "fill",
+            "price": "837.45",
+            "qty": "4",
+            "side": "sell",
+            "symbol": "TSLA",
+            "leaves_qty": "0",
+            "order_id": "5f4a07dc-6503-4cbf-902a-8c6608401d97",
+            "cum_qty": "5.998065556",
+            "order_status": "filled"
+          }
+        ]
+        """,
+    )
+
+    max_limit = 2
+    date_str = "2022-03-04"
+
+    result = client.get_account_activities(
+        GetAccountActivitiesRequest(date=datetime.strptime(date_str, "%Y-%m-%d")),
+        handle_pagination=PaginationType.FULL,
+        max_items_limit=max_limit,
+    )
+
+    assert reqmock.call_count == 1
+    assert isinstance(result, List)
+    assert len(result) == max_limit
+
+    request = reqmock.request_history[0]
+    assert "date" in request.qs and request.qs["date"] == [f"{date_str} 00:00:00"]
+    assert "page_size" in request.qs and request.qs["page_size"] == ["2"]
+
+
+def test_get_activities_for_account_full_pagination_and_max_items(
+    reqmock, client: BrokerClient
+):
+    # Note in this test we'll still have the api return too many results in the response just to validate that
+    # we respect max limit regardless of what the api does
+    setup_reqmock_for_paginated_account_activities_response(reqmock)
+
+    max_limit = 5
+
+    result = client.get_account_activities(
+        GetAccountActivitiesRequest(),
+        handle_pagination=PaginationType.FULL,
+        max_items_limit=max_limit,
+    )
+
+    assert reqmock.call_count == 2
+    assert isinstance(result, List)
+    assert len(result) == max_limit
+
+    # First limit is irrelevant since we hardcode returning 4 anyway, but second request needs to only request 1 item
+    second_request = reqmock.request_history[1]
+    assert "page_size" in second_request.qs and second_request.qs["page_size"] == ["1"]
 
 
 def test_get_activities_for_account_none_pagination(reqmock, client: BrokerClient):

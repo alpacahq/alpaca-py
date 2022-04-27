@@ -297,13 +297,6 @@ class BrokerClient(RESTClient):
                 "max_items_limit can only be specified for PaginationType.FULL"
             )
 
-        # user wants no pagination, so just do a single request, convert the results we got and move on
-        if handle_pagination == PaginationType.NONE:
-            result = self.get(
-                "/accounts/activities", activity_filter.to_request_fields()
-            )
-            return [self._parse_activity(activity) for activity in result]
-
         def get_as_iterator(
             mapping: Callable[[HTTPResult], List[BaseActivity]]
         ) -> Iterator[List[BaseActivity]]:
@@ -376,7 +369,10 @@ class BrokerClient(RESTClient):
         # otherwise, user wants pagination so we grab an interator
         iterator = get_as_iterator(lambda x: [self._parse_activity(x) for x in x])
 
-        if handle_pagination == PaginationType.FULL:
+        if handle_pagination == PaginationType.NONE:
+            # user wants no pagination, so just do a single page
+            return next(iterator)
+        elif handle_pagination == PaginationType.FULL:
             # the iterator returns "pages", so we use chain to flatten them all into 1 list
             return list(chain.from_iterable(iterator))
         elif handle_pagination == PaginationType.ITERATOR:

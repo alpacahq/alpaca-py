@@ -48,10 +48,11 @@ class PaginationType(Enum):
     An enum for choosing what type of pagination of results you'd like for BrokerClient functions that support
     pagination.
 
-    * NONE: Requests that we perform no pagination of results and just return the single response the API gave us.
-    * FULL: Requests that we perform all the pagination and return just a single List/dict/etc containing all the
-      results. This is the default for most functions.
-    * ITERATOR: Requests that we return an Iterator that yields one "page" of results at a time
+    Attributes:
+        NONE: Requests that we perform no pagination of results and just return the single response the API gave us.
+        FULL: Requests that we perform all the pagination and return just a single List/dict/etc containing all the
+          results. This is the default for most functions.
+        ITERATOR: Requests that we return an Iterator that yields one "page" of results at a time
     """
 
     NONE = "none"

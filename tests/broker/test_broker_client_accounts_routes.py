@@ -793,6 +793,26 @@ def setup_reqmock_for_paginated_account_activities_response(reqmock: Mocker):
     )
 
 
+def test_get_activities_for_account_default_asserts(reqmock, client: BrokerClient):
+    setup_reqmock_for_paginated_account_activities_response(reqmock)
+
+    result = client.get_account_activities(GetAccountActivitiesRequest())
+
+    assert reqmock.call_count == 3
+    assert isinstance(result, List)
+    assert len(result) == 8
+    assert isinstance(result[0], NonTradeActivity)
+    assert isinstance(result[2], TradeActivity)
+
+    # verify we asked for the correct ids when paginating
+    assert reqmock.request_history[1].qs == {
+        "page_token": ["20220419000000000::f77b60bf-ea39-4551-a3d6-000548e6f11c"]
+    }
+    assert reqmock.request_history[2].qs == {
+        "page_token": ["20220419000000000::e96b84c0-15b8-4821-9c78-cce1d836ff5b"]
+    }
+
+
 def test_get_activities_for_account_full_pagination(reqmock, client: BrokerClient):
     setup_reqmock_for_paginated_account_activities_response(reqmock)
 

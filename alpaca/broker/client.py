@@ -5,6 +5,7 @@ from pydantic import parse_obj_as
 from itertools import chain
 
 from .constants import ACCOUNT_ACTIVITIES_DEFAULT_PAGE_SIZE
+from ..common import APIError
 from ..common.enums import BaseURL
 from ..common.rest import HTTPResult, RESTClient
 from .models import (
@@ -360,6 +361,17 @@ class BrokerClient(RESTClient):
 
                 if max_items_limit is not None and total_items >= max_items_limit:
                     break
+
+                # ok we made it to the end, we need to ask for the next page of results
+                last_result = result[-1]
+
+                if "id" not in last_result:
+                    raise APIError(
+                        "AccountActivity didn't contain an `id` field to use for paginating results"
+                    )
+
+                # set the pake token to the id of the last activity so we can get the next page
+                request_fields["page_token"] = last_result["id"]
 
         # otherwise, user wants pagination so we grab an interator
         iterator = get_as_iterator(lambda x: [self._parse_activity(x) for x in x])

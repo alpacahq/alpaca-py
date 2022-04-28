@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 from typing import List, Optional, Union
 from uuid import UUID
 
@@ -51,7 +51,7 @@ class NonEmptyRequest(BaseModel):
         return {
             key: val
             for key, val in self.dict(exclude_none=True).items()
-            if val and len(val) > 0
+            if val and len(str(val)) > 0
         }
 
 
@@ -267,7 +267,8 @@ class GetAccountActivitiesRequest(NonEmptyRequest):
     Sort.ASC, results will begin with the activity immediately after the one specified.
 
     Also, to note if `date` is not specified, the default and maximum `page_size` value is 100. If `date` is specified,
-    the default behavior is to return all results, and there is no maximum page size.
+    the default behavior is to return all results, and there is no maximum page size; page size is still supported in
+    this state though.
 
     Please see https://alpaca.markets/docs/api-references/broker-api/accounts/account-activities/#retrieving-account-activities
     for more information
@@ -275,12 +276,9 @@ class GetAccountActivitiesRequest(NonEmptyRequest):
     Attributes:
         account_id (Optional[Union[UUID, str]]): Specifies to filter to only activities for this Account
         activity_types (Optional[List[ActivityType]]): A list of ActivityType's to filter results down to
-        date (Optional[datetime]): Filter to Activities only on this date. Both formats YYYY-MM-DD and
-          YYYY-MM-DDTHH:MM:SSZ supported.
-        until (Optional[datetime]): Filter to Activities before this date. Both formats YYYY-MM-DD and
-          YYYY-MM-DDTHH:MM:SSZ supported. Cannot be used if `date` is also specified.
-        after (Optional[datetime]): Filter to Activities after this date. Both formats YYYY-MM-DD and
-          YYYY-MM-DDTHH:MM:SSZ supported. Cannot be used if `date` is also specified.
+        date (Optional[datetime]): Filter to Activities only on this date.
+        until (Optional[datetime]): Filter to Activities before this date. Cannot be used if `date` is also specified.
+        after (Optional[datetime]): Filter to Activities after this date. Cannot be used if `date` is also specified.
         direction (Optional[Sort]): Which direction to sort results in. Defaults to Sort.DESC
         page_size (Optional[int]): The maximum number of entries to return in the response
         page_token (Optional[Union[UUID, str]]): If you're not using the built-in pagination this field is what you

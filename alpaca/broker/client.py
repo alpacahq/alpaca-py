@@ -4,6 +4,8 @@ from uuid import UUID
 from pydantic import parse_obj_as
 from itertools import chain
 
+from .constants import ACCOUNT_ACTIVITIES_DEFAULT_PAGE_SIZE
+from ..common import APIError
 from ..common.enums import BaseURL
 from ..common.rest import HTTPResult, RESTClient
 from .models import (
@@ -46,10 +48,11 @@ class PaginationType(Enum):
     An enum for choosing what type of pagination of results you'd like for BrokerClient functions that support
     pagination.
 
-    * NONE: Requests that we perform no pagination of results and just return the single response the API gave us.
-    * FULL: Requests that we perform all the pagination and return just a single List/dict/etc containing all the
-      results. This is the default for most functions.
-    * ITERATOR: Requests that we return an Iterator that yields one "page" of results at a time
+    Attributes:
+        NONE: Requests that we perform no pagination of results and just return the single response the API gave us.
+        FULL: Requests that we perform all the pagination and return just a single List/dict/etc containing all the
+          results. This is the default for most functions.
+        ITERATOR: Requests that we return an Iterator that yields one "page" of results at a time
     """
 
     NONE = "none"
@@ -262,6 +265,7 @@ class BrokerClient(RESTClient):
     def get_account_activities(
         self,
         activity_filter: GetAccountActivitiesRequest,
+        max_items_limit: Optional[int] = None,
         handle_pagination: Optional[PaginationType] = None,
     ) -> Union[List[BaseActivity], Iterator[List[BaseActivity]]]:
         """
@@ -276,6 +280,8 @@ class BrokerClient(RESTClient):
         Args:
             activity_filter (GetAccountActivitiesRequest): The various filtering fields you can specify to restrict
               results
+            max_items_limit (Optional[int]): A maximum number of items to return over all for when handle_pagination is
+              of type `PaginationType.FULL`. Ignored otherwise.
             handle_pagination (Optional[PaginationType]): What kind of pagination you want. If None then defaults to
               `PaginationType.FULL`
 
@@ -287,43 +293,109 @@ class BrokerClient(RESTClient):
         if handle_pagination is None:
             handle_pagination = PaginationType.FULL
 
-        # user wants no pagination, so just do a single request, convert the results we got and move on
-        if handle_pagination == PaginationType.NONE:
-            result = self.get(
-                "/accounts/activities", activity_filter.to_request_fields()
+        if handle_pagination != PaginationType.FULL and max_items_limit is not None:
+            raise ValueError(
+                "max_items_limit can only be specified for PaginationType.FULL"
             )
-            return [self._parse_activity(activity) for activity in result]
-
-        def get_as_iterator(
-            mapping: Callable[[HTTPResult], List[BaseActivity]]
-        ) -> Iterator[List[BaseActivity]]:
-            while True:
-                result = self.get(
-                    "/accounts/activities", activity_filter.to_request_fields()
-                )
-
-                # the api returns [] when it's done
-
-                if not isinstance(result, List) or len(result) == 0:
-                    break
-
-                yield mapping(result)
 
         # otherwise, user wants pagination so we grab an interator
-        iterator = get_as_iterator(lambda x: [self._parse_activity(x) for x in x])
+        iterator = self._get_account_activities_iterator(
+            activity_filter=activity_filter,
+            max_items_limit=max_items_limit,
+            mapping=lambda x: [self._parse_activity(x) for x in x],
+        )
 
-        if handle_pagination == PaginationType.FULL:
+        if handle_pagination == PaginationType.NONE:
+            # user wants no pagination, so just do a single page
+            return next(iterator)
+        elif handle_pagination == PaginationType.FULL:
             # the iterator returns "pages", so we use chain to flatten them all into 1 list
             return list(chain.from_iterable(iterator))
         elif handle_pagination == PaginationType.ITERATOR:
             return iterator
 
-    # ############################## HELPER/PRIVATE FUNCS ################################# #
+    def _get_account_activities_iterator(
+        self,
+        activity_filter: GetAccountActivitiesRequest,
+        max_items_limit: Optional[int],
+        mapping: Callable[[HTTPResult], List[BaseActivity]],
+    ) -> Iterator[List[BaseActivity]]:
+        """
+        Private method for handling the iterator parts of get_account_activities
+        """
+
+        # we need to track total items retrieved
+        total_items = 0
+        request_fields = activity_filter.to_request_fields()
+
+        while True:
+            """
+            we have a couple cases to handle here:
+              - max limit isn't set, so just handle normally
+              - max is set, and page_size isn't
+                - date isn't set. So we'll fall back to the default page size
+                - date is set, in this case the api is allowed to not page and return all results. Need to  make
+                  sure only take the we allow for making still a single request here but only taking the items we
+                  need, in case user wanted only 1 request to happen.
+              - max is set, and page_size is also set. Keep track of total_items and run a min check every page to
+                see if we need to take less than the page_size items
+            """
+
+            if max_items_limit is not None:
+                page_size = (
+                    activity_filter.page_size
+                    if activity_filter.page_size is not None
+                    else ACCOUNT_ACTIVITIES_DEFAULT_PAGE_SIZE
+                )
+
+                normalized_page_size = min(
+                    int(max_items_limit) - total_items, page_size
+                )
+
+                request_fields["page_size"] = normalized_page_size
+
+            result = self.get("/accounts/activities", request_fields)
+
+            # the api returns [] when it's done
+
+            if not isinstance(result, List) or len(result) == 0:
+                break
+
+            num_items_returned = len(result)
+
+            # need to handle the case where the api won't page and returns all results, ie `date` is set
+            if (
+                max_items_limit is not None
+                and num_items_returned + total_items > max_items_limit
+            ):
+                result = result[: (max_items_limit - total_items)]
+
+                total_items += max_items_limit - total_items
+            else:
+                total_items += num_items_returned
+
+            yield mapping(result)
+
+            if max_items_limit is not None and total_items >= max_items_limit:
+                break
+
+            # ok we made it to the end, we need to ask for the next page of results
+            last_result = result[-1]
+
+            if "id" not in last_result:
+                raise APIError(
+                    "AccountActivity didn't contain an `id` field to use for paginating results"
+                )
+
+            # set the pake token to the id of the last activity so we can get the next page
+            request_fields["page_token"] = last_result["id"]
+
+    # ############################## HELPER FUNCS ################################# #
 
     @staticmethod
     def _parse_activity(data: dict) -> Union[TradeActivity, NonTradeActivity]:
         """
-        We cannae just use parse_obj_as for Activity types since we need to know what child instance to cast it into.
+        We cannot just use parse_obj_as for Activity types since we need to know what child instance to cast it into.
 
         So this method does just that.
 

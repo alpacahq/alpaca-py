@@ -20,6 +20,7 @@ from ..enums import (
     EmploymentStatus,
     FundingSource,
     TaxIdType,
+    TradeDocumentType,
     VisaType,
 )
 from ...common.enums import Sort, ActivityType
@@ -312,5 +313,44 @@ class GetAccountActivitiesRequest(NonEmptyRequest):
 
         if date_set and until_set:
             raise ValueError("Cannot set date and until at the same time")
+
+        return values
+
+
+class GetTradeDocumentsRequest(NonEmptyRequest):
+    """
+    Represents the various filters you can specify when making a call to get TradeDocuments for an Account
+
+    Attributes:
+        start (Optional[Union[date, str]]): Filter to TradeDocuments created after this Date. str values will attempt to
+          be upcast into date instances. Format must be in YYYY-MM-DD.
+        end (Optional[Union[date, str]]): Filter to TradeDocuments created before this Date. str values will attempt to
+          be upcast into date instances. Format must be in YYYY-MM-DD.
+        type (Optional[TradeDocumentType]): Filter to only these types of TradeDocuments
+    """
+
+    start: Optional[Union[date, str]] = None
+    end: Optional[Union[date, str]] = None
+    type: Optional[TradeDocumentType] = None
+
+    def __init__(self, **data) -> None:
+        if "start" in data and isinstance(data["start"], str):
+            data["start"] = date.fromisoformat(data["start"])
+
+        if "end" in data and isinstance(data["end"], str):
+            data["end"] = date.fromisoformat(data["end"])
+
+        super().__init__(**data)
+
+    @root_validator()
+    def root_validator(cls, values: dict) -> dict:
+        if (
+            "start" in values
+            and values["start"] is not None
+            and "end" in values
+            and values["end"] is not None
+        ):
+            if values["start"] > values["end"]:
+                raise ValueError("start must not be after end!!")
 
         return values

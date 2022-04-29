@@ -10,6 +10,8 @@ from alpaca.broker.models import (
     UpdatableIdentity,
     UpdatableDisclosures,
     GetAccountActivitiesRequest,
+    GetTradeDocumentsRequest,
+    TradeDocument,
 )
 
 
@@ -70,3 +72,41 @@ def test_get_account_activities_request_validates_date_parameters_for_conflicts(
         req.until = datetime.now()
 
     assert "Cannot set date and until at the same time" in str(e.value)
+
+
+def test_trade_document_sub_type_empty_str_to_none():
+    doc = TradeDocument(
+        id="1b560b0f-9efd-44b4-8004-dfd520c7cdc0",
+        name="",
+        type="account_statement",
+        sub_type="",
+        date="2022-02-28",
+    )
+
+    assert doc.sub_type is None
+
+
+def test_get_trade_documents_request_upcasts_dates():
+    # We have this part out here to assert a non raise as pytest will auto fail non caught exceptions
+    GetTradeDocumentsRequest(start="2022-02-02", end="2022-02-02")
+
+    with pytest.raises(ValueError) as e:
+        GetTradeDocumentsRequest(
+            start="2022-02-02-2",
+        )
+
+    assert "Invalid isoformat" in str(e.value)
+
+    with pytest.raises(ValueError) as e:
+        GetTradeDocumentsRequest(
+            end="2022-02-02-2",
+        )
+
+    assert "Invalid isoformat" in str(e.value)
+
+
+def test_get_trade_documents_request_validates_start_not_after_end():
+    with pytest.raises(ValueError) as e:
+        GetTradeDocumentsRequest(start="2022-02-02", end="2022-01-02")
+
+    assert "start must not be after end" in str(e.value)

@@ -1,25 +1,26 @@
-from enum import Enum
-from typing import Callable, Iterator, List, Optional, TypeVar, Union
-from uuid import UUID
-from pydantic import parse_obj_as
 from itertools import chain
+from typing import Callable, Iterator, List, Optional, Union
+from uuid import UUID
 
-from ..common.constants import ACCOUNT_ACTIVITIES_DEFAULT_PAGE_SIZE
-from ..common import APIError
-from ..common.enums import BaseURL, PaginationType
-from ..common.rest import HTTPResult, RESTClient
-from ..common.models import BaseActivity, TradeActivity, NonTradeActivity
+from pydantic import parse_obj_as
 
 from .models import (
     Account,
     AccountCreationRequest,
     AccountUpdateRequest,
+    ActivityType,
     CIPInfo,
+    GetAccountActivitiesRequest,
+    GetTradeDocumentsRequest,
     ListAccountsRequest,
     TradeAccount,
-    GetAccountActivitiesRequest,
-    ActivityType,
+    TradeDocument,
 )
+from ..common import APIError
+from ..common.constants import ACCOUNT_ACTIVITIES_DEFAULT_PAGE_SIZE
+from ..common.enums import BaseURL, PaginationType
+from ..common.models import BaseActivity, NonTradeActivity, TradeActivity
+from ..common.rest import HTTPResult, RESTClient
 
 
 def validate_account_id_param(account_id: Union[UUID, str]) -> UUID:
@@ -374,8 +375,6 @@ class BrokerClient(RESTClient):
             # set the pake token to the id of the last activity so we can get the next page
             request_fields["page_token"] = last_result["id"]
 
-    # ############################## HELPER FUNCS ################################# #
-
     @staticmethod
     def _parse_activity(data: dict) -> Union[TradeActivity, NonTradeActivity]:
         """
@@ -399,3 +398,16 @@ class BrokerClient(RESTClient):
             return parse_obj_as(TradeActivity, data)
         else:
             return parse_obj_as(NonTradeActivity, data)
+
+    # ############################## ACCOUNT DOCUMENTS ################################# #
+
+    def get_trade_documents_for_account(
+        self, account_id: Union[UUID, str], documents_filter: GetTradeDocumentsRequest
+    ) -> List[TradeDocument]:
+        account_id = validate_account_id_param(account_id)
+
+        result = self.get(
+            f"/accounts/{account_id}/documents", documents_filter.to_request_fields()
+        )
+
+        return parse_obj_as(List[TradeDocument], result)

@@ -21,11 +21,14 @@ from alpaca.broker.models import (
     UpdatableTrustedContact,
     UpdatableIdentity,
     UpdatableDisclosures,
-    BaseActivity,
     GetAccountActivitiesRequest,
+)
+from alpaca.common.models import (
+    BaseActivity,
     NonTradeActivity,
     TradeActivity,
 )
+
 from alpaca.common.enums import BaseURL, Sort
 
 from factories import common as factory

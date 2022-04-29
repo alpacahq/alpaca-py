@@ -17,13 +17,12 @@ from .accounts import (
 from ..enums import (
     AccountEntities,
     AccountStatus,
-    ActivityType,
     EmploymentStatus,
     FundingSource,
     TaxIdType,
     VisaType,
 )
-from ...common.enums import Sort
+from ...common.enums import Sort, ActivityType
 
 
 class NonEmptyRequest(BaseModel):

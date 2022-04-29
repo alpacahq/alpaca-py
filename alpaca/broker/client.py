@@ -4,10 +4,12 @@ from uuid import UUID
 from pydantic import parse_obj_as
 from itertools import chain
 
-from .constants import ACCOUNT_ACTIVITIES_DEFAULT_PAGE_SIZE
+from ..common.constants import ACCOUNT_ACTIVITIES_DEFAULT_PAGE_SIZE
 from ..common import APIError
-from ..common.enums import BaseURL
+from ..common.enums import BaseURL, PaginationType
 from ..common.rest import HTTPResult, RESTClient
+from ..common.models import BaseActivity, TradeActivity, NonTradeActivity
+
 from .models import (
     Account,
     AccountCreationRequest,
@@ -15,11 +17,8 @@ from .models import (
     CIPInfo,
     ListAccountsRequest,
     TradeAccount,
-    BaseActivity,
     GetAccountActivitiesRequest,
     ActivityType,
-    NonTradeActivity,
-    TradeActivity,
 )
 
 
@@ -41,23 +40,6 @@ def validate_account_id_param(account_id: Union[UUID, str]) -> UUID:
         raise ValueError("account_id must be a UUID or a UUID str")
 
     return account_id
-
-
-class PaginationType(Enum):
-    """
-    An enum for choosing what type of pagination of results you'd like for BrokerClient functions that support
-    pagination.
-
-    Attributes:
-        NONE: Requests that we perform no pagination of results and just return the single response the API gave us.
-        FULL: Requests that we perform all the pagination and return just a single List/dict/etc containing all the
-          results. This is the default for most functions.
-        ITERATOR: Requests that we return an Iterator that yields one "page" of results at a time
-    """
-
-    NONE = "none"
-    FULL = "full"
-    ITERATOR = "iterator"
 
 
 class BrokerClient(RESTClient):
@@ -302,7 +284,9 @@ class BrokerClient(RESTClient):
         iterator = self._get_account_activities_iterator(
             activity_filter=activity_filter,
             max_items_limit=max_items_limit,
-            mapping=lambda x: [self._parse_activity(x) for x in x],
+            mapping=lambda raw_activities: [
+                self._parse_activity(activity) for activity in raw_activities
+            ],
         )
 
         if handle_pagination == PaginationType.NONE:

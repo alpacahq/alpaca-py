@@ -95,7 +95,10 @@ class BrokerClient(RESTClient):
 
     # ############################## ACCOUNTS/TRADING ACCOUNTS ################################# #
 
-    def create_account(self, account_data: AccountCreationRequest) -> Account:
+    def create_account(
+        self,
+        account_data: AccountCreationRequest,
+    ) -> Account:
         """
         Create an account.
 
@@ -112,7 +115,10 @@ class BrokerClient(RESTClient):
 
         return Account(**response)
 
-    def get_account_by_id(self, account_id: Union[UUID, str]) -> Account:
+    def get_account_by_id(
+        self,
+        account_id: Union[UUID, str],
+    ) -> Account:
         """
         Get an Account by its associated account_id.
 
@@ -132,7 +138,9 @@ class BrokerClient(RESTClient):
         return Account(**resp)
 
     def update_account(
-        self, account_id: Union[UUID, str], update_data: AccountUpdateRequest
+        self,
+        account_id: Union[UUID, str],
+        update_data: AccountUpdateRequest,
     ) -> Account:
         """
         Updates data for an account with an id of `account_id`. Note that not all data for an account is modifiable
@@ -159,7 +167,10 @@ class BrokerClient(RESTClient):
 
         return Account(**response)
 
-    def delete_account(self, account_id: Union[UUID, str]) -> None:
+    def delete_account(
+        self,
+        account_id: Union[UUID, str],
+    ) -> None:
         """
         Delete an Account by its id.
 
@@ -179,7 +190,8 @@ class BrokerClient(RESTClient):
         self.delete(f"/accounts/{account_id}")
 
     def list_accounts(
-        self, search_parameters: Optional[ListAccountsRequest] = None
+        self,
+        search_parameters: Optional[ListAccountsRequest] = None,
     ) -> List[Account]:
         """
         Get a List of Accounts allowing for passing in some filters.
@@ -205,7 +217,10 @@ class BrokerClient(RESTClient):
 
         return parse_obj_as(List[Account], response)
 
-    def get_trade_account_by_id(self, account_id: Union[UUID, str]) -> TradeAccount:
+    def get_trade_account_by_id(
+        self,
+        account_id: Union[UUID, str],
+    ) -> TradeAccount:
         """
         Gets TradeAccount information for a given Account id.
 
@@ -223,7 +238,10 @@ class BrokerClient(RESTClient):
 
         return TradeAccount(**result)
 
-    def get_cip_data_for_account_by_id(self, account_id: Union[UUID, str]) -> None:
+    def get_cip_data_for_account_by_id(
+        self,
+        account_id: Union[UUID, str],
+    ) -> None:
         """
         Get CIP Info for an account.
 
@@ -238,7 +256,10 @@ class BrokerClient(RESTClient):
         #  Need to ask broker team how we'll even test this
         pass
 
-    def upload_cip_data_for_account_by_id(self, account_id: Union[UUID, str]):
+    def upload_cip_data_for_account_by_id(
+        self,
+        account_id: Union[UUID, str],
+    ):
         # TODO: can't verify the CIP routes in sandbox they always return 404.
         #  Need to ask broker team how we'll even test this
         pass
@@ -402,7 +423,9 @@ class BrokerClient(RESTClient):
     # ############################## ACCOUNT DOCUMENTS ################################# #
 
     def get_trade_documents_for_account(
-        self, account_id: Union[UUID, str], documents_filter: GetTradeDocumentsRequest
+        self,
+        account_id: Union[UUID, str],
+        documents_filter: GetTradeDocumentsRequest,
     ) -> List[TradeDocument]:
         """
         Gets the list of TradeDocuments for an Account.

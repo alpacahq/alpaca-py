@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import pytest
 
 from alpaca.broker.models import (
@@ -7,6 +9,7 @@ from alpaca.broker.models import (
     UpdatableContact,
     UpdatableIdentity,
     UpdatableDisclosures,
+    GetAccountActivitiesRequest,
 )
 
 
@@ -53,3 +56,17 @@ def test_account_update_request_to_request_fields():
     )
 
     assert {} == empty_req.to_request_fields()
+
+
+def test_get_account_activities_request_validates_date_parameters_for_conflicts():
+    req = GetAccountActivitiesRequest(date=datetime.now())
+
+    with pytest.raises(ValueError) as e:
+        req.after = datetime.now()
+
+    assert "Cannot set date and after at the same time" in str(e.value)
+
+    with pytest.raises(ValueError) as e:
+        req.until = datetime.now()
+
+    assert "Cannot set date and until at the same time" in str(e.value)

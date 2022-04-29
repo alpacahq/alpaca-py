@@ -4,17 +4,23 @@
 
 This project is managed via poetry so setup should be just running `poetry install`.
 
-This repo is using [`pre-commit`](https://pre-commit.com/) to setup some checks to happen at commit time
-to keep the repo clean. To set these up after you've run `poetry install` just run `poetry run pre-commit
-install` to have pre-commit setup these hooks
+This repo is using [`pre-commit`](https://pre-commit.com/) to setup some checks to happen at commit time to keep the
+repo clean. To set these up after you've run `poetry install` just run `poetry run pre-commit install` to have
+pre-commit setup these hooks
 
-
-**Note: AlpacaPy is in the very early stages of alpha development and is not production ready. Currently AlpacaPy interfaces with only the Market Data API, however the other APIs are coming soon.**
+**Note: AlpacaPy is in the very early stages of alpha development and is not production ready. Currently AlpacaPy
+interfaces with only the Market Data API, however the other APIs are coming soon.**
 
 ## Basic Example Use Cases
+
 **Requesting Historical Market Data**
 
-To retrieve historical market data, you’ll need to instantiate a historical data client with your API keys. There are many different methods that allow you to access various stock and crypto data. To see the full range of data types available, read the [API reference for market data](https://alpaca.markets/docs/python-sdk/api_reference/data_api.html). In this example, we will query daily bar data for Apple Inc (AAPL) between January 1st 2021 and December 31st 2021. Then we will convert the data to a dataframe and print it out to the console.
+To retrieve historical market data, you’ll need to instantiate a historical data client with your API keys. There are
+many different methods that allow you to access various stock and crypto data. To see the full range of data types
+available, read the [API reference for market data](https://alpaca.markets/docs/python-sdk/api_reference/data_api.html).
+
+In this example, we will query daily bar data for Apple Inc (AAPL) between January 1st 2021 and December 31st 2021. Then
+we will convert the data to a dataframe and print it out to the console.
 
 ```python
 from alpaca.data.historical import HistoricalDataClient
@@ -28,7 +34,6 @@ client = HistoricalDataClient(API_KEY, SECRET_KEY)
 bars = client.get_bars("AAPL", TimeFrame.Day, "2021-01-01", "2021-12-31")
 
 print(bars.df)
-
 
 #             open      high      low   close     volume  trade_count        vwap
 # timestamp
@@ -49,7 +54,11 @@ print(bars.df)
 
 **Subscribing to Live Market Data**
 
-Live market data is available for both crypto and stocks via websocket interfaces. Keep in mind live stock data is only available during market hours on trading days, whereas live crypto data is available 24/7. In this example, we will subscribe to live quote data for Bitcoin (BTCUSD). To do so, first we will need to create an instance of the CryptoDataStream client with our API keys. Then we can create an asynchronous callback method to handle our live data as it is available.
+Live market data is available for both crypto and stocks via websocket interfaces. Keep in mind live stock data is only
+available during market hours on trading days, whereas live crypto data is available 24/7. In this example, we will
+subscribe to live quote data for Bitcoin (BTCUSD). To do so, first we will need to create an instance of the
+CryptoDataStream client with our API keys. Then we can create an asynchronous callback method to handle our live data as
+it is available.
 
 ```python
 from alpaca.data.live import CryptoDataStream
@@ -59,9 +68,11 @@ SECRET_KEY = 'secret-key'
 
 client = CryptoDataStream(API_KEY, SECRET_KEY)
 
+
 # handler function will receive data as the data arrives
 async def handler(data):
     print(data)
+
 
 # subscribe to quote data for BTCUSD
 client.subscribe_quotes(handler, "BTCUSD")

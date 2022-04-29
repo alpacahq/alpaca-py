@@ -1,4 +1,4 @@
-from alpaca.broker.enums import ActivityType
+from alpaca.common.enums import ActivityType
 
 
 def test_activity_type_is_trade_activity():

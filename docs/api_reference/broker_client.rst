@@ -6,5 +6,5 @@ Broker API Client
 =================
 
 
-.. autoclass:: alpaca.broker.client.BrokerClient
+.. automodule:: alpaca.broker.client
    :members:

@@ -4,10 +4,12 @@ from uuid import UUID
 from pydantic import parse_obj_as
 from itertools import chain
 
-from .constants import ACCOUNT_ACTIVITIES_DEFAULT_PAGE_SIZE
+from ..common.constants import ACCOUNT_ACTIVITIES_DEFAULT_PAGE_SIZE
 from ..common import APIError
 from ..common.enums import BaseURL
 from ..common.rest import HTTPResult, RESTClient
+from ..common.models import BaseActivity, TradeActivity, NonTradeActivity
+
 from .models import (
     Account,
     AccountCreationRequest,
@@ -15,11 +17,8 @@ from .models import (
     CIPInfo,
     ListAccountsRequest,
     TradeAccount,
-    BaseActivity,
     GetAccountActivitiesRequest,
     ActivityType,
-    NonTradeActivity,
-    TradeActivity,
 )
 
 

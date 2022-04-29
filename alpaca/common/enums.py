@@ -15,3 +15,120 @@ class BaseURL(str, Enum):
 class Sort(str, Enum):
     ASC = "asc"
     DESC = "desc"
+
+
+class ActivityType(str, Enum):
+    """
+    Represents what kind of Activity an instance of TradeActivity or NonTradeActivity is.
+
+    Please see https://alpaca.markets/docs/api-references/broker-api/accounts/account-activities/#enumactivitytype
+    for descriptions of each of the types
+    """
+
+    FILL = "FILL"
+    ACATC = "ACATC"
+    ACATS = "ACATS"
+    CIL = "CIL"
+    CSD = "CSD"
+    CSW = "CSW"
+    DIV = "DIV"
+    DIVCGL = "DIVCGL"
+    DIVCGS = "DIVCGS"
+    DIVNRA = "DIVNRA"
+    DIVROC = "DIVROC"
+    DIVTXEX = "DIVTXEX"
+    FEE = "FEE"
+    INT = "INT"
+    JNLC = "JNLC"
+    JNLS = "JNLS"
+    MA = "MA"
+    PTC = "PTC"
+    REORG = "REORG"
+    SPIN = "SPIN"
+    SPLIT = "SPLIT"
+
+    def is_trade_activity(self) -> bool:
+        """
+        A simple check to see if the ActivityType represents a type that belongs to TradeActivity's.
+
+        Currently, the check is just against FILL. However, this might change in the future so we are adding this helper
+        func here to help ease against future changes.
+
+        Returns:
+            bool: returns true if this ActivityType represents a TradeActivity
+        """
+
+        return self.value == self.FILL
+
+    @staticmethod
+    def is_str_trade_activity(value: str) -> bool:
+        """
+        similar to is_trade_activity but for raw data that hasn't been parsed into an enum yet.
+        Useful for deserialization.
+
+        Args:
+            value (str): Value to check to see if it would be a valid ActivityType for a TradeActivity
+
+        Returns:
+            bool: returns true if `value` would represent a TradeActivity ActivityType
+        """
+
+        return value == ActivityType.FILL
+
+
+class TradeActivityType(str, Enum):
+    """
+    Represents the type of TradeActivity.
+
+    Please see https://alpaca.markets/docs/api-references/broker-api/accounts/account-activities/#attributes
+    """
+
+    PARTIAL_FILL = "partial_fill"
+    FILL = "fill"
+
+
+class NonTradeActivityStatus(str, Enum):
+    """
+    Represents the status of a NonTradeActivity.
+
+    Please see https://alpaca.markets/docs/api-references/broker-api/accounts/account-activities/#enumaccountactivity
+    for more info.
+    """
+
+    EXECUTED = "executed"
+    CORRECT = "correct"
+    CANCELED = "canceled"
+
+
+class OrderSide(str, Enum):
+    """
+    Represents what side this order was executed on.
+    """
+
+    BUY = "buy"
+    SELL = "sell"
+
+
+class OrderStatus(str, Enum):
+    """
+    Represents the various states an Order can be in.
+
+    please see https://alpaca.markets/docs/api-references/broker-api/trading/orders/#order-status for more info
+    """
+
+    NEW = "new"
+    PARTIALLY_FILLED = "partially_filled"
+    FILLED = "filled"
+    DONE_FOR_DAY = "done_for_day"
+    CANCELED = "canceled"
+    EXPIRED = "expired"
+    REPLACED = "replaced"
+    PENDING_CANCEL = "pending_cancel"
+    PENDING_REPLACE = "pending_replace"
+    ACCEPTED = "accepted"
+    PENDING_NEW = "pending_new"
+    ACCEPTED_FOR_BIDDING = "accepted_for_bidding"
+    STOPPED = "stopped"
+    REJECTED = "rejected"
+    SUSPENDED = "suspended"
+    CALCULATED = "calculated"

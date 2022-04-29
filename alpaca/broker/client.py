@@ -404,6 +404,18 @@ class BrokerClient(RESTClient):
     def get_trade_documents_for_account(
         self, account_id: Union[UUID, str], documents_filter: GetTradeDocumentsRequest
     ) -> List[TradeDocument]:
+        """
+        Gets the list of TradeDocuments for an Account.
+
+        Args:
+            account_id (Union[UUID, str]): The id of the Account you wish to retrieve documents for. str values will
+              attempt to be upcast into UUID instances
+            documents_filter (GetTradeDocumentsRequest): The optional set of filters you can apply to filter the
+              returned list.
+
+        Returns:
+            List[TradeDocument]: The filtered list of TradeDocuments
+        """
         account_id = validate_account_id_param(account_id)
 
         result = self.get(
@@ -411,3 +423,9 @@ class BrokerClient(RESTClient):
         )
 
         return parse_obj_as(List[TradeDocument], result)
+
+    def upload_document_for_account(
+        self,
+        account_id: Union[UUID, str],
+    ) -> None:
+        pass

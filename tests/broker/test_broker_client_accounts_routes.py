@@ -1107,6 +1107,12 @@ def test_upload_documents_to_account(reqmock, client: BrokerClient):
 
     assert reqmock.called_once
 
+    # TODO: Add a custom reqmock matcher to ensure format of request rather than this static string check
+    assert (
+        reqmock.request_history[0].text
+        == '[{"document_type": "account_approval_letter", "content": "fake base64", "mime_type": "application/pdf"}]'
+    )
+
 
 def test_upload_documents_to_account_validates_limit(reqmock, client: BrokerClient):
     with pytest.raises(ValueError) as e:

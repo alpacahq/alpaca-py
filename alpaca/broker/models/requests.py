@@ -2,6 +2,7 @@ from datetime import datetime, date
 from typing import List, Optional, Union
 from uuid import UUID
 
+from .documents import W8BenDocument
 from ...common.models import ValidateBaseModel as BaseModel
 
 from pydantic import root_validator
@@ -21,6 +22,9 @@ from ..enums import (
     FundingSource,
     TaxIdType,
     TradeDocumentType,
+    UploadDocumentMimeType,
+    UploadDocumentSubType,
+    UploadDocumentType,
     VisaType,
 )
 from ...common.enums import Sort, ActivityType
@@ -345,12 +349,37 @@ class GetTradeDocumentsRequest(NonEmptyRequest):
     @root_validator()
     def root_validator(cls, values: dict) -> dict:
         if (
-            "start" in values
-            and values["start"] is not None
-            and "end" in values
-            and values["end"] is not None
+                "start" in values
+                and values["start"] is not None
+                and "end" in values
+                and values["end"] is not None
         ):
             if values["start"] > values["end"]:
                 raise ValueError("start must not be after end!!")
 
+        return values
+
+
+class UploadDocumentRequest(NonEmptyRequest):
+    """
+    Attributes:
+        document_type (UploadDocumentType): The type of document you are uploading
+        document_sub_type (Optional[UploadDocumentSubType]): If supported for the corresponding `document_type` this field
+          allows you to specify a sub type to be even more specific.
+        content (Optional[str]): A string containing Base64 encoded data to upload. This field is Required if
+          `document_type` is anything other than UploadDocumentType.W8BEN or if it is W8BEN and the `content_type` field is
+          not specified.
+        content_data (Optional[W8BenDocument]): This field is Required if content is not specified. It is also only
+          available when `document_type` is UploadDocumentType.W8BEN
+        mime_type (Optional[UploadDocumentMimeType]): This field is Required if `content` is specified.
+    """
+
+    document_type: UploadDocumentType
+    document_sub_type: Optional[UploadDocumentSubType] = None
+    content: Optional[str] = None
+    content_data: Optional[W8BenDocument] = None
+    mime_type: Optional[UploadDocumentMimeType] = None
+
+    @root_validator()
+    def root_validator(cls, values: dict) -> dict:
         return values

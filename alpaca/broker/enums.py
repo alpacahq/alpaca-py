@@ -273,3 +273,46 @@ class TradeDocumentSubType(str, Enum):
     TYPE_1042_S = "1042-S"
     TYPE_480_6 = "480.6"
     COURTESY_STATEMENT = "courtesy_statement"
+
+
+class UploadDocumentType(str, Enum):
+    """
+    Represents the kind of document data you're uploading
+
+    please see https://alpaca.markets/docs/api-references/broker-api/documents/#enumuploaddocumenttype
+    for more info
+    """
+
+    IDENTITY_VERIFICATION = "identity_verification"
+    ADDRESS_VERIFICATION = "address_verification"
+    DATE_OF_BIRTH_VERIFICATION = "date_of_birth_verification"
+    TAX_ID_VERIFICATION = "tax_id_verification"
+    ACCOUNT_APPROVAL_LETTER = "account_approval_letter"
+    LIMITED_TRADING_AUTHORIZATION = "limited_trading_authorization"
+    W8BEN = "w8ben"
+
+
+class UploadDocumentSubType(str, Enum):
+    """
+    Represents a sub type for an UploadDocumentRequest
+
+    please see: https://alpaca.markets/docs/api-references/broker-api/documents/#enumuploaddocumentsubtype
+    for more info
+    """
+
+    ACCOUNT_APPLICATION = "Account Application"
+    FORM_W8_BEN = "Form W-8BEN"
+    PASSPORT = "passport"
+
+
+class UploadDocumentMimeType(str, Enum):
+    """
+    specifies the mime type of the base64 data you're uploading as part of a UploadDocumentRequest
+
+    please see https://alpaca.markets/docs/api-references/broker-api/documents/#parameters for more info
+    """
+
+    PDF = "application/pdf"
+    PNG = "image/png"
+    JPEG = "image/jpeg"
+    JSON = "application/json"

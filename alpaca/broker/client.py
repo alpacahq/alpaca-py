@@ -15,6 +15,7 @@ from .models import (
     ListAccountsRequest,
     TradeAccount,
     TradeDocument,
+    UploadDocumentRequest,
 )
 from ..common import APIError
 from ..common.constants import ACCOUNT_ACTIVITIES_DEFAULT_PAGE_SIZE
@@ -448,7 +449,26 @@ class BrokerClient(RESTClient):
         return parse_obj_as(List[TradeDocument], result)
 
     def upload_document_for_account(
-        self,
-        account_id: Union[UUID, str],
+        self, account_id: Union[UUID, str], document_data: List[UploadDocumentRequest]
     ) -> None:
+        """
+        Allows you to upload up to 10 documents at a time for an Account.
+
+        Document data must be a binary objects whose contents are encoded in base64. Each encoded content size is
+        limited to 10MB if you use Alpaca for KYCaaS.
+
+        If you perform your own KYC there are no document size limitations.
+
+        Args:
+            account_id (Union[UUID, str]): The id of the Account you wish to upload the document data to.
+            document_data (List[UploadDocumentRequest]): List of UploadDocumentRequest's that contain the relevant
+              Document data
+
+        Returns:
+            None: This function returns nothing on success and will raise an APIError in case of a failure
+
+        Raises:
+            APIError: this will be raised if the API didn't return a 204 for your request.
+        """
+
         pass

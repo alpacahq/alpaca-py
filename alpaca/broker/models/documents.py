@@ -36,3 +36,7 @@ class TradeDocument(BaseModel):
             data["sub_type"] = None
 
         super().__init__(**data)
+
+
+class W8BenDocument(BaseModel):
+    pass

@@ -21,6 +21,7 @@ from alpaca.broker.models import (
     GetTradeDocumentsRequest,
     TradeDocument,
 )
+from tests.broker.factories import create_dummy_w8ben_document
 
 
 def test_document_validates_id():
@@ -189,7 +190,7 @@ def test_upload_w8ben_document_request_validates_only_one_content_field_set():
     with pytest.raises(ValueError) as e:
         UploadW8BenDocumentRequest(
             content="",
-            content_data=W8BenDocument(),
+            content_data=create_dummy_w8ben_document(),
         )
 
     assert (
@@ -201,7 +202,79 @@ def test_upload_w8ben_document_request_validates_only_one_content_field_set():
 def test_upload_w8ben_document_request_validates_json_mime_when_content_data():
     with pytest.raises(ValueError) as e:
         UploadW8BenDocumentRequest(
-            content_data=W8BenDocument(), mime_type=UploadDocumentMimeType.PDF
+            content_data=create_dummy_w8ben_document(),
+            mime_type=UploadDocumentMimeType.PDF,
         )
 
     assert "If `content_data` is set then `mime_type` must be JSON" in str(e.value)
+
+
+def test_w8ben_document_upcasts_str_like_fields():
+    W8BenDocument(
+        country_citizen="",
+        date="2022-02-02",
+        date_of_birth="2022-02-02",
+        full_name="Beans",
+        ip_address="192.168.1.1",
+        permanent_address_city_state="",
+        permanent_address_country="",
+        permanent_address_street="",
+        revision="",
+        signer_full_name="",
+        timestamp="2022-04-29T09:30:00-04:00",
+        ftin_not_required=False,
+    )
+
+
+def test_w8ben_document_validates_ftin_not_required_states():
+    # no error with foreign_tax_id set
+    W8BenDocument(
+        country_citizen="",
+        date="2022-02-02",
+        date_of_birth="2022-02-02",
+        full_name="Beans",
+        ip_address="192.168.1.1",
+        permanent_address_city_state="",
+        permanent_address_country="",
+        permanent_address_street="",
+        revision="",
+        signer_full_name="",
+        timestamp="2022-04-29T09:30:00-04:00",
+        foreign_tax_id="fake",
+    )
+
+    # no error with tax_id_ssn set
+    W8BenDocument(
+        country_citizen="",
+        date="2022-02-02",
+        date_of_birth="2022-02-02",
+        full_name="Beans",
+        ip_address="192.168.1.1",
+        permanent_address_city_state="",
+        permanent_address_country="",
+        permanent_address_street="",
+        revision="",
+        signer_full_name="",
+        timestamp="2022-04-29T09:30:00-04:00",
+        tax_id_ssn="fake ssn",
+    )
+
+    with pytest.raises(ValueError) as e:
+        W8BenDocument(
+            country_citizen="",
+            date="2022-02-02",
+            date_of_birth="2022-02-02",
+            full_name="Beans",
+            ip_address="192.168.1.1",
+            permanent_address_city_state="",
+            permanent_address_country="",
+            permanent_address_street="",
+            revision="",
+            signer_full_name="",
+            timestamp="2022-04-29T09:30:00-04:00",
+        )
+
+    assert (
+        "ftin_not_required must be set if foreign_tax_id and tax_id_ssn are not"
+        in str(e.value)
+    )

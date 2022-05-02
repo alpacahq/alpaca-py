@@ -1,9 +1,14 @@
-from datetime import date
-from typing import Any, Optional
+from datetime import date, datetime
+from typing import Any, Optional, Union
 from uuid import UUID
+from ipaddress import ip_address, IPv4Address, IPv6Address
+
+from pydantic import root_validator
 
 from ..enums import TradeDocumentSubType, TradeDocumentType
 from ...common.models import ValidateBaseModel as BaseModel
+
+IPAddress = Union[IPv4Address, IPv6Address]
 
 
 class TradeDocument(BaseModel):
@@ -39,4 +44,82 @@ class TradeDocument(BaseModel):
 
 
 class W8BenDocument(BaseModel):
-    pass
+    """
+    Represents the information normally contained in a W8BEN document as fields for convenience if you don't
+    want to upload a file.
+
+    Please see https://alpaca.markets/docs/api-references/broker-api/accounts/accounts/#international-accounts
+    for more information.
+
+    TODO: None of the docs or code explain what any of these fields mean. Guessing based on name alone for
+      all of them; but we really need the docs updated.
+
+    Attributes:
+        additional_conditions (Optional[str]): Any additional conditions to specify
+        country_citizen (str): The Country that the applicant is a citizen of
+        date (date): date signed
+        date_of_birth (date): DOB of applicant
+        foreign_tax_id (Optional[str]): Applicant's tax id in their home country
+        ftin_not_required (Optional[bool]): Required if foreign_tax_id and tax_id_ssn are empty.
+        full_name (str): Full name of applicant
+        income_type (Optional[str]): income type of applicant
+        ip_address (IPAddress): ip address of applicant when signed
+        mailing_address_city_state (Optional[str]): mailing city/state of applicant
+        mailing_address_country (Optional[str]): mailing country for applicant
+        mailing_address_street (Optional[str]): mailing street address for applicant
+        paragraph_number (Optional[str]): TODO: get documentation for this field
+        percent_rate_withholding (Optional[str]): TODO: get documentation for this field
+        permanent_address_city_state (str): permanent city/state of applicant
+        permanent_address_country (str): permanent country of residence of applicant
+        permanent_address_street (str): permanent street address of applicant
+        reference_number (Optional[str]): TODO: Get documentation for this field
+        residency (Optional[str]): Country of residency of applicant
+          TODO: get real documentation for this field. current is just guess based on example
+        revision (str): Revision of the W8BEN form
+        signer_full_name (str): Full name of signing user
+        tax_id_ssn (Optional[str]): TaxID/SSN of applicant
+        timestamp (datetime): timestamp when form data was gathered
+    """
+
+    country_citizen: str
+    date: date
+    date_of_birth: date
+    full_name: str
+    ip_address: IPAddress
+    permanent_address_city_state: str
+    permanent_address_country: str
+    permanent_address_street: str
+    revision: str
+    signer_full_name: str
+    timestamp: datetime
+
+    # optional fields
+    additional_conditions: Optional[str] = None
+    foreign_tax_id: Optional[str] = None
+    ftin_not_required: Optional[bool] = None
+    income_type: Optional[str] = None
+    mailing_address_city_state: Optional[str] = None
+    mailing_address_country: Optional[str] = None
+    mailing_address_street: Optional[str] = None
+    paragraph_number: Optional[str] = None
+    percent_rate_withholding: Optional[str] = None
+    reference_number: Optional[str] = None
+    residency: Optional[str] = None
+    tax_id_ssn: Optional[str] = None
+
+    @root_validator()
+    def root_validator(cls, values: dict) -> dict:
+        foreign_tax_set = (
+            "foreign_tax_id" in values and values["foreign_tax_id"] is not None
+        )
+        tax_id_set = "tax_id_ssn" in values and values["tax_id_ssn"] is not None
+        ftin_set = (
+            "ftin_not_required" in values and values["ftin_not_required"] is not None
+        )
+
+        if not foreign_tax_set and not tax_id_set and not ftin_set:
+            raise ValueError(
+                "ftin_not_required must be set if foreign_tax_id and tax_id_ssn are not"
+            )
+
+        return values

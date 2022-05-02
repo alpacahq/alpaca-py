@@ -62,7 +62,7 @@ class RESTClient(ABC):
         data: Union[dict, str] = None,
         base_url: BaseURL = None,
         api_version: str = None,
-    ) -> dict:
+    ) -> HTTPResult:
         """Prepares and submits HTTP requests to given API endpoint and returns response.
         Handles retrying if 429 (Rate Limit) error arises.
 
@@ -172,7 +172,7 @@ class RESTClient(ABC):
         """
         return self._request("GET", path, data, **kwargs)
 
-    def post(self, path: str, data: Union[dict, str] = None) -> dict:
+    def post(self, path: str, data: Union[dict, List[dict], str] = None) -> HTTPResult:
         """Performs a single POST request
 
         Args:

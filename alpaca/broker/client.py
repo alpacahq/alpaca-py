@@ -4,6 +4,7 @@ from uuid import UUID
 
 from pydantic import parse_obj_as
 
+from .constants import BROKER_DOCUMENT_UPLOAD_LIMIT
 from .models import (
     Account,
     AccountCreationRequest,
@@ -448,7 +449,7 @@ class BrokerClient(RESTClient):
 
         return parse_obj_as(List[TradeDocument], result)
 
-    def upload_document_for_account(
+    def upload_documents_to_account(
         self, account_id: Union[UUID, str], document_data: List[UploadDocumentRequest]
     ) -> None:
         """
@@ -471,4 +472,14 @@ class BrokerClient(RESTClient):
             APIError: this will be raised if the API didn't return a 204 for your request.
         """
 
-        pass
+        account_id = validate_account_id_param(account_id)
+
+        if len(document_data) > BROKER_DOCUMENT_UPLOAD_LIMIT:
+            raise ValueError(
+                f"document_data cannot be longer than {BROKER_DOCUMENT_UPLOAD_LIMIT}"
+            )
+
+        self.post(
+            f"/accounts/{account_id}/documents/upload",
+            [document.to_request_fields() for document in document_data],
+        )

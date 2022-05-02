@@ -6,7 +6,14 @@ import pytest
 import requests_mock
 from requests_mock import Mocker
 
-from alpaca.broker.enums import AccountEntities, TradeDocumentType
+from alpaca.broker import UploadDocumentRequest
+from alpaca.broker.constants import BROKER_DOCUMENT_UPLOAD_LIMIT
+from alpaca.broker.enums import (
+    AccountEntities,
+    TradeDocumentType,
+    UploadDocumentMimeType,
+    UploadDocumentType,
+)
 from alpaca.common import APIError
 from alpaca.broker.client import BrokerClient, PaginationType
 from alpaca.broker.models import (
@@ -1077,3 +1084,49 @@ def test_get_trade_documents_for_account_validates_account_id(
         client.get_trade_documents_for_account(
             account_id="not a uuid", documents_filter=GetTradeDocumentsRequest()
         )
+
+
+def test_upload_documents_to_account(reqmock, client: BrokerClient):
+    account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
+    reqmock.post(
+        BaseURL.BROKER_SANDBOX + f"/v1/accounts/{account_id}/documents/upload",
+        json={},
+        status_code=202,
+    )
+
+    client.upload_documents_to_account(
+        account_id=account_id,
+        document_data=[
+            UploadDocumentRequest(
+                document_type=UploadDocumentType.ACCOUNT_APPROVAL_LETTER,
+                content="fake base64",
+                mime_type=UploadDocumentMimeType.PDF,
+            )
+        ],
+    )
+
+    assert reqmock.called_once
+
+
+def test_upload_documents_to_account_validates_limit(reqmock, client: BrokerClient):
+    with pytest.raises(ValueError) as e:
+        client.upload_documents_to_account(
+            account_id="2a87c088-ffb6-472b-a4a3-cd9305c8605c",
+            document_data=list(range(0, 11)),
+        )
+
+    assert not reqmock.called
+    assert f"document_data cannot be longer than {BROKER_DOCUMENT_UPLOAD_LIMIT}" in str(
+        e.value
+    )
+
+
+def test_upload_documents_to_account_validates_account_id(
+    reqmock, client: BrokerClient
+):
+    with pytest.raises(ValueError):
+        client.upload_documents_to_account(
+            account_id="not a uuid", document_data=list(range(1, 10))
+        )
+
+    assert not reqmock.called

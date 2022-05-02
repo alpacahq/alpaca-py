@@ -1,5 +1,5 @@
 from datetime import datetime, date
-from typing import List, Optional, Union
+from typing import Any, List, Optional, Union
 from uuid import UUID
 
 from .documents import W8BenDocument
@@ -349,10 +349,10 @@ class GetTradeDocumentsRequest(NonEmptyRequest):
     @root_validator()
     def root_validator(cls, values: dict) -> dict:
         if (
-                "start" in values
-                and values["start"] is not None
-                and "end" in values
-                and values["end"] is not None
+            "start" in values
+            and values["start"] is not None
+            and "end" in values
+            and values["end"] is not None
         ):
             if values["start"] > values["end"]:
                 raise ValueError("start must not be after end!!")
@@ -364,22 +364,93 @@ class UploadDocumentRequest(NonEmptyRequest):
     """
     Attributes:
         document_type (UploadDocumentType): The type of document you are uploading
-        document_sub_type (Optional[UploadDocumentSubType]): If supported for the corresponding `document_type` this field
-          allows you to specify a sub type to be even more specific.
-        content (Optional[str]): A string containing Base64 encoded data to upload. This field is Required if
-          `document_type` is anything other than UploadDocumentType.W8BEN or if it is W8BEN and the `content_type` field is
-          not specified.
-        content_data (Optional[W8BenDocument]): This field is Required if content is not specified. It is also only
-          available when `document_type` is UploadDocumentType.W8BEN
-        mime_type (Optional[UploadDocumentMimeType]): This field is Required if `content` is specified.
+        document_sub_type (Optional[UploadDocumentSubType]): If supported for the corresponding `document_type` this
+          field allows you to specify a sub type to be even more specific.
+        content (str): A string containing Base64 encoded data to upload.
+        mime_type (UploadDocumentMimeType): The mime type of the data in `content`
     """
 
     document_type: UploadDocumentType
     document_sub_type: Optional[UploadDocumentSubType] = None
-    content: Optional[str] = None
-    content_data: Optional[W8BenDocument] = None
-    mime_type: Optional[UploadDocumentMimeType] = None
+    content: str
+    mime_type: UploadDocumentMimeType
 
     @root_validator()
     def root_validator(cls, values: dict) -> dict:
+        if values["document_type"] == UploadDocumentType.W8BEN:
+            raise ValueError(
+                "Error please use the UploadW8BenDocument class for uploading W8BEN documents"
+            )
+
+        if values["document_sub_type"] == UploadDocumentSubType.FORM_W8_BEN:
+            raise ValueError(
+                "Error please use the UploadW8BenDocument class for uploading W8BEN documents"
+            )
+
+        return values
+
+
+class UploadW8BenDocumentRequest(NonEmptyRequest):
+    """
+    Attributes:
+        document_type (UploadDocumentType, optional): Must be UploadDocumentType.W8BEN. Will default to W8BEN if not set
+        document_sub_type (UploadDocumentSubType, optional): Must be UploadDocumentSubType.FORM_W8_BEN. Will default to
+          FORM_W8_BEN if not set
+        content (Optional[str]): A string containing Base64 encoded data to upload. Must be set if `content_data` is not
+          set.
+        content_data (Optional[W8BenDocument]): The data representing a W8BEN document in field form. Must be set if
+          `content` is not set.
+        mime_type (UploadDocumentMimeType): The mime type of the data in `content`, or if using `content_data` must be
+          UploadDocumentMimeType.JSON. If `content_data` is set this will default to JSON
+    """
+
+    document_type: UploadDocumentType
+    document_sub_type: UploadDocumentSubType
+    content: Optional[str] = None
+    content_data: Optional[W8BenDocument] = None
+    mime_type: UploadDocumentMimeType
+
+    def __init__(self, **data) -> None:
+        if "document_type" not in data:
+            data["document_type"] = UploadDocumentType.W8BEN
+
+        if "document_sub_type" not in data:
+            data["document_sub_type"] = UploadDocumentSubType.FORM_W8_BEN
+
+        if (
+            "mime_type" not in data
+            and "content_data" in data
+            and data["content_data"] is not None
+        ):
+            data["mime_type"] = UploadDocumentMimeType.JSON
+
+        super().__init__(**data)
+
+    @root_validator()
+    def root_validator(cls, values: dict) -> dict:
+        content_is_none = values["content"] is None
+        content_data_is_none = values["content_data"] is None
+
+        if content_is_none and content_data_is_none:
+            raise ValueError(
+                "You must specify one of either the `content` or `content_data` fields"
+            )
+
+        if not content_is_none and not content_data_is_none:
+            raise ValueError(
+                "You can only specify one of either the `content` or `content_data` fields"
+            )
+
+        if values["document_type"] != UploadDocumentType.W8BEN:
+            raise ValueError("document_type must be W8BEN.")
+
+        if values["document_sub_type"] != UploadDocumentSubType.FORM_W8_BEN:
+            raise ValueError("document_sub_type must be FORM_W8_BEN.")
+
+        if (
+            not content_data_is_none
+            and values["mime_type"] != UploadDocumentMimeType.JSON
+        ):
+            raise ValueError("If `content_data` is set then `mime_type` must be JSON")
+
         return values

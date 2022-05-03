@@ -3,6 +3,7 @@ from typing import Callable, Iterator, List, Optional, Union
 from uuid import UUID
 
 from pydantic import parse_obj_as
+from requests import HTTPError, Response
 
 from .constants import BROKER_DOCUMENT_UPLOAD_LIMIT
 from .models import (
@@ -25,22 +26,31 @@ from ..common.models import BaseActivity, NonTradeActivity, TradeActivity
 from ..common.rest import HTTPResult, RESTClient
 
 
-def validate_account_id_param(account_id: Union[UUID, str]) -> UUID:
+def validate_uuid_id_param(
+    account_id: Union[UUID, str],
+    var_name: Optional[str] = None,
+) -> UUID:
     """
-    A small helper function to eliminate duplicate checks of account_id parameters to ensure they are
+    A small helper function to eliminate duplicate checks of various id parameters to ensure they are
     valid UUIDs. Upcasts str instances that are valid UUIDs into UUID instances.
 
     Args:
         account_id (Union[UUID, str]): The parameter to be validated
+        var_name (Optional[str]): the name of the parameter you'd like to generate in the error message. Defaults to
+          using `account_id` due to it being the most commonly needed case
 
     Returns:
         UUID: The valid UUID instance
     """
+
+    if var_name is None:
+        var_name = "account_id"
+
     # should raise ValueError
     if type(account_id) == str:
         account_id = UUID(account_id)
     elif type(account_id) != UUID:
-        raise ValueError("account_id must be a UUID or a UUID str")
+        raise ValueError(f"{var_name} must be a UUID or a UUID str")
 
     return account_id
 
@@ -134,7 +144,7 @@ class BrokerClient(RESTClient):
             Account: Returns the requested account.
         """
 
-        account_id = validate_account_id_param(account_id)
+        account_id = validate_uuid_id_param(account_id)
 
         resp = self.get(f"/accounts/{account_id}")
         return Account(**resp)
@@ -159,7 +169,7 @@ class BrokerClient(RESTClient):
         Returns:
             Account: Returns an Account instance with the updated data as returned from the api
         """
-        account_id = validate_account_id_param(account_id)
+        account_id = validate_uuid_id_param(account_id)
         params = update_data.to_request_fields()
 
         if len(params) < 1:
@@ -187,7 +197,7 @@ class BrokerClient(RESTClient):
             None:
         """
 
-        account_id = validate_account_id_param(account_id)
+        account_id = validate_uuid_id_param(account_id)
 
         self.delete(f"/accounts/{account_id}")
 
@@ -234,7 +244,7 @@ class BrokerClient(RESTClient):
             TradeAccount: TradeAccount info for the given account if found.
         """
 
-        account_id = validate_account_id_param(account_id)
+        account_id = validate_uuid_id_param(account_id)
 
         result = self.get(f"/trading/accounts/{account_id}/account")
 
@@ -265,7 +275,7 @@ class BrokerClient(RESTClient):
             APIError: this will be raised if the API didn't return a 204 for your request.
         """
 
-        account_id = validate_account_id_param(account_id)
+        account_id = validate_uuid_id_param(account_id)
 
         if len(document_data) > BROKER_DOCUMENT_UPLOAD_LIMIT:
             raise ValueError(
@@ -290,7 +300,7 @@ class BrokerClient(RESTClient):
         Returns:
             CIPInfo: The CIP info for the Account
         """
-        account_id = validate_account_id_param(account_id)
+        account_id = validate_uuid_id_param(account_id)
         # TODO: can't verify the CIP routes in sandbox they always return 404.
         #  Need to ask broker team how we'll even test this
         pass
@@ -478,7 +488,7 @@ class BrokerClient(RESTClient):
         Returns:
             List[TradeDocument]: The filtered list of TradeDocuments
         """
-        account_id = validate_account_id_param(account_id)
+        account_id = validate_uuid_id_param(account_id)
 
         result = self.get(
             f"/accounts/{account_id}/documents", documents_filter.to_request_fields()
@@ -504,13 +514,60 @@ class BrokerClient(RESTClient):
             APIError: Will raise an APIError if the account_id or a matching document_id for the account are not found.
         """
 
-        account_id = validate_account_id_param(account_id)
-
-        if type(document_id) == str:
-            document_id = UUID(document_id)
-        elif type(document_id) != UUID:
-            raise ValueError("document_id must be a UUID or a UUID str")
+        account_id = validate_uuid_id_param(account_id)
+        document_id = validate_uuid_id_param(document_id, "document_id")
 
         response = self.get(f"/accounts/{account_id}/documents/{document_id}")
 
         return parse_obj_as(TradeDocument, response)
+
+    def download_trade_document_for_account_by_id(
+        self,
+        account_id: Union[UUID, str],
+        document_id: Union[UUID, str],
+        file_name: str,
+    ) -> None:
+
+        account_id = validate_uuid_id_param(account_id)
+        document_id = validate_uuid_id_param(document_id, "document_id")
+        response: Optional[Response] = None
+
+        # self.get/post/etc all set follow redirects to false, however API will return a 301 redirect we need to follow,
+        # so we just do a raw request
+
+        target_url = f"{self._base_url.value}/{self._api_version}/accounts/{account_id}/documents/{document_id}/download"
+        num_tries = 0
+
+        while num_tries <= self._retry:
+            response = self._session.get(
+                url=target_url,
+                headers=self._get_default_headers(),
+                allow_redirects=True,
+                stream=True,
+            )
+            num_tries += 1
+
+            try:
+                response.raise_for_status()
+            except HTTPError as http_error:
+                if response.status_code in self._retry_codes:
+                    continue
+                if "code" in response.text:
+                    error = response.json()
+                    if "code" in error:
+                        raise APIError(error, http_error)
+                else:
+                    raise http_error
+
+            # if we got here there were no issues response is now a value
+            break
+
+        if response is None:
+            # we got here either by error or someone has configured us, so we didn't even try
+            raise Exception("Somehow we never made a request for download!")
+
+        with open(file_name, "wb") as f:
+            # we specify chunk_size none which is okay since we set stream to true above, so chunks will be as we
+            # receive them from the api
+            for chunk in response.iter_content(chunk_size=None):
+                f.write(chunk)

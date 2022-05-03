@@ -5,7 +5,7 @@ from abc import ABC
 from typing import Any, List, Type, Union
 
 from pydantic import BaseModel
-from requests import Session
+from requests import Response, Session
 from requests.exceptions import HTTPError
 
 from alpaca import __version__
@@ -75,25 +75,12 @@ class RESTClient(ABC):
             api_version (str, optional): The API version. Defaults to None.
 
         Returns:
-            dict: The response from the API
+            HTTPResult: The response from the API
         """
         base_url = base_url or self._base_url
         version = api_version if api_version else self._api_version
         url: str = base_url.value + "/" + version + path
-        headers = {}
-
-        if (
-            self._base_url == BaseURL.BROKER_PRODUCTION
-            or self._base_url == BaseURL.BROKER_SANDBOX
-        ):
-            auth_string = f"{self._api_key}:{self._secret_key}"
-            auth_string_encoded = base64.b64encode(str.encode(auth_string))
-            headers["Authorization"] = "Basic " + auth_string_encoded.decode("utf-8")
-        else:
-            headers["APCA-API-KEY-ID"] = self._api_key
-            headers["APCA-API-SECRET-KEY"] = self._secret_key
-
-        headers["User-Agent"] = "APCA-PY/" + __version__
+        headers = self._get_default_headers()
 
         opts = {
             "headers": headers,
@@ -116,10 +103,35 @@ class RESTClient(ABC):
             try:
                 return self._one_request(method, url, opts, retry)
             except RetryException:
-                retry_wait = self._retry_wait
-                time.sleep(retry_wait)
+                time.sleep(self._retry_wait)
                 retry -= 1
                 continue
+
+    def _get_default_headers(self) -> dict:
+        """
+        Returns a dict with some default headers set; ie AUTH headers and such that should be useful on all requests
+
+        Extracted for cases when using the default request functions are insufficient
+
+        Returns:
+            dict: The resulting dict of headers
+        """
+
+        headers = {}
+
+        if (
+            self._base_url == BaseURL.BROKER_PRODUCTION
+            or self._base_url == BaseURL.BROKER_SANDBOX
+        ):
+            auth_string = f"{self._api_key}:{self._secret_key}"
+            auth_string_encoded = base64.b64encode(str.encode(auth_string))
+            headers["Authorization"] = "Basic " + auth_string_encoded.decode("utf-8")
+        else:
+            headers["APCA-API-KEY-ID"] = self._api_key
+            headers["APCA-API-SECRET-KEY"] = self._secret_key
+        headers["User-Agent"] = "APCA-PY/" + __version__
+
+        return headers
 
     def _one_request(self, method: str, url: str, opts: dict, retry: int) -> dict:
         """Perform one request, possibly raising RetryException in the case
@@ -140,14 +152,13 @@ class RESTClient(ABC):
         Returns:
             dict: The response data
         """
-        retry_codes = self._retry_codes
         resp = self._session.request(method, url, **opts)
 
         try:
             resp.raise_for_status()
         except HTTPError as http_error:
             # retry if we hit Rate Limit
-            if resp.status_code in retry_codes and retry > 0:
+            if resp.status_code in self._retry_codes and retry > 0:
                 raise RetryException()
             if "code" in resp.text:
                 error = resp.json()

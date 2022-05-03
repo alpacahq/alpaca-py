@@ -1,3 +1,5 @@
+import os.path
+import tempfile
 from typing import Iterator, List
 from uuid import UUID
 from datetime import datetime
@@ -840,7 +842,8 @@ def test_get_activities_for_account_full_pagination(reqmock, client: BrokerClien
 
 
 def test_get_activities_for_account_max_items_and_single_request_date(
-    reqmock, client: BrokerClient
+    reqmock,
+    client: BrokerClient,
 ):
     """
     The api when `date` is specified is allowed to drop the pagination defaults and return all results at once.
@@ -952,7 +955,8 @@ def test_get_activities_for_account_max_items_and_single_request_date(
 
 
 def test_get_activities_for_account_full_pagination_and_max_items(
-    reqmock, client: BrokerClient
+    reqmock,
+    client: BrokerClient,
 ):
     # Note in this test we'll still have the api return too many results in the response just to validate that
     # we respect max limit regardless of what the api does
@@ -1078,7 +1082,8 @@ def test_get_trade_documents_for_account(reqmock, client: BrokerClient):
 
 
 def test_get_trade_documents_for_account_validates_account_id(
-    reqmock, client: BrokerClient
+    reqmock,
+    client: BrokerClient,
 ):
     with pytest.raises(ValueError):
         client.get_trade_documents_for_account(
@@ -1128,7 +1133,8 @@ def test_upload_documents_to_account_validates_limit(reqmock, client: BrokerClie
 
 
 def test_upload_documents_to_account_validates_account_id(
-    reqmock, client: BrokerClient
+    reqmock,
+    client: BrokerClient,
 ):
     with pytest.raises(ValueError):
         client.upload_documents_to_account(
@@ -1139,7 +1145,8 @@ def test_upload_documents_to_account_validates_account_id(
 
 
 def test_get_trade_document_for_account_by_id_validates_uuids(
-    reqmock, client: BrokerClient
+    reqmock,
+    client: BrokerClient,
 ):
     uuid = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
 
@@ -1179,3 +1186,76 @@ def test_get_trade_document_for_account_by_id(reqmock, client: BrokerClient):
 
     assert reqmock.called_once
     assert isinstance(result, TradeDocument)
+
+
+def test_download_trade_document_for_account_by_id(reqmock, client: BrokerClient):
+    """
+    High level steps for how to do this test:
+      * make a tempdir as with for auto delete
+      * get a tempfile name in said tempdir
+      * mock out main api request that returns a fake url
+      * mock out fake url with fake data
+      * check tempfile to ensure size is as expected
+        * this could technically have issues with different encodings n such
+        * maybe just read back out the data to ensure it's the same
+
+    going to keep this docblock here to show thought process/possible downsides for future ref if this test proves
+    too flakey
+    """
+    account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
+    document_id = "2a87c089-ffb6-472b-a4a3-cd9305c8605d"
+    fake_dl_url = f"https://fake-dl.com/{document_id}"
+    fake_dl_text = """
+    here is
+    some fake
+    text
+    """
+
+    reqmock.get(
+        BaseURL.BROKER_SANDBOX
+        + f"/v1/accounts/{account_id}/documents/{document_id}/download",
+        status_code=301,
+        headers={"Location": fake_dl_url},
+        text=f"""
+        <a href="{fake_dl_url}">
+          Moved Permanently
+        </a>.
+        """,
+    )
+
+    reqmock.get(fake_dl_url, text=fake_dl_text)
+
+    with tempfile.TemporaryDirectory() as tempdir:
+        tempname = os.path.join(tempdir, "test.pdf")
+        print(tempname)
+
+        client.download_trade_document_for_account_by_id(
+            account_id=account_id, document_id=document_id, file_name=tempname
+        )
+
+        assert reqmock.call_count == 2
+
+        assert os.path.isfile(tempname)
+
+        with open(tempname, mode="r") as file:
+            assert file.read() == fake_dl_text
+
+
+def test_download_trade_document_for_account_by_id_validates_uuids(
+    reqmock, client: BrokerClient
+):
+    uuid = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
+
+    with pytest.raises(ValueError):
+        client.download_trade_document_for_account_by_id(
+            account_id=uuid,
+            document_id="not a uuid",
+            file_name="",
+        )
+
+    with pytest.raises(ValueError):
+        client.download_trade_document_for_account_by_id(
+            account_id="not a uuid",
+            document_id=uuid,
+            file_name="",
+        )

@@ -2,7 +2,7 @@ import base64
 import os
 import time
 from abc import ABC
-from typing import Any, List, Type, Union
+from typing import Any, List, Optional, Type, Union
 
 from pydantic import BaseModel
 from requests import Response, Session
@@ -59,27 +59,29 @@ class RESTClient(ABC):
         self,
         method: str,
         path: str,
-        data: Union[dict, str] = None,
-        base_url: BaseURL = None,
-        api_version: str = None,
+        data: Optional[Union[dict, str]] = None,
+        base_url: Optional[Union[BaseURL, str]] = None,
+        api_version: Optional[str] = None,
     ) -> HTTPResult:
+
         """Prepares and submits HTTP requests to given API endpoint and returns response.
         Handles retrying if 429 (Rate Limit) error arises.
 
         Args:
             method (str): The API endpoint HTTP method
             path (str): The API endpoint path
-            data (Union[dict, str], optional): The either the payload in json format, query params urlencoded, or a dict
+            data (Optional[Union[dict, str]]): Either the payload in json format, query params urlencoded, or a dict
              of values to be converted to appropriate format based on `method`. Defaults to None.
-            base_url (BaseURL, optional): The base URL of the API. Defaults to None.
-            api_version (str, optional): The API version. Defaults to None.
+            base_url (Optional[Union[BaseURL, str]]): The base URL of the API. Defaults to None.
+            api_version (Optional[str]): The API version. Defaults to None.
 
         Returns:
             HTTPResult: The response from the API
         """
         base_url = base_url or self._base_url
         version = api_version if api_version else self._api_version
-        url: str = base_url.value + "/" + version + path
+        url: str = base_url + "/" + version + path
+
         headers = self._get_default_headers()
 
         opts = {
@@ -116,22 +118,25 @@ class RESTClient(ABC):
         Returns:
             dict: The resulting dict of headers
         """
+        headers = self._get_auth_headers()
 
-        headers = {}
-
-        if (
-            self._base_url == BaseURL.BROKER_PRODUCTION
-            or self._base_url == BaseURL.BROKER_SANDBOX
-        ):
-            auth_string = f"{self._api_key}:{self._secret_key}"
-            auth_string_encoded = base64.b64encode(str.encode(auth_string))
-            headers["Authorization"] = "Basic " + auth_string_encoded.decode("utf-8")
-        else:
-            headers["APCA-API-KEY-ID"] = self._api_key
-            headers["APCA-API-SECRET-KEY"] = self._secret_key
         headers["User-Agent"] = "APCA-PY/" + __version__
 
         return headers
+
+    def _get_auth_headers(self) -> dict:
+        """
+        Get the auth headers for a request. Meant to be overridden in clients that don't use this format for requests,
+        ie: BrokerClient
+
+        Returns:
+            dict: A dict containing the expected auth headers
+        """
+
+        return {
+            "APCA-API-KEY-ID": self._api_key,
+            "APCA-API-SECRET-KEY": self._secret_key,
+        }
 
     def _one_request(self, method: str, url: str, opts: dict, retry: int) -> dict:
         """Perform one request, possibly raising RetryException in the case

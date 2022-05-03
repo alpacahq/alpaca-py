@@ -25,6 +25,8 @@ from ..common.enums import BaseURL, PaginationType
 from ..common.models import BaseActivity, NonTradeActivity, TradeActivity
 from ..common.rest import HTTPResult, RESTClient
 
+import base64
+
 
 def validate_uuid_id_param(
     account_id: Union[UUID, str],
@@ -82,17 +84,23 @@ class BrokerClient(RESTClient):
         api_version: str = "v1",
         sandbox: bool = True,
         raw_data: bool = False,
+        url_override: Optional[str] = None,
     ):
         """
         Args:
-            api_key (Optional[str], optional): Broker API key - set sandbox to true if using sandbox keys. Defaults to None.
-            secret_key (Optional[str], optional): Broker API secret key - set sandbox to true if using sandbox keys. Defaults to None.
-            api_version (str, optional): API version. Defaults to 'v1'.
-            sandbox (bool, optional): True if using sandbox mode. Defaults to True.
-            raw_data (bool, optional): True if you want raw response instead of wrapped responses. Defaults to False.
+            api_key (Optional[str]): Broker API key - set sandbox to true if using sandbox keys. Defaults to None.
+            secret_key (Optional[str]): Broker API secret key - set sandbox to true if using sandbox keys. Defaults to None.
+            api_version (str): API version. Defaults to 'v1'.
+            sandbox (bool): True if using sandbox mode. Defaults to True.
+            raw_data (bool): True if you want raw response instead of wrapped responses. Defaults to False.
+            url_override (Optional[str]): A url to override and use as the base url.
         """
-        base_url: BaseURL = (
-            BaseURL.BROKER_SANDBOX if sandbox else BaseURL.BROKER_PRODUCTION
+        base_url = (
+            url_override
+            if url_override is not None
+            else BaseURL.BROKER_SANDBOX
+            if sandbox
+            else BaseURL.BROKER_PRODUCTION
         )
 
         # TODO: Actually check raw_data everywhere
@@ -104,6 +112,13 @@ class BrokerClient(RESTClient):
             sandbox=sandbox,
             raw_data=raw_data,
         )
+
+    def _get_auth_headers(self) -> dict:
+        # We override this since we use Basic auth
+        auth_string = f"{self._api_key}:{self._secret_key}"
+        auth_string_encoded = base64.b64encode(str.encode(auth_string))
+
+        return {"Authorization": "Basic " + auth_string_encoded.decode("utf-8")}
 
     # ############################## ACCOUNTS/TRADING ACCOUNTS ################################# #
 

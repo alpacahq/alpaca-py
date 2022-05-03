@@ -240,6 +240,43 @@ class BrokerClient(RESTClient):
 
         return TradeAccount(**result)
 
+    def upload_documents_to_account(
+        self,
+        account_id: Union[UUID, str],
+        document_data: List[UploadDocumentRequest],
+    ) -> None:
+        """
+        Allows you to upload up to 10 documents at a time for an Account.
+
+        Document data must be a binary objects whose contents are encoded in base64. Each encoded content size is
+        limited to 10MB if you use Alpaca for KYCaaS.
+
+        If you perform your own KYC there are no document size limitations.
+
+        Args:
+            account_id (Union[UUID, str]): The id of the Account you wish to upload the document data to.
+            document_data (List[UploadDocumentRequest]): List of UploadDocumentRequest's that contain the relevant
+              Document data
+
+        Returns:
+            None: This function returns nothing on success and will raise an APIError in case of a failure
+
+        Raises:
+            APIError: this will be raised if the API didn't return a 204 for your request.
+        """
+
+        account_id = validate_account_id_param(account_id)
+
+        if len(document_data) > BROKER_DOCUMENT_UPLOAD_LIMIT:
+            raise ValueError(
+                f"document_data cannot be longer than {BROKER_DOCUMENT_UPLOAD_LIMIT}"
+            )
+
+        self.post(
+            f"/accounts/{account_id}/documents/upload",
+            [document.to_request_fields() for document in document_data],
+        )
+
     def get_cip_data_for_account_by_id(
         self,
         account_id: Union[UUID, str],
@@ -422,7 +459,7 @@ class BrokerClient(RESTClient):
         else:
             return parse_obj_as(NonTradeActivity, data)
 
-    # ############################## ACCOUNT DOCUMENTS ################################# #
+    # ############################## TRADE ACCOUNT DOCUMENTS ################################# #
 
     def get_trade_documents_for_account(
         self,
@@ -449,37 +486,31 @@ class BrokerClient(RESTClient):
 
         return parse_obj_as(List[TradeDocument], result)
 
-    def upload_documents_to_account(
-        self, account_id: Union[UUID, str], document_data: List[UploadDocumentRequest]
-    ) -> None:
+    def get_trade_document_for_account_by_id(
+        self,
+        account_id: Union[UUID, str],
+        document_id: Union[UUID, str],
+    ) -> TradeDocument:
         """
-        Allows you to upload up to 10 documents at a time for an Account.
-
-        Document data must be a binary objects whose contents are encoded in base64. Each encoded content size is
-        limited to 10MB if you use Alpaca for KYCaaS.
-
-        If you perform your own KYC there are no document size limitations.
+        Gets a single TradeDocument by its id
 
         Args:
-            account_id (Union[UUID, str]): The id of the Account you wish to upload the document data to.
-            document_data (List[UploadDocumentRequest]): List of UploadDocumentRequest's that contain the relevant
-              Document data
+            account_id (Union[UUID, str]): The id of the Account that owns the document
+            document_id (Union[UUID, str]): The id of the TradeDocument
 
         Returns:
-            None: This function returns nothing on success and will raise an APIError in case of a failure
-
+            TradeDocument: The requested TradeDocument
         Raises:
-            APIError: this will be raised if the API didn't return a 204 for your request.
+            APIError: Will raise an APIError if the account_id or a matching document_id for the account are not found.
         """
 
         account_id = validate_account_id_param(account_id)
 
-        if len(document_data) > BROKER_DOCUMENT_UPLOAD_LIMIT:
-            raise ValueError(
-                f"document_data cannot be longer than {BROKER_DOCUMENT_UPLOAD_LIMIT}"
-            )
+        if type(document_id) == str:
+            document_id = UUID(document_id)
+        elif type(document_id) != UUID:
+            raise ValueError("document_id must be a UUID or a UUID str")
 
-        self.post(
-            f"/accounts/{account_id}/documents/upload",
-            [document.to_request_fields() for document in document_data],
-        )
+        response = self.get(f"/accounts/{account_id}/documents/{document_id}")
+
+        return parse_obj_as(TradeDocument, response)

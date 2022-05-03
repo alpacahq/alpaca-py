@@ -1136,3 +1136,46 @@ def test_upload_documents_to_account_validates_account_id(
         )
 
     assert not reqmock.called
+
+
+def test_get_trade_document_for_account_by_id_validates_uuids(
+    reqmock, client: BrokerClient
+):
+    uuid = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
+
+    with pytest.raises(ValueError):
+        client.get_trade_document_for_account_by_id(
+            account_id=uuid, document_id="not a uuid"
+        )
+
+    with pytest.raises(ValueError):
+        client.get_trade_document_for_account_by_id(
+            account_id="not a uuid",
+            document_id=uuid,
+        )
+
+
+def test_get_trade_document_for_account_by_id(reqmock, client: BrokerClient):
+    account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
+    document_id = "2a87c089-ffb6-472b-a4a3-cd9305c8605d"
+
+    reqmock.get(
+        BaseURL.BROKER_SANDBOX + f"/v1/accounts/{account_id}/documents/{document_id}",
+        text="""
+        {
+          "id": "1b560b0f-9efd-44b4-8004-dfd520c7cdc0",
+          "name": "",
+          "type": "account_statement",
+          "sub_type": "",
+          "date": "2022-02-28"
+        }
+        """,
+    )
+
+    result = client.get_trade_document_for_account_by_id(
+        account_id=account_id,
+        document_id=document_id,
+    )
+
+    assert reqmock.called_once
+    assert isinstance(result, TradeDocument)

@@ -551,7 +551,7 @@ class BrokerClient(RESTClient):
         # self.get/post/etc all set follow redirects to false, however API will return a 301 redirect we need to follow,
         # so we just do a raw request
 
-        target_url = f"{self._base_url.value}/{self._api_version}/accounts/{account_id}/documents/{document_id}/download"
+        target_url = f"{self._base_url}/{self._api_version}/accounts/{account_id}/documents/{document_id}/download"
         num_tries = 0
 
         while num_tries <= self._retry:

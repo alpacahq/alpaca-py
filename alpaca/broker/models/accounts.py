@@ -1,21 +1,20 @@
-from datetime import datetime, date
-from typing import Any, List, Optional, Union
+from datetime import datetime
+from typing import Any, List, Optional
 from uuid import UUID
-
-from ...common.models import ValidateBaseModel as BaseModel
 
 from pydantic import parse_obj_as, root_validator, validator
 
+from .documents import AccountDocument
 from ..enums import (
     AccountStatus,
     AgreementType,
     ClearingBroker,
-    DocumentType,
     EmploymentStatus,
     FundingSource,
     TaxIdType,
     VisaType,
 )
+from ...common.models import ValidateBaseModel as BaseModel
 
 
 class Contact(BaseModel):
@@ -154,40 +153,6 @@ class Agreement(BaseModel):
     signed_at: str
     ip_address: str
     revision: Optional[str]
-
-
-class AccountDocument(BaseModel):
-    # TODO: Move this to documents module
-
-    """
-    User documents provided within Account Model.
-
-    This model is different from the TradeDocument model in that this model represents documents having to do with a
-    brokerage Account.
-
-    see https://alpaca.markets/docs/broker/api-references/accounts/accounts/#the-account-model
-
-    Attributes:
-        id (UUID): ID of the Document
-        document_type (DocumentType): The type of document uploaded
-        document_sub_type (Optional[str]): The specific type of document, e.g. passport
-        name (Optional(str)): Name of the document if present
-        content (str): Base64 string representing the document
-        mime_type (str): The format of content encoded by the string
-    """
-
-    id: UUID
-    document_type: DocumentType
-    document_sub_type: Optional[str] = None
-    content: str
-    mime_type: Optional[str] = None
-
-    def __init__(self, **data: Any) -> None:
-        # validate the incoming id field for uuid
-        if isinstance(data["id"], str):
-            data["id"] = UUID(data["id"])
-
-        super().__init__(**data)
 
 
 class TrustedContact(BaseModel):

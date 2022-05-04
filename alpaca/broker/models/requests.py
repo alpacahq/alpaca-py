@@ -353,9 +353,9 @@ class GetTradeDocumentsRequest(NonEmptyRequest):
             and values["start"] is not None
             and "end" in values
             and values["end"] is not None
+            and values["start"] > values["end"]
         ):
-            if values["start"] > values["end"]:
-                raise ValueError("start must not be after end!!")
+            raise ValueError("start must not be after end!!")
 
         return values
 

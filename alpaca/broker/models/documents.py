@@ -12,8 +12,6 @@ IPAddress = Union[IPv4Address, IPv6Address]
 
 
 class AccountDocument(BaseModel):
-    # TODO: Move this to documents module
-
     """
     User documents provided within Account Model.
 

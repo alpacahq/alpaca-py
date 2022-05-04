@@ -316,3 +316,26 @@ class UploadDocumentMimeType(str, Enum):
     PNG = "image/png"
     JPEG = "image/jpeg"
     JSON = "application/json"
+
+
+class ACHRelationshipStatus(str, Enum):
+    """
+    Represents the state that an ACHRelationship is in.
+
+    Please see https://alpaca.markets/docs/api-references/broker-api/funding/ach/#attributes for more details
+    """
+
+    QUEUED = "QUEUED"
+    APPROVED = "APPROVED"
+    PENDING = "PENDING"
+
+
+class BankAccountType(str, Enum):
+    """
+    Represents a kind of bank account.
+
+    Please see https://alpaca.markets/docs/api-references/broker-api/funding/ach/#attributes
+    """
+
+    CHECKING = "CHECKING"
+    SAVINGS = "SAVINGS"

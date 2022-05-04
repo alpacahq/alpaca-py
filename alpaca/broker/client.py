@@ -5,6 +5,7 @@ from uuid import UUID
 from pydantic import parse_obj_as
 from requests import HTTPError, Response
 
+from .enums import ACHRelationshipStatus
 from .constants import BROKER_DOCUMENT_UPLOAD_LIMIT
 from .models import (
     Account,
@@ -18,6 +19,7 @@ from .models import (
     TradeAccount,
     TradeDocument,
     UploadDocumentRequest,
+    ACHRelationship,
 )
 from ..common import APIError
 from ..common.constants import ACCOUNT_ACTIVITIES_DEFAULT_PAGE_SIZE
@@ -589,3 +591,10 @@ class BrokerClient(RESTClient):
                 f.write(chunk)
 
     # ############################## FUNDING ################################# #
+
+    def get_ach_relationships_for_account(
+        self,
+        account_id: Union[UUID, str],
+        statuses: Optional[List[ACHRelationshipStatus]],
+    ) -> List[ACHRelationship]:
+        pass

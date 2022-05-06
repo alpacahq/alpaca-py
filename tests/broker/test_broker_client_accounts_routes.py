@@ -1230,7 +1230,7 @@ def test_download_trade_document_for_account_by_id(reqmock, client: BrokerClient
         print(tempname)
 
         client.download_trade_document_for_account_by_id(
-            account_id=account_id, document_id=document_id, file_name=tempname
+            account_id=account_id, document_id=document_id, file_path=tempname
         )
 
         assert reqmock.call_count == 2
@@ -1250,12 +1250,12 @@ def test_download_trade_document_for_account_by_id_validates_uuids(
         client.download_trade_document_for_account_by_id(
             account_id=uuid,
             document_id="not a uuid",
-            file_name="",
+            file_path="",
         )
 
     with pytest.raises(ValueError):
         client.download_trade_document_for_account_by_id(
             account_id="not a uuid",
             document_id=uuid,
-            file_name="",
+            file_path="",
         )

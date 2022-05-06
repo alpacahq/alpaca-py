@@ -526,6 +526,7 @@ class BrokerClient(RESTClient):
 
         Returns:
             TradeDocument: The requested TradeDocument
+
         Raises:
             APIError: Will raise an APIError if the account_id or a matching document_id for the account are not found.
         """
@@ -541,8 +542,19 @@ class BrokerClient(RESTClient):
         self,
         account_id: Union[UUID, str],
         document_id: Union[UUID, str],
-        file_name: str,
+        file_path: str,
     ) -> None:
+        """
+        Downloads a TradeDocument to `file_path`
+
+        Args:
+            account_id (Union[UUID, str]): ID of the account to pull the document from
+            document_id (Union[UUID, str]): ID of the document itself
+            file_path (str): A full path for where to save the file to
+
+        Returns:
+            None:
+        """
 
         account_id = validate_uuid_id_param(account_id)
         document_id = validate_uuid_id_param(document_id, "document_id")
@@ -575,14 +587,14 @@ class BrokerClient(RESTClient):
                 else:
                     raise http_error
 
-            # if we got here there were no issues response is now a value
+            # if we got here there were no issues', so response is now a value
             break
 
         if response is None:
-            # we got here either by error or someone has configured us, so we didn't even try
+            # we got here either by error or someone has mis-configured us, so we didn't even try
             raise Exception("Somehow we never made a request for download!")
 
-        with open(file_name, "wb") as f:
+        with open(file_path, "wb") as f:
             # we specify chunk_size none which is okay since we set stream to true above, so chunks will be as we
             # receive them from the api
             for chunk in response.iter_content(chunk_size=None):

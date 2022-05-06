@@ -393,9 +393,6 @@ class UploadDocumentRequest(NonEmptyRequest):
 class UploadW8BenDocumentRequest(NonEmptyRequest):
     """
     Attributes:
-        document_type (UploadDocumentType, optional): Must be UploadDocumentType.W8BEN. Will default to W8BEN if not set
-        document_sub_type (UploadDocumentSubType, optional): Must be UploadDocumentSubType.FORM_W8_BEN. Will default to
-          FORM_W8_BEN if not set
         content (Optional[str]): A string containing Base64 encoded data to upload. Must be set if `content_data` is not
           set.
         content_data (Optional[W8BenDocument]): The data representing a W8BEN document in field form. Must be set if
@@ -404,18 +401,19 @@ class UploadW8BenDocumentRequest(NonEmptyRequest):
           UploadDocumentMimeType.JSON. If `content_data` is set this will default to JSON
     """
 
+    # These 2 are purposely undocumented as they should be here for NonEmptyRequest but they shouldn't be touched or
+    # set by users since they always need to be set values
     document_type: UploadDocumentType
     document_sub_type: UploadDocumentSubType
+
     content: Optional[str] = None
     content_data: Optional[W8BenDocument] = None
     mime_type: UploadDocumentMimeType
 
     def __init__(self, **data) -> None:
-        if "document_type" not in data:
-            data["document_type"] = UploadDocumentType.W8BEN
-
-        if "document_sub_type" not in data:
-            data["document_sub_type"] = UploadDocumentSubType.FORM_W8_BEN
+        # Always set these to their expected values
+        data["document_type"] = UploadDocumentType.W8BEN
+        data["document_sub_type"] = UploadDocumentSubType.FORM_W8_BEN
 
         if (
             "mime_type" not in data

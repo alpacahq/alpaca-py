@@ -6,7 +6,7 @@ from alpaca.broker import (
     UploadDocumentMimeType,
     UploadDocumentRequest,
     UploadDocumentSubType,
-    UploadDocumentType,
+    DocumentType,
     UploadW8BenDocumentRequest,
     W8BenDocument,
 )
@@ -124,7 +124,7 @@ def test_get_trade_documents_request_validates_start_not_after_end():
 def test_upload_document_request_rejects_w8_ben():
     with pytest.raises(ValueError) as e:
         UploadDocumentRequest(
-            document_type=UploadDocumentType.W8BEN,
+            document_type=DocumentType.W8BEN,
             content="",
             mime_type=UploadDocumentMimeType.JSON,
         )
@@ -136,7 +136,7 @@ def test_upload_document_request_rejects_w8_ben():
 
     with pytest.raises(ValueError) as e:
         UploadDocumentRequest(
-            document_type=UploadDocumentType.ACCOUNT_APPROVAL_LETTER,
+            document_type=DocumentType.ACCOUNT_APPROVAL_LETTER,
             document_sub_type=UploadDocumentSubType.FORM_W8_BEN,
             content="",
             mime_type=UploadDocumentMimeType.JSON,
@@ -163,7 +163,7 @@ def test_upload_w8ben_document_request_validates_w8ben_document_type():
     )
 
     with pytest.raises(ValueError) as e:
-        val.document_type = UploadDocumentType.ACCOUNT_APPROVAL_LETTER
+        val.document_type = DocumentType.ACCOUNT_APPROVAL_LETTER
 
     assert "document_type must be W8BEN." in str(e.value)
 

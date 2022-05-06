@@ -14,7 +14,7 @@ from alpaca.broker.enums import (
     AccountEntities,
     TradeDocumentType,
     UploadDocumentMimeType,
-    UploadDocumentType,
+    DocumentType,
 )
 from alpaca.common import APIError
 from alpaca.broker.client import BrokerClient, PaginationType
@@ -1103,7 +1103,7 @@ def test_upload_documents_to_account(reqmock, client: BrokerClient):
         account_id=account_id,
         document_data=[
             UploadDocumentRequest(
-                document_type=UploadDocumentType.ACCOUNT_APPROVAL_LETTER,
+                document_type=DocumentType.ACCOUNT_APPROVAL_LETTER,
                 content="fake base64",
                 mime_type=UploadDocumentMimeType.PDF,
             )

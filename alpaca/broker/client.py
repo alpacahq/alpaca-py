@@ -497,7 +497,7 @@ class BrokerClient(RESTClient):
         Args:
             account_id (Union[UUID, str]): The id of the Account you wish to retrieve documents for. str values will
               attempt to be upcast into UUID instances
-            documents_filter (GetTradeDocumentsRequest): The optional set of filters you can apply to filter the
+            documents_filter (Optional[GetTradeDocumentsRequest]): The optional set of filters you can apply to filter the
               returned list.
 
         Returns:

@@ -29,7 +29,7 @@ import base64
 
 
 def validate_uuid_id_param(
-    account_id: Union[UUID, str],
+    id: Union[UUID, str],
     var_name: Optional[str] = None,
 ) -> UUID:
     """
@@ -37,7 +37,7 @@ def validate_uuid_id_param(
     valid UUIDs. Upcasts str instances that are valid UUIDs into UUID instances.
 
     Args:
-        account_id (Union[UUID, str]): The parameter to be validated
+        id (Union[UUID, str]): The parameter to be validated
         var_name (Optional[str]): the name of the parameter you'd like to generate in the error message. Defaults to
           using `account_id` due to it being the most commonly needed case
 
@@ -49,12 +49,12 @@ def validate_uuid_id_param(
         var_name = "account_id"
 
     # should raise ValueError
-    if type(account_id) == str:
-        account_id = UUID(account_id)
-    elif type(account_id) != UUID:
+    if type(id) == str:
+        id = UUID(id)
+    elif type(id) != UUID:
         raise ValueError(f"{var_name} must be a UUID or a UUID str")
 
-    return account_id
+    return id
 
 
 class BrokerClient(RESTClient):

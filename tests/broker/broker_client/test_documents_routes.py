@@ -1,10 +1,8 @@
 import os.path
 import tempfile
-from typing import Iterator, List
+from typing import List
 
 import pytest
-import requests_mock
-from requests_mock import Mocker
 
 from alpaca.broker import UploadDocumentRequest
 from alpaca.broker.client import BrokerClient
@@ -16,28 +14,6 @@ from alpaca.broker.enums import (
 )
 from alpaca.broker.models import GetTradeDocumentsRequest, TradeDocument
 from alpaca.common.enums import BaseURL
-
-
-@pytest.fixture
-def reqmock() -> Iterator[Mocker]:
-    with requests_mock.Mocker() as m:
-        yield m
-
-
-@pytest.fixture
-def client():
-    client = BrokerClient(
-        "key-id",
-        "secret-key",
-        sandbox=True,  # Expressly call out sandbox as true for correct urls in reqmock
-    )
-    return client
-
-
-@pytest.fixture
-def raw_client():
-    raw_client = BrokerClient("key-id", "secret-key", raw_data=True)
-    return raw_client
 
 
 def test_get_trade_documents_for_account(reqmock, client: BrokerClient):

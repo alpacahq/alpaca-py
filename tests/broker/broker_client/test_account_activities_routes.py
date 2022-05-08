@@ -2,7 +2,6 @@ from datetime import datetime
 from typing import Iterator, List
 
 import pytest
-import requests_mock
 from requests_mock import Mocker
 
 from alpaca.broker.client import BrokerClient, PaginationType
@@ -15,28 +14,6 @@ from alpaca.common.models import (
     NonTradeActivity,
     TradeActivity,
 )
-
-
-@pytest.fixture
-def reqmock() -> Iterator[Mocker]:
-    with requests_mock.Mocker() as m:
-        yield m
-
-
-@pytest.fixture
-def client():
-    client = BrokerClient(
-        "key-id",
-        "secret-key",
-        sandbox=True,  # Expressly call out sandbox as true for correct urls in reqmock
-    )
-    return client
-
-
-@pytest.fixture
-def raw_client():
-    raw_client = BrokerClient("key-id", "secret-key", raw_data=True)
-    return raw_client
 
 
 def setup_reqmock_for_paginated_account_activities_response(reqmock: Mocker):

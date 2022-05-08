@@ -20,8 +20,17 @@ from alpaca.broker.models import (
     GetAccountActivitiesRequest,
     GetTradeDocumentsRequest,
     TradeDocument,
+    CreateBankRequest,
+    CreateTransferRequest,
+)
+from alpaca.broker.enums import (
+    IdentifierType,
+    TransferType,
+    TransferDirection,
+    TransferTiming,
 )
 from tests.broker.factories import create_dummy_w8ben_document
+from uuid import uuid4
 
 
 def test_document_validates_id():
@@ -278,3 +287,163 @@ def test_w8ben_document_validates_ftin_not_required_states():
         "ftin_not_required must be set if foreign_tax_id and tax_id_ssn are not"
         in str(e.value)
     )
+
+
+class TestCreateBankRequest:
+    def test_valid_aba_bank(self):
+        CreateBankRequest(
+            name="name",
+            bank_code_type=IdentifierType.ABA,
+            bank_code="123456789",
+            account_number="123456789abc",
+        )
+
+    def test_valid_bic_bank(self):
+        CreateBankRequest(
+            name="name",
+            bank_code_type=IdentifierType.BIC,
+            bank_code="123456789",
+            account_number="123456789abc",
+            country="United States",
+            state_province="New York",
+            postal_code="10036",
+            city="Manhattan",
+            street_address="Sixth Avenue & 42nd Street",
+        )
+
+    def test_extra_parameters_for_aba_bank(self):
+        with pytest.raises(ValueError) as e:
+            CreateBankRequest(
+                name="name",
+                bank_code_type=IdentifierType.ABA,
+                bank_code="123456789",
+                account_number="123456789abc",
+                country="United States",
+                state_province="New York",
+                postal_code="10036",
+                city="Manhattan",
+                street_address="Sixth Avenue & 42nd Street",
+            )
+
+        assert "You may only specify" in str(e.value)
+
+    def test_missing_parameters_for_bic_bank(self):
+        with pytest.raises(ValueError) as e:
+            CreateBankRequest(
+                name="name",
+                bank_code_type=IdentifierType.BIC,
+                bank_code="123456789",
+                account_number="123456789abc",
+            )
+
+        assert "You must specify" in str(e.value)
+
+
+class TestCreateTransferRequest:
+    def test_valid_ach_transfer_request(self):
+        CreateTransferRequest(
+            transfer_type=TransferType.ACH,
+            relationship_id=uuid4(),
+            amount="100.0",
+            direction=TransferDirection.INCOMING,
+            timing=TransferTiming.IMMEDIATE,
+        )
+
+    def test_no_relationship_id_with_ach_transfer(self):
+        with pytest.raises(ValueError) as e:
+            CreateTransferRequest(
+                transfer_type=TransferType.ACH,
+                amount="100.0",
+                direction=TransferDirection.INCOMING,
+                timing=TransferTiming.IMMEDIATE,
+            )
+
+        assert "You must specify a relationship_id for ACH transfers." in str(e.value)
+
+    def test_bank_id_with_ach_transfer(self):
+        with pytest.raises(ValueError) as e:
+            CreateTransferRequest(
+                transfer_type=TransferType.ACH,
+                relationship_id=uuid4(),
+                bank_id=uuid4(),
+                amount="100.0",
+                direction=TransferDirection.INCOMING,
+                timing=TransferTiming.IMMEDIATE,
+            )
+
+        assert "You may not specify a bank_id for ACH transfers." in str(e.value)
+
+    def test_additional_information_with_ach_transfer(self):
+        with pytest.raises(ValueError) as e:
+            CreateTransferRequest(
+                transfer_type=TransferType.ACH,
+                relationship_id=uuid4(),
+                amount="100.0",
+                direction=TransferDirection.INCOMING,
+                timing=TransferTiming.IMMEDIATE,
+                additional_information="fake",
+            )
+
+        assert "You may only specify additional_information for wire transfers." in str(
+            e.value
+        )
+
+    def test_valid_wire_transfer_request(self):
+        CreateTransferRequest(
+            transfer_type=TransferType.WIRE,
+            bank_id=uuid4(),
+            amount="100.0",
+            direction=TransferDirection.INCOMING,
+            timing=TransferTiming.IMMEDIATE,
+        )
+
+    def test_no_bank_id_with_wire_transfer(self):
+        with pytest.raises(ValueError) as e:
+            CreateTransferRequest(
+                transfer_type=TransferType.WIRE,
+                amount="100.0",
+                direction=TransferDirection.INCOMING,
+                timing=TransferTiming.IMMEDIATE,
+            )
+
+        assert "You must specify a bank_id for wire transfers." in str(e.value)
+
+    def test_relationship_id_with_wire_transfer(self):
+        with pytest.raises(ValueError) as e:
+            CreateTransferRequest(
+                transfer_type=TransferType.WIRE,
+                relationship_id=uuid4(),
+                bank_id=uuid4(),
+                amount="100.0",
+                direction=TransferDirection.INCOMING,
+                timing=TransferTiming.IMMEDIATE,
+                additional_information="fake",
+            )
+
+        assert "You may not specify a relationship_id for wire transfers." in str(
+            e.value
+        )
+
+    def test_zero_transfer_amount(self):
+        with pytest.raises(ValueError) as e:
+            CreateTransferRequest(
+                transfer_type=TransferType.ACH,
+                relationship_id=uuid4(),
+                amount="0",
+                direction=TransferDirection.INCOMING,
+                timing=TransferTiming.IMMEDIATE,
+            )
+
+        assert "You must provide an amount > 0." in str(e.value)
+
+    def test_negative_transfer_amount(self):
+        with pytest.raises(ValueError) as e:
+            CreateTransferRequest(
+                transfer_type=TransferType.ACH,
+                relationship_id=uuid4(),
+                amount="-100.0",
+                direction=TransferDirection.INCOMING,
+                timing=TransferTiming.IMMEDIATE,
+            )
+
+        assert "You must provide an amount > 0." in str(e.value)

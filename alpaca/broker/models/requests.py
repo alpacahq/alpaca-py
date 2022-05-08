@@ -26,6 +26,12 @@ from ..enums import (
     UploadDocumentSubType,
     UploadDocumentType,
     VisaType,
+    BankAccountType,
+    IdentifierType,
+    TransferType,
+    TransferDirection,
+    TransferTiming,
+    FeePaymentMethod,
 )
 from ...common.enums import Sort, ActivityType
 
@@ -452,5 +458,161 @@ class UploadW8BenDocumentRequest(NonEmptyRequest):
             and values["mime_type"] != UploadDocumentMimeType.JSON
         ):
             raise ValueError("If `content_data` is set then `mime_type` must be JSON")
+
+        return values
+
+
+class CreateACHRelationshipRequest(NonEmptyRequest):
+    """
+    Attributes:
+        account_owner_name (str): The name of the ACH account owner for the relationship that is being created.
+        bank_account_type (BankAccountType): Specifies the type of bank account for the ACH relationship that is being
+          created.
+        bank_account_number (str): The bank account number associated with the ACH relationship.
+        bank_routing_number (str): THe bank routing number associated with the ACH relationship.
+        nickname (Optional[str]): Optionally specify a nickname to assign to the created ACH relationship.
+    """
+
+    account_owner_name: str
+    bank_account_type: BankAccountType
+    bank_account_number: str  # TODO: Validate bank account number format?
+    bank_routing_number: str  # TODO: Validate bank routing number format?
+    nickname: Optional[str]
+
+
+class CreatePlaidRelationshipRequest(NonEmptyRequest):
+    """
+    This request is made following the Plaid bank account link user flow.
+
+    Upon the user completing their connection with Plaid, a public token specific to the user is returned by Plaid. This
+    token is used to get an Alpaca processor token via Plaid's /processor/token/create endpoint, which is subsequently
+    used by this endpoint to transfer the user's Plaid information to Alpaca.
+
+    Attributes:
+        processor_token (str): The processor token that is specific to Alpaca and was returned by Plaid.
+    """
+
+    processor_token: str
+
+
+class CreateBankRequest(NonEmptyRequest):
+    """
+    Attributes:
+        name (str): The name of the recipient bank.
+        bank_code_type (IdentifierType): Specifies the type of the bank (international or domestic). See
+          enums.IdentifierType for more details.
+        bank_code (str): The 9-digit ABA routing number (domestic) or bank identifier code (BIC, international).
+        account_number (str): The bank account number.
+        country (Optional[str]): The country of the bank, if and only if creating an international bank account
+          connection.
+        state_province (Optional[str]): The state/province of the bank, if and only if creating an international bank
+          account connection.
+        postal_code (Optional[str]): The postal code of the bank, if and only if creating an international bank account
+          connection.
+        city (Optional[str]): The city of the bank, if and only if creating an international bank account connection.
+        street_address (Optional[str]): The street address of the bank, if and only if creating an international bank
+          account connection.
+    """
+
+    name: str
+    bank_code_type: IdentifierType
+    bank_code: str
+    account_number: str
+    country: Optional[str]
+    state_province: Optional[str]
+    postal_code: Optional[str]
+    city: Optional[str]
+    street_address: Optional[str]
+
+    @root_validator()
+    def root_validator(cls, values: dict) -> dict:
+        if "bank_code_type" not in values:
+            # Bank code type was not valid, so a ValueError will be thrown regardless.
+            return values
+
+        international_parameters = [
+            "country",
+            "state_province",
+            "postal_code",
+            "city",
+            "street_address",
+        ]
+
+        bank_code_type = values["bank_code_type"]
+        if bank_code_type == IdentifierType.ABA:
+            for international_param in international_parameters:
+                if (
+                    international_param in values
+                    and values[international_param] is not None
+                ):
+                    raise ValueError(
+                        f"You may only specify the {international_param} for international bank accounts."
+                    )
+        elif bank_code_type == IdentifierType.BIC:
+            for international_param in international_parameters:
+                if (
+                    international_param not in values
+                    or values[international_param] is None
+                ):
+                    raise ValueError(
+                        f"You must specify the {international_param} for international bank accounts."
+                    )
+
+        return values
+
+
+class CreateTransferRequest(NonEmptyRequest):
+    """
+    Attributes:
+        transfer_type (TransferType): Type of the transfer.
+        relationship_id (Optional[UUID]): ID of the relationship to use for the transfer, required for ACH transfers.
+        bank_id (Optional[UUID]): ID of the bank to use for the transfer, required for wire transfers.
+        amount (str): Amount of transfer, must be > 0. Any applicable fees will be deducted from this value.
+        direction (TransferDirection): Direction of the transfer.
+        timing (TransferTiming): Timing of the transfer.
+        additional_information (Optional[str]): Additional wire transfer details.
+        fee_payment_method (Optional[FeePaymentMethod]): Determines how any applicable fees will be paid. Default value
+          is invoice.
+    """
+
+    transfer_type: TransferType
+    relationship_id: Optional[UUID]
+    bank_id: Optional[UUID]
+    amount: str
+    direction: TransferDirection
+    timing: TransferTiming
+    additional_information: Optional[str]
+    fee_payment_method: Optional[FeePaymentMethod]
+
+    @root_validator()
+    def root_validator(cls, values: dict) -> dict:
+        if "transfer_type" not in values or "amount" not in values:
+            # Invalid transfer type or amount, so a ValueError will be thrown regardless.
+            return values
+
+        if values["transfer_type"] == TransferType.ACH:
+            if "relationship_id" not in values or values["relationship_id"] is None:
+                raise ValueError(
+                    "You must specify a relationship_id for ACH transfers."
+                )
+            if "bank_id" in values and values["bank_id"] is not None:
+                raise ValueError("You may not specify a bank_id for ACH transfers.")
+            if (
+                "additional_information" in values
+                and values["additional_information"] is not None
+            ):
+                raise ValueError(
+                    "You may only specify additional_information for wire transfers."
+                )
+        elif values["transfer_type"] == TransferType.WIRE:
+            if "bank_id" not in values or values["bank_id"] is None:
+                raise ValueError("You must specify a bank_id for wire transfers.")
+            if "relationship_id" in values and values["relationship_id"] is not None:
+                raise ValueError(
+                    "You may not specify a relationship_id for wire transfers."
+                )
+
+        if float(values["amount"]) <= 0:
+            raise ValueError("You must provide an amount > 0.")
 
         return values

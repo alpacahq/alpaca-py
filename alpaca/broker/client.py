@@ -20,6 +20,12 @@ from .models import (
     TradeDocument,
     UploadDocumentRequest,
     ACHRelationship,
+    CreateACHRelationshipRequest,
+    CreatePlaidRelationshipRequest,
+    CreateBankRequest,
+    Bank,
+    Transfer,
+    CreateTransferRequest,
 )
 from ..common import APIError
 from ..common.constants import ACCOUNT_ACTIVITIES_DEFAULT_PAGE_SIZE
@@ -592,9 +598,107 @@ class BrokerClient(RESTClient):
 
     # ############################## FUNDING ################################# #
 
+    def create_ach_relationship_for_account(
+        self,
+        account_id: Union[UUID, str],
+        ach_data: Union[CreateACHRelationshipRequest, CreatePlaidRelationshipRequest],
+    ) -> ACHRelationship:
+        """
+        Creates a single ACH relationship for the given account.
+
+        Args:
+            account_id (Union[UUID, str]): The id of the Account that owns the document
+            ach_data (Union[CreateACHRelationshipRequest, CreatePlaidRelationshipRequest]): The request data used to
+              create the ACH relationship.
+
+        Returns:
+            ACHRelationship: The ACH relationship that was created.
+        """
+        account_id = validate_uuid_id_param(account_id)
+
+        if not isinstance(
+            ach_data, (CreateACHRelationshipRequest, CreatePlaidRelationshipRequest)
+        ):
+            raise ValueError(
+                f"Request data must either be a CreateACHRelationshipRequest instance, or a "
+                f"CreatePlaidRelationshipRequest instance. Got unsupported {type(ach_data)} instead."
+            )
+
+        response = self.post(f"/accounts/{account_id}/ach_relationships", ach_data)
+        return ACHRelationship(**response)
+
     def get_ach_relationships_for_account(
         self,
         account_id: Union[UUID, str],
-        statuses: Optional[List[ACHRelationshipStatus]],
+        statuses: Optional[List[ACHRelationshipStatus]] = None,
     ) -> List[ACHRelationship]:
-        pass
+        account_id = validate_uuid_id_param(account_id)
+
+        params = {}
+        if statuses is not None:
+            params["statuses"] = ",".join(statuses)
+
+        response = self.get(f"/accounts/{account_id}/ach_relationships", params)
+        return parse_obj_as(List[ACHRelationship], response)
+
+    def delete_ach_relationship_for_account(
+        self,
+        account_id: Union[UUID, str],
+        ach_relationship_id: Union[UUID, str],
+    ) -> None:
+        account_id = validate_uuid_id_param(account_id)
+        ach_relationship_id = validate_uuid_id_param(ach_relationship_id)
+        self.delete(f"/accounts/{account_id}/ach_relationships/{ach_relationship_id}")
+
+    def create_bank_for_account(
+        self,
+        account_id: Union[UUID, str],
+        bank_data: CreateBankRequest,
+    ) -> Bank:
+        account_id = validate_uuid_id_param(account_id)
+        response = self.post(f"/accounts/{account_id}/recipient_banks")
+        return Bank(**response)
+
+    def get_banks_for_account(
+        self,
+        account_id: Union[UUID, str],
+    ) -> List[Bank]:
+        account_id = validate_uuid_id_param(account_id)
+        response = self.get(f"/accounts/{account_id}/recipient_banks")
+        return parse_obj_as(List[Bank], response)
+
+    def delete_bank_for_account(
+        self,
+        account_id: Union[UUID, str],
+        bank_id: Union[UUID, str],
+    ) -> None:
+        account_id = validate_uuid_id_param(account_id)
+        bank_id = validate_uuid_id_param(bank_id)
+        self.delete(f"/accounts/{account_id}/recipient_banks/{bank_id}")
+
+    def create_transfer_for_account(
+        self,
+        account_id: Union[UUID, str],
+        transfer_data: CreateTransferRequest,
+    ) -> Transfer:
+        account_id = validate_uuid_id_param(account_id)
+        response = self.post(f"/accounts/{account_id}/transfers", transfer_data)
+        return Transfer(**response)
+
+    def get_transfers_for_account(
+        self,
+        account_id: Union[UUID, str],
+    ) -> List[Transfer]:
+        # TODO: Filter params?
+        account_id = validate_uuid_id_param(account_id)
+        response = self.get(f"/accounts/{account_id}/transfers")
+        return parse_obj_as(List[Transfer], response)
+
+    def cancel_transfer_for_account(
+        self,
+        account_id: Union[UUID, str],
+        transfer_id: Union[UUID, str],
+    ) -> None:
+        account_id = validate_uuid_id_param(account_id)
+        transfer_id = validate_uuid_id_param(transfer_id)
+        self.delete(f"/accounts/{account_id}/transfers/{transfer_id}")

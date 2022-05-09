@@ -624,7 +624,9 @@ class BrokerClient(RESTClient):
                 f"CreatePlaidRelationshipRequest instance. Got unsupported {type(ach_data)} instead."
             )
 
-        response = self.post(f"/accounts/{account_id}/ach_relationships", ach_data)
+        response = self.post(
+            f"/accounts/{account_id}/ach_relationships", ach_data.to_request_fields()
+        )
         return ACHRelationship(**response)
 
     def get_ach_relationships_for_account(
@@ -656,7 +658,9 @@ class BrokerClient(RESTClient):
         bank_data: CreateBankRequest,
     ) -> Bank:
         account_id = validate_uuid_id_param(account_id)
-        response = self.post(f"/accounts/{account_id}/recipient_banks")
+        response = self.post(
+            f"/accounts/{account_id}/recipient_banks", bank_data.to_request_fields()
+        )
         return Bank(**response)
 
     def get_banks_for_account(
@@ -682,7 +686,9 @@ class BrokerClient(RESTClient):
         transfer_data: CreateTransferRequest,
     ) -> Transfer:
         account_id = validate_uuid_id_param(account_id)
-        response = self.post(f"/accounts/{account_id}/transfers", transfer_data)
+        response = self.post(
+            f"/accounts/{account_id}/transfers", transfer_data.to_request_fields()
+        )
         return Transfer(**response)
 
     def get_transfers_for_account(

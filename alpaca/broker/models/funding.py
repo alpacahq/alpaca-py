@@ -42,7 +42,7 @@ class ACHRelationship(BaseModel):
     bank_account_type: BankAccountType
     bank_account_number: str
     bank_routing_number: str
-    nickname: str
+    nickname: Optional[str]
     processor_token: Optional[str] = None
 
 
@@ -115,4 +115,4 @@ class Transfer(BaseModel):
     requested_amount: str
     fee: str
     fee_payment_method: FeePaymentMethod
-    additional_information: str
+    additional_information: Optional[str]

@@ -56,10 +56,10 @@ class NonEmptyRequest(BaseModel):
 
         # pydantic almost has what we need by passing exclude_none to dict() but it returns:
         #  {trusted_contact: {}, contact: {}, identity: None, etc}
-        # so we do a simple list comprehension to filter out None and {}
+        # so we do a simple list comprehension to filter out None and {}, and also convert UUID instances to strings.
 
         return {
-            key: val
+            key: (val if not isinstance(val, UUID) else str(val))
             for key, val in self.dict(exclude_none=True).items()
             if val and len(str(val)) > 0
         }

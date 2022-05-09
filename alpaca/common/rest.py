@@ -12,7 +12,7 @@ from alpaca import __version__
 from alpaca.common.constants import DATA_V2_MAX_LIMIT
 from alpaca.common.exceptions import APIError, RetryException
 from alpaca.common.types import RawData
-from alpaca.common.utils import get_api_version, get_credentials
+from alpaca.common.utils import get_api_version, validate_credentials
 
 from .enums import BaseURL
 
@@ -23,8 +23,9 @@ class RESTClient(ABC):
     def __init__(
         self,
         base_url: Union[BaseURL, str],
-        api_key: str = None,
-        secret_key: str = None,
+        api_key: Optional[str] = None,
+        secret_key: Optional[str] = None,
+        oauth_token: Optional[str] = None,
         api_version: str = "v2",
         sandbox: bool = False,
         raw_data: bool = False,
@@ -35,14 +36,17 @@ class RESTClient(ABC):
         Args:
             base_url (Union[BaseURL, str]): The base url to target requests to. Should be an instance of BaseURL, but
               allows for raw str if you need to override
-            api_key (str, optional): description. Defaults to None.
-            secret_key (str, optional): description. Defaults to None.
-            api_version (str, optional): description. Defaults to 'v2'.
-            sandbox (bool, optional): description. Defaults to False.
-            raw_data (bool, optional): description. Defaults to False.
+            api_key (Optional[str]): The api key string for authentication. Defaults to None.
+            secret_key (Optional[str]): The corresponding secret key string for the api key. Defaults to None.
+            oauth_token (Optional[str]): The oauth token if authenticating via OAuth. Defaults to None.
+            api_version (Optional[str]): The API version for the endpoints. Defaults to 'v2'.
+            sandbox (bool): False if the live API should be used. Defaults to False.
+            raw_data (bool): Whether API responses should be wrapped in data models or returned raw. Defaults to False.
         """
 
-        self._api_key, self._secret_key = get_credentials(api_key, secret_key)
+        self._api_key, self._secret_key, self._oauth_token = validate_credentials(
+            api_key, secret_key, oauth_token
+        )
         self._api_version: str = get_api_version(api_version)
         self._base_url: Union[BaseURL, str] = base_url
         self._sandbox: bool = sandbox
@@ -78,20 +82,8 @@ class RESTClient(ABC):
         base_url = base_url or self._base_url
         version = api_version if api_version else self._api_version
         url: str = base_url.value + "/" + version + path
-        headers = {}
 
-        if (
-            self._base_url == BaseURL.BROKER_PRODUCTION
-            or self._base_url == BaseURL.BROKER_SANDBOX
-        ):
-            auth_string = f"{self._api_key}:{self._secret_key}"
-            auth_string_encoded = base64.b64encode(str.encode(auth_string))
-            headers["Authorization"] = "Basic " + auth_string_encoded.decode("utf-8")
-        else:
-            headers["APCA-API-KEY-ID"] = self._api_key
-            headers["APCA-API-SECRET-KEY"] = self._secret_key
-
-        headers["User-Agent"] = "APCA-PY/" + __version__
+        headers = self._get_default_headers()
 
         opts = {
             "headers": headers,
@@ -119,6 +111,37 @@ class RESTClient(ABC):
                 retry -= 1
                 continue
 
+    def _get_default_headers(self) -> dict:
+        """
+        Returns a dict with some default headers set; ie AUTH headers and such that should be useful on all requests
+        Extracted for cases when using the default request functions are insufficient
+        Returns:
+            dict: The resulting dict of headers
+        """
+        headers = self._get_auth_headers()
+
+        headers["User-Agent"] = "APCA-PY/" + __version__
+
+        return headers
+
+    def _get_auth_headers(self) -> dict:
+        """
+        Get the auth headers for a request. Meant to be overridden in clients that don't use this format for requests,
+        ie: BrokerClient
+        Returns:
+            dict: A dict containing the expected auth headers
+        """
+
+        headers = {}
+
+        if self._oauth_token:
+            headers["Authorization"] = "Bearer " + self._oauth_token
+        else:
+            headers["APCA-API-KEY-ID"] = self._api_key
+            headers["APCA-API-SECRET-KEY"] = self._secret_key
+
+        return headers
+
     def _one_request(self, method: str, url: str, opts: dict, retry: int) -> dict:
         """Perform one request, possibly raising RetryException in the case
         the response is 429. Otherwise, if error text contain "code" string,
@@ -139,21 +162,23 @@ class RESTClient(ABC):
             dict: The response data
         """
         retry_codes = self._retry_codes
-        resp = self._session.request(method, url, **opts)
+        response = self._session.request(method, url, **opts)
 
         try:
-            resp.raise_for_status()
+            response.raise_for_status()
         except HTTPError as http_error:
-            # retry if we hit Rate Limit
-            if resp.status_code in retry_codes and retry > 0:
-                raise RetryException()
-            if "code" in resp.text:
-                error = resp.json()
-                if "code" in error:
-                    raise APIError(error, http_error)
 
-        if resp.text != "":
-            return resp.json()
+            # retry if we hit Rate Limit or any other exception that allows retries
+            if response.status_code in retry_codes and retry > 0:
+                raise RetryException()
+
+            # raise API error for all other errors
+            error = response.json()
+
+            raise APIError(error, http_error)
+
+        if response.text != "":
+            return response.json()
 
     def _data_get(
         self,

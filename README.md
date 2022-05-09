@@ -1,5 +1,7 @@
 # AlpacaPy
 
+[![Downloads](https://pepy.tech/badge/alpaca-py/month)](https://pepy.tech/project/alpaca-py)
+
 ### Dev setup
 
 This project is managed via poetry so setup should be just running `poetry install`.

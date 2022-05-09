@@ -18,6 +18,8 @@ from .models import (
     TradeAccount,
     TradeDocument,
     UploadDocumentRequest,
+    TradeAccountConfiguration,
+    UpdateTradeConfigurationRequest,
 )
 from ..common import APIError
 from ..common.constants import ACCOUNT_ACTIVITIES_DEFAULT_PAGE_SIZE
@@ -301,6 +303,38 @@ class BrokerClient(RESTClient):
             f"/accounts/{account_id}/documents/upload",
             [document.to_request_fields() for document in document_data],
         )
+
+    def get_trade_configuration_for_account(
+        self,
+        account_id: Union[UUID, str],
+    ) -> TradeAccountConfiguration:
+        """
+        Gets the TradeAccountConfiguration for a given Account.
+
+        Args:
+            account_id (Union[UUID, str]): The id of the Account you wish to get the TradeAccountConfiguration for
+
+        Returns:
+            TradeAccountConfiguration: The resulting TradeAccountConfiguration for the Account
+        """
+        pass
+
+    def update_trade_configuration_for_account(
+        self,
+        account_id: Union[UUID, str],
+        config: UpdateTradeConfigurationRequest,
+    ) -> TradeAccountConfiguration:
+        """
+        Updates an Account with new TradeAccountConfiguration information.
+
+        Args:
+            account_id (Union[UUID, str]): The id of the Account you wish to update.
+            config (UpdateTradeConfigurationRequest): The Updated Options you wish to set on the Account
+
+        Returns:
+            TradeAccountConfiguration: The resulting TradeAccountConfiguration with updates.
+        """
+        pass
 
     def get_cip_data_for_account_by_id(
         self,

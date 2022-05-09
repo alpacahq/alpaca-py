@@ -9,9 +9,12 @@ import pytest
 import requests_mock
 from requests_mock import Mocker
 
+from alpaca.broker import TradeAccountConfiguration
 from alpaca.broker.client import BrokerClient
 from alpaca.broker.enums import (
     AccountEntities,
+    DTBPCheck,
+    PDTCheck,
     TradeDocumentType,
     UploadDocumentMimeType,
     DocumentType,
@@ -700,3 +703,42 @@ def test_get_trade_account_by_id_validates_account_id(reqmock, client: BrokerCli
         client.get_trade_account_by_id(4)
 
     assert "account_id must be a UUID or a UUID str" in str(e.value)
+
+
+def test_get_trade_configuration_for_account(reqmock, client: BrokerClient):
+    account_id = "5fc0795e-1f16-40cc-aa90-ede67c39d7a9"
+
+    reqmock.get(
+        BaseURL.BROKER_SANDBOX
+        + f"/v1/trading/accounts/{account_id}/account/configurations",
+        text="""
+        {
+          "dtbp_check": "both",
+          "fractional_trading": true,
+          "max_margin_multiplier": "4",
+          "no_shorting": false,
+          "pdt_check": "entry",
+          "suspend_trade": false,
+          "trade_confirm_email": "all"
+        }
+        """,
+    )
+
+    config = client.get_trade_configuration_for_account(
+        account_id=account_id,
+    )
+
+    assert reqmock.called_once
+    assert isinstance(config, TradeAccountConfiguration)
+    assert config.dtbp_check == DTBPCheck.BOTH
+    assert config.pdt_check == PDTCheck.ENTRY
+
+
+def test_get_trade_configuration_for_account_validates_id(
+    reqmock, client: BrokerClient
+):
+    with pytest.raises(ValueError):
+        client.get_trade_configuration_for_account(account_id="not a uuid")
+
+    with pytest.raises(ValueError):
+        client.get_trade_configuration_for_account(account_id=334)

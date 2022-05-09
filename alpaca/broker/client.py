@@ -19,7 +19,6 @@ from .models import (
     TradeDocument,
     UploadDocumentRequest,
     TradeAccountConfiguration,
-    UpdateTradeConfigurationRequest,
 )
 from ..common import APIError
 from ..common.constants import ACCOUNT_ACTIVITIES_DEFAULT_PAGE_SIZE
@@ -317,12 +316,17 @@ class BrokerClient(RESTClient):
         Returns:
             TradeAccountConfiguration: The resulting TradeAccountConfiguration for the Account
         """
-        pass
+
+        account_id = validate_uuid_id_param(account_id, "account_id")
+
+        resp = self.get(f"/trading/accounts/{account_id}/account/configurations")
+
+        return TradeAccountConfiguration(**resp)
 
     def update_trade_configuration_for_account(
         self,
         account_id: Union[UUID, str],
-        config: UpdateTradeConfigurationRequest,
+        config: TradeAccountConfiguration,
     ) -> TradeAccountConfiguration:
         """
         Updates an Account with new TradeAccountConfiguration information.

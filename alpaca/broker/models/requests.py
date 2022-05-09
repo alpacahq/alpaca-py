@@ -452,7 +452,3 @@ class UploadW8BenDocumentRequest(NonEmptyRequest):
             raise ValueError("If `content_data` is set then `mime_type` must be JSON")
 
         return values
-
-
-class UpdateTradeConfigurationRequest(NonEmptyRequest):
-    pass

@@ -14,8 +14,6 @@ from ..enums import (
 )
 from alpaca.common.models import ValidateBaseModel as BaseModel
 
-# TODO: Base funding class?
-
 
 class ACHRelationship(BaseModel):
     """

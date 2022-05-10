@@ -5,7 +5,7 @@ from uuid import UUID
 from .documents import W8BenDocument
 from ...common.models import ValidateBaseModel as BaseModel
 
-from pydantic import root_validator
+from pydantic import root_validator, validator
 
 from .accounts import (
     Agreement,
@@ -475,8 +475,8 @@ class CreateACHRelationshipRequest(NonEmptyRequest):
 
     account_owner_name: str
     bank_account_type: BankAccountType
-    bank_account_number: str  # TODO: Validate bank account number format?
-    bank_routing_number: str  # TODO: Validate bank routing number format?
+    bank_account_number: str  # TODO: Validate bank account number format.
+    bank_routing_number: str  # TODO: Validate bank routing number format.
     nickname: Optional[str]
 
 
@@ -561,58 +561,67 @@ class CreateBankRequest(NonEmptyRequest):
         return values
 
 
-class CreateTransferRequest(NonEmptyRequest):
+class _CreateTransferRequest(NonEmptyRequest):
     """
     Attributes:
-        transfer_type (TransferType): Type of the transfer.
-        relationship_id (Optional[UUID]): ID of the relationship to use for the transfer, required for ACH transfers.
-        bank_id (Optional[UUID]): ID of the bank to use for the transfer, required for wire transfers.
         amount (str): Amount of transfer, must be > 0. Any applicable fees will be deducted from this value.
         direction (TransferDirection): Direction of the transfer.
         timing (TransferTiming): Timing of the transfer.
-        additional_information (Optional[str]): Additional wire transfer details.
         fee_payment_method (Optional[FeePaymentMethod]): Determines how any applicable fees will be paid. Default value
           is invoice.
     """
 
-    transfer_type: TransferType
-    relationship_id: Optional[UUID]
-    bank_id: Optional[UUID]
     amount: str
     direction: TransferDirection
     timing: TransferTiming
-    additional_information: Optional[str]
     fee_payment_method: Optional[FeePaymentMethod]
 
-    @root_validator()
-    def root_validator(cls, values: dict) -> dict:
-        if "transfer_type" not in values or "amount" not in values:
-            # Invalid transfer type or amount, so a ValueError will be thrown regardless.
-            return values
-
-        if values["transfer_type"] == TransferType.ACH:
-            if "relationship_id" not in values or values["relationship_id"] is None:
-                raise ValueError(
-                    "You must specify a relationship_id for ACH transfers."
-                )
-            if "bank_id" in values and values["bank_id"] is not None:
-                raise ValueError("You may not specify a bank_id for ACH transfers.")
-            if (
-                "additional_information" in values
-                and values["additional_information"] is not None
-            ):
-                raise ValueError(
-                    "You may only specify additional_information for wire transfers."
-                )
-        elif values["transfer_type"] == TransferType.WIRE:
-            if "bank_id" not in values or values["bank_id"] is None:
-                raise ValueError("You must specify a bank_id for wire transfers.")
-            if "relationship_id" in values and values["relationship_id"] is not None:
-                raise ValueError(
-                    "You may not specify a relationship_id for wire transfers."
-                )
-
-        if float(values["amount"]) <= 0:
+    @validator("amount")
+    def amount_must_be_positive(cls, value: str) -> str:
+        if float(value) <= 0:
             raise ValueError("You must provide an amount > 0.")
+        return value
 
-        return values
+
+class CreateACHTransferRequest(_CreateTransferRequest):
+    """
+    Attributes:
+        transfer_type (TransferType): Type of the transfer.
+        relationship_id (Optional[UUID]): ID of the relationship to use for the transfer, required for ACH transfers.
+    """
+    relationship_id: UUID
+    transfer_type: TransferType = TransferType.ACH
+
+    @validator("transfer_type")
+    def transfer_type_must_be_ach(cls, value: TransferType) -> TransferType:
+        if value != TransferType.ACH:
+            raise ValueError("Transfer type must be TransferType.ACH for ACH transfer requests.")
+        return value
+
+
+class CreateBankTransferRequest(_CreateTransferRequest):
+    """
+    Attributes:
+        bank_id (UUID): ID of the bank to use for the transfer, required for wire transfers.
+        additional_information (Optional[str]): Additional wire transfer details.
+    """
+    bank_id: UUID
+    transfer_type: TransferType = TransferType.WIRE
+    additional_information: Optional[str]
+
+    @validator("transfer_type")
+    def transfer_type_must_be_wire(cls, value: TransferType) -> TransferType:
+        if value != TransferType.WIRE:
+            raise ValueError("Transfer type must be TransferType.WIRE for bank transfer requests.")
+        return value
+
+
+class GetTransfersRequest(NonEmptyRequest):
+    """
+    Attributes:
+        direction: Optionally filter for transfers of only a single TransferDirection.
+    """
+
+    direction: Optional[TransferDirection]
+    limit: Optional[int]
+    offset: Optional[int]

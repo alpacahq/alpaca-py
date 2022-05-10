@@ -21,7 +21,8 @@ from alpaca.broker.models import (
     GetTradeDocumentsRequest,
     TradeDocument,
     CreateBankRequest,
-    CreateTransferRequest,
+    CreateACHTransferRequest,
+    CreateBankTransferRequest
 )
 from alpaca.broker.enums import (
     IdentifierType,
@@ -341,93 +342,24 @@ class TestCreateBankRequest:
 
 class TestCreateTransferRequest:
     def test_valid_ach_transfer_request(self):
-        CreateTransferRequest(
-            transfer_type=TransferType.ACH,
+        CreateACHTransferRequest(
             relationship_id=uuid4(),
             amount="100.0",
             direction=TransferDirection.INCOMING,
             timing=TransferTiming.IMMEDIATE,
         )
 
-    def test_no_relationship_id_with_ach_transfer(self):
-        with pytest.raises(ValueError) as e:
-            CreateTransferRequest(
-                transfer_type=TransferType.ACH,
-                amount="100.0",
-                direction=TransferDirection.INCOMING,
-                timing=TransferTiming.IMMEDIATE,
-            )
-
-        assert "You must specify a relationship_id for ACH transfers." in str(e.value)
-
-    def test_bank_id_with_ach_transfer(self):
-        with pytest.raises(ValueError) as e:
-            CreateTransferRequest(
-                transfer_type=TransferType.ACH,
-                relationship_id=uuid4(),
-                bank_id=uuid4(),
-                amount="100.0",
-                direction=TransferDirection.INCOMING,
-                timing=TransferTiming.IMMEDIATE,
-            )
-
-        assert "You may not specify a bank_id for ACH transfers." in str(e.value)
-
-    def test_additional_information_with_ach_transfer(self):
-        with pytest.raises(ValueError) as e:
-            CreateTransferRequest(
-                transfer_type=TransferType.ACH,
-                relationship_id=uuid4(),
-                amount="100.0",
-                direction=TransferDirection.INCOMING,
-                timing=TransferTiming.IMMEDIATE,
-                additional_information="fake",
-            )
-
-        assert "You may only specify additional_information for wire transfers." in str(
-            e.value
-        )
-
-    def test_valid_wire_transfer_request(self):
-        CreateTransferRequest(
-            transfer_type=TransferType.WIRE,
+    def test_valid_bank_transfer_request(self):
+        CreateBankTransferRequest(
             bank_id=uuid4(),
             amount="100.0",
             direction=TransferDirection.INCOMING,
             timing=TransferTiming.IMMEDIATE,
         )
 
-    def test_no_bank_id_with_wire_transfer(self):
-        with pytest.raises(ValueError) as e:
-            CreateTransferRequest(
-                transfer_type=TransferType.WIRE,
-                amount="100.0",
-                direction=TransferDirection.INCOMING,
-                timing=TransferTiming.IMMEDIATE,
-            )
-
-        assert "You must specify a bank_id for wire transfers." in str(e.value)
-
-    def test_relationship_id_with_wire_transfer(self):
-        with pytest.raises(ValueError) as e:
-            CreateTransferRequest(
-                transfer_type=TransferType.WIRE,
-                relationship_id=uuid4(),
-                bank_id=uuid4(),
-                amount="100.0",
-                direction=TransferDirection.INCOMING,
-                timing=TransferTiming.IMMEDIATE,
-                additional_information="fake",
-            )
-
-        assert "You may not specify a relationship_id for wire transfers." in str(
-            e.value
-        )
-
     def test_zero_transfer_amount(self):
         with pytest.raises(ValueError) as e:
-            CreateTransferRequest(
-                transfer_type=TransferType.ACH,
+            CreateACHTransferRequest(
                 relationship_id=uuid4(),
                 amount="0",
                 direction=TransferDirection.INCOMING,
@@ -438,8 +370,7 @@ class TestCreateTransferRequest:
 
     def test_negative_transfer_amount(self):
         with pytest.raises(ValueError) as e:
-            CreateTransferRequest(
-                transfer_type=TransferType.ACH,
+            CreateACHTransferRequest(
                 relationship_id=uuid4(),
                 amount="-100.0",
                 direction=TransferDirection.INCOMING,
@@ -447,3 +378,27 @@ class TestCreateTransferRequest:
             )
 
         assert "You must provide an amount > 0." in str(e.value)
+
+    def test_ach_transfer_with_wire_transfer_type(self):
+        with pytest.raises(ValueError) as e:
+            CreateACHTransferRequest(
+                relationship_id=uuid4(),
+                amount="0",
+                direction=TransferDirection.INCOMING,
+                timing=TransferTiming.IMMEDIATE,
+                transfer_type=TransferType.WIRE
+            )
+
+        assert "Transfer type must be TransferType.ACH for ACH transfer requests." in str(e.value)
+
+    def test_bank_transfer_with_ach_transfer_type(self):
+        with pytest.raises(ValueError) as e:
+            CreateBankTransferRequest(
+                relationship_id=uuid4(),
+                amount="0",
+                direction=TransferDirection.INCOMING,
+                timing=TransferTiming.IMMEDIATE,
+                transfer_type=TransferType.ACH
+            )
+
+        assert "Transfer type must be TransferType.WIRE for bank transfer requests." in str(e.value)

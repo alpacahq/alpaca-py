@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional, Type, Union
+from typing import Iterator, List, Optional, Type, Union
 
 from pydantic import BaseModel
 
@@ -10,6 +10,7 @@ from alpaca.common.types import RawData
 
 from .enums import Adjustment, DataFeed, Exchange
 from .models import XBBO, BarSet, Quote, QuoteSet, SnapshotSet, Trade, TradeSet
+from ..common.constants import DATA_V2_MAX_LIMIT
 
 
 class HistoricalDataClient(RESTClient):
@@ -508,6 +509,86 @@ class HistoricalDataClient(RESTClient):
         return self.response_wrapper(
             model=XBBO, raw_data=raw_latest_xbbo, symbol=symbol
         )
+
+    def _data_get(
+        self,
+        endpoint: str,
+        symbol_or_symbols: Union[str, List[str]],
+        endpoint_base: str = "stocks",
+        api_version: str = "v2",
+        max_items_limit: Optional[int] = None,
+        page_limit: int = DATA_V2_MAX_LIMIT,
+        **kwargs,
+    ) -> Iterator[dict]:
+        """Performs Data API GET requests accounting for pagination. Data in responses are limited to the page_limit,
+        which defaults to 10,000 items. If any more data is requested, the data will be paginated.
+
+        Args:
+            endpoint (str): The data API endpoint path - /bars, /quotes, etc
+            symbol_or_symbols (Union[str, List[str]]): The symbol or list of symbols that we want to query for
+            endpoint_base (str, optional): The data API security type path. Defaults to 'stocks'.
+            api_version (str, optional): Data API version. Defaults to "v2".
+            max_items_limit (Optional[int]): The maximum number of items to query. Defaults to None.
+            page_limit (int, optional): The maximum number of items returned per page - different from limit. Defaults to DATA_V2_MAX_LIMIT.
+
+        Yields:
+            Iterator[dict]: Raw Market data from API
+        """
+        page_token = None
+        total_items = 0
+
+        data = kwargs
+
+        path = f"/{endpoint_base}"
+
+        multi_symbol = not isinstance(symbol_or_symbols, str)
+
+        if not multi_symbol and symbol_or_symbols:
+            path += f"/{symbol_or_symbols}"
+        else:
+            data["symbols"] = ",".join(symbol_or_symbols)
+
+        if endpoint:
+            path += f"/{endpoint}"
+
+        while True:
+
+            actual_limit = None
+
+            # adjusts the limit parameter value if it is over the page_limit
+            if max_items_limit:
+                # actual_limit is the adjusted total number of items to query per request
+                actual_limit = min(int(max_items_limit) - total_items, page_limit)
+                if actual_limit < 1:
+                    break
+
+            data["limit"] = actual_limit
+            data["page_token"] = page_token
+
+            resp = self.get(path, data, api_version=api_version)
+
+            if not multi_symbol:
+                # required for /news endpoint
+                _endpoint = endpoint or endpoint_base
+
+                data = resp.get(_endpoint, []) or []
+
+                for item in data:
+                    total_items += 1
+                    yield item
+            else:
+                data_by_symbol = resp.get(endpoint, {}) or {}
+
+                # if we've sent a request with a limit, increment count
+                if actual_limit:
+                    total_items += actual_limit
+
+                yield data_by_symbol
+
+            page_token = resp.get("next_page_token")
+
+            if not page_token:
+                break
 
     def _format_data_response(
         self,

@@ -2,19 +2,20 @@ import base64
 import os
 import time
 from abc import ABC
-from typing import Generator, List, Optional, Union, Type
+from typing import Any, List, Optional, Type, Union
 
 from pydantic import BaseModel
-from requests import Session
+from requests import Response, Session
 from requests.exceptions import HTTPError
 
 from alpaca import __version__
-from alpaca.common.constants import DATA_V2_MAX_LIMIT
 from alpaca.common.exceptions import APIError, RetryException
 from alpaca.common.types import RawData
 from alpaca.common.utils import get_api_version, get_credentials
-
 from .enums import BaseURL
+
+# TODO: Refine this type
+HTTPResult = Union[dict, List[dict], Any]
 
 
 class RESTClient(ABC):
@@ -58,40 +59,30 @@ class RESTClient(ABC):
         self,
         method: str,
         path: str,
-        data: dict = None,
-        base_url: BaseURL = None,
-        api_version: str = None,
-    ) -> dict:
+        data: Optional[Union[dict, str]] = None,
+        base_url: Optional[Union[BaseURL, str]] = None,
+        api_version: Optional[str] = None,
+    ) -> HTTPResult:
+
         """Prepares and submits HTTP requests to given API endpoint and returns response.
         Handles retrying if 429 (Rate Limit) error arises.
 
         Args:
             method (str): The API endpoint HTTP method
             path (str): The API endpoint path
-            data (dict, optional): The payload if any. Defaults to None.
-            base_url (BaseURL, optional): The base URL of the API. Defaults to None.
-            api_version (str, optional): The API version. Defaults to None.
+            data (Optional[Union[dict, str]]): Either the payload in json format, query params urlencoded, or a dict
+             of values to be converted to appropriate format based on `method`. Defaults to None.
+            base_url (Optional[Union[BaseURL, str]]): The base URL of the API. Defaults to None.
+            api_version (Optional[str]): The API version. Defaults to None.
 
         Returns:
-            dict: The response from the API
+            HTTPResult: The response from the API
         """
         base_url = base_url or self._base_url
         version = api_version if api_version else self._api_version
-        url: str = base_url.value + "/" + version + path
-        headers = {}
+        url: str = base_url + "/" + version + path
 
-        if (
-            self._base_url == BaseURL.BROKER_PRODUCTION
-            or self._base_url == BaseURL.BROKER_SANDBOX
-        ):
-            auth_string = f"{self._api_key}:{self._secret_key}"
-            auth_string_encoded = base64.b64encode(str.encode(auth_string))
-            headers["Authorization"] = "Basic " + auth_string_encoded.decode("utf-8")
-        else:
-            headers["APCA-API-KEY-ID"] = self._api_key
-            headers["APCA-API-SECRET-KEY"] = self._secret_key
-
-        headers["User-Agent"] = "APCA-PY/" + __version__
+        headers = self._get_default_headers()
 
         opts = {
             "headers": headers,
@@ -114,10 +105,38 @@ class RESTClient(ABC):
             try:
                 return self._one_request(method, url, opts, retry)
             except RetryException:
-                retry_wait = self._retry_wait
-                time.sleep(retry_wait)
+                time.sleep(self._retry_wait)
                 retry -= 1
                 continue
+
+    def _get_default_headers(self) -> dict:
+        """
+        Returns a dict with some default headers set; ie AUTH headers and such that should be useful on all requests
+
+        Extracted for cases when using the default request functions are insufficient
+
+        Returns:
+            dict: The resulting dict of headers
+        """
+        headers = self._get_auth_headers()
+
+        headers["User-Agent"] = "APCA-PY/" + __version__
+
+        return headers
+
+    def _get_auth_headers(self) -> dict:
+        """
+        Get the auth headers for a request. Meant to be overridden in clients that don't use this format for requests,
+        ie: BrokerClient
+
+        Returns:
+            dict: A dict containing the expected auth headers
+        """
+
+        return {
+            "APCA-API-KEY-ID": self._api_key,
+            "APCA-API-SECRET-KEY": self._secret_key,
+        }
 
     def _one_request(self, method: str, url: str, opts: dict, retry: int) -> dict:
         """Perform one request, possibly raising RetryException in the case
@@ -138,157 +157,82 @@ class RESTClient(ABC):
         Returns:
             dict: The response data
         """
-        retry_codes = self._retry_codes
         resp = self._session.request(method, url, **opts)
 
         try:
             resp.raise_for_status()
         except HTTPError as http_error:
             # retry if we hit Rate Limit
-            if resp.status_code in retry_codes and retry > 0:
+            if resp.status_code in self._retry_codes and retry > 0:
                 raise RetryException()
             if "code" in resp.text:
                 error = resp.json()
                 if "code" in error:
                     raise APIError(error, http_error)
+            else:
+                raise http_error
 
         if resp.text != "":
             return resp.json()
 
-    def _data_get(
-        self,
-        endpoint: str,
-        symbol_or_symbols: Union[str, List[str]],
-        endpoint_base: str = "stocks",
-        api_version: str = "v2",
-        max_items_limit: Optional[int] = None,
-        page_limit: int = DATA_V2_MAX_LIMIT,
-        **kwargs,
-    ) -> Generator[dict, None, None]:
-        """Performs Data API GET requests accounting for pagination. Data in responses are limited to the page_limit,
-        which defaults to 10,000 items. If any more data is requested, the data will be paginated.
-
-        Args:
-            endpoint (str): The data API endpoint path - /bars, /quotes, etc
-            symbol_or_symbols (Union[str, List[str]]): The symbol or list of symbols that we want to query for
-            endpoint_base (str, optional): The data API security type path. Defaults to 'stocks'.
-            api_version (str, optional): Data API version. Defaults to "v2".
-            max_items_limit (Optional[int]): The maximum number of items to query. Defaults to None.
-            page_limit (int, optional): The maximum number of items returned per page - different from limit. Defaults to DATA_V2_MAX_LIMIT.
-
-        Yields:
-            Generator[dict, None, None]: Market data from API
-        """
-        page_token = None
-        total_items = 0
-
-        data = kwargs
-
-        path = f"/{endpoint_base}"
-
-        multi_symbol = not isinstance(symbol_or_symbols, str)
-
-        if not multi_symbol and symbol_or_symbols:
-            path += f"/{symbol_or_symbols}"
-        else:
-            data["symbols"] = ",".join(symbol_or_symbols)
-
-        if endpoint:
-            path += f"/{endpoint}"
-
-        while True:
-
-            actual_limit = None
-
-            # adjusts the limit parameter value if it is over the page_limit
-            if max_items_limit:
-                # actual_limit is the adjusted total number of items to query per request
-                actual_limit = min(int(max_items_limit) - total_items, page_limit)
-                if actual_limit < 1:
-                    break
-
-            data["limit"] = actual_limit
-            data["page_token"] = page_token
-
-            resp = self.get(path, data, api_version=api_version)
-
-            if not multi_symbol:
-                # required for /news endpoint
-                _endpoint = endpoint or endpoint_base
-
-                data = resp.get(_endpoint, []) or []
-
-                for item in data:
-                    total_items += 1
-                    yield item
-            else:
-                data_by_symbol = resp.get(endpoint, {}) or {}
-
-                # if we've sent a request with a limit, increment count
-                if actual_limit:
-                    total_items += actual_limit
-
-                yield data_by_symbol
-
-            page_token = resp.get("next_page_token")
-
-            if not page_token:
-                break
-
-    def get(self, path: str, data: dict = None, **kwargs) -> dict:
+    def get(self, path: str, data: Union[dict, str] = None, **kwargs) -> HTTPResult:
         """Performs a single GET request
 
         Args:
             path (str): The API endpoint path
-            data (dict, optional): The payload if any - includes query parameters. Defaults to None.
+            data (Union[dict, str], optional): Query parameters to send, either
+            as a str urlencoded, or a dict of values to be converted. Defaults to None.
 
         Returns:
             dict: The response
         """
         return self._request("GET", path, data, **kwargs)
 
-    def post(self, path: str, data: dict = None) -> dict:
+    def post(self, path: str, data: Union[dict, List[dict], str] = None) -> HTTPResult:
         """Performs a single POST request
 
         Args:
             path (str): The API endpoint path
-            data (dict, optional): The payload if any. Defaults to None.
+            data (Union[dict, str], optional): The json payload if str, or a dict of values to be converted.
+             Defaults to None.
 
         Returns:
             dict: The response
         """
         return self._request("POST", path, data)
 
-    def put(self, path: str, data: dict = None) -> dict:
+    def put(self, path: str, data: Union[dict, str] = None) -> dict:
         """Performs a single PUT request
 
         Args:
             path (str): The API endpoint path
-            data (dict, optional): The payload if any. Defaults to None.
+            data (Union[dict, str], optional): The json payload if str, or a dict of values to be converted.
+             Defaults to None.
 
         Returns:
             dict: The response
         """
         return self._request("PUT", path, data)
 
-    def patch(self, path: str, data: dict = None) -> dict:
+    def patch(self, path: str, data: Union[dict, str] = None) -> dict:
         """Performs a single PATCH request
 
         Args:
             path (str): The API endpoint path
-            data (dict, optional): The payload if any. Defaults to None.
+            data (Union[dict, str], optional): The json payload if str, or a dict of values to be converted.
+             Defaults to None.
 
         Returns:
             dict: The response
         """
         return self._request("PATCH", path, data)
 
-    def delete(self, path, data=None) -> dict:
+    def delete(self, path, data: Union[dict, str] = None) -> dict:
         """Performs a single DELETE request
 
         Args:
             path (str): The API endpoint path
-            data (dict, optional): The payload if any. Defaults to None.
+            data (Union[dict, str], optional): The payload if any. Defaults to None.
 
         Returns:
             dict: The response

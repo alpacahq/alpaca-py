@@ -20,7 +20,7 @@ jobs:
       - name: run lint checks
         run: poetry run black --check alpaca/ tests/
       - name: build doc html to lint for errors
-        run: pushd docs && poetry run make html SPHINXOPTS="-W" && popd
+        run: ./tools/scripts/generate-docs.sh
 
   tests-ci:
     strategy:

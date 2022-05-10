@@ -589,13 +589,16 @@ class CreateACHTransferRequest(_CreateTransferRequest):
         transfer_type (TransferType): Type of the transfer.
         relationship_id (Optional[UUID]): ID of the relationship to use for the transfer, required for ACH transfers.
     """
+
     relationship_id: UUID
     transfer_type: TransferType = TransferType.ACH
 
     @validator("transfer_type")
     def transfer_type_must_be_ach(cls, value: TransferType) -> TransferType:
         if value != TransferType.ACH:
-            raise ValueError("Transfer type must be TransferType.ACH for ACH transfer requests.")
+            raise ValueError(
+                "Transfer type must be TransferType.ACH for ACH transfer requests."
+            )
         return value
 
 
@@ -605,6 +608,7 @@ class CreateBankTransferRequest(_CreateTransferRequest):
         bank_id (UUID): ID of the bank to use for the transfer, required for wire transfers.
         additional_information (Optional[str]): Additional wire transfer details.
     """
+
     bank_id: UUID
     transfer_type: TransferType = TransferType.WIRE
     additional_information: Optional[str]
@@ -612,7 +616,9 @@ class CreateBankTransferRequest(_CreateTransferRequest):
     @validator("transfer_type")
     def transfer_type_must_be_wire(cls, value: TransferType) -> TransferType:
         if value != TransferType.WIRE:
-            raise ValueError("Transfer type must be TransferType.WIRE for bank transfer requests.")
+            raise ValueError(
+                "Transfer type must be TransferType.WIRE for bank transfer requests."
+            )
         return value
 
 

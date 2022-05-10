@@ -22,7 +22,7 @@ from alpaca.broker.models import (
     TradeDocument,
     CreateBankRequest,
     CreateACHTransferRequest,
-    CreateBankTransferRequest
+    CreateBankTransferRequest,
 )
 from alpaca.broker.enums import (
     IdentifierType,
@@ -386,10 +386,13 @@ class TestCreateTransferRequest:
                 amount="0",
                 direction=TransferDirection.INCOMING,
                 timing=TransferTiming.IMMEDIATE,
-                transfer_type=TransferType.WIRE
+                transfer_type=TransferType.WIRE,
             )
 
-        assert "Transfer type must be TransferType.ACH for ACH transfer requests." in str(e.value)
+        assert (
+            "Transfer type must be TransferType.ACH for ACH transfer requests."
+            in str(e.value)
+        )
 
     def test_bank_transfer_with_ach_transfer_type(self):
         with pytest.raises(ValueError) as e:
@@ -398,7 +401,10 @@ class TestCreateTransferRequest:
                 amount="0",
                 direction=TransferDirection.INCOMING,
                 timing=TransferTiming.IMMEDIATE,
-                transfer_type=TransferType.ACH
+                transfer_type=TransferType.ACH,
             )
 
-        assert "Transfer type must be TransferType.WIRE for bank transfer requests." in str(e.value)
+        assert (
+            "Transfer type must be TransferType.WIRE for bank transfer requests."
+            in str(e.value)
+        )

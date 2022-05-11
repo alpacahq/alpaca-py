@@ -44,6 +44,10 @@ class TimeSeriesMixin:
 
             dataframes[symbol] = _df
 
+        # return empty dataframe for no data
+        if dataframes == {}:
+            return pd.DataFrame()
+
         # concat into multi-index dataframe, it will have
         # level 0 - symbol index
         # level 1 - timestamp index

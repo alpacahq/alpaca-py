@@ -39,7 +39,7 @@ import base64
 
 
 def validate_uuid_id_param(
-    account_id: Union[UUID, str],
+    id: Union[UUID, str],
     var_name: Optional[str] = None,
 ) -> UUID:
     """
@@ -47,7 +47,7 @@ def validate_uuid_id_param(
     valid UUIDs. Upcasts str instances that are valid UUIDs into UUID instances.
 
     Args:
-        account_id (Union[UUID, str]): The parameter to be validated
+        id (Union[UUID, str]): The parameter to be validated
         var_name (Optional[str]): the name of the parameter you'd like to generate in the error message. Defaults to
           using `account_id` due to it being the most commonly needed case
 
@@ -59,12 +59,12 @@ def validate_uuid_id_param(
         var_name = "account_id"
 
     # should raise ValueError
-    if type(account_id) == str:
-        account_id = UUID(account_id)
-    elif type(account_id) != UUID:
+    if type(id) == str:
+        id = UUID(id)
+    elif type(id) != UUID:
         raise ValueError(f"{var_name} must be a UUID or a UUID str")
 
-    return account_id
+    return id
 
 
 class BrokerClient(RESTClient):
@@ -530,7 +530,7 @@ class BrokerClient(RESTClient):
         Args:
             account_id (Union[UUID, str]): The id of the Account you wish to retrieve documents for. str values will
               attempt to be upcast into UUID instances
-            documents_filter (GetTradeDocumentsRequest): The optional set of filters you can apply to filter the
+            documents_filter (Optional[GetTradeDocumentsRequest]): The optional set of filters you can apply to filter the
               returned list.
 
         Returns:
@@ -559,6 +559,7 @@ class BrokerClient(RESTClient):
 
         Returns:
             TradeDocument: The requested TradeDocument
+
         Raises:
             APIError: Will raise an APIError if the account_id or a matching document_id for the account are not found.
         """
@@ -574,8 +575,19 @@ class BrokerClient(RESTClient):
         self,
         account_id: Union[UUID, str],
         document_id: Union[UUID, str],
-        file_name: str,
+        file_path: str,
     ) -> None:
+        """
+        Downloads a TradeDocument to `file_path`
+
+        Args:
+            account_id (Union[UUID, str]): ID of the account to pull the document from
+            document_id (Union[UUID, str]): ID of the document itself
+            file_path (str): A full path for where to save the file to
+
+        Returns:
+            None:
+        """
 
         account_id = validate_uuid_id_param(account_id)
         document_id = validate_uuid_id_param(document_id, "document_id")
@@ -608,14 +620,14 @@ class BrokerClient(RESTClient):
                 else:
                     raise http_error
 
-            # if we got here there were no issues response is now a value
+            # if we got here there were no issues', so response is now a value
             break
 
         if response is None:
-            # we got here either by error or someone has configured us, so we didn't even try
+            # we got here either by error or someone has mis-configured us, so we didn't even try
             raise Exception("Somehow we never made a request for download!")
 
-        with open(file_name, "wb") as f:
+        with open(file_path, "wb") as f:
             # we specify chunk_size none which is okay since we set stream to true above, so chunks will be as we
             # receive them from the api
             for chunk in response.iter_content(chunk_size=None):

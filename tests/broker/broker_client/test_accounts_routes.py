@@ -9,6 +9,9 @@ import pytest
 from alpaca.broker.client import BrokerClient
 from alpaca.broker.enums import (
     AccountEntities,
+    TradeDocumentType,
+    UploadDocumentMimeType,
+    DocumentType,
 )
 from alpaca.broker.models import (
     Account,

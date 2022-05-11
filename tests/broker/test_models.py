@@ -6,7 +6,7 @@ from alpaca.broker import (
     UploadDocumentMimeType,
     UploadDocumentRequest,
     UploadDocumentSubType,
-    UploadDocumentType,
+    DocumentType,
     UploadW8BenDocumentRequest,
     W8BenDocument,
 )
@@ -134,7 +134,7 @@ def test_get_trade_documents_request_validates_start_not_after_end():
 def test_upload_document_request_rejects_w8_ben():
     with pytest.raises(ValueError) as e:
         UploadDocumentRequest(
-            document_type=UploadDocumentType.W8BEN,
+            document_type=DocumentType.W8BEN,
             content="",
             mime_type=UploadDocumentMimeType.JSON,
         )
@@ -146,7 +146,7 @@ def test_upload_document_request_rejects_w8_ben():
 
     with pytest.raises(ValueError) as e:
         UploadDocumentRequest(
-            document_type=UploadDocumentType.ACCOUNT_APPROVAL_LETTER,
+            document_type=DocumentType.ACCOUNT_APPROVAL_LETTER,
             document_sub_type=UploadDocumentSubType.FORM_W8_BEN,
             content="",
             mime_type=UploadDocumentMimeType.JSON,
@@ -166,22 +166,26 @@ def test_upload_w8ben_document_request_defaults_values():
     )
 
 
-def test_upload_w8ben_document_request_validates_w8ben_types():
+def test_upload_w8ben_document_request_validates_w8ben_document_type():
+    val = UploadW8BenDocumentRequest(
+        content="",
+        mime_type=UploadDocumentMimeType.PDF,
+    )
+
     with pytest.raises(ValueError) as e:
-        UploadW8BenDocumentRequest(
-            document_type=UploadDocumentType.ACCOUNT_APPROVAL_LETTER,
-            content="",
-            mime_type=UploadDocumentMimeType.PDF,
-        )
+        val.document_type = DocumentType.ACCOUNT_APPROVAL_LETTER
 
     assert "document_type must be W8BEN." in str(e.value)
 
+
+def test_upload_w8ben_document_request_validates_w8ben_sub_type():
+    val = UploadW8BenDocumentRequest(
+        content="",
+        mime_type=UploadDocumentMimeType.PDF,
+    )
+
     with pytest.raises(ValueError) as e:
-        UploadW8BenDocumentRequest(
-            document_sub_type=UploadDocumentSubType.ACCOUNT_APPLICATION,
-            content="",
-            mime_type=UploadDocumentMimeType.PDF,
-        )
+        val.document_sub_type = UploadDocumentSubType.ACCOUNT_APPLICATION
 
     assert "document_sub_type must be FORM_W8_BEN." in str(e.value)
 

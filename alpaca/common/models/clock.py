@@ -1,5 +1,5 @@
 from datetime import datetime
-from ...common.models import ValidateBaseModel as BaseModel
+from .models import ValidateBaseModel as BaseModel
 
 
 class Clock(BaseModel):

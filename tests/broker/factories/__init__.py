@@ -1,2 +1,2 @@
-from .common import *
+from .accounts import *
 from .documents import *

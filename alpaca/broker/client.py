@@ -162,7 +162,7 @@ class BrokerClient(RESTClient):
 
         account_id = validate_uuid_id_param(account_id)
 
-        resp = self.get(f"/accounts/{account_id}")
+        resp = self.get(f"/accounts/{account_id}", {"params": ""})
         return Account(**resp)
 
     def update_account(
@@ -338,6 +338,8 @@ class BrokerClient(RESTClient):
         Returns:
             TradeAccountConfiguration: The resulting TradeAccountConfiguration with updates.
         """
+        account_id = validate_uuid_id_param(account_id, "account_id")
+
         pass
 
     def get_cip_data_for_account_by_id(

@@ -15,9 +15,6 @@ from alpaca.broker.enums import (
     AccountEntities,
     DTBPCheck,
     PDTCheck,
-    TradeDocumentType,
-    UploadDocumentMimeType,
-    DocumentType,
 )
 from alpaca.broker.models import (
     Account,
@@ -34,7 +31,7 @@ from alpaca.broker.models import (
 )
 from alpaca.common import APIError
 from alpaca.common.enums import BaseURL
-from tests.broker.factories import common as factory
+from tests.broker.factories import accounts as factory
 
 
 @pytest.fixture
@@ -742,3 +739,25 @@ def test_get_trade_configuration_for_account_validates_id(
 
     with pytest.raises(ValueError):
         client.get_trade_configuration_for_account(account_id=334)
+
+
+def test_update_trade_configuration_for_account(reqmock, client: BrokerClient):
+    pass
+
+
+def test_update_trade_configuration_for_account_validates_id(
+    reqmock, client: BrokerClient
+):
+    config = factory.create_dummy_trade_account_configuration()
+
+    with pytest.raises(ValueError):
+        client.update_trade_configuration_for_account(
+            account_id="not a uuid",
+            config=config,
+        )
+
+    with pytest.raises(ValueError):
+        client.update_trade_configuration_for_account(
+            account_id=334,
+            config=config,
+        )

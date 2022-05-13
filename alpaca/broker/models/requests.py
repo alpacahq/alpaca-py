@@ -24,7 +24,7 @@ from ..enums import (
     TradeDocumentType,
     UploadDocumentMimeType,
     UploadDocumentSubType,
-    UploadDocumentType,
+    DocumentType,
     VisaType,
     BankAccountType,
     IdentifierType,
@@ -369,21 +369,21 @@ class GetTradeDocumentsRequest(NonEmptyRequest):
 class UploadDocumentRequest(NonEmptyRequest):
     """
     Attributes:
-        document_type (UploadDocumentType): The type of document you are uploading
+        document_type (DocumentType): The type of document you are uploading
         document_sub_type (Optional[UploadDocumentSubType]): If supported for the corresponding `document_type` this
           field allows you to specify a sub type to be even more specific.
         content (str): A string containing Base64 encoded data to upload.
         mime_type (UploadDocumentMimeType): The mime type of the data in `content`
     """
 
-    document_type: UploadDocumentType
+    document_type: DocumentType
     document_sub_type: Optional[UploadDocumentSubType] = None
     content: str
     mime_type: UploadDocumentMimeType
 
     @root_validator()
     def root_validator(cls, values: dict) -> dict:
-        if values["document_type"] == UploadDocumentType.W8BEN:
+        if values["document_type"] == DocumentType.W8BEN:
             raise ValueError(
                 "Error please use the UploadW8BenDocument class for uploading W8BEN documents"
             )
@@ -399,9 +399,6 @@ class UploadDocumentRequest(NonEmptyRequest):
 class UploadW8BenDocumentRequest(NonEmptyRequest):
     """
     Attributes:
-        document_type (UploadDocumentType, optional): Must be UploadDocumentType.W8BEN. Will default to W8BEN if not set
-        document_sub_type (UploadDocumentSubType, optional): Must be UploadDocumentSubType.FORM_W8_BEN. Will default to
-          FORM_W8_BEN if not set
         content (Optional[str]): A string containing Base64 encoded data to upload. Must be set if `content_data` is not
           set.
         content_data (Optional[W8BenDocument]): The data representing a W8BEN document in field form. Must be set if
@@ -410,18 +407,19 @@ class UploadW8BenDocumentRequest(NonEmptyRequest):
           UploadDocumentMimeType.JSON. If `content_data` is set this will default to JSON
     """
 
-    document_type: UploadDocumentType
+    # These 2 are purposely undocumented as they should be here for NonEmptyRequest but they shouldn't be touched or
+    # set by users since they always need to be set values
+    document_type: DocumentType
     document_sub_type: UploadDocumentSubType
+
     content: Optional[str] = None
     content_data: Optional[W8BenDocument] = None
     mime_type: UploadDocumentMimeType
 
     def __init__(self, **data) -> None:
-        if "document_type" not in data:
-            data["document_type"] = UploadDocumentType.W8BEN
-
-        if "document_sub_type" not in data:
-            data["document_sub_type"] = UploadDocumentSubType.FORM_W8_BEN
+        # Always set these to their expected values
+        data["document_type"] = DocumentType.W8BEN
+        data["document_sub_type"] = UploadDocumentSubType.FORM_W8_BEN
 
         if (
             "mime_type" not in data
@@ -447,7 +445,7 @@ class UploadW8BenDocumentRequest(NonEmptyRequest):
                 "You can only specify one of either the `content` or `content_data` fields"
             )
 
-        if values["document_type"] != UploadDocumentType.W8BEN:
+        if values["document_type"] != DocumentType.W8BEN:
             raise ValueError("document_type must be W8BEN.")
 
         if values["document_sub_type"] != UploadDocumentSubType.FORM_W8_BEN:

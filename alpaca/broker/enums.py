@@ -117,9 +117,11 @@ class AgreementType(str, Enum):
 
 class DocumentType(str, Enum):
     """
-    The types of documents that can be uploaded by the user
+    Represents the kind of document data you're uploading
 
-    see https://alpaca.markets/docs/broker/api-references/accounts/accounts/#document-type
+    please see https://alpaca.markets/docs/broker/api-references/accounts/accounts/#document-type
+    and https://alpaca.markets/docs/api-references/broker-api/documents/#enumuploaddocumenttype
+    for more info
     """
 
     IDENTITY_VERIFICATION = "identity_verification"
@@ -127,7 +129,8 @@ class DocumentType(str, Enum):
     DATE_OF_BIRTH_VERIFICATION = "date_of_birth_verification"
     TAX_ID_VERIFICATION = "tax_id_verification"
     ACCOUNT_APPROVAL_LETTER = "account_approval_letter"
-    W8_BEN = "w8ben"
+    LIMITED_TRADING_AUTHORIZATION = "limited_trading_authorization"
+    W8BEN = "w8ben"
 
 
 class AccountStatus(str, Enum):
@@ -273,23 +276,6 @@ class TradeDocumentSubType(str, Enum):
     TYPE_1042_S = "1042-S"
     TYPE_480_6 = "480.6"
     COURTESY_STATEMENT = "courtesy_statement"
-
-
-class UploadDocumentType(str, Enum):
-    """
-    Represents the kind of document data you're uploading
-
-    please see https://alpaca.markets/docs/api-references/broker-api/documents/#enumuploaddocumenttype
-    for more info
-    """
-
-    IDENTITY_VERIFICATION = "identity_verification"
-    ADDRESS_VERIFICATION = "address_verification"
-    DATE_OF_BIRTH_VERIFICATION = "date_of_birth_verification"
-    TAX_ID_VERIFICATION = "tax_id_verification"
-    ACCOUNT_APPROVAL_LETTER = "account_approval_letter"
-    LIMITED_TRADING_AUTHORIZATION = "limited_trading_authorization"
-    W8BEN = "w8ben"
 
 
 class UploadDocumentSubType(str, Enum):

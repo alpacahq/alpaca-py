@@ -6,7 +6,7 @@ from pydantic import parse_obj_as
 from requests import HTTPError, Response
 
 from .enums import ACHRelationshipStatus
-from .constants import BROKER_DOCUMENT_UPLOAD_LIMIT, PageItem
+from .constants import BROKER_DOCUMENT_UPLOAD_LIMIT
 from .models import (
     Account,
     AccountCreationRequest,
@@ -459,41 +459,6 @@ class BrokerClient(RESTClient):
             request_fields["page_token"] = last_result["id"]
 
     @staticmethod
-    def _validate_pagination(
-        max_items_limit: Optional[int], handle_pagination: Optional[PaginationType]
-    ) -> PaginationType:
-        """
-        Private method for validating the max_items_limit and handle_pagination arguments, returning the resolved
-        PaginationType.
-        """
-        if handle_pagination is None:
-            handle_pagination = PaginationType.FULL
-
-        if handle_pagination != PaginationType.FULL and max_items_limit is not None:
-            raise ValueError(
-                "max_items_limit can only be specified for PaginationType.FULL"
-            )
-        return handle_pagination
-
-    @staticmethod
-    def _return_paginated_result(
-        iterator: Iterator[PageItem], handle_pagination: PaginationType
-    ) -> Union[List[PageItem], Iterator[List[PageItem]]]:
-        """
-        Private method for converting an iterator that yields results to the proper pagination type result.
-        """
-        if handle_pagination == PaginationType.NONE:
-            # user wants no pagination, so just do a single page
-            return next(iterator)
-        elif handle_pagination == PaginationType.FULL:
-            # the iterator returns "pages", so we use chain to flatten them all into 1 list
-            return list(chain.from_iterable(iterator))
-        elif handle_pagination == PaginationType.ITERATOR:
-            return iterator
-        else:
-            raise ValueError(f"Invalid pagination type: {handle_pagination}.")
-
-    @staticmethod
     def _parse_activity(data: dict) -> Union[TradeActivity, NonTradeActivity]:
         """
         We cannot just use parse_obj_as for Activity types since we need to know what child instance to cast it into.
@@ -818,7 +783,7 @@ class BrokerClient(RESTClient):
     def _get_transfers_iterator(
         self,
         account_id: UUID,
-        transfers_filter: Optional[GetTransfersRequest],
+        transfers_filter: GetTransfersRequest,
         max_items_limit: Optional[int],
     ) -> Iterator[List[Transfer]]:
         """

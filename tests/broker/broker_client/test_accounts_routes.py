@@ -742,7 +742,33 @@ def test_get_trade_configuration_for_account_validates_id(
 
 
 def test_update_trade_configuration_for_account(reqmock, client: BrokerClient):
-    pass
+    account_id = "5fc0795e-1f16-40cc-aa90-ede67c39d7a9"
+    config = factory.create_dummy_trade_account_configuration()
+
+    reqmock.patch(
+        f"{BaseURL.BROKER_SANDBOX}/v1/trading/accounts/{account_id}/account/configurations",
+        text="""
+        {
+          "dtbp_check": "both",
+          "fractional_trading": false,
+          "max_margin_multiplier": "4",
+          "no_shorting": false,
+          "pdt_check": "entry",
+          "suspend_trade": false,
+          "trade_confirm_email": "all"
+        }
+        """,
+    )
+
+    config.fractional_trading = False
+
+    result = client.update_trade_configuration_for_account(
+        account_id=account_id, config=config
+    )
+
+    assert reqmock.called_once
+    assert isinstance(result, TradeAccountConfiguration)
+    assert result.fractional_trading is False
 
 
 def test_update_trade_configuration_for_account_validates_id(

@@ -340,7 +340,11 @@ class BrokerClient(RESTClient):
         """
         account_id = validate_uuid_id_param(account_id, "account_id")
 
-        pass
+        result = self.patch(
+            f"/trading/accounts/{account_id}/account/configurations", config.json()
+        )
+
+        return TradeAccountConfiguration(**result)
 
     def get_cip_data_for_account_by_id(
         self,

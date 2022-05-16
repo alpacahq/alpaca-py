@@ -2,12 +2,9 @@
 Represents tests for all the Account related functions in BrokerClient
 """
 
-from typing import Iterator
 from uuid import UUID
 
 import pytest
-import requests_mock
-from requests_mock import Mocker
 
 from alpaca.broker import TradeAccountConfiguration
 from alpaca.broker.client import BrokerClient
@@ -32,28 +29,6 @@ from alpaca.broker.models import (
 from alpaca.common import APIError
 from alpaca.common.enums import BaseURL
 from tests.broker.factories import accounts as factory
-
-
-@pytest.fixture
-def reqmock() -> Iterator[Mocker]:
-    with requests_mock.Mocker() as m:
-        yield m
-
-
-@pytest.fixture
-def client():
-    client = BrokerClient(
-        "key-id",
-        "secret-key",
-        sandbox=True,  # Expressly call out sandbox as true for correct urls in reqmock
-    )
-    return client
-
-
-@pytest.fixture
-def raw_client():
-    raw_client = BrokerClient("key-id", "secret-key", raw_data=True)
-    return raw_client
 
 
 def test_create_account(reqmock, client: BrokerClient):

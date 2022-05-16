@@ -5,7 +5,7 @@ class APIError(Exception):
     """
 
     def __init__(self, error, http_error=None):
-        super().__init__(error["message"])
+        super().__init__(error)
         self._error = error
         self._http_error = http_error
 

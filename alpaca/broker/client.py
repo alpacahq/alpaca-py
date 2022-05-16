@@ -7,8 +7,9 @@ from requests import HTTPError, Response
 
 from .constants import BROKER_DOCUMENT_UPLOAD_LIMIT
 from .enums import ACHRelationshipStatus
-from .models import (
+from alpaca.broker.models import (
     ACHRelationship,
+    GetCalendarRequest,
     Account,
     AccountCreationRequest,
     AccountUpdateRequest,
@@ -33,7 +34,13 @@ from .models import (
 from ..common import APIError
 from ..common.constants import ACCOUNT_ACTIVITIES_DEFAULT_PAGE_SIZE
 from ..common.enums import BaseURL, PaginationType
-from ..common.models import BaseActivity, NonTradeActivity, TradeActivity
+from ..common.models import (
+    BaseActivity,
+    Calendar,
+    Clock,
+    NonTradeActivity,
+    TradeActivity,
+)
 from ..common.rest import HTTPResult, RESTClient
 
 
@@ -889,3 +896,17 @@ class BrokerClient(RESTClient):
         account_id = validate_uuid_id_param(account_id)
         transfer_id = validate_uuid_id_param(transfer_id, "transfer_id")
         self.delete(f"/accounts/{account_id}/transfers/{transfer_id}")
+
+    # ############################## CLOCK & CALENDAR ################################# #
+    def get_clock(self) -> Clock:
+        pass
+
+    def get_calendar(
+        self,
+        filters: Optional[GetCalendarRequest] = None,
+    ) -> List[Calendar]:
+        result = self.get(
+            "/calendar", filters.to_request_fields() if filters is not None else {}
+        )
+
+        return parse_obj_as(List[Calendar], result)

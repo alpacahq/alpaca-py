@@ -149,3 +149,34 @@ class OrderStatus(str, Enum):
     REJECTED = "rejected"
     SUSPENDED = "suspended"
     CALCULATED = "calculated"
+
+
+class AssetClass(str, Enum):
+    """
+    Represents what class of asset this is.
+    """
+
+    US_EQUITY = "us_equity"
+    CRYPTO = "crypto"
+
+
+class AssetStatus(str, Enum):
+    """
+    Represents the various states for an Asset's lifecycle
+    """
+
+    ACTIVE = "active"
+    INACTIVE = "inactive"
+
+
+class AssetExchange(str, Enum):
+    """
+    Represents the current exchanges Alpaca supports.
+    """
+
+    AMEX = "AMEX"
+    ARCA = "ARCA"
+    BATS = "BATS"
+    NYSE = "NYSE"
+    NASDAQ = "NASDAQ"
+    NYSEARCA = "NYSEARCA"

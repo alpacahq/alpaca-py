@@ -1,5 +1,7 @@
+from alpaca.common.enums import AssetClass, AssetStatus
 from alpaca.common.models import Clock, Calendar
 from datetime import datetime, date
+from factories import create_dummy_asset
 
 
 def test_clock_timestamps():
@@ -25,3 +27,14 @@ def test_calendar_timestamps():
     assert type(calendar.close) is datetime
 
     assert calendar.open.minute == 30
+
+
+def test_asset_parsed_successfully():
+    """
+    Tests whether an asset object is created successfully from API data
+    """
+    asset = create_dummy_asset()
+
+    assert asset.asset_class is AssetClass.US_EQUITY
+    assert asset.status is AssetStatus.ACTIVE
+    assert asset.tradable is True

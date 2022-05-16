@@ -246,31 +246,33 @@ def test_order_legs():
     assert isinstance(order_with_legs.legs[0], Order)
 
 
-class TestClosePositionRequest:
-    def test_valid_qty_request(self):
-        close_position_request = ClosePositionRequest(qty="100")
-        assert close_position_request.qty == "100"
-        assert close_position_request.percentage is None
+def test_close_position_request_with_qty():
+    close_position_request = ClosePositionRequest(qty="100")
+    assert close_position_request.qty == "100"
+    assert close_position_request.percentage is None
 
-    def test_valid_percentage_request(self):
-        close_position_request = ClosePositionRequest(percentage="0.5")
-        assert close_position_request.qty is None
-        assert close_position_request.percentage == "0.5"
 
-    def test_provide_qty_and_percentage(self):
-        with pytest.raises(ValueError) as e:
-            close_position_request = ClosePositionRequest(qty="100", percentage="0.5")
+def test_close_position_request_with_percentage():
+    close_position_request = ClosePositionRequest(percentage="0.5")
+    assert close_position_request.qty is None
+    assert close_position_request.percentage == "0.5"
 
-        assert (
-            "Only one of qty or percentage must be given to the ClosePositionRequest, got both."
-            in str(e.value)
-        )
 
-    def test_provide_neither_qty_or_percentage(self):
-        with pytest.raises(ValueError) as e:
-            close_position_request = ClosePositionRequest()
+def test_close_position_request_with_qty_and_percentage():
+    with pytest.raises(ValueError) as e:
+        close_position_request = ClosePositionRequest(qty="100", percentage="0.5")
 
-        assert (
-            "qty or percentage must be given to the ClosePositionRequest, got None for both."
-            in str(e.value)
-        )
+    assert (
+        "Only one of qty or percentage must be given to the ClosePositionRequest, got both."
+        in str(e.value)
+    )
+
+
+def test_close_position_request_with_neither_qty_or_percentage():
+    with pytest.raises(ValueError) as e:
+        close_position_request = ClosePositionRequest()
+
+    assert (
+        "qty or percentage must be given to the ClosePositionRequest, got None for both."
+        in str(e.value)
+    )

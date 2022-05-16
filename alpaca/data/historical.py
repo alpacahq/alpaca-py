@@ -18,6 +18,7 @@ class HistoricalDataClient(RESTClient):
         self,
         api_key: Optional[str] = None,
         secret_key: Optional[str] = None,
+        oauth_token: Optional[str] = None,
         raw_data: bool = False,
         url_override: Optional[str] = None,
     ) -> None:
@@ -27,6 +28,7 @@ class HistoricalDataClient(RESTClient):
         Args:
             api_key (Optional[str], optional): Alpaca API key. Defaults to None.
             secret_key (Optional[str], optional): Alpaca API secret key. Defaults to None.
+            oauth_token (Optional[str]): The oauth token if authenticating via OAuth. Defaults to None.
             raw_data (bool, optional): If true, API responses will not be wrapped and raw responses will be returned from
               methods. Defaults to False.
             url_override (Optional[str], optional): If specified allows you to override the base url the client points
@@ -35,6 +37,7 @@ class HistoricalDataClient(RESTClient):
         super().__init__(
             api_key=api_key,
             secret_key=secret_key,
+            oauth_token=oauth_token,
             api_version="v2",
             base_url=url_override if url_override is not None else BaseURL.DATA,
             sandbox=False,

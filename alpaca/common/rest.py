@@ -1,23 +1,57 @@
-import base64
-import os
 import time
 from abc import ABC
-from typing import Any, List, Optional, Type, Union, Iterator
+from typing import Any, List, Optional, Type, Union, Tuple, Iterator
 
 from pydantic import BaseModel
-from requests import Response, Session
+from requests import Session
 from requests.exceptions import HTTPError
 from itertools import chain
+
+from alpaca.common.constants import (
+    DEFAULT_RETRY_ATTEMPTS,
+    DEFAULT_RETRY_WAIT_SECONDS,
+    DEFAULT_RETRY_EXCEPTION_CODES,
+)
 
 from alpaca import __version__
 from alpaca.common.exceptions import APIError, RetryException
 from alpaca.common.types import RawData
-from alpaca.common.utils import get_api_version, get_credentials
-from .enums import BaseURL, PaginationType
 from .constants import PageItem
+from .enums import PaginationType, BaseURL
 
 # TODO: Refine this type
 HTTPResult = Union[dict, List[dict], Any]
+Credentials = Tuple[str, str]
+
+
+def validate_credentials(
+    api_key: Optional[str] = None,
+    secret_key: Optional[str] = None,
+    oauth_token: Optional[str] = None,
+) -> Credentials:
+    """Gathers API credentials from parameters and environment variables, and validates them.
+    Args:
+        api_key (Optional[str]): The API key for authentication. Defaults to None.
+        secret_key (Optional[str]): The secret key for authentication. Defaults to None.
+        oauth_token (Optional[str]): The oauth token if authenticating via OAuth. Defaults to None.
+    Raises:
+         ValueError: If the combination of keys and tokens provided are not valid.
+    Returns:
+        Credentials: The set of validated authentication keys
+    """
+
+    if not oauth_token and not api_key:
+        raise ValueError("You must supply a method of authentication")
+
+    if oauth_token and (api_key or secret_key):
+        raise ValueError(
+            "Either an oauth_token or an api_key may be supplied, but not both"
+        )
+
+    if not oauth_token and not (api_key and secret_key):
+        raise ValueError("A corresponding secret_key must be supplied with the api_key")
+
+    return api_key, secret_key, oauth_token
 
 
 class RESTClient(ABC):
@@ -26,11 +60,15 @@ class RESTClient(ABC):
     def __init__(
         self,
         base_url: Union[BaseURL, str],
-        api_key: str = None,
-        secret_key: str = None,
+        api_key: Optional[str] = None,
+        secret_key: Optional[str] = None,
+        oauth_token: Optional[str] = None,
         api_version: str = "v2",
         sandbox: bool = False,
         raw_data: bool = False,
+        retry_attempts: Optional[int] = None,
+        retry_wait_seconds: Optional[int] = None,
+        retry_exception_codes: Optional[List[int]] = None,
     ) -> None:
         """Abstract base class for REST clients. Handles submitting HTTP requests to
         Alpaca API endpoints.
@@ -38,24 +76,39 @@ class RESTClient(ABC):
         Args:
             base_url (Union[BaseURL, str]): The base url to target requests to. Should be an instance of BaseURL, but
               allows for raw str if you need to override
-            api_key (str, optional): description. Defaults to None.
-            secret_key (str, optional): description. Defaults to None.
-            api_version (str, optional): description. Defaults to 'v2'.
-            sandbox (bool, optional): description. Defaults to False.
-            raw_data (bool, optional): description. Defaults to False.
+            api_key (Optional[str]): The api key string for authentication.
+            secret_key (Optional[str]): The corresponding secret key string for the api key.
+            oauth_token (Optional[str]): The oauth token if authenticating via OAuth.
+            api_version (Optional[str]): The API version for the endpoints.
+            sandbox (bool): False if the live API should be used.
+            raw_data (bool): Whether API responses should be wrapped in data models or returned raw.
+            retry_attempts (Optional[int]): The number of times to retry a request that returns a RetryException.
+            retry_wait_seconds (Optional[int]): The number of seconds to wait between requests before retrying.
+            retry_exception_codes (Optional[List[int]]): The API exception codes to retry a request on.
         """
 
-        self._api_key, self._secret_key = get_credentials(api_key, secret_key)
-        self._api_version: str = get_api_version(api_version)
+        self._api_key, self._secret_key, self._oauth_token = validate_credentials(
+            api_key, secret_key, oauth_token
+        )
+        self._api_version: str = api_version
         self._base_url: Union[BaseURL, str] = base_url
         self._sandbox: bool = sandbox
         self._use_raw_data: bool = raw_data
         self._session: Session = Session()
-        self._retry = int(os.environ.get("APCA_RETRY_MAX", 3))
-        self._retry_wait = int(os.environ.get("APCA_RETRY_WAIT", 3))
-        self._retry_codes = [
-            int(o) for o in os.environ.get("APCA_RETRY_CODES", "429,504").split(",")
-        ]
+
+        # setting up request retry configurations
+        self._retry: int = DEFAULT_RETRY_ATTEMPTS
+        self._retry_wait: int = DEFAULT_RETRY_WAIT_SECONDS
+        self._retry_codes: List[int] = DEFAULT_RETRY_EXCEPTION_CODES
+
+        if retry_attempts and retry_attempts > 0:
+            self._retry = retry_attempts
+
+        if retry_wait_seconds and retry_wait_seconds > 0:
+            self._retry_wait = retry_wait_seconds
+
+        if retry_exception_codes:
+            self._retry_codes = retry_exception_codes
 
     def _request(
         self,
@@ -101,8 +154,7 @@ class RESTClient(ABC):
             opts["json"] = data
 
         retry = self._retry
-        if retry < 0:
-            retry = 0
+
         while retry >= 0:
             try:
                 return self._one_request(method, url, opts, retry)
@@ -114,7 +166,6 @@ class RESTClient(ABC):
     def _get_default_headers(self) -> dict:
         """
         Returns a dict with some default headers set; ie AUTH headers and such that should be useful on all requests
-
         Extracted for cases when using the default request functions are insufficient
 
         Returns:
@@ -135,10 +186,15 @@ class RESTClient(ABC):
             dict: A dict containing the expected auth headers
         """
 
-        return {
-            "APCA-API-KEY-ID": self._api_key,
-            "APCA-API-SECRET-KEY": self._secret_key,
-        }
+        headers = {}
+
+        if self._oauth_token:
+            headers["Authorization"] = "Bearer " + self._oauth_token
+        else:
+            headers["APCA-API-KEY-ID"] = self._api_key
+            headers["APCA-API-SECRET-KEY"] = self._secret_key
+
+        return headers
 
     def _one_request(self, method: str, url: str, opts: dict, retry: int) -> dict:
         """Perform one request, possibly raising RetryException in the case
@@ -159,23 +215,22 @@ class RESTClient(ABC):
         Returns:
             dict: The response data
         """
-        resp = self._session.request(method, url, **opts)
+        response = self._session.request(method, url, **opts)
 
         try:
-            resp.raise_for_status()
+            response.raise_for_status()
         except HTTPError as http_error:
             # retry if we hit Rate Limit
-            if resp.status_code in self._retry_codes and retry > 0:
+            if response.status_code in self._retry_codes and retry > 0:
                 raise RetryException()
-            if "code" in resp.text:
-                error = resp.json()
-                if "code" in error:
-                    raise APIError(error, http_error)
-            else:
-                raise http_error
 
-        if resp.text != "":
-            return resp.json()
+            # raise API error for all other errors
+            error = response.text
+
+            raise APIError(error, http_error)
+
+        if response.text != "":
+            return response.json()
 
     def get(self, path: str, data: Union[dict, str] = None, **kwargs) -> HTTPResult:
         """Performs a single GET request

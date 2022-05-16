@@ -2,8 +2,41 @@ from .models import ValidateBaseModel as BaseModel
 from uuid import UUID
 from datetime import datetime
 from typing import Optional, List
-from ..enums import AssetClass, AssetStatus, AssetExchange, OrderStatus
+from ..enums import (
+    AssetClass,
+    AssetStatus,
+    AssetExchange,
+    OrderStatus,
+    OrderType,
+    OrderClass,
+    TimeInForce,
+    OrderSide,
+    PositionSide,
+)
 from pydantic import Field
+
+
+class Asset(BaseModel):
+    """
+    Represents a security. Some Assets are not tradable with Alpaca. These Assets are
+    marked with the flag `tradable=false`.
+
+    For more info, visit https://alpaca.markets/docs/api-references/trading-api/assets/
+    """
+
+    id: UUID
+    asset_class: AssetClass = Field(
+        alias="class"
+    )  # using a pydantic alias to allow parsing data with the `class` keyword field
+    exchange: AssetExchange
+    symbol: str
+    name: Optional[str] = None
+    status: AssetStatus
+    tradable: bool
+    marginable: bool
+    shortable: bool
+    easy_to_borrow: bool
+    fractionable: bool
 
 
 class Position(BaseModel):
@@ -11,11 +44,11 @@ class Position(BaseModel):
     Attributes:
         asset_id (UUID): ID of the asset.
         symbol (str): Symbol of the asset.
-        exchange (str): Exchange name of the asset.
-        asset_class (str): Name of the asset's asset class.
+        exchange (AssetExchange): Exchange name of the asset.
+        asset_class (AssetClass): Name of the asset's asset class.
         avg_entry_price (str): The average entry price of the position.
         qty (str): The number of shares of the position.
-        side (str): "long" or "short" representing the side of the position.
+        side (PositionSide): "long" or "short" representing the side of the position.
         market_value (str): Total dollar amount of the position.
         cost_basis (str): Total cost basis in dollars.
         unrealized_pl (str): Unrealized profit/loss in dollars.
@@ -29,11 +62,11 @@ class Position(BaseModel):
 
     asset_id: UUID
     symbol: str
-    exchange: str
-    asset_class: str
+    exchange: AssetExchange
+    asset_class: AssetClass
     avg_entry_price: str
     qty: str
-    side: str
+    side: PositionSide
     market_value: str
     cost_basis: str
     unrealized_pl: str
@@ -80,11 +113,11 @@ class Order(BaseModel):
         filled_qty (Optional[str]): Filled quantity.
         filled_avg_price (Optional[str]): Filled average price. Can be 0 until order is processed in case order is
           passed outside of market hours.
-        order_class (str): Valid values: simple, bracket, oco or oto.
-        order_type (str): Deprecated with just type field below.
-        type (str): Valid values: market, limit, stop, stop_limit, trailing_stop.
-        side (str): Valid values: buy and sell.
-        time_in_force (str): Length of time the Order is in force.
+        order_class (OrderClass): Valid values: simple, bracket, oco or oto.
+        order_type (OrderType): Deprecated with just type field below.
+        type (OrderType): Valid values: market, limit, stop, stop_limit, trailing_stop.
+        side (OrderSide): Valid values: buy and sell.
+        time_in_force (TimeInForce): Length of time the Order is in force.
         limit_price (Optional[str]): Limit price of the Order.
         stop_price (Optional[str]): Stop price of the Order.
         status (OrderStatus): The status of the Order.
@@ -116,11 +149,11 @@ class Order(BaseModel):
     qty: Optional[str]
     filled_qty: Optional[str]
     filled_avg_price: Optional[str]
-    order_class: str
-    order_type: str
-    type: str
-    side: str
-    time_in_force: str
+    order_class: OrderClass
+    order_type: OrderType
+    type: OrderType
+    side: OrderSide
+    time_in_force: TimeInForce
     limit_price: Optional[str]
     stop_price: Optional[str]
     status: OrderStatus
@@ -149,26 +182,3 @@ class PortfolioHistory(BaseModel):
     profit_loss_pct: List[float]
     base_value: float
     timeframe: str
-
-
-class Asset(BaseModel):
-    """
-    Represents a security. Some Assets are not tradable with Alpaca. These Assets are
-    marked with the flag `tradable=false`.
-
-    For more info, visit https://alpaca.markets/docs/api-references/trading-api/assets/
-    """
-
-    id: UUID
-    asset_class: AssetClass = Field(
-        alias="class"
-    )  # using a pydantic alias to allow parsing data with the `class` keyword field
-    exchange: AssetExchange
-    symbol: str
-    name: Optional[str] = None
-    status: AssetStatus
-    tradable: bool
-    marginable: bool
-    shortable: bool
-    easy_to_borrow: bool
-    fractionable: bool

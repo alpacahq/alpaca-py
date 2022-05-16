@@ -117,6 +117,29 @@ class NonTradeActivityStatus(str, Enum):
     CANCELED = "canceled"
 
 
+class OrderClass(str, Enum):
+    """
+    Represents what class of order this is.
+    """
+
+    SIMPLE = "simple"
+    BRACKET = "bracket"
+    OCO = "oco"
+    OTO = "oto"
+
+
+class OrderType(str, Enum):
+    """
+    Represents what type of roder this is.
+    """
+
+    MARKET = "market"
+    LIMIT = "limit"
+    STOP = "stop"
+    STOP_LIMIT = "stop_limit"
+    TRAILING_STOP = "trailing_stop"
+
+
 class OrderSide(str, Enum):
     """
     Represents what side this order was executed on.
@@ -180,3 +203,25 @@ class AssetExchange(str, Enum):
     NYSE = "NYSE"
     NASDAQ = "NASDAQ"
     NYSEARCA = "NYSEARCA"
+
+
+class PositionSide(str, Enum):
+    """
+    Represents what side this position is.
+    """
+
+    SHORT = "short"
+    LONG = "long"
+
+
+class TimeInForce(str, Enum):
+    """
+    Represents the various time in force options for an Order.
+    """
+
+    DAY = "day"
+    GTG = "gtg"
+    OPG = "opg"
+    CLS = "cls"
+    IOC = "iok"
+    FOK = "fok"

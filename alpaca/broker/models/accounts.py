@@ -9,9 +9,12 @@ from ..enums import (
     AccountStatus,
     AgreementType,
     ClearingBroker,
+    DTBPCheck,
     EmploymentStatus,
     FundingSource,
+    PDTCheck,
     TaxIdType,
+    TradeConfirmationEmail,
     VisaType,
 )
 from ...common.models import ValidateBaseModel as BaseModel
@@ -387,3 +390,26 @@ class TradeAccount(BaseModel):
             data["id"] = UUID(data["id"])
 
         super().__init__(**data)
+
+
+class TradeAccountConfiguration(BaseModel):
+    """
+    Represents configuration options for a TradeAccount.
+
+    Attributes:
+        dtbp_check (DTBPCheck): Day Trade Buying Power Check. Controls Day Trading Margin Call (DTMC) checks.
+        fractional_trading (bool): If true, account is able to participate in fractional trading
+        max_margin_multiplier (str): A number between 1-4 that represents your max margin multiplier
+        no_shorting (bool): If true then Account becomes long-only mode.
+        pdt_check (PDTCheck): Controls Pattern Day Trader (PDT) checks.
+        suspend_trade (bool): If true Account becomes unable to submit new orders
+        trade_confirm_email (TradeConfirmationEmail): Controls whether Trade confirmation emails are sent.
+    """
+
+    dtbp_check: DTBPCheck
+    fractional_trading: bool
+    max_margin_multiplier: str
+    no_shorting: bool
+    pdt_check: PDTCheck
+    suspend_trade: bool
+    trade_confirm_email: TradeConfirmationEmail

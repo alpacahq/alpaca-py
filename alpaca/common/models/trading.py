@@ -2,7 +2,8 @@ from .models import ValidateBaseModel as BaseModel
 from uuid import UUID
 from datetime import datetime
 from typing import Optional, List
-from ..enums import OrderStatus
+from ..enums import AssetClass, AssetStatus, AssetExchange, OrderStatus
+from pydantic import Field
 
 
 class Position(BaseModel):
@@ -148,3 +149,26 @@ class PortfolioHistory(BaseModel):
     profit_loss_pct: List[float]
     base_value: float
     timeframe: str
+
+
+class Asset(BaseModel):
+    """
+    Represents a security. Some Assets are not tradable with Alpaca. These Assets are
+    marked with the flag `tradable=false`.
+
+    For more info, visit https://alpaca.markets/docs/api-references/trading-api/assets/
+    """
+
+    id: UUID
+    asset_class: AssetClass = Field(
+        alias="class"
+    )  # using a pydantic alias to allow parsing data with the `class` keyword field
+    exchange: AssetExchange
+    symbol: str
+    name: Optional[str] = None
+    status: AssetStatus
+    tradable: bool
+    marginable: bool
+    shortable: bool
+    easy_to_borrow: bool
+    fractionable: bool

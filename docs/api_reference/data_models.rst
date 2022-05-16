@@ -58,3 +58,20 @@ A dictionary of Trades keyed by string valued symbol identifiers. See Trade.
 
 .. autoclass:: alpaca.data.models.TradeSet
    :members:
+
+
+Snapshot
+--------
+
+A snapshot is a collection of various market data types. A snapshot contains the
+latest quote, the latest trade, the latest minute bar and the latest daily bar.
+
+.. autoclass:: alpaca.data.models.Snapshot
+
+SnapshotSet
+-----------
+
+A dictionary of Snapshots keyed by string valued symbol identifiers.
+
+
+.. autoclass:: alpaca.data.models.SnapshotSet

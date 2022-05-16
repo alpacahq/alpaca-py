@@ -899,7 +899,7 @@ class BrokerClient(RESTClient):
 
     # ############################## CLOCK & CALENDAR ################################# #
     def get_clock(self) -> Clock:
-        pass
+        return Clock(**self.get("/clock"))
 
     def get_calendar(
         self,

@@ -3,7 +3,7 @@ from typing import List
 from alpaca.broker.client import BrokerClient
 from alpaca.broker.models import GetCalendarRequest
 from alpaca.common.enums import BaseURL
-from alpaca.common.models import Calendar
+from alpaca.common.models import Calendar, Clock
 
 
 def test_get_calendar(reqmock, client: BrokerClient):
@@ -45,3 +45,22 @@ def test_get_calendar(reqmock, client: BrokerClient):
     assert isinstance(result, List)
     assert len(result) == 2
     assert isinstance(result[0], Calendar)
+
+
+def test_get_clock(reqmock, client: BrokerClient):
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX}/v1/clock",
+        text="""
+        {
+          "timestamp": "2022-05-16T16:32:24.14373588-04:00",
+          "is_open": false,
+          "next_open": "2022-05-17T09:30:00-04:00",
+          "next_close": "2022-05-17T16:00:00-04:00"
+        }
+        """,
+    )
+
+    result = client.get_clock()
+
+    assert reqmock.called_once
+    assert isinstance(result, Clock)

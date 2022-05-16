@@ -1,5 +1,6 @@
 from typing import Optional, List
 
+from alpaca.broker import TradeAccountConfiguration
 from alpaca.broker.models import (
     Identity,
     Contact,
@@ -8,7 +9,13 @@ from alpaca.broker.models import (
     AccountDocument,
     TrustedContact,
 )
-from alpaca.broker.enums import FundingSource, TaxIdType, AgreementType
+from alpaca.broker.enums import (
+    DTBPCheck,
+    FundingSource,
+    PDTCheck,
+    TaxIdType,
+    AgreementType,
+)
 
 
 def create_dummy_identity() -> Identity:
@@ -124,3 +131,15 @@ def create_dummy_account_documents() -> List[AccountDocument]:
             document_type="identity_verification",
         )
     ]
+
+
+def create_dummy_trade_account_configuration() -> TradeAccountConfiguration:
+    return TradeAccountConfiguration(
+        dtbp_check=DTBPCheck.BOTH,
+        fractional_trading=True,
+        max_margin_multiplier="4",
+        no_shorting=False,
+        pdt_check=PDTCheck.ENTRY,
+        suspend_trade=False,
+        trade_confirm_email="all",
+    )

@@ -6,12 +6,12 @@ from uuid import UUID
 
 import pytest
 
+from alpaca.broker import TradeAccountConfiguration
 from alpaca.broker.client import BrokerClient
 from alpaca.broker.enums import (
     AccountEntities,
-    TradeDocumentType,
-    UploadDocumentMimeType,
-    DocumentType,
+    DTBPCheck,
+    PDTCheck,
 )
 from alpaca.broker.models import (
     Account,
@@ -28,7 +28,7 @@ from alpaca.broker.models import (
 )
 from alpaca.common import APIError
 from alpaca.common.enums import BaseURL
-from tests.broker.factories import common as factory
+from tests.broker.factories import accounts as factory
 
 
 def test_create_account(reqmock, client: BrokerClient):
@@ -675,3 +675,90 @@ def test_get_trade_account_by_id_validates_account_id(reqmock, client: BrokerCli
         client.get_trade_account_by_id(4)
 
     assert "account_id must be a UUID or a UUID str" in str(e.value)
+
+
+def test_get_trade_configuration_for_account(reqmock, client: BrokerClient):
+    account_id = "5fc0795e-1f16-40cc-aa90-ede67c39d7a9"
+
+    reqmock.get(
+        BaseURL.BROKER_SANDBOX
+        + f"/v1/trading/accounts/{account_id}/account/configurations",
+        text="""
+        {
+          "dtbp_check": "both",
+          "fractional_trading": true,
+          "max_margin_multiplier": "4",
+          "no_shorting": false,
+          "pdt_check": "entry",
+          "suspend_trade": false,
+          "trade_confirm_email": "all"
+        }
+        """,
+    )
+
+    config = client.get_trade_configuration_for_account(
+        account_id=account_id,
+    )
+
+    assert reqmock.called_once
+    assert isinstance(config, TradeAccountConfiguration)
+    assert config.dtbp_check == DTBPCheck.BOTH
+    assert config.pdt_check == PDTCheck.ENTRY
+
+
+def test_get_trade_configuration_for_account_validates_id(
+    reqmock, client: BrokerClient
+):
+    with pytest.raises(ValueError):
+        client.get_trade_configuration_for_account(account_id="not a uuid")
+
+    with pytest.raises(ValueError):
+        client.get_trade_configuration_for_account(account_id=334)
+
+
+def test_update_trade_configuration_for_account(reqmock, client: BrokerClient):
+    account_id = "5fc0795e-1f16-40cc-aa90-ede67c39d7a9"
+    config = factory.create_dummy_trade_account_configuration()
+
+    reqmock.patch(
+        f"{BaseURL.BROKER_SANDBOX}/v1/trading/accounts/{account_id}/account/configurations",
+        text="""
+        {
+          "dtbp_check": "both",
+          "fractional_trading": false,
+          "max_margin_multiplier": "4",
+          "no_shorting": false,
+          "pdt_check": "entry",
+          "suspend_trade": false,
+          "trade_confirm_email": "all"
+        }
+        """,
+    )
+
+    config.fractional_trading = False
+
+    result = client.update_trade_configuration_for_account(
+        account_id=account_id, config=config
+    )
+
+    assert reqmock.called_once
+    assert isinstance(result, TradeAccountConfiguration)
+    assert result.fractional_trading is False
+
+
+def test_update_trade_configuration_for_account_validates_id(
+    reqmock, client: BrokerClient
+):
+    config = factory.create_dummy_trade_account_configuration()
+
+    with pytest.raises(ValueError):
+        client.update_trade_configuration_for_account(
+            account_id="not a uuid",
+            config=config,
+        )
+
+    with pytest.raises(ValueError):
+        client.update_trade_configuration_for_account(
+            account_id=334,
+            config=config,
+        )

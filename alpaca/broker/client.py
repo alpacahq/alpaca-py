@@ -1,41 +1,40 @@
-from itertools import chain
+import base64
 from typing import Callable, Iterator, List, Optional, Union
 from uuid import UUID
 
 from pydantic import parse_obj_as
 from requests import HTTPError, Response
 
-from .enums import ACHRelationshipStatus
 from .constants import BROKER_DOCUMENT_UPLOAD_LIMIT
+from .enums import ACHRelationshipStatus
 from .models import (
+    ACHRelationship,
     Account,
     AccountCreationRequest,
     AccountUpdateRequest,
     ActivityType,
+    Bank,
     CIPInfo,
+    CreateACHRelationshipRequest,
+    CreateACHTransferRequest,
+    CreateBankRequest,
+    CreateBankTransferRequest,
+    CreatePlaidRelationshipRequest,
     GetAccountActivitiesRequest,
     GetTradeDocumentsRequest,
+    GetTransfersRequest,
     ListAccountsRequest,
     TradeAccount,
+    TradeAccountConfiguration,
     TradeDocument,
-    UploadDocumentRequest,
-    ACHRelationship,
-    CreateACHRelationshipRequest,
-    CreatePlaidRelationshipRequest,
-    CreateBankRequest,
-    Bank,
     Transfer,
-    CreateACHTransferRequest,
-    CreateBankTransferRequest,
-    GetTransfersRequest,
+    UploadDocumentRequest,
 )
 from ..common import APIError
 from ..common.constants import ACCOUNT_ACTIVITIES_DEFAULT_PAGE_SIZE
 from ..common.enums import BaseURL, PaginationType
 from ..common.models import BaseActivity, NonTradeActivity, TradeActivity
 from ..common.rest import HTTPResult, RESTClient
-
-import base64
 
 
 def validate_uuid_id_param(
@@ -171,7 +170,7 @@ class BrokerClient(RESTClient):
 
         account_id = validate_uuid_id_param(account_id)
 
-        resp = self.get(f"/accounts/{account_id}")
+        resp = self.get(f"/accounts/{account_id}", {"params": ""})
         return Account(**resp)
 
     def update_account(
@@ -311,6 +310,49 @@ class BrokerClient(RESTClient):
             f"/accounts/{account_id}/documents/upload",
             [document.to_request_fields() for document in document_data],
         )
+
+    def get_trade_configuration_for_account(
+        self,
+        account_id: Union[UUID, str],
+    ) -> TradeAccountConfiguration:
+        """
+        Gets the TradeAccountConfiguration for a given Account.
+
+        Args:
+            account_id (Union[UUID, str]): The id of the Account you wish to get the TradeAccountConfiguration for
+
+        Returns:
+            TradeAccountConfiguration: The resulting TradeAccountConfiguration for the Account
+        """
+
+        account_id = validate_uuid_id_param(account_id, "account_id")
+
+        resp = self.get(f"/trading/accounts/{account_id}/account/configurations")
+
+        return TradeAccountConfiguration(**resp)
+
+    def update_trade_configuration_for_account(
+        self,
+        account_id: Union[UUID, str],
+        config: TradeAccountConfiguration,
+    ) -> TradeAccountConfiguration:
+        """
+        Updates an Account with new TradeAccountConfiguration information.
+
+        Args:
+            account_id (Union[UUID, str]): The id of the Account you wish to update.
+            config (UpdateTradeConfigurationRequest): The Updated Options you wish to set on the Account
+
+        Returns:
+            TradeAccountConfiguration: The resulting TradeAccountConfiguration with updates.
+        """
+        account_id = validate_uuid_id_param(account_id, "account_id")
+
+        result = self.patch(
+            f"/trading/accounts/{account_id}/account/configurations", config.json()
+        )
+
+        return TradeAccountConfiguration(**result)
 
     def get_cip_data_for_account_by_id(
         self,

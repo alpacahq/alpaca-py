@@ -5,6 +5,7 @@ from uuid import UUID
 from pydantic import parse_obj_as
 from requests import HTTPError, Response
 
+from .enums import ACHRelationshipStatus
 from .constants import BROKER_DOCUMENT_UPLOAD_LIMIT
 from .models import (
     Account,
@@ -18,6 +19,15 @@ from .models import (
     TradeAccount,
     TradeDocument,
     UploadDocumentRequest,
+    ACHRelationship,
+    CreateACHRelationshipRequest,
+    CreatePlaidRelationshipRequest,
+    CreateBankRequest,
+    Bank,
+    Transfer,
+    CreateACHTransferRequest,
+    CreateBankTransferRequest,
+    GetTransfersRequest,
 )
 from ..common import APIError
 from ..common.constants import ACCOUNT_ACTIVITIES_DEFAULT_PAGE_SIZE
@@ -357,14 +367,9 @@ class BrokerClient(RESTClient):
             Union[List[BaseActivity], Iterator[List[BaseActivity]]]: Either a list or an Iterator of lists of
               BaseActivity child classes
         """
-
-        if handle_pagination is None:
-            handle_pagination = PaginationType.FULL
-
-        if handle_pagination != PaginationType.FULL and max_items_limit is not None:
-            raise ValueError(
-                "max_items_limit can only be specified for PaginationType.FULL"
-            )
+        handle_pagination = BrokerClient._validate_pagination(
+            max_items_limit, handle_pagination
+        )
 
         # otherwise, user wants pagination so we grab an interator
         iterator = self._get_account_activities_iterator(
@@ -375,14 +380,7 @@ class BrokerClient(RESTClient):
             ],
         )
 
-        if handle_pagination == PaginationType.NONE:
-            # user wants no pagination, so just do a single page
-            return next(iterator)
-        elif handle_pagination == PaginationType.FULL:
-            # the iterator returns "pages", so we use chain to flatten them all into 1 list
-            return list(chain.from_iterable(iterator))
-        elif handle_pagination == PaginationType.ITERATOR:
-            return iterator
+        return BrokerClient._return_paginated_result(iterator, handle_pagination)
 
     def _get_account_activities_iterator(
         self,
@@ -601,3 +599,251 @@ class BrokerClient(RESTClient):
                 f.write(chunk)
 
     # ############################## FUNDING ################################# #
+
+    def create_ach_relationship_for_account(
+        self,
+        account_id: Union[UUID, str],
+        ach_data: Union[CreateACHRelationshipRequest, CreatePlaidRelationshipRequest],
+    ) -> ACHRelationship:
+        """
+        Creates a single ACH relationship for the given account.
+
+        Args:
+            account_id (Union[UUID, str]): The ID of the Account that has the ACH Relationship.
+            ach_data (Union[CreateACHRelationshipRequest, CreatePlaidRelationshipRequest]): The request data used to
+              create the ACH relationship.
+
+        Returns:
+            ACHRelationship: The ACH relationship that was created.
+        """
+        account_id = validate_uuid_id_param(account_id)
+
+        if not isinstance(
+            ach_data, (CreateACHRelationshipRequest, CreatePlaidRelationshipRequest)
+        ):
+            raise ValueError(
+                f"Request data must either be a CreateACHRelationshipRequest instance, or a "
+                f"CreatePlaidRelationshipRequest instance. Got unsupported {type(ach_data)} instead."
+            )
+
+        response = self.post(
+            f"/accounts/{account_id}/ach_relationships", ach_data.to_request_fields()
+        )
+        return ACHRelationship(**response)
+
+    def get_ach_relationships_for_account(
+        self,
+        account_id: Union[UUID, str],
+        statuses: Optional[List[ACHRelationshipStatus]] = None,
+    ) -> List[ACHRelationship]:
+        """
+        Gets the ACH relationships for an account.
+
+        Args:
+            account_id (Union[UUID, str]): The ID of the Account to get the ACH relationships for.
+            statuses (Optional[List[ACHRelationshipStatus]]): Optionally filter a subset of ACH relationship statuses.
+
+        Returns:
+            List[ACHRelationship]: List of ACH relationships returned by the query.
+        """
+        account_id = validate_uuid_id_param(account_id)
+
+        params = {}
+        if statuses is not None and len(statuses) != 0:
+            params["statuses"] = ",".join(statuses)
+
+        response = self.get(f"/accounts/{account_id}/ach_relationships", params)
+        return parse_obj_as(List[ACHRelationship], response)
+
+    def delete_ach_relationship_for_account(
+        self,
+        account_id: Union[UUID, str],
+        ach_relationship_id: Union[UUID, str],
+    ) -> None:
+        """
+        Delete an ACH Relation by its ID.
+
+        As the api itself returns a 204 on success this function returns nothing in the successful case and will raise
+        an exception in any other case.
+
+        Args:
+            account_id (Union[UUID, str]): The ID of the Account which has the ACH relationship to be deleted.
+            ach_relationship_id (Union[UUID, str]): The ID of the ACH relationship to delete.
+        """
+        account_id = validate_uuid_id_param(account_id)
+        ach_relationship_id = validate_uuid_id_param(
+            ach_relationship_id, "ach_relationship_id"
+        )
+        self.delete(f"/accounts/{account_id}/ach_relationships/{ach_relationship_id}")
+
+    def create_bank_for_account(
+        self,
+        account_id: Union[UUID, str],
+        bank_data: CreateBankRequest,
+    ) -> Bank:
+        """
+        Creates a single ACH relationship for the given account.
+
+        Args:
+            account_id (Union[UUID, str]): The ID of the Account to create the bank connection for.
+            bank_data (CreateBankRequest): The request data used to create the bank connection.
+
+        Returns:
+            Bank: The Bank that was created.
+        """
+        account_id = validate_uuid_id_param(account_id)
+        response = self.post(
+            f"/accounts/{account_id}/recipient_banks", bank_data.to_request_fields()
+        )
+        return Bank(**response)
+
+    def get_banks_for_account(
+        self,
+        account_id: Union[UUID, str],
+    ) -> List[Bank]:
+        """
+        Gets the Banks for an account.
+
+        Args:
+            account_id (Union[UUID, str]): The ID of the Account to get the Banks for.
+
+        Returns:
+            List[Bank]: List of Banks returned by the query.
+        """
+        account_id = validate_uuid_id_param(account_id)
+        response = self.get(f"/accounts/{account_id}/recipient_banks")
+        return parse_obj_as(List[Bank], response)
+
+    def delete_bank_for_account(
+        self,
+        account_id: Union[UUID, str],
+        bank_id: Union[UUID, str],
+    ) -> None:
+        """
+        Delete a Bank by its ID.
+
+        As the api itself returns a 204 on success this function returns nothing in the successful case and will raise
+        an exception in any other case.
+
+        Args:
+            account_id (Union[UUID, str]): The ID of the Account which has the Bank to be deleted.
+            bank_id (Union[UUID, str]): The ID of the Bank to delete.
+        """
+        account_id = validate_uuid_id_param(account_id)
+        bank_id = validate_uuid_id_param(bank_id, "bank_id")
+        self.delete(f"/accounts/{account_id}/recipient_banks/{bank_id}")
+
+    def create_transfer_for_account(
+        self,
+        account_id: Union[UUID, str],
+        transfer_data: Union[CreateACHTransferRequest, CreateBankTransferRequest],
+    ) -> Transfer:
+        """
+        Creates a single Transfer for the given account.
+
+        Args:
+            account_id (Union[UUID, str]): The ID of the Account to create the bank connection for.
+            transfer_data (Union[CreateACHTransferRequest, CreateBankTransferRequest]): The request data used to
+              create the bank connection.
+
+        Returns:
+            Transfer: The Transfer that was created.
+        """
+        account_id = validate_uuid_id_param(account_id)
+        response = self.post(
+            f"/accounts/{account_id}/transfers", transfer_data.to_request_fields()
+        )
+        return Transfer(**response)
+
+    def get_transfers_for_account(
+        self,
+        account_id: Union[UUID, str],
+        transfers_filter: Optional[GetTransfersRequest] = None,
+        max_items_limit: Optional[int] = None,
+        handle_pagination: Optional[PaginationType] = None,
+    ) -> Union[List[Transfer], Iterator[List[Transfer]]]:
+        """
+        Gets the transfers for an account.
+
+        Args:
+            account_id (Union[UUID, str]): The ID of the Account to create the bank connection for.
+            transfers_filter (Optional[GetTransferRequest]): The various filtering parameters to apply to the request.
+            max_items_limit (Optional[int]): A maximum number of items to return over all for when handle_pagination is
+              of type `PaginationType.FULL`. Ignored otherwise.
+            handle_pagination (Optional[PaginationType]): What kind of pagination you want. If None then defaults to
+              `PaginationType.FULL`.
+
+        Returns:
+            Union[List[Transfer], Iterator[List[Transfer]]]: Either a list or an Iterator of lists of Transfer child
+              classes.
+        """
+        account_id = validate_uuid_id_param(account_id)
+        handle_pagination = BrokerClient._validate_pagination(
+            max_items_limit, handle_pagination
+        )
+
+        iterator = self._get_transfers_iterator(
+            account_id=account_id,
+            transfers_filter=transfers_filter
+            if transfers_filter is not None
+            else GetTransfersRequest(),
+            max_items_limit=max_items_limit,
+        )
+
+        return BrokerClient._return_paginated_result(iterator, handle_pagination)
+
+    def _get_transfers_iterator(
+        self,
+        account_id: UUID,
+        transfers_filter: GetTransfersRequest,
+        max_items_limit: Optional[int],
+    ) -> Iterator[List[Transfer]]:
+        """
+        Private method for handling the iterator parts of get_transfers_for_account.
+        """
+        # We need to track total items retrieved.
+        total_items = 0
+        request_fields = transfers_filter.to_request_fields()
+
+        while True:
+            request_fields["offset"] = total_items
+            result = self.get(f"/accounts/{account_id}/transfers", request_fields)
+
+            # The api returns [] when it's done.
+            if not isinstance(result, List) or len(result) == 0:
+                break
+
+            num_items_returned = len(result)
+
+            if (
+                max_items_limit is not None
+                and num_items_returned + total_items > max_items_limit
+            ):
+                result = result[: (max_items_limit - total_items)]
+                total_items += max_items_limit - total_items
+            else:
+                total_items += num_items_returned
+
+            yield parse_obj_as(List[Transfer], result)
+
+            if max_items_limit is not None and total_items >= max_items_limit:
+                break
+
+    def cancel_transfer_for_account(
+        self,
+        account_id: Union[UUID, str],
+        transfer_id: Union[UUID, str],
+    ) -> None:
+        """
+        Cancel a Transfer by its ID.
+
+        As the api itself returns a 204 on success this function returns nothing in the successful case and will raise
+        an exception in any other case.
+
+        Args:
+            account_id (Union[UUID, str]): The ID of the Account which has the Transfer to be canceled.
+            transfer_id (Union[UUID, str]): The ID of the Transfer to cancel.
+        """
+        account_id = validate_uuid_id_param(account_id)
+        transfer_id = validate_uuid_id_param(transfer_id, "transfer_id")
+        self.delete(f"/accounts/{account_id}/transfers/{transfer_id}")

@@ -302,3 +302,117 @@ class UploadDocumentMimeType(str, Enum):
     PNG = "image/png"
     JPEG = "image/jpeg"
     JSON = "application/json"
+
+
+class ACHRelationshipStatus(str, Enum):
+    """
+    Represents the state that an ACHRelationship is in.
+
+    Please see https://alpaca.markets/docs/api-references/broker-api/funding/ach/#attributes for more details
+    """
+
+    QUEUED = "QUEUED"
+    APPROVED = "APPROVED"
+    PENDING = "PENDING"
+
+
+class BankAccountType(str, Enum):
+    """
+    Represents a kind of bank account.
+
+    Please see https://alpaca.markets/docs/api-references/broker-api/funding/ach/#attributes
+    """
+
+    CHECKING = "CHECKING"
+    SAVINGS = "SAVINGS"
+
+
+class IdentifierType(str, Enum):
+    """
+    Represents a type of bank account.
+
+    Please see https://alpaca.markets/docs/api-references/broker-api/funding/bank/#creating-a-new-bank-relationship for
+    more details.
+    """
+
+    ABA = "ABA"
+    BIC = "BIC"
+
+
+class BankStatus(str, Enum):
+    """
+    Represents the states a Bank instance can be in.
+
+    Please see https://alpaca.markets/docs/api-references/broker-api/funding/bank/#enumbankstatus for more details.
+    """
+
+    QUEUED = "QUEUED"
+    SENT_TO_CLEARING = "SENT_TO_CLEARING"
+    APPROVED = "APPROVED"
+    CANCELED = "CANCELED"
+
+
+class TransferType(str, Enum):
+    """
+    Represents the types of transfers that can be made.
+
+    Please see https://alpaca.markets/docs/api-references/broker-api/funding/transfers/#enumtransfertype for more
+    details.
+    """
+
+    ACH = "ach"
+    WIRE = "wire"
+
+
+class TransferStatus(str, Enum):
+    """
+    Represents the states a Transfer instance can be in.
+
+    Please see https://alpaca.markets/docs/api-references/broker-api/funding/transfers/#enumtransferstatus for more
+    details.
+    """
+
+    QUEUED = "QUEUED"
+    APPROVAL_PENDING = "APPROVAL_PENDING"
+    PENDING = "PENDING"
+    SENT_TO_CLEARING = "SENT_TO_CLEARING"
+    REJECTED = "REJECTED"
+    CANCELED = "CANCELED"
+    APPROVED = "APPROVED"
+    COMPLETE = "COMPLETE"
+    RETURNED = "RETURNED"
+
+
+class TransferDirection(str, Enum):
+    """
+    Represents the direction of the transfer.
+
+    Please see https://alpaca.markets/docs/api-references/broker-api/funding/transfers/#enumtransferdirection for more
+    details.
+    """
+
+    INCOMING = "INCOMING"
+    OUTGOING = "OUTGOING"
+
+
+class TransferTiming(str, Enum):
+    """
+    Represents the timing of a transfer.
+
+    Please see https://alpaca.markets/docs/api-references/broker-api/funding/transfers/#creating-a-transfer-entity for
+    more details.
+    """
+
+    IMMEDIATE = "immediate"
+
+
+class FeePaymentMethod(str, Enum):
+    """
+    Represents who is responsible for paying fees associated with the transfer.
+
+    Please see https://alpaca.markets/docs/api-references/broker-api/funding/transfers/#enumfeepaymentmethod for more
+    details.
+    """
+
+    USER = "user"
+    INVOICE = "invoice"

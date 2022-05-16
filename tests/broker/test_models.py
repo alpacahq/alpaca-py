@@ -20,8 +20,18 @@ from alpaca.broker.models import (
     GetAccountActivitiesRequest,
     GetTradeDocumentsRequest,
     TradeDocument,
+    CreateBankRequest,
+    CreateACHTransferRequest,
+    CreateBankTransferRequest,
+)
+from alpaca.broker.enums import (
+    IdentifierType,
+    TransferType,
+    TransferDirection,
+    TransferTiming,
 )
 from tests.broker.factories import create_dummy_w8ben_document
+from uuid import uuid4
 
 
 def test_document_validates_id():
@@ -282,3 +292,123 @@ def test_w8ben_document_validates_ftin_not_required_states():
         "ftin_not_required must be set if foreign_tax_id and tax_id_ssn are not"
         in str(e.value)
     )
+
+
+class TestCreateBankRequest:
+    def test_valid_aba_bank(self):
+        CreateBankRequest(
+            name="name",
+            bank_code_type=IdentifierType.ABA,
+            bank_code="123456789",
+            account_number="123456789abc",
+        )
+
+    def test_valid_bic_bank(self):
+        CreateBankRequest(
+            name="name",
+            bank_code_type=IdentifierType.BIC,
+            bank_code="123456789",
+            account_number="123456789abc",
+            country="United States",
+            state_province="New York",
+            postal_code="10036",
+            city="Manhattan",
+            street_address="Sixth Avenue & 42nd Street",
+        )
+
+    def test_extra_parameters_for_aba_bank(self):
+        with pytest.raises(ValueError) as e:
+            CreateBankRequest(
+                name="name",
+                bank_code_type=IdentifierType.ABA,
+                bank_code="123456789",
+                account_number="123456789abc",
+                country="United States",
+                state_province="New York",
+                postal_code="10036",
+                city="Manhattan",
+                street_address="Sixth Avenue & 42nd Street",
+            )
+
+        assert "You may only specify" in str(e.value)
+
+    def test_missing_parameters_for_bic_bank(self):
+        with pytest.raises(ValueError) as e:
+            CreateBankRequest(
+                name="name",
+                bank_code_type=IdentifierType.BIC,
+                bank_code="123456789",
+                account_number="123456789abc",
+            )
+
+        assert "You must specify" in str(e.value)
+
+
+class TestCreateTransferRequest:
+    def test_valid_ach_transfer_request(self):
+        CreateACHTransferRequest(
+            relationship_id=uuid4(),
+            amount="100.0",
+            direction=TransferDirection.INCOMING,
+            timing=TransferTiming.IMMEDIATE,
+        )
+
+    def test_valid_bank_transfer_request(self):
+        CreateBankTransferRequest(
+            bank_id=uuid4(),
+            amount="100.0",
+            direction=TransferDirection.INCOMING,
+            timing=TransferTiming.IMMEDIATE,
+        )
+
+    def test_zero_transfer_amount(self):
+        with pytest.raises(ValueError) as e:
+            CreateACHTransferRequest(
+                relationship_id=uuid4(),
+                amount="0",
+                direction=TransferDirection.INCOMING,
+                timing=TransferTiming.IMMEDIATE,
+            )
+
+        assert "You must provide an amount > 0." in str(e.value)
+
+    def test_negative_transfer_amount(self):
+        with pytest.raises(ValueError) as e:
+            CreateACHTransferRequest(
+                relationship_id=uuid4(),
+                amount="-100.0",
+                direction=TransferDirection.INCOMING,
+                timing=TransferTiming.IMMEDIATE,
+            )
+
+        assert "You must provide an amount > 0." in str(e.value)
+
+    def test_ach_transfer_with_wire_transfer_type(self):
+        with pytest.raises(ValueError) as e:
+            CreateACHTransferRequest(
+                relationship_id=uuid4(),
+                amount="0",
+                direction=TransferDirection.INCOMING,
+                timing=TransferTiming.IMMEDIATE,
+                transfer_type=TransferType.WIRE,
+            )
+
+        assert (
+            "Transfer type must be TransferType.ACH for ACH transfer requests."
+            in str(e.value)
+        )
+
+    def test_bank_transfer_with_ach_transfer_type(self):
+        with pytest.raises(ValueError) as e:
+            CreateBankTransferRequest(
+                relationship_id=uuid4(),
+                amount="0",
+                direction=TransferDirection.INCOMING,
+                timing=TransferTiming.IMMEDIATE,
+                transfer_type=TransferType.ACH,
+            )
+
+        assert (
+            "Transfer type must be TransferType.WIRE for bank transfer requests."
+            in str(e.value)
+        )

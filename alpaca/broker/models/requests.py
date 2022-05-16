@@ -5,7 +5,7 @@ from uuid import UUID
 from .documents import W8BenDocument
 from ...common.models import ValidateBaseModel as BaseModel
 
-from pydantic import root_validator
+from pydantic import root_validator, validator
 
 from .accounts import (
     Agreement,
@@ -26,6 +26,12 @@ from ..enums import (
     UploadDocumentSubType,
     DocumentType,
     VisaType,
+    BankAccountType,
+    IdentifierType,
+    TransferType,
+    TransferDirection,
+    TransferTiming,
+    FeePaymentMethod,
 )
 from ...common.enums import Sort, ActivityType
 
@@ -50,10 +56,10 @@ class NonEmptyRequest(BaseModel):
 
         # pydantic almost has what we need by passing exclude_none to dict() but it returns:
         #  {trusted_contact: {}, contact: {}, identity: None, etc}
-        # so we do a simple list comprehension to filter out None and {}
+        # so we do a simple list comprehension to filter out None and {}, and also convert UUID instances to strings.
 
         return {
-            key: val
+            key: (val if not isinstance(val, UUID) else str(val))
             for key, val in self.dict(exclude_none=True).items()
             if val and len(str(val)) > 0
         }
@@ -452,3 +458,174 @@ class UploadW8BenDocumentRequest(NonEmptyRequest):
             raise ValueError("If `content_data` is set then `mime_type` must be JSON")
 
         return values
+
+
+class CreateACHRelationshipRequest(NonEmptyRequest):
+    """
+    Attributes:
+        account_owner_name (str): The name of the ACH account owner for the relationship that is being created.
+        bank_account_type (BankAccountType): Specifies the type of bank account for the ACH relationship that is being
+          created.
+        bank_account_number (str): The bank account number associated with the ACH relationship.
+        bank_routing_number (str): THe bank routing number associated with the ACH relationship.
+        nickname (Optional[str]): Optionally specify a nickname to assign to the created ACH relationship.
+    """
+
+    account_owner_name: str
+    bank_account_type: BankAccountType
+    bank_account_number: str  # TODO: Validate bank account number format.
+    bank_routing_number: str  # TODO: Validate bank routing number format.
+    nickname: Optional[str]
+
+
+class CreatePlaidRelationshipRequest(NonEmptyRequest):
+    """
+    This request is made following the Plaid bank account link user flow.
+
+    Upon the user completing their connection with Plaid, a public token specific to the user is returned by Plaid. This
+    token is used to get an Alpaca processor token via Plaid's /processor/token/create endpoint, which is subsequently
+    used by this endpoint to transfer the user's Plaid information to Alpaca.
+
+    Attributes:
+        processor_token (str): The processor token that is specific to Alpaca and was returned by Plaid.
+    """
+
+    processor_token: str
+
+
+class CreateBankRequest(NonEmptyRequest):
+    """
+    Attributes:
+        name (str): The name of the recipient bank.
+        bank_code_type (IdentifierType): Specifies the type of the bank (international or domestic). See
+          enums.IdentifierType for more details.
+        bank_code (str): The 9-digit ABA routing number (domestic) or bank identifier code (BIC, international).
+        account_number (str): The bank account number.
+        country (Optional[str]): The country of the bank, if and only if creating an international bank account
+          connection.
+        state_province (Optional[str]): The state/province of the bank, if and only if creating an international bank
+          account connection.
+        postal_code (Optional[str]): The postal code of the bank, if and only if creating an international bank account
+          connection.
+        city (Optional[str]): The city of the bank, if and only if creating an international bank account connection.
+        street_address (Optional[str]): The street address of the bank, if and only if creating an international bank
+          account connection.
+    """
+
+    name: str
+    bank_code_type: IdentifierType
+    bank_code: str
+    account_number: str
+    country: Optional[str]
+    state_province: Optional[str]
+    postal_code: Optional[str]
+    city: Optional[str]
+    street_address: Optional[str]
+
+    @root_validator()
+    def root_validator(cls, values: dict) -> dict:
+        if "bank_code_type" not in values:
+            # Bank code type was not valid, so a ValueError will be thrown regardless.
+            return values
+
+        international_parameters = [
+            "country",
+            "state_province",
+            "postal_code",
+            "city",
+            "street_address",
+        ]
+
+        bank_code_type = values["bank_code_type"]
+        if bank_code_type == IdentifierType.ABA:
+            for international_param in international_parameters:
+                if (
+                    international_param in values
+                    and values[international_param] is not None
+                ):
+                    raise ValueError(
+                        f"You may only specify the {international_param} for international bank accounts."
+                    )
+        elif bank_code_type == IdentifierType.BIC:
+            for international_param in international_parameters:
+                if (
+                    international_param not in values
+                    or values[international_param] is None
+                ):
+                    raise ValueError(
+                        f"You must specify the {international_param} for international bank accounts."
+                    )
+
+        return values
+
+
+class _CreateTransferRequest(NonEmptyRequest):
+    """
+    Attributes:
+        amount (str): Amount of transfer, must be > 0. Any applicable fees will be deducted from this value.
+        direction (TransferDirection): Direction of the transfer.
+        timing (TransferTiming): Timing of the transfer.
+        fee_payment_method (Optional[FeePaymentMethod]): Determines how any applicable fees will be paid. Default value
+          is invoice.
+    """
+
+    amount: str
+    direction: TransferDirection
+    timing: TransferTiming
+    fee_payment_method: Optional[FeePaymentMethod]
+
+    @validator("amount")
+    def amount_must_be_positive(cls, value: str) -> str:
+        if float(value) <= 0:
+            raise ValueError("You must provide an amount > 0.")
+        return value
+
+
+class CreateACHTransferRequest(_CreateTransferRequest):
+    """
+    Attributes:
+        transfer_type (TransferType): Type of the transfer.
+        relationship_id (Optional[UUID]): ID of the relationship to use for the transfer, required for ACH transfers.
+    """
+
+    relationship_id: UUID
+    transfer_type: TransferType = TransferType.ACH
+
+    @validator("transfer_type")
+    def transfer_type_must_be_ach(cls, value: TransferType) -> TransferType:
+        if value != TransferType.ACH:
+            raise ValueError(
+                "Transfer type must be TransferType.ACH for ACH transfer requests."
+            )
+        return value
+
+
+class CreateBankTransferRequest(_CreateTransferRequest):
+    """
+    Attributes:
+        bank_id (UUID): ID of the bank to use for the transfer, required for wire transfers.
+        additional_information (Optional[str]): Additional wire transfer details.
+    """
+
+    bank_id: UUID
+    transfer_type: TransferType = TransferType.WIRE
+    additional_information: Optional[str]
+
+    @validator("transfer_type")
+    def transfer_type_must_be_wire(cls, value: TransferType) -> TransferType:
+        if value != TransferType.WIRE:
+            raise ValueError(
+                "Transfer type must be TransferType.WIRE for bank transfer requests."
+            )
+        return value
+
+
+class GetTransfersRequest(NonEmptyRequest):
+    """
+    Attributes:
+        direction: Optionally filter for transfers of only a single TransferDirection.
+    """
+
+    direction: Optional[TransferDirection]
+    limit: Optional[int]
+    offset: Optional[int]

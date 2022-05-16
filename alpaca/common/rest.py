@@ -1,10 +1,11 @@
 import time
 from abc import ABC
-from typing import Any, List, Optional, Type, Union, Tuple
+from typing import Any, List, Optional, Type, Union, Tuple, Iterator
 
 from pydantic import BaseModel
 from requests import Session
 from requests.exceptions import HTTPError
+from itertools import chain
 
 from alpaca.common.constants import (
     DEFAULT_RETRY_ATTEMPTS,
@@ -15,7 +16,8 @@ from alpaca.common.constants import (
 from alpaca import __version__
 from alpaca.common.exceptions import APIError, RetryException
 from alpaca.common.types import RawData
-from .enums import BaseURL
+from .constants import PageItem
+from .enums import PaginationType, BaseURL
 
 # TODO: Refine this type
 HTTPResult = Union[dict, List[dict], Any]
@@ -313,3 +315,38 @@ class RESTClient(ABC):
             return raw_data
         else:
             return model(raw_data=raw_data, **kwargs)
+
+    @staticmethod
+    def _validate_pagination(
+        max_items_limit: Optional[int], handle_pagination: Optional[PaginationType]
+    ) -> PaginationType:
+        """
+        Private method for validating the max_items_limit and handle_pagination arguments, returning the resolved
+        PaginationType.
+        """
+        if handle_pagination is None:
+            handle_pagination = PaginationType.FULL
+
+        if handle_pagination != PaginationType.FULL and max_items_limit is not None:
+            raise ValueError(
+                "max_items_limit can only be specified for PaginationType.FULL"
+            )
+        return handle_pagination
+
+    @staticmethod
+    def _return_paginated_result(
+        iterator: Iterator[PageItem], handle_pagination: PaginationType
+    ) -> Union[List[PageItem], Iterator[List[PageItem]]]:
+        """
+        Private method for converting an iterator that yields results to the proper pagination type result.
+        """
+        if handle_pagination == PaginationType.NONE:
+            # user wants no pagination, so just do a single page
+            return next(iterator)
+        elif handle_pagination == PaginationType.FULL:
+            # the iterator returns "pages", so we use chain to flatten them all into 1 list
+            return list(chain.from_iterable(iterator))
+        elif handle_pagination == PaginationType.ITERATOR:
+            return iterator
+        else:
+            raise ValueError(f"Invalid pagination type: {handle_pagination}.")

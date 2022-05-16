@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class Exchange(Enum):
+class Exchange(str, Enum):
     """The exchanges that provide data feeds to Alpaca
 
     Attributes:
@@ -64,11 +64,8 @@ class Exchange(Enum):
     H: str = "H"
     K: str = "K"
 
-    def __str__(self):
-        return self.value
 
-
-class DataFeed(Enum):
+class DataFeed(str, Enum):
     """Equity market data feeds. OTC and SIP are available with premium data subscriptions.
 
     Attributes:
@@ -81,11 +78,8 @@ class DataFeed(Enum):
     SIP: str = "sip"
     OTC: str = "otc"
 
-    def __str__(self):
-        return self.value
 
-
-class Adjustment(Enum):
+class Adjustment(str, Enum):
     """Data normalization based on types of corporate actions.
 
     Attributes:
@@ -99,6 +93,3 @@ class Adjustment(Enum):
     SPLIT: str = "split"
     DIVIDEND: str = "dividend"
     ALL: str = "all"
-
-    def __str__(self):
-        return self.value

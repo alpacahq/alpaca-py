@@ -401,7 +401,7 @@ class TradeAccountConfiguration(BaseModel):
         fractional_trading (bool): If true, account is able to participate in fractional trading
         max_margin_multiplier (str): A number between 1-4 that represents your max margin multiplier
         no_shorting (bool): If true then Account becomes long-only mode.
-        pdt_check (PDTCheck): Controls Patter Day Trader (PDT) checks.
+        pdt_check (PDTCheck): Controls Pattern Day Trader (PDT) checks.
         suspend_trade (bool): If true Account becomes unable to submit new orders
         trade_confirm_email (TradeConfirmationEmail): Controls whether Trade confirmation emails are sent.
     """

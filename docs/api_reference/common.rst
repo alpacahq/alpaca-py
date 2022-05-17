@@ -1,41 +1,13 @@
+Common Shared Functionality
+===========================
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
-Common 
-======
-
-
-TimeFrame
----------
-
-.. automodule:: alpaca.common.time
-   :members:
-
-REST Base Client
-----------------
-
-.. automodule:: alpaca.common.rest
-   :members:
-
-Websocket Base Client
----------------------
-
-.. automodule:: alpaca.common.websocket
-   :members:
-
-Enums
------
-
-.. automodule:: alpaca.common.enums
-   :members:
-
-
-Exceptions
-----------
-
-.. automodule:: alpaca.common.exceptions
-   :members:
-
-
-
+   common/enums
+   common/exceptions
+   common/models
+   common/rest
+   common/timeframe
+   common/websocket

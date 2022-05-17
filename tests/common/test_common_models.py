@@ -12,16 +12,14 @@ from datetime import datetime, date
 from uuid import UUID
 from alpaca.common.enums import (
     AssetClass,
-    AssetStatus,
     AssetExchange,
-    OrderStatus,
     OrderType,
     OrderClass,
     TimeInForce,
     OrderSide,
     PositionSide,
 )
-from factories import create_dummy_asset
+from factories import create_dummy_asset, create_dummy_order
 
 
 def test_clock_timestamps():
@@ -85,41 +83,7 @@ def test_close_position_response_uuid():
 def test_order_timestamps():
     """Tests that all timestamp fields are up-casted to datetimes."""
 
-    order = Order(
-        id="61e69015-8549-4bfd-b9c3-01e75843f47d",
-        client_order_id="eb9e2aaa-f71a-4f51-b5b4-52a6c565dad4",
-        created_at="2021-03-16T18:38:01.942282Z",
-        updated_at="2021-03-16T18:38:01.942282Z",
-        submitted_at="2021-03-16T18:38:01.937734Z",
-        filled_at="2021-03-16T18:38:01.937734Z",
-        expired_at="2021-03-16T18:38:01.937734Z",
-        canceled_at="2021-03-16T18:38:01.937734Z",
-        failed_at="2021-03-16T18:38:01.937734Z",
-        replaced_at="2021-03-16T18:38:01.937734Z",
-        replaced_by=None,
-        replaces=None,
-        asset_id="b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
-        symbol="AAPL",
-        asset_class=AssetClass.US_EQUITY,
-        notional="500",
-        qty=None,
-        filled_qty="0",
-        filled_avg_price=None,
-        order_class=OrderClass.SIMPLE,
-        order_type=OrderType.MARKET,
-        type=OrderType.MARKET,
-        side=OrderSide.BUY,
-        time_in_force=TimeInForce.DAY,
-        limit_price=None,
-        stop_price=None,
-        status="accepted",
-        extended_hours=False,
-        legs=None,
-        trail_percent=None,
-        trail_price=None,
-        hwm=None,
-        commission="1.25",
-    )
+    order = create_dummy_order()
 
     assert isinstance(order.created_at, datetime)
     assert isinstance(order.updated_at, datetime)
@@ -134,41 +98,7 @@ def test_order_timestamps():
 def test_order_uuids():
     """Tests that the Order's id fields are up-casted to UUIDs."""
 
-    order = Order(
-        id="61e69015-8549-4bfd-b9c3-01e75843f47d",
-        client_order_id="eb9e2aaa-f71a-4f51-b5b4-52a6c565dad4",
-        created_at="2021-03-16T18:38:01.942282Z",
-        updated_at="2021-03-16T18:38:01.942282Z",
-        submitted_at="2021-03-16T18:38:01.937734Z",
-        filled_at="2021-03-16T18:38:01.937734Z",
-        expired_at="2021-03-16T18:38:01.937734Z",
-        canceled_at="2021-03-16T18:38:01.937734Z",
-        failed_at="2021-03-16T18:38:01.937734Z",
-        replaced_at="2021-03-16T18:38:01.937734Z",
-        replaced_by="61e69015-8549-4bfd-b9c3-01e75843f47d",
-        replaces="61e69015-8549-4bfd-b9c3-01e75843f47d",
-        asset_id="b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
-        symbol="AAPL",
-        asset_class=AssetClass.US_EQUITY,
-        notional="500",
-        qty=None,
-        filled_qty="0",
-        filled_avg_price=None,
-        order_class=OrderClass.SIMPLE,
-        order_type=OrderType.MARKET,
-        type=OrderType.MARKET,
-        side=OrderSide.BUY,
-        time_in_force=TimeInForce.DAY,
-        limit_price=None,
-        stop_price=None,
-        status="accepted",
-        extended_hours=False,
-        legs=None,
-        trail_percent=None,
-        trail_price=None,
-        hwm=None,
-        commission="1.25",
-    )
+    order = create_dummy_order()
 
     assert isinstance(order.id, UUID)
     assert isinstance(order.client_order_id, UUID)
@@ -180,41 +110,7 @@ def test_order_uuids():
 def test_order_legs():
     """Tests recursive Order object with legs field"""
 
-    order = Order(
-        id="61e69015-8549-4bfd-b9c3-01e75843f47d",
-        client_order_id="eb9e2aaa-f71a-4f51-b5b4-52a6c565dad4",
-        created_at="2021-03-16T18:38:01.942282Z",
-        updated_at="2021-03-16T18:38:01.942282Z",
-        submitted_at="2021-03-16T18:38:01.937734Z",
-        filled_at="2021-03-16T18:38:01.937734Z",
-        expired_at="2021-03-16T18:38:01.937734Z",
-        canceled_at="2021-03-16T18:38:01.937734Z",
-        failed_at="2021-03-16T18:38:01.937734Z",
-        replaced_at="2021-03-16T18:38:01.937734Z",
-        replaced_by="61e69015-8549-4bfd-b9c3-01e75843f47d",
-        replaces="61e69015-8549-4bfd-b9c3-01e75843f47d",
-        asset_id="b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
-        symbol="AAPL",
-        asset_class=AssetClass.US_EQUITY,
-        notional="500",
-        qty=None,
-        filled_qty="0",
-        filled_avg_price=None,
-        order_class=OrderClass.SIMPLE,
-        order_type=OrderType.MARKET,
-        type=OrderType.MARKET,
-        side=OrderSide.BUY,
-        time_in_force=TimeInForce.DAY,
-        limit_price=None,
-        stop_price=None,
-        status="accepted",
-        extended_hours=False,
-        legs=None,
-        trail_percent=None,
-        trail_price=None,
-        hwm=None,
-        commission="1.25",
-    )
+    order = create_dummy_order()
 
     order_with_legs = Order(
         id="61e69015-8549-4bfd-b9c3-01e75843f47d",
@@ -249,7 +145,6 @@ def test_order_legs():
         trail_percent=None,
         trail_price=None,
         hwm=None,
-        commission="1.25",
     )
 
     assert isinstance(order_with_legs.legs, list)

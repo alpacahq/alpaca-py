@@ -106,7 +106,7 @@ class Order(BaseModel):
         replaces (Optional[UUID]): ID of Order which this Order replaces.
         asset_id (UUID): ID of the asset.
         symbol (str): Symbol of the asset.
-        asset_class (str): Asset class of the asset.
+        asset_class (AssetClass): Asset class of the asset.
         notional (Optional[str]): Ordered notional amount. If entered, qty will be null. Can take up to 9 decimal
           points.
         qty (Optional[str]): Ordered quantity. If entered, notional will be null. Can take up to 9 decimal points.
@@ -127,7 +127,6 @@ class Order(BaseModel):
         trail_percent (Optional[str]): The percent value away from the high water mark for trailing stop orders.
         trail_price (Optional[str]): The dollar value away from the high water mark for trailing stop orders.
         hwm (Optional[str]): The highest (lowest) market price seen since the trailing stop order was submitted.
-        commission (float): The dollar value commission you want to charge the end user.
     """
 
     id: UUID
@@ -144,7 +143,7 @@ class Order(BaseModel):
     replaces: Optional[UUID]
     asset_id: UUID
     symbol: str
-    asset_class: str
+    asset_class: AssetClass
     notional: Optional[str]
     qty: Optional[str]
     filled_qty: Optional[str]
@@ -162,7 +161,6 @@ class Order(BaseModel):
     trail_percent: Optional[str]
     trail_price: Optional[str]
     hwm: Optional[str]
-    commission: float
 
 
 class PortfolioHistory(BaseModel):

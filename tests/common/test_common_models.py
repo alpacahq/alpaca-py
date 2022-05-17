@@ -165,7 +165,7 @@ def test_close_position_request_with_percentage():
 
 def test_close_position_request_with_qty_and_percentage():
     with pytest.raises(ValueError) as e:
-        close_position_request = ClosePositionRequest(qty="100", percentage="0.5")
+        ClosePositionRequest(qty="100", percentage="0.5")
 
     assert (
         "Only one of qty or percentage must be given to the ClosePositionRequest, got both."
@@ -175,7 +175,7 @@ def test_close_position_request_with_qty_and_percentage():
 
 def test_close_position_request_with_neither_qty_or_percentage():
     with pytest.raises(ValueError) as e:
-        close_position_request = ClosePositionRequest()
+        ClosePositionRequest()
 
     assert (
         "qty or percentage must be given to the ClosePositionRequest, got None for both."

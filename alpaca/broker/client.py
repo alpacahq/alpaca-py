@@ -29,11 +29,21 @@ from .models import (
     TradeDocument,
     Transfer,
     UploadDocumentRequest,
+    Order,
 )
 from ..common import APIError
 from ..common.constants import ACCOUNT_ACTIVITIES_DEFAULT_PAGE_SIZE
 from ..common.enums import BaseURL, PaginationType
-from ..common.models import BaseActivity, NonTradeActivity, TradeActivity
+from ..common.models import (
+    BaseActivity,
+    NonTradeActivity,
+    TradeActivity,
+    GetPortfolioHistoryRequest,
+    PortfolioHistory,
+    ClosePositionRequest,
+    Position,
+    ClosePositionResponse,
+)
 from ..common.rest import HTTPResult, RESTClient
 
 
@@ -64,6 +74,28 @@ def validate_uuid_id_param(
         raise ValueError(f"{var_name} must be a UUID or a UUID str")
 
     return id
+
+
+def validate_symbol_or_asset_id(
+    symbol_or_asset_id: Union[UUID, str]
+) -> Union[UUID, str]:
+    """
+    A helper function to eliminate duplicate checks of symbols or asset ids.
+
+    If the argument given is a string, assumed to be a symbol name. If a UUID object, assumed to be an asset id.
+    ValueError if neither type.
+
+    Args:
+        symbol_or_asset_id: String representing a symbol name or a UUID representing an asset id.
+
+    Returns:
+        String if symbol, UUID if asset id.
+    """
+    if isinstance(symbol_or_asset_id, (UUID, str)):
+        return symbol_or_asset_id
+    raise ValueError(
+        f"symbol_or_asset_id must be a UUID of an asset id or a string of a symbol."
+    )
 
 
 class BrokerClient(RESTClient):
@@ -889,3 +921,115 @@ class BrokerClient(RESTClient):
         account_id = validate_uuid_id_param(account_id)
         transfer_id = validate_uuid_id_param(transfer_id, "transfer_id")
         self.delete(f"/accounts/{account_id}/transfers/{transfer_id}")
+
+    # ############################## TRADING ################################# #
+
+    def get_all_positions_for_account(
+        self,
+        account_id: Union[UUID, str],
+    ) -> List[Position]:
+        """
+        Gets all the current positions for an account.
+
+        Args:
+            account_id (Union[UUID, str]): The ID of the Account to get the open positions for.
+
+        Returns:
+            List[Position]: List of open positions from the account.
+        """
+        account_id = validate_uuid_id_param(account_id)
+        response = self.get(f"/trading/accounts/{account_id}/positions")
+        return parse_obj_as(List[Position], response)
+
+    def get_open_position_for_account(
+        self, account_id: Union[UUID, str], symbol_or_asset_id: Union[UUID, str]
+    ) -> Position:
+        """
+        Gets the open position for an account for a single asset.
+
+        Args:
+            account_id (Union[UUID, str]): The ID of the Account to get the open position for.
+            symbol_or_asset_id (Union[UUID, str]): The symbol name of asset id of the position to get from the account.
+
+        Returns:
+            Position: Open position of the asset from the account.
+        """
+        account_id = validate_uuid_id_param(account_id)
+        symbol_or_asset_id = validate_symbol_or_asset_id(symbol_or_asset_id)
+        response = self.get(
+            f"/trading/accounts/{account_id}/positions/{symbol_or_asset_id}"
+        )
+        return Position(**response)
+
+    def close_all_positions_for_account(
+        self, account_id: Union[UUID, str], cancel_orders: bool
+    ) -> List[ClosePositionResponse]:
+        """
+        Liquidates all positions for an account.
+
+        Places an order for each open position to liquidate.
+
+        Args:
+            account_id (Union[UUID, str]): The ID of the Account to close the positions for.
+            cancel_orders (bool): If true is specified, cancel all open orders before liquidating all positions.
+
+        Returns:
+            List[ClosePositionResponse]: A list of responses from each closed position containing the status code and
+              order id.
+        """
+        account_id = validate_uuid_id_param(account_id)
+        response = self.delete(
+            f"/trading/accounts/{account_id}/positions",
+            {"cancel_orders": cancel_orders},
+        )
+        return parse_obj_as(List[ClosePositionResponse], response)
+
+    def close_position_for_account(
+        self,
+        account_id: Union[UUID, str],
+        symbol_or_asset_id: Union[UUID, str],
+        close_options: Optional[ClosePositionRequest] = None,
+    ) -> Order:
+        """
+        Liquidates the position for an account for a single asset.
+
+        Places a single order to close the position for the asset.
+
+        Args:
+            account_id (Union[UUID, str]): The ID of the Account to close the position for.
+            symbol_or_asset_id (Union[UUID, str]): The symbol name of asset id of the position to close on the account.
+            close_options: The various close position request parameters.
+
+        Returns:
+            Order: The order that was placed to close the position.
+        """
+        account_id = validate_uuid_id_param(account_id)
+        symbol_or_asset_id = validate_symbol_or_asset_id(symbol_or_asset_id)
+        response = self.delete(
+            f"/trading/accounts/{account_id}/positions/{symbol_or_asset_id}",
+            close_options.to_request_fields() if close_options else {},
+        )
+        return Order(**response)
+
+    def get_portfolio_history_for_account(
+        self,
+        account_id: Union[UUID, str],
+        history_filter: Optional[GetPortfolioHistoryRequest] = None,
+    ) -> PortfolioHistory:
+        """
+        Gets the portfolio history statistics for an account.
+
+        Args:
+            account_id (Union[UUID, str]): The ID of the Account to get the portfolio history for.
+            history_filter: The various portfolio history request parameters.
+
+        Returns:
+            PortfolioHistory: The portfolio history statistics for the account.
+        """
+        account_id = validate_uuid_id_param(account_id)
+
+        response = self.get(
+            f"/trading/accounts/{account_id}/account/portfolio/history",
+            history_filter.to_request_fields() if history_filter else {},
+        )
+        return PortfolioHistory(**response)

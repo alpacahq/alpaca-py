@@ -1036,9 +1036,9 @@ class BrokerClient(RESTClient):
             history_filter.to_request_fields() if history_filter else {},
         )
         return PortfolioHistory(**response)
-      
+
     # ############################## CLOCK & CALENDAR ################################# #
-    
+
     def get_clock(self) -> Clock:
         """
         Gets the current market timestamp, whether or not the market is currently open, as well as the times

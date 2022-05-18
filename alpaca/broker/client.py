@@ -7,8 +7,9 @@ from requests import HTTPError, Response
 
 from .constants import BROKER_DOCUMENT_UPLOAD_LIMIT
 from .enums import ACHRelationshipStatus
-from .models import (
+from alpaca.broker.models import (
     ACHRelationship,
+    GetCalendarRequest,
     Account,
     AccountCreationRequest,
     AccountUpdateRequest,
@@ -43,6 +44,8 @@ from ..common.models import (
     ClosePositionRequest,
     Position,
     ClosePositionResponse,
+    Calendar,
+    Clock,
 )
 from ..common.rest import HTTPResult, RESTClient
 
@@ -1033,3 +1036,39 @@ class BrokerClient(RESTClient):
             history_filter.to_request_fields() if history_filter else {},
         )
         return PortfolioHistory(**response)
+      
+    # ############################## CLOCK & CALENDAR ################################# #
+    
+    def get_clock(self) -> Clock:
+        """
+        Gets the current market timestamp, whether or not the market is currently open, as well as the times
+        of the next market open and close.
+
+        Returns:
+            Clock: The market Clock data
+        """
+        return Clock(**self.get("/clock"))
+
+    def get_calendar(
+        self,
+        filters: Optional[GetCalendarRequest] = None,
+    ) -> List[Calendar]:
+        """
+        The calendar API serves the full list of market days from 1970 to 2029. It can also be queried by specifying a
+        start and/or end time to narrow down the results.
+
+        In addition to the dates, the response also contains the specific open and close times for the market days,
+        taking into account early closures.
+
+        Args:
+            filters: Any optional filters to limit the returned market days
+
+        Returns:
+            List[Calendar]: A list of Calendar objects representing the market days.
+        """
+
+        result = self.get(
+            "/calendar", filters.to_request_fields() if filters is not None else {}
+        )
+
+        return parse_obj_as(List[Calendar], result)

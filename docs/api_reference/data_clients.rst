@@ -21,3 +21,20 @@ the object models check out the market data models section.
 
 Live Data Client
 ----------------
+
+Equity
+~~~~~~
+
+Using the MarketDataClient, you can access live equity data across both IEX and SIP datafeeds.
+Minute bar data, trade data and quote data are available. See common
+
+
+.. autoclass:: alpaca.data.live.MarketDataStream
+
+Crypto
+~~~~~~
+
+Using the CryptoDataClient, you can access live crypto data for over 20+ coins.
+Minute bar data, trade data, and quote data are available.
+
+.. autoclass:: alpaca.data.live.CryptoDataStream

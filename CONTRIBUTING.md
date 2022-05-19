@@ -77,12 +77,18 @@ The url for this request is `DELETE /v2/watchlists/{watchlist_id}/{symbol}`
    naming convention like the following:
    `{verb}_{noun}_by_{value}` or `{verb}_{noun1}_(for, from, to, etc)_{noun2}`or `{verb}_{noun1}_for_{noun2}_by_{value}`
 
-    - step 1: is to get the verb we need. In this case its DELETE but for a more semantic name we'll use remove
-    - step 2: what are the nouns we're working on, in this case its Watchlists and Symbols
-    - step 3: The main noun in this case is Watchlist, and we specify which Watchlist we wish to update via its id, so
-      we will add on a `by_id` to the end.
+   - step 1: is to get the verb we need. In this case its DELETE but for a more semantic name we'll use remove
+   - step 2: what are the nouns we're working on, in this case its Watchlists and Symbols
+   - step 3: The main noun in this case is Watchlist, and we specify which Watchlist we wish to update via its id, so we
+     will add on a `by_id` to the end.
 
    and thus we end up with `remove_symbol_from_watchlist_by_id`.
 
 > **NOTE**: Currently during the alpha phase of alpaca-py we haven't been strict on the above naming scheme. However,
 > this **_will_** change in the future before we hit 1.0.0
+
+And so the final method looks like:
+
+```python
+def remove_symbol_from_watchlist_by_id(self, watchlist_id: UUID, symbol: str) -> Watchlist:
+```

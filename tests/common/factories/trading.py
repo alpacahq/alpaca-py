@@ -1,4 +1,12 @@
-from alpaca.common.models import Asset
+from alpaca.common.models import Asset, Order
+from alpaca.common.enums import (
+    AssetClass,
+    OrderClass,
+    OrderSide,
+    OrderStatus,
+    OrderType,
+    TimeInForce,
+)
 
 
 def create_dummy_asset() -> Asset:
@@ -23,3 +31,46 @@ def create_dummy_asset() -> Asset:
     }
 
     return Asset(**asset_data)
+
+
+def create_dummy_order() -> Order:
+    """
+    Creates an Order object for testing.
+
+    Returns:
+        Order: An example order.
+    """
+    return Order(
+        id="61e69015-8549-4bfd-b9c3-01e75843f47d",
+        client_order_id="eb9e2aaa-f71a-4f51-b5b4-52a6c565dad4",
+        created_at="2021-03-16T18:38:01.942282Z",
+        updated_at="2021-03-16T18:38:01.942282Z",
+        submitted_at="2021-03-16T18:38:01.937734Z",
+        filled_at="2021-03-16T18:38:01.937734Z",
+        expired_at="2021-03-16T18:38:01.937734Z",
+        canceled_at="2021-03-16T18:38:01.937734Z",
+        failed_at="2021-03-16T18:38:01.937734Z",
+        replaced_at="2021-03-16T18:38:01.937734Z",
+        replaced_by="61e69015-8549-4bfd-b9c3-01e75843f47d",
+        replaces="61e69015-8549-4bfd-b9c3-01e75843f47d",
+        asset_id="b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+        symbol="AAPL",
+        asset_class=AssetClass.US_EQUITY,
+        notional="500",
+        qty=None,
+        filled_qty="0",
+        filled_avg_price=None,
+        order_class=OrderClass.SIMPLE,
+        order_type=OrderType.MARKET,
+        type=OrderType.MARKET,
+        side=OrderSide.BUY,
+        time_in_force=TimeInForce.DAY,
+        limit_price=None,
+        stop_price=None,
+        status="accepted",
+        extended_hours=False,
+        legs=None,
+        trail_percent=None,
+        trail_price=None,
+        hwm=None,
+    )

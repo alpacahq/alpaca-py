@@ -1,6 +1,6 @@
 Contributing to Alpaca-Py
 =========================
----
+
 
 Thank you for taking the time to contribute!
 Alpaca-Py is currently in an early alpha phase, but we are very open to taking contributions!
@@ -26,21 +26,24 @@ and will result in us having to ask you to fill out the missing information or c
 That's the high level flow of it. Note that this repo uses merge commits so don't feel the need to squash your commits
 before your pr.
 
-### Coding Guidelines
+## Coding Guidelines
 
-#### Formatting
+### Formatting
 
 This repo is using [Black](https://github.com/psf/black) as our formatter and style enforcer, if you're unsure if your
-code will fit our style guide simply run `poetry run black .` from the root of the repo and Black will take care of
-formatting your code correctly for you.
+code will fit our style guide simply run
 
-#### Conventions
+`poetry run black .`
+
+from the root of the repo and Black will take care of formatting your code correctly for you.
+
+### Conventions
 
 We only have a few conventions we follow.
 
 [//]: # (In the future put commit conventions here if we ever embrace them, ie conventional commits)
 
-##### Models
+#### Models
 
 We use [Pydantic](https://pydantic-docs.helpmanual.io/) for our models and for representing request objects. This lets
 us add both type and custom validations to the models. If your PR needs to add a new model for some reason please make
@@ -51,7 +54,7 @@ If what you're adding is a model for a request, IE `GetNewThingRequest` then ple
 `alpaca.common.models.NonEmptyRequest` class. This class is a helper that extends the ValidateBaseModel to also add a
 method called `to_request_fields` that eases the conversion of fields to safe HTTP request values.
 
-##### Request Methods
+#### Request Methods
 
 Our request methods try to stick to a simple formula.
 

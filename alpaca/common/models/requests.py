@@ -1,11 +1,10 @@
-import datetime
+from datetime import date
+from typing import Any, Optional
+from uuid import UUID
+
+from pydantic import root_validator
 
 from .models import ValidateBaseModel as BaseModel
-from typing import Any, Optional
-from typing import Optional
-from datetime import date
-from pydantic import root_validator
-from uuid import UUID
 
 
 class NonEmptyRequest(BaseModel):

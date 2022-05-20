@@ -1080,14 +1080,23 @@ class BrokerClient(RESTClient):
         self,
         account_id: Union[UUID, str],
     ) -> List[Watchlist]:
-        pass
+        account_id = validate_uuid_id_param(account_id, "account_id")
+
+        result = self.get(f"/trading/accounts/{account_id}/watchlists")
+
+        return parse_obj_as(List[Watchlist], result)
 
     def get_watchlist_for_account_by_id(
         self,
         account_id: Union[UUID, str],
         watchlist_id: Union[UUID, str],
     ) -> Watchlist:
-        pass
+        account_id = validate_uuid_id_param(account_id, "account_id")
+        watchlist_id = validate_uuid_id_param(watchlist_id, "watchlist_id")
+
+        result = self.get(f"/trading/accounts/{account_id}/watchlists/{watchlist_id}")
+
+        return Watchlist(**result)
 
     def create_watchlist_for_account(
         self,

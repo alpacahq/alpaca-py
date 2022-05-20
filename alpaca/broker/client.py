@@ -31,6 +31,7 @@ from alpaca.broker.models import (
     Transfer,
     UploadDocumentRequest,
     Order,
+    CreateWatchlistRequest,
 )
 from ..common import APIError
 from ..common.constants import ACCOUNT_ACTIVITIES_DEFAULT_PAGE_SIZE
@@ -46,6 +47,7 @@ from ..common.models import (
     ClosePositionResponse,
     Calendar,
     Clock,
+    Watchlist,
 )
 from ..common.rest import HTTPResult, RESTClient
 
@@ -181,7 +183,7 @@ class BrokerClient(RESTClient):
             and other generated fields filled out.
         """
 
-        data = account_data.json()
+        data = account_data.to_request_fields()
         response = self.post("/accounts", data)
 
         return Account(**response)
@@ -274,8 +276,7 @@ class BrokerClient(RESTClient):
             List[Account]: The filtered list of Accounts
         """
 
-        # this is a get request, so we're safe not checking to see if we specified at least one param
-        params = search_parameters.dict() if search_parameters is not None else {}
+        params = search_parameters.to_request_fields() if search_parameters else {}
 
         # API expects comma separated for entities not multiple params
         if "entities" in params and params["entities"] is not None:
@@ -1072,3 +1073,55 @@ class BrokerClient(RESTClient):
         )
 
         return parse_obj_as(List[Calendar], result)
+
+    # ############################## WATCHLISTS ################################# #
+
+    def get_watchlists_for_account(
+        self,
+        account_id: Union[UUID, str],
+    ) -> List[Watchlist]:
+        pass
+
+    def get_watchlist_for_account_by_id(
+        self,
+        account_id: Union[UUID, str],
+        watchlist_id: Union[UUID, str],
+    ) -> Watchlist:
+        pass
+
+    def create_watchlist_for_account(
+        self,
+        account_id: Union[UUID, str],
+        watchlist_data: CreateWatchlistRequest,
+    ) -> Watchlist:
+        pass
+
+    def update_watchlist_for_account_by_id(
+        self,
+        # Might be worth taking a union of this an Watchlist itself; but then we should make a change like that SDK wide. Probably a good 0.2.x change
+        watchlist_data: CreateWatchlistRequest,
+    ) -> Watchlist:
+        pass
+
+    def add_asset_to_watchlist_for_account_by_id(
+        self,
+        account_id: Union[UUID, str],
+        watchlist_id: Union[UUID, str],
+        symbol_or_asset_id: Union[UUID, str],
+    ) -> Watchlist:
+        pass
+
+    def delete_watchlist_from_account_by_id(
+        self,
+        account_id: Union[UUID, str],
+        watchlist_id: Union[UUID, str],
+    ) -> None:
+        pass
+
+    def remove_asset_from_watchlist_for_account_by_id(
+        self,
+        account_id: Union[UUID, str],
+        watchlist_id: Union[UUID, str],
+        symbol_or_asset_id: Union[UUID, str],
+    ) -> Watchlist:
+        pass

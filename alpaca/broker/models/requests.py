@@ -608,7 +608,3 @@ class GetCalendarRequest(NonEmptyRequest):
 
     start: Optional[date] = None
     end: Optional[date] = None
-
-
-class CreateWatchlistRequest(NonEmptyRequest):
-    pass

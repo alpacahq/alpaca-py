@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Any, Optional
+from typing import Any, List, Optional
 from uuid import UUID
 
 from pydantic import root_validator
@@ -103,3 +103,33 @@ class GetPortfolioHistoryRequest(NonEmptyRequest):
     timeframe: Optional[str]
     date_end: Optional[date]
     extended_hours: Optional[bool]
+
+
+class CreateWatchlistRequest(NonEmptyRequest):
+    """
+    Represents the fields you can specify when creating a Watchlist
+
+    Attributes:
+        name(str): Name of the Watchlist
+        symbols(List[str]): Symbols of Assets to watch
+    """
+
+    name: str
+    symbols: List[str]
+
+    @root_validator()
+    def root_validator(cls, values: dict) -> dict:
+        return values
+
+
+class UpdateWatchlistRequest(NonEmptyRequest):
+    """
+    Represents the fields you can specify when updating a Watchlist
+
+    Attributes:
+        name(Optional[str]): Name of the Watchlist
+        symbols(Optional[List[str]]): Symbols of Assets to watch
+    """
+
+    name: Optional[str]
+    symbols: Optional[List[str]]

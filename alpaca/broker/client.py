@@ -31,7 +31,6 @@ from alpaca.broker.models import (
     Transfer,
     UploadDocumentRequest,
     Order,
-    CreateWatchlistRequest,
 )
 from ..common import APIError
 from ..common.constants import ACCOUNT_ACTIVITIES_DEFAULT_PAGE_SIZE
@@ -48,6 +47,7 @@ from ..common.models import (
     Calendar,
     Clock,
     Watchlist,
+    CreateWatchlistRequest,
 )
 from ..common.rest import HTTPResult, RESTClient
 
@@ -1103,7 +1103,14 @@ class BrokerClient(RESTClient):
         account_id: Union[UUID, str],
         watchlist_data: CreateWatchlistRequest,
     ) -> Watchlist:
-        pass
+        account_id = validate_uuid_id_param(account_id, "account_id")
+
+        result = self.post(
+            f"/trading/accounts/{account_id}/watchlists",
+            watchlist_data.to_request_fields(),
+        )
+
+        return Watchlist(**result)
 
     def update_watchlist_for_account_by_id(
         self,

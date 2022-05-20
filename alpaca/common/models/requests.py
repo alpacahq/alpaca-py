@@ -2,6 +2,7 @@ import datetime
 
 from .models import ValidateBaseModel as BaseModel
 from typing import Any, Optional
+from typing import Optional
 from datetime import date
 from pydantic import root_validator
 from uuid import UUID
@@ -20,7 +21,6 @@ class NonEmptyRequest(BaseModel):
           {contact: {city: None, country: None...}, etc}
         we generate just:
           {trusted_contact:{given_name: "new value"}}
-
 
         NOTE: This function recurses to handle nested models, so do not use on a self-referential model
 

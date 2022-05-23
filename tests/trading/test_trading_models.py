@@ -1,5 +1,10 @@
 from alpaca.common.enums import OrderSide, OrderType, TimeInForce
-from alpaca.trading.models import OrderCreationRequest
+from alpaca.trading.models import (
+    OrderCreationRequest,
+    ReplaceOrderRequest,
+    CancelOrderResponse,
+)
+from alpaca.trading.models.requests import GetOrdersRequest
 
 import pytest
 

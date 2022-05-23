@@ -1,7 +1,7 @@
 from .models import ValidateBaseModel as BaseModel
 from uuid import UUID
 from datetime import datetime
-from typing import Optional, List
+from typing import Any, Optional, List
 from ..enums import (
     AssetClass,
     AssetStatus,
@@ -178,6 +178,13 @@ class Order(BaseModel):
     trail_percent: Optional[str]
     trail_price: Optional[str]
     hwm: Optional[str]
+
+    def __init__(self, **data: Any) -> None:
+
+        if "order_class" not in data or data["order_class"] == "":
+            data["order_class"] = OrderClass.SIMPLE
+
+        super().__init__(**data)
 
 
 class PortfolioHistory(BaseModel):

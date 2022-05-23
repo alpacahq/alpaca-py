@@ -1,7 +1,18 @@
-from typing import Optional, Any
+from datetime import datetime
+from typing import List, Optional, Any
+from uuid import UUID
 
-from alpaca.common.enums import OrderSide, OrderType, TimeInForce, OrderClass
+from alpaca.common.enums import (
+    OrderSide,
+    OrderStatus,
+    OrderType,
+    Sort,
+    TimeInForce,
+    OrderClass,
+)
 from alpaca.common.models import NonEmptyRequest
+
+from alpaca.common.models import ValidateBaseModel as BaseModel
 
 from pydantic import root_validator
 
@@ -136,3 +147,76 @@ class OrderCreationRequest(NonEmptyRequest):
             )
 
         return values
+
+
+class GetOrdersRequest(NonEmptyRequest):
+    """Contains data for submitting a request to retrieve orders.
+
+    Attributes:
+        status (Optional[OrderStatus]): Order status to be queried. open, closed or all. Defaults to open.
+        limit (Optional[int]): The maximum number of orders in response. Defaults to 50 and max is 500.
+        after (Optional[datetime]): The response will include only ones submitted after this timestamp.
+        until (Optional[datetime]): The response will include only ones submitted until this timestamp.
+        direction (Optional[Sort]): The chronological order of response based on the submission time. asc or desc. Defaults to desc.
+        nested (Optional[bool]): If true, the result will roll up multi-leg orders under the legs field of primary order.
+        side (Optional[OrderSide]): Filters down to orders that have a matching side field set.
+        symbols (Optional[List[str]]): List of symbols to filter by.
+    """
+
+    status: Optional[OrderStatus]
+    limit: Optional[int]  # not pagination
+    after: Optional[datetime]
+    until: Optional[datetime]
+    direction: Optional[Sort]
+    nested: Optional[bool]
+    side: Optional[OrderSide]
+    symbols: Optional[List[str]]
+
+
+class GetOrderByIdRequest(NonEmptyRequest):
+    """Contains data for submitting a request to retrieve a single order by its order id.
+
+    Attributes:
+        nested (bool): If true, the result will roll up multi-leg orders under the legs field of primary order.
+    """
+
+    nested: bool
+
+
+class ReplaceOrderRequest(NonEmptyRequest):
+    """Contains data for submitting a request to replace an order.
+
+    Attributes:
+        qty (Optional[int]): Number of shares to trade
+        time_in_force (Optional[TimeInForce]): The new expiration logic of the order.
+        limit_price (Optional[float]): Required if type of order being replaced is limit or stop_limit
+        stop_price (Optional[float]): Required if type of order being replaced is stop or stop_limit
+        trail (Optional[float]): The new value of the trail_price or trail_percent value (works only for type=“trailing_stop”)
+        client_order_id (Optional[str]): A unique identifier for the order.
+    """
+
+    qty: Optional[int]
+    time_in_force: Optional[TimeInForce]
+    limit_price: Optional[float]
+    stop_price: Optional[float]
+    trail: Optional[float]
+    client_order_id: Optional[str]
+
+
+class CancelOrderResponse(BaseModel):
+    """
+    Data returned after requesting to cancel an order. It contains the cancel status of an order.
+
+    Attributes:
+        id (UUID): The order id
+        status (int): The HTTP status returned after attempting to cancel the order.
+    """
+
+    id: UUID
+    status: int
+
+    def __init__(self, **data: Any) -> None:
+        if "id" in data and type(data["id"]) is str:
+            data["id"] = UUID(data["id"])
+
+        super().__init__(**data)

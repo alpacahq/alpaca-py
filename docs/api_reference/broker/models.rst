@@ -27,4 +27,4 @@ For example:
    :caption: Here are the submodules:
    :glob:
 
-   broker/models/*
+   models/*

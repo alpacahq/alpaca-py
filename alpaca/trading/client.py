@@ -68,7 +68,7 @@ class TradingClient(RESTClient):
             List[Order]: The queried orders.
         """
         # checking to see if we specified at least one param
-        params = filter.dict() if filter is not None else {}
+        params = filter.to_request_fields() if filter is not None else {}
 
         if "symbols" in params and type(params["symbols"]) is List:
             params["symbols"] = ",".join(params["symbols"])
@@ -91,7 +91,7 @@ class TradingClient(RESTClient):
             Order: The order that was queried.
         """
         # checking to see if we specified at least one param
-        params = filter.dict() if filter is not None else {}
+        params = filter.to_request_fields() if filter is not None else {}
 
         order_id = validate_uuid_id_param(order_id, "order_id")
 
@@ -131,7 +131,7 @@ class TradingClient(RESTClient):
             Order: The updated order.
         """
         # checking to see if we specified at least one param
-        params = order_data.dict() if order_data is not None else {}
+        params = order_data.to_request_fields() if order_data is not None else {}
 
         order_id = validate_uuid_id_param(order_id, "order_id")
 

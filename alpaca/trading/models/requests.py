@@ -256,9 +256,3 @@ class CancelOrderResponse(BaseModel):
 
     id: UUID
     status: int
-
-    def __init__(self, **data: Any) -> None:
-        if "id" in data and type(data["id"]) is str:
-            data["id"] = UUID(data["id"])
-
-        super().__init__(**data)

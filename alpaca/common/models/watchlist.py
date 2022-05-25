@@ -2,7 +2,7 @@ from uuid import UUID
 from .models import ValidateBaseModel as BaseModel
 from datetime import datetime
 from .trading import Asset
-from typing import List
+from typing import List, Optional
 
 
 class Watchlist(BaseModel):
@@ -16,7 +16,7 @@ class Watchlist(BaseModel):
         name (str): An arbitrary string up to 64 characters identifying the watchlist
         created_at (datetime): When the watchlist was created
         updated_at (datetime): When the watchlist was last updated
-        assets (List[Asset]): The assets in the watchlist
+        assets (Optional[List[Asset]]): The assets in the watchlist, not returned from all endpoints
     """
 
     account_id: UUID
@@ -24,4 +24,4 @@ class Watchlist(BaseModel):
     name: str
     created_at: datetime
     updated_at: datetime
-    assets: List[Asset]
+    assets: Optional[List[Asset]]

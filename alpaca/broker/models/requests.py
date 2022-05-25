@@ -1,42 +1,41 @@
-from datetime import datetime, date
-from typing import Any, List, Optional, Union
+from datetime import date, datetime
+from typing import List, Optional, Union
 from uuid import UUID
-
-from .documents import W8BenDocument
-from ...common.models import ValidateBaseModel as BaseModel, NonEmptyRequest
 
 from pydantic import root_validator, validator
 
 from .accounts import (
+    AccountDocument,
     Agreement,
     Contact,
     Disclosures,
-    AccountDocument,
     Identity,
     TrustedContact,
 )
+from .documents import W8BenDocument
 from ..enums import (
     AccountEntities,
     AccountStatus,
+    BankAccountType,
+    DocumentType,
     EmploymentStatus,
+    FeePaymentMethod,
     FundingSource,
+    IdentifierType,
     TaxIdType,
     TradeDocumentType,
-    UploadDocumentMimeType,
-    UploadDocumentSubType,
-    DocumentType,
-    VisaType,
-    BankAccountType,
-    IdentifierType,
-    TransferType,
     TransferDirection,
     TransferTiming,
-    FeePaymentMethod,
+    TransferType,
+    UploadDocumentMimeType,
+    UploadDocumentSubType,
+    VisaType,
 )
-from ...common.enums import Sort, ActivityType
+from alpaca.common.enums import ActivityType, Sort
+from alpaca.common.models import NonEmptyRequest
 
 
-class AccountCreationRequest(BaseModel):
+class AccountCreationRequest(NonEmptyRequest):
     """Class used to format data necessary for making a request to create a brokerage account
 
     Attributes:
@@ -80,7 +79,7 @@ class UpdatableContact(Contact):
 
 
 # We don't extend the Identity model because we have to remove fields, not all of them are updatable
-class UpdatableIdentity(BaseModel):
+class UpdatableIdentity(NonEmptyRequest):
     """
        This class is a subset version of Identity. Currently, not all fields on accounts are modifiable so this class
        represents which ones are modifiable on the `identity` field of an account when making an
@@ -193,7 +192,7 @@ class AccountUpdateRequest(NonEmptyRequest):
     trusted_contact: Optional[UpdatableTrustedContact] = None
 
 
-class ListAccountsRequest(BaseModel):
+class ListAccountsRequest(NonEmptyRequest):
     """
     Represents the values you can specify when making a request to list accounts
 

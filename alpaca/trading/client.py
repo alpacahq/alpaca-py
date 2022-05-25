@@ -2,7 +2,7 @@ from alpaca.common.rest import RESTClient
 from typing import Optional
 from alpaca.common.enums import BaseURL
 from alpaca.common.models import Order
-from .models import OrderCreationRequest
+from .models import OrderRequest
 
 
 class TradingClient(RESTClient):
@@ -29,7 +29,7 @@ class TradingClient(RESTClient):
             raw_data=raw_data,
         )
 
-    def submit_order(self, order_data: OrderCreationRequest) -> Order:
+    def submit_order(self, order_data: OrderRequest) -> Order:
         """ """
         data = order_data.to_request_fields()
         response = self.post("/orders", data)

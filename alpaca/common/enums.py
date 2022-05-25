@@ -225,3 +225,34 @@ class TimeInForce(str, Enum):
     CLS = "cls"
     IOC = "iok"
     FOK = "fok"
+
+
+class CorporateActionType(str, Enum):
+    """
+    The general types of corporate action events.
+
+    Learn more here: https://alpaca.markets/docs/api-references/trading-api/corporate-actions-announcements/
+    """
+
+    DIVIDEND = "dividend"
+    MERGER = "merger"
+    SPINOFF = "spinoff"
+    SPLIT = "split"
+
+
+class CorporateActionSubType(str, Enum):
+    """
+    The specific types of corporate actions. Each subtype is related to CorporateActionType.
+
+    Learn more here: https://alpaca.markets/docs/api-references/trading-api/corporate-actions-announcements/
+    """
+
+    CASH = "cash"
+    STOCK = "stock"
+    MERGER_UPDATE = "merger_update"
+    MERGER_COMPLETION = "merger_completion"
+    SPINOFF = "spinoff"
+    STOCK_SPLIT = "stock_split"
+    UNIT_SPLIT = "unit_split"
+    REVERSE_SPLIT = "reverse_split"
+    RECAPITALIZATION = "recapitalization"

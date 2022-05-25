@@ -31,6 +31,8 @@ class APIError(Exception):
 
 
 class RetryException(Exception):
-    """Request"""
+    """
+    Thrown by RESTClient's internally to represent a request that should be retried.
+    """
 
     pass

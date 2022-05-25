@@ -46,6 +46,7 @@ from ..common.models import (
     ClosePositionResponse,
     Calendar,
     Clock,
+    UpdateWatchlistRequest,
     Watchlist,
     CreateWatchlistRequest,
 )
@@ -1114,10 +1115,21 @@ class BrokerClient(RESTClient):
 
     def update_watchlist_for_account_by_id(
         self,
-        # Might be worth taking a union of this an Watchlist itself; but then we should make a change like that SDK wide. Probably a good 0.2.x change
-        watchlist_data: CreateWatchlistRequest,
+        account_id: Union[UUID, str],
+        watchlist_id: Union[UUID, str],
+        # Might be worth taking a union of this and Watchlist itself; but then we should make a change like that SDK
+        # wide. Probably a good 0.2.x change
+        watchlist_data: UpdateWatchlistRequest,
     ) -> Watchlist:
-        pass
+        watchlist_id = validate_uuid_id_param(watchlist_id, "watchlist_id")
+        account_id = validate_uuid_id_param(account_id, "account_id")
+
+        result = self.put(
+            f"/trading/accounts/{account_id}/watchlists/{watchlist_id}",
+            watchlist_data.to_request_fields(),
+        )
+
+        return Watchlist(**result)
 
     def add_asset_to_watchlist_for_account_by_id(
         self,

@@ -133,3 +133,12 @@ class UpdateWatchlistRequest(NonEmptyRequest):
 
     name: Optional[str]
     symbols: Optional[List[str]]
+
+    @root_validator()
+    def root_validator(cls, values: dict) -> dict:
+        if ("name" not in values or values["name"] is None) and (
+            "symbols" not in values or values["symbols"] is None
+        ):
+            raise ValueError("One of 'name' or 'symbols' must be defined")
+
+        return values

@@ -8,6 +8,7 @@ from alpaca.common.models import (
     PortfolioHistory,
     ClosePositionRequest,
     CorporateActionAnnouncement,
+    UpdateWatchlistRequest,
 )
 from datetime import datetime, date
 from uuid import UUID
@@ -187,7 +188,6 @@ def test_close_position_request_with_neither_qty_or_percentage():
 
 
 def test_parse_corporate_action_announcement():
-
     data = {
         "id": "be3c368a-4c7c-4384-808e-f02c9f5a8afe",
         "corporate_action_id": "F58684224_XY37",
@@ -211,3 +211,10 @@ def test_parse_corporate_action_announcement():
     assert announcement.ca_type == CorporateActionType.DIVIDEND
     assert announcement.ca_sub_type == CorporateActionSubType.CASH
     assert type(announcement.declaration_date) is date
+
+
+def test_update_watchlist_request_asserts_at_least_1_field():
+    with pytest.raises(ValueError) as e:
+        UpdateWatchlistRequest()
+
+    assert "One of 'name' or 'symbols' must be defined" in str(e.value)

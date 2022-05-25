@@ -6,7 +6,7 @@ from typing import Optional, List, Union
 from alpaca.common.enums import BaseURL
 from alpaca.common.models import Order
 from .models import (
-    OrderCreationRequest,
+    OrderRequest,
     GetOrdersRequest,
     ReplaceOrderRequest,
     GetOrderByIdRequest,
@@ -42,6 +42,7 @@ class TradingClient(RESTClient):
             sandbox=sandbox,
             raw_data=raw_data,
         )
+
 
     def submit_order(self, order_data: OrderCreationRequest) -> Order:
         """Creates an order to buy or sell an asset.

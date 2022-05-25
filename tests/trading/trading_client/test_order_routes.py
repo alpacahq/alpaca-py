@@ -81,6 +81,7 @@ def test_market_order(reqmock, trading_client):
 
     assert mo_response.status == OrderStatus.ACCEPTED
 
+
 def test_get_orders(reqmock, trading_client: TradingClient):
 
     reqmock.get(
@@ -324,7 +325,7 @@ def test_cancel_orders(reqmock, trading_client: TradingClient):
     assert type(response[0]) is CancelOrderResponse
     assert response[0].status == 200
 
-    
+
 def test_limit_order(reqmock, trading_client):
     reqmock.post(
         f"{BaseURL.TRADING_PAPER}/v2/orders",
@@ -378,4 +379,3 @@ def test_limit_order(reqmock, trading_client):
     lo_response = trading_client.submit_order(lo)
 
     assert lo_response.status == OrderStatus.ACCEPTED
-

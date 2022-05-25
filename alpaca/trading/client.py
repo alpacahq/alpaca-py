@@ -43,8 +43,7 @@ class TradingClient(RESTClient):
             raw_data=raw_data,
         )
 
-
-    def submit_order(self, order_data: OrderCreationRequest) -> Order:
+    def submit_order(self, order_data: OrderRequest) -> Order:
         """Creates an order to buy or sell an asset.
 
         Args:

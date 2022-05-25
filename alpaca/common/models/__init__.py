@@ -5,3 +5,4 @@ from .calendar import Calendar
 from .requests import *
 from .trading import *
 from .watchlist import Watchlist
+from .corporate_actions import CorporateActionAnnouncement

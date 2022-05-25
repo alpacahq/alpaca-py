@@ -16,6 +16,10 @@ log = logging.getLogger(__name__)
 
 
 class BaseStream:
+    """
+    A base class for extracting out common functionality for websockets
+    """
+
     def __init__(
         self,
         endpoint: str,

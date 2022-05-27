@@ -105,7 +105,6 @@ def test_order_uuids():
     order = create_dummy_order()
 
     assert isinstance(order.id, UUID)
-    assert isinstance(order.client_order_id, UUID)
     assert isinstance(order.replaced_by, UUID)
     assert isinstance(order.replaces, UUID)
     assert isinstance(order.asset_id, UUID)

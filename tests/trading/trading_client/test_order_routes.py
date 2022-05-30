@@ -289,7 +289,7 @@ def test_replace_order(reqmock, trading_client: TradingClient):
 
 def test_cancel_order_by_id(reqmock, trading_client: TradingClient):
     order_id = "61e69015-8549-4bfd-b9c3-01e75843f47d"
-    status_code = 404
+    status_code = 204
 
     reqmock.delete(
         f"{BaseURL.TRADING_PAPER}/v2/orders/{order_id}",

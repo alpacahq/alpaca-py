@@ -1,6 +1,8 @@
 from uuid import UUID
 from pydantic import parse_obj_as
-from alpaca.broker.client import validate_uuid_id_param
+from requests import HTTPError
+
+from alpaca.broker.client import validate_uuid_id_param, validate_symbol_or_asset_id
 from alpaca.common.rest import RESTClient
 from typing import Optional, List, Union
 from alpaca.common.enums import BaseURL
@@ -161,17 +163,40 @@ class TradingClient(RESTClient):
             CancelOrderResponse: The HTTP response from the cancel request.
         """
         order_id = validate_uuid_id_param(order_id, "order_id")
+        status_code: Optional[int] = None
 
-        cancel_data = {"id": order_id}
+        # We are making a direct HTTP call without using base class
+        # The _one_request method returns a NoneType for empty responses
+        # We need to capture the HTTP status code for empty responses
+        target_url = f"{self._base_url}/{self._api_version}/orders/{order_id}"
+        num_tries = 0
 
-        # handle error responses so that we can return it to the user
-        try:
-            response = self.delete(f"/orders/{order_id}")
-            cancel_data["status"] = response.status_code
-        except APIError as error:
-            cancel_data["status"] = error.status_code
+        while num_tries <= self._retry:
+            response = self._session.delete(
+                url=target_url,
+                headers=self._get_default_headers(),
+                allow_redirects=True,
+                stream=True,
+            )
+            num_tries += 1
+            try:
+                response.raise_for_status()
+                status_code = response.status_code
+            except HTTPError as http_error:
+                if response.status_code in self._retry_codes:
+                    continue
 
-        return CancelOrderResponse(**cancel_data)
+                if "code" in response.text:
+                    error = response.json()
+                    if "code" in error:
+                        status_code = error["code"]
+                else:
+                    raise http_error
+
+            # if we got here there were no issues', so status_code is now a value
+            break
+
+        return CancelOrderResponse(id=order_id, status=status_code)
 
     # ############################## CLOCK & CALENDAR ################################# #
 

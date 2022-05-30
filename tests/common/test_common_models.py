@@ -7,6 +7,8 @@ from alpaca.common.models import (
     Order,
     PortfolioHistory,
     ClosePositionRequest,
+    CorporateActionAnnouncement,
+    UpdateWatchlistRequest,
 )
 from datetime import datetime, date
 from uuid import UUID
@@ -18,6 +20,8 @@ from alpaca.common.enums import (
     TimeInForce,
     OrderSide,
     PositionSide,
+    CorporateActionType,
+    CorporateActionSubType,
 )
 from factories import create_dummy_asset, create_dummy_order
 
@@ -180,3 +184,36 @@ def test_close_position_request_with_neither_qty_or_percentage():
         "qty or percentage must be given to the ClosePositionRequest, got None for both."
         in str(e.value)
     )
+
+
+def test_parse_corporate_action_announcement():
+    data = {
+        "id": "be3c368a-4c7c-4384-808e-f02c9f5a8afe",
+        "corporate_action_id": "F58684224_XY37",
+        "ca_type": "dividend",
+        "ca_sub_type": "cash",
+        "initiating_symbol": "MLLAX",
+        "initiating_original_cusip": "55275E101",
+        "target_symbol": "MLLAX",
+        "target_original_cusip": "55275E101",
+        "declaration_date": "2021-01-05",
+        "ex_date": "2021-01-12",
+        "record_date": "2021-01-13",
+        "payable_date": "2021-01-14",
+        "cash": "0.018",
+        "old_rate": "1",
+        "new_rate": "1",
+    }
+
+    announcement = CorporateActionAnnouncement(**data)
+
+    assert announcement.ca_type == CorporateActionType.DIVIDEND
+    assert announcement.ca_sub_type == CorporateActionSubType.CASH
+    assert type(announcement.declaration_date) is date
+
+
+def test_update_watchlist_request_asserts_at_least_1_field():
+    with pytest.raises(ValueError) as e:
+        UpdateWatchlistRequest()
+
+    assert "One of 'name' or 'symbols' must be defined" in str(e.value)

@@ -105,6 +105,15 @@ class GetPortfolioHistoryRequest(NonEmptyRequest):
     extended_hours: Optional[bool]
 
 
+class GetCalendarRequest(NonEmptyRequest):
+    """
+    Represents the optional filtering you can do when requesting a Calendar object
+    """
+
+    start: Optional[date] = None
+    end: Optional[date] = None
+
+
 class CreateWatchlistRequest(NonEmptyRequest):
     """
     Represents the fields you can specify when creating a Watchlist

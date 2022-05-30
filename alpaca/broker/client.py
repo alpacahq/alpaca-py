@@ -9,7 +9,6 @@ from .constants import BROKER_DOCUMENT_UPLOAD_LIMIT
 from .enums import ACHRelationshipStatus
 from alpaca.broker.models import (
     ACHRelationship,
-    GetCalendarRequest,
     Account,
     AccountCreationRequest,
     AccountUpdateRequest,
@@ -46,6 +45,7 @@ from ..common.models import (
     ClosePositionResponse,
     Calendar,
     Clock,
+    GetCalendarRequest,
     UpdateWatchlistRequest,
     Watchlist,
     CreateWatchlistRequest,

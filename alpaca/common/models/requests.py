@@ -103,7 +103,7 @@ class GetPortfolioHistoryRequest(NonEmptyRequest):
     timeframe: Optional[str]
     date_end: Optional[date]
     extended_hours: Optional[bool]
-      
+
 
 class GetCalendarRequest(NonEmptyRequest):
     """

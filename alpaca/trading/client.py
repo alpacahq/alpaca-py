@@ -4,7 +4,7 @@ from alpaca.broker.client import validate_uuid_id_param
 from alpaca.common.rest import RESTClient
 from typing import Optional, List, Union
 from alpaca.common.enums import BaseURL
-from alpaca.common.models import Order
+from alpaca.common.models import Order, Clock, Calendar, GetCalendarRequest
 from .models import (
     OrderCreationRequest,
     GetOrdersRequest,
@@ -172,3 +172,39 @@ class TradingClient(RESTClient):
             cancel_data["status"] = error.status_code
 
         return CancelOrderResponse(**cancel_data)
+
+    # ############################## CLOCK & CALENDAR ################################# #
+
+    def get_clock(self) -> Clock:
+        """
+        Gets the current market timestamp, whether or not the market is currently open, as well as the times
+        of the next market open and close.
+
+        Returns:
+            Clock: The market Clock data
+        """
+        return Clock(**self.get("/clock"))
+
+    def get_calendar(
+        self,
+        filters: Optional[GetCalendarRequest] = None,
+    ) -> List[Calendar]:
+        """
+        The calendar API serves the full list of market days from 1970 to 2029. It can also be queried by specifying a
+        start and/or end time to narrow down the results.
+
+        In addition to the dates, the response also contains the specific open and close times for the market days,
+        taking into account early closures.
+
+        Args:
+            filters: Any optional filters to limit the returned market days
+
+        Returns:
+            List[Calendar]: A list of Calendar objects representing the market days.
+        """
+
+        result = self.get(
+            "/calendar", filters.to_request_fields() if filters is not None else {}
+        )
+
+        return parse_obj_as(List[Calendar], result)

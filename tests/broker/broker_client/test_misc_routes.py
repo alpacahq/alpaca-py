@@ -1,9 +1,8 @@
 from typing import List
 
 from alpaca.broker.client import BrokerClient
-from alpaca.broker.models import GetCalendarRequest
 from alpaca.common.enums import BaseURL
-from alpaca.common.models import Calendar, Clock
+from alpaca.common.models import Calendar, Clock, GetCalendarRequest
 
 
 def test_get_calendar(reqmock, client: BrokerClient):

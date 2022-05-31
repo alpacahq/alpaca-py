@@ -6,7 +6,15 @@ from alpaca.broker.client import validate_uuid_id_param, validate_symbol_or_asse
 from alpaca.common.rest import RESTClient
 from typing import Optional, List, Union
 from alpaca.common.enums import BaseURL
-from alpaca.common.models import Order, Clock, Calendar, GetCalendarRequest
+from alpaca.common.models import (
+    Order,
+    Clock,
+    Calendar,
+    GetCalendarRequest,
+    Position,
+    ClosePositionResponse,
+    ClosePositionRequest,
+)
 from .models import (
     OrderRequest,
     GetOrdersRequest,
@@ -14,7 +22,6 @@ from .models import (
     GetOrderByIdRequest,
     CancelOrderResponse,
 )
-from ..common import APIError
 
 
 class TradingClient(RESTClient):
@@ -44,6 +51,8 @@ class TradingClient(RESTClient):
             sandbox=sandbox,
             raw_data=raw_data,
         )
+
+    # ############################## ORDERS ################################# #
 
     def submit_order(self, order_data: OrderRequest) -> Order:
         """Creates an order to buy or sell an asset.
@@ -197,6 +206,77 @@ class TradingClient(RESTClient):
             break
 
         return CancelOrderResponse(id=order_id, status=status_code)
+
+    # ############################## POSITIONS ################################# #
+
+    def get_all_positions(
+        self,
+    ) -> List[Position]:
+        """
+        Gets all the current open positions.
+
+        Returns:
+            List[Position]: List of open positions.
+        """
+        response = self.get("/positions")
+        return parse_obj_as(List[Position], response)
+
+    def get_open_position(self, symbol_or_asset_id: Union[UUID, str]) -> Position:
+        """
+        Gets the open position for an account for a single asset.
+
+        Args:
+            symbol_or_asset_id (Union[UUID, str]): The symbol name of asset id of the position to get.
+
+        Returns:
+            Position: Open position of the asset.
+        """
+        symbol_or_asset_id = validate_symbol_or_asset_id(symbol_or_asset_id)
+        response = self.get(f"/positions/{symbol_or_asset_id}")
+        return Position(**response)
+
+    def close_all_positions(self, cancel_orders: bool) -> List[ClosePositionResponse]:
+        """
+        Liquidates all positions for an account.
+
+        Places an order for each open position to liquidate.
+
+        Args:
+            cancel_orders (bool): If true is specified, cancel all open orders before liquidating all positions.
+
+        Returns:
+            List[ClosePositionResponse]: A list of responses from each closed position containing the status code and
+              order id.
+        """
+        response = self.delete(
+            "/positions",
+            {"cancel_orders": cancel_orders},
+        )
+        return parse_obj_as(List[ClosePositionResponse], response)
+
+    def close_position(
+        self,
+        symbol_or_asset_id: Union[UUID, str],
+        close_options: Optional[ClosePositionRequest] = None,
+    ) -> Order:
+        """
+        Liquidates the position for a single asset.
+
+        Places a single order to close the position for the asset.
+
+        Args:
+            symbol_or_asset_id (Union[UUID, str]): The symbol name of asset id of the position to close.
+            close_options: The various close position request parameters.
+
+        Returns:
+            Order: The order that was placed to close the position.
+        """
+        symbol_or_asset_id = validate_symbol_or_asset_id(symbol_or_asset_id)
+        response = self.delete(
+            f"/positions/{symbol_or_asset_id}",
+            close_options.to_request_fields() if close_options else {},
+        )
+        return Order(**response)
 
     # ############################## CLOCK & CALENDAR ################################# #
 

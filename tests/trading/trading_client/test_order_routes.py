@@ -14,14 +14,6 @@ from alpaca.trading.models.requests import (
     CancelOrderResponse,
 )
 
-import pytest
-
-
-@pytest.fixture
-def trading_client():
-    client = TradingClient("key-id", "secret-key")
-    return client
-
 
 def test_market_order(reqmock, trading_client):
 

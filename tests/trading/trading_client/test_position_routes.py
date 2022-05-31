@@ -9,14 +9,6 @@ from alpaca.common.models import (
 )
 from alpaca.trading.client import TradingClient
 
-import pytest
-
-
-@pytest.fixture
-def trading_client():
-    client = TradingClient("key-id", "secret-key")
-    return client
-
 
 def test_get_all_positions(reqmock, trading_client: TradingClient):
 

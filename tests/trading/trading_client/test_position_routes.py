@@ -1,22 +1,27 @@
-import datetime
-from alpaca.broker.client import BrokerClient
+from uuid import UUID
+
 from alpaca.common.enums import BaseURL
 from alpaca.common.models import (
     Position,
     ClosePositionResponse,
+    Order,
     ClosePositionRequest,
-    PortfolioHistory,
-    GetPortfolioHistoryRequest,
 )
-from alpaca.broker.models import Order
-from uuid import UUID
+from alpaca.trading.client import TradingClient
+
+import pytest
 
 
-def test_get_all_positions_for_account(reqmock, client: BrokerClient):
-    account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
+@pytest.fixture
+def trading_client():
+    client = TradingClient("key-id", "secret-key")
+    return client
+
+
+def test_get_all_positions(reqmock, trading_client: TradingClient):
 
     reqmock.get(
-        f"{BaseURL.BROKER_SANDBOX}/v1/trading/accounts/{account_id}/positions",
+        f"{BaseURL.TRADING_PAPER}/v2/positions",
         text="""
         [
             {
@@ -41,19 +46,18 @@ def test_get_all_positions_for_account(reqmock, client: BrokerClient):
         """,
     )
 
-    positions = client.get_all_positions_for_account(account_id)
+    positions = trading_client.get_all_positions()
 
     assert reqmock.called_once
     assert isinstance(positions, list)
     assert isinstance(positions[0], Position)
 
 
-def test_get_open_position_for_account_with_asset_id(reqmock, client: BrokerClient):
-    account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
+def test_get_open_position_with_asset_id(reqmock, trading_client: TradingClient):
     asset_id = UUID("904837e3-3b76-47ec-b432-046db621571b")
 
     reqmock.get(
-        f"{BaseURL.BROKER_SANDBOX}/v1/trading/accounts/{account_id}/positions/{asset_id}",
+        f"{BaseURL.TRADING_PAPER}/v2/positions/{asset_id}",
         text=f"""
         {{
           "asset_id": "{asset_id}",
@@ -76,19 +80,18 @@ def test_get_open_position_for_account_with_asset_id(reqmock, client: BrokerClie
         """,
     )
 
-    position = client.get_open_position_for_account(account_id, asset_id)
+    position = trading_client.get_open_position(asset_id)
 
     assert reqmock.called_once
     assert isinstance(position, Position)
     assert position.asset_id == asset_id
 
 
-def test_get_open_position_for_account_with_symbol(reqmock, client: BrokerClient):
-    account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
+def test_get_open_position_with_symbol(reqmock, trading_client: TradingClient):
     symbol = "AAPL"
 
     reqmock.get(
-        f"{BaseURL.BROKER_SANDBOX}/v1/trading/accounts/{account_id}/positions/{symbol}",
+        f"{BaseURL.TRADING_PAPER}/v2/positions/{symbol}",
         text=f"""
         {{
           "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
@@ -111,18 +114,17 @@ def test_get_open_position_for_account_with_symbol(reqmock, client: BrokerClient
         """,
     )
 
-    position = client.get_open_position_for_account(account_id, symbol)
+    position = trading_client.get_open_position(symbol)
 
     assert reqmock.called_once
     assert isinstance(position, Position)
     assert position.symbol == symbol
 
 
-def test_close_all_positions_for_account(reqmock, client: BrokerClient):
-    account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
+def test_close_all_positions(reqmock, trading_client: TradingClient):
 
     reqmock.delete(
-        f"{BaseURL.BROKER_SANDBOX}/v1/trading/accounts/{account_id}/positions",
+        f"{BaseURL.TRADING_PAPER}/v2/positions",
         text="""
         [
             {
@@ -133,7 +135,7 @@ def test_close_all_positions_for_account(reqmock, client: BrokerClient):
         """,
     )
 
-    close_orders = client.close_all_positions_for_account(account_id, True)
+    close_orders = trading_client.close_all_positions(True)
 
     assert reqmock.called_once
     assert reqmock.request_history[0].qs == {"cancel_orders": ["true"]}
@@ -141,12 +143,11 @@ def test_close_all_positions_for_account(reqmock, client: BrokerClient):
     assert isinstance(close_orders[0], ClosePositionResponse)
 
 
-def test_close_position_for_account_with_id(reqmock, client: BrokerClient):
-    account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
+def test_close_position_with_id(reqmock, trading_client: TradingClient):
     asset_id = UUID("904837e3-3b76-47ec-b432-046db621571b")
 
     reqmock.delete(
-        f"{BaseURL.BROKER_SANDBOX}/v1/trading/accounts/{account_id}/positions/{asset_id}",
+        f"{BaseURL.TRADING_PAPER}/v2/positions/{asset_id}",
         text=f"""
             {{
               "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
@@ -186,7 +187,7 @@ def test_close_position_for_account_with_id(reqmock, client: BrokerClient):
         """,
     )
 
-    close_order = client.close_position_for_account(account_id, asset_id)
+    close_order = trading_client.close_position(asset_id)
 
     assert reqmock.called_once
     assert reqmock.request_history[0].qs == {}
@@ -194,12 +195,11 @@ def test_close_position_for_account_with_id(reqmock, client: BrokerClient):
     assert close_order.asset_id == asset_id
 
 
-def test_close_position_for_account_with_symbol(reqmock, client: BrokerClient):
-    account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
+def test_close_position_with_symbol(reqmock, trading_client: TradingClient):
     symbol = "AAPL"
 
     reqmock.delete(
-        f"{BaseURL.BROKER_SANDBOX}/v1/trading/accounts/{account_id}/positions/{symbol}",
+        f"{BaseURL.TRADING_PAPER}/v2/positions/{symbol}",
         text=f"""
             {{
               "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
@@ -239,7 +239,7 @@ def test_close_position_for_account_with_symbol(reqmock, client: BrokerClient):
         """,
     )
 
-    close_order = client.close_position_for_account(account_id, symbol)
+    close_order = trading_client.close_position(symbol)
 
     assert reqmock.called_once
     assert reqmock.request_history[0].qs == {}
@@ -247,12 +247,11 @@ def test_close_position_for_account_with_symbol(reqmock, client: BrokerClient):
     assert close_order.symbol == symbol
 
 
-def test_close_position_for_account_with_qty(reqmock, client: BrokerClient):
-    account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
+def test_close_position_with_qty(reqmock, trading_client: TradingClient):
     asset_id = UUID("904837e3-3b76-47ec-b432-046db621571b")
 
     reqmock.delete(
-        f"{BaseURL.BROKER_SANDBOX}/v1/trading/accounts/{account_id}/positions/{asset_id}",
+        f"{BaseURL.TRADING_PAPER}/v2/positions/{asset_id}",
         text="""
         {
           "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
@@ -293,19 +292,18 @@ def test_close_position_for_account_with_qty(reqmock, client: BrokerClient):
     )
 
     close_options = ClosePositionRequest(qty="100")
-    close_order = client.close_position_for_account(account_id, asset_id, close_options)
+    close_order = trading_client.close_position(asset_id, close_options)
 
     assert reqmock.called_once
     assert reqmock.request_history[0].qs == {"qty": ["100"]}
     assert isinstance(close_order, Order)
 
 
-def test_close_position_for_account_with_percentage(reqmock, client: BrokerClient):
-    account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
+def test_close_position_with_percentage(reqmock, trading_client: TradingClient):
     asset_id = UUID("904837e3-3b76-47ec-b432-046db621571b")
 
     reqmock.delete(
-        f"{BaseURL.BROKER_SANDBOX}/v1/trading/accounts/{account_id}/positions/{asset_id}",
+        f"{BaseURL.TRADING_PAPER}/v2/positions/{asset_id}",
         text="""
         {
           "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
@@ -346,73 +344,8 @@ def test_close_position_for_account_with_percentage(reqmock, client: BrokerClien
     )
 
     close_options = ClosePositionRequest(percentage="0.5")
-    close_order = client.close_position_for_account(account_id, asset_id, close_options)
+    close_order = trading_client.close_position(asset_id, close_options)
 
     assert reqmock.called_once
     assert reqmock.request_history[0].qs == {"percentage": ["0.5"]}
     assert isinstance(close_order, Order)
-
-
-def test_get_portfolio_history(reqmock, client: BrokerClient):
-    account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
-
-    reqmock.get(
-        f"{BaseURL.BROKER_SANDBOX}/v1/trading/accounts/{account_id}/account/portfolio/history",
-        text="""
-        {
-          "timestamp": [1580826600000, 1580827500000, 1580828400000],
-          "equity": [27423.73, 27408.19, 27515.97],
-          "profit_loss": [11.8, -3.74, 104.04],
-          "profit_loss_pct": [
-            0.000430469507254688, -0.0001364369455197062, 0.0037954277571845543
-          ],
-          "base_value": 27411.93,
-          "timeframe": "15Min"
-        }
-        """,
-    )
-
-    portfolio_history = client.get_portfolio_history_for_account(account_id)
-
-    assert reqmock.called_once
-    assert reqmock.request_history[0].qs == {}
-    assert isinstance(portfolio_history, PortfolioHistory)
-
-
-def test_get_portfolio_history_with_filter(reqmock, client: BrokerClient):
-    account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
-
-    reqmock.get(
-        f"{BaseURL.BROKER_SANDBOX}/v1/trading/accounts/{account_id}/account/portfolio/history",
-        text="""
-        {
-          "timestamp": [1580826600000, 1580827500000, 1580828400000],
-          "equity": [27423.73, 27408.19, 27515.97],
-          "profit_loss": [11.8, -3.74, 104.04],
-          "profit_loss_pct": [
-            0.000430469507254688, -0.0001364369455197062, 0.0037954277571845543
-          ],
-          "base_value": 27411.93,
-          "timeframe": "15Min"
-        }
-        """,
-    )
-
-    history_filter = GetPortfolioHistoryRequest(
-        period="1M",
-        timeframe="15M",
-        date_end=datetime.date(2022, 1, 1),
-        extended_hours=True,
-    )
-    portfolio_history = client.get_portfolio_history_for_account(
-        account_id, history_filter
-    )
-
-    assert reqmock.called_once
-    assert reqmock.request_history[0].qs == {
-        "period": ["1m"],
-        "timeframe": ["15m"],
-        "date_end": ["2022-01-01"],
-        "extended_hours": ["true"],
-    }
-    assert isinstance(portfolio_history, PortfolioHistory)

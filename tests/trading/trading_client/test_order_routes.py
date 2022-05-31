@@ -5,9 +5,6 @@ from alpaca.common.enums import OrderSide, OrderStatus, OrderType, TimeInForce
 from alpaca.trading.models import (
     MarketOrderRequest,
     LimitOrderRequest,
-    StopOrderRequest,
-    StopLimitOrderRequest,
-    TrailingStopOrderRequest,
 )
 from alpaca.common.enums import BaseURL
 from alpaca.trading.models.requests import (

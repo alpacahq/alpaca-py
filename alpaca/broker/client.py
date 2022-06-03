@@ -5,13 +5,6 @@ from uuid import UUID
 from pydantic import parse_obj_as
 from requests import HTTPError, Response
 
-from . import (
-    CreateJournalRequest,
-    BatchJournalResponse,
-    CreateBatchJournalRequest,
-    CreateReverseBatchJournalRequest,
-    GetJournalsRequest,
-)
 from .constants import BROKER_DOCUMENT_UPLOAD_LIMIT
 from .enums import ACHRelationshipStatus
 from alpaca.broker.models import (
@@ -37,8 +30,13 @@ from alpaca.broker.models import (
     Transfer,
     UploadDocumentRequest,
     Order,
+    CreateJournalRequest,
+    BatchJournalResponse,
+    CreateBatchJournalRequest,
+    CreateReverseBatchJournalRequest,
+    GetJournalsRequest,
+    Journal
 )
-from .models.journals import Journal
 from ..common import APIError
 from ..common.constants import ACCOUNT_ACTIVITIES_DEFAULT_PAGE_SIZE
 from ..common.enums import BaseURL, PaginationType

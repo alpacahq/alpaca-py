@@ -35,7 +35,7 @@ from alpaca.broker.models import (
     CreateBatchJournalRequest,
     CreateReverseBatchJournalRequest,
     GetJournalsRequest,
-    Journal
+    Journal,
 )
 from ..common import APIError
 from ..common.constants import ACCOUNT_ACTIVITIES_DEFAULT_PAGE_SIZE

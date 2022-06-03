@@ -1202,7 +1202,7 @@ class BrokerClient(RESTClient):
 
         response = self.post("/journals/batch", params)
 
-        parse_obj_as(List[BatchJournalResponse], response)
+        return parse_obj_as(List[BatchJournalResponse], response)
 
     def create_reverse_batch_journal(
         self,
@@ -1223,7 +1223,7 @@ class BrokerClient(RESTClient):
 
         response = self.post("/journals/reverse_batch", params)
 
-        parse_obj_as(List[BatchJournalResponse], response)
+        return parse_obj_as(List[BatchJournalResponse], response)
 
     def get_journals(
         self, journal_filter: Optional[GetJournalsRequest] = None

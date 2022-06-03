@@ -61,6 +61,17 @@ class Journal(BaseModel):
     transmitter_timestamp: Optional[str]
 
 
+class BatchJournalResponse(Journal):
+    """
+    Represents a journal response from a batch journal request.
+
+    Attributes:
+        error_message (Optional[str]): An message that contains error details for failed journals.
+    """
+
+    error_message: Optional[str]
+
+
 class CreateJournalRequest(NonEmptyRequest):
     """
     Data for request to initiate a single journal.
@@ -110,7 +121,7 @@ class CreateJournalRequest(NonEmptyRequest):
             if not amount:
                 raise ValueError("Cash journals must contain an amount to transfer.")
 
-        if entry_type is not None and entry_type == JournalEntryType.CASH:
+        if entry_type is not None and entry_type == JournalEntryType.SECURITY:
 
             if amount:
                 raise ValueError("Amount is reserved for cash journals.")
@@ -119,6 +130,8 @@ class CreateJournalRequest(NonEmptyRequest):
                 raise ValueError(
                     "Security journals must contain a symbol and corresponding qty to transfer."
                 )
+
+        return values
 
 
 class BatchJournalRequestEntry(NonEmptyRequest):
@@ -131,6 +144,19 @@ class BatchJournalRequestEntry(NonEmptyRequest):
     """
 
     to_account: UUID
+    amount: float
+
+
+class ReverseBatchJournalRequestEntry(NonEmptyRequest):
+    """
+    Entry in reverse batch journal request.
+
+    Attributes:
+        to_account (UUID): Account to fund in batch journal request.
+        amount (float): The cash amount in USD to fund by.
+    """
+
+    from_account: UUID
     amount: float
 
 
@@ -154,19 +180,6 @@ class CreateBatchJournalRequest(NonEmptyRequest):
     entries: List[BatchJournalRequestEntry]
 
 
-class ReverseBatchJournalRequestEntry(NonEmptyRequest):
-    """
-    Entry in reverse batch journal request.
-
-    Attributes:
-        to_account (UUID): Account to fund in batch journal request.
-        amount (float): The cash amount in USD to fund by.
-    """
-
-    from_account: UUID
-    amount: float
-
-
 class CreateReverseBatchJournalRequest(NonEmptyRequest):
     """
     This model represents the fields you can specify when creating
@@ -176,13 +189,13 @@ class CreateReverseBatchJournalRequest(NonEmptyRequest):
 
     Attributes:
         entry_type (JournalEntryType): The type of journal transfer.
-        from_account (UUID): The originator of funds. Most likely is your Sweep Firm Account
+        to_account (UUID): The destination of funds. Most likely is your Sweep Firm Account
         description (Optional[str]): Journal description, gets returned in the response.
         entries (List[BatchJournalRequestEntry]): List of journals to execute.
     """
 
     entry_type: JournalEntryType
-    from_account: UUID
+    to_account: UUID
     description: Optional[str]
     entries: List[ReverseBatchJournalRequestEntry]
 
@@ -206,14 +219,3 @@ class GetJournalsRequest(NonEmptyRequest):
     entry_type: Optional[JournalEntryType]
     to_account: Optional[UUID]
     from_account: Optional[UUID]
-
-
-class BatchJournalResponse(Journal):
-    """
-    Represents a journal response from a batch journal request.
-
-    Attributes:
-        error_message (Optional[str]): An message that contains error details for failed journals.
-    """
-
-    error_message: Optional[str]

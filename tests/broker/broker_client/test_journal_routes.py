@@ -8,6 +8,7 @@ from alpaca.broker import (
     CreateBatchJournalRequest,
     BatchJournalResponse,
     CreateReverseBatchJournalRequest,
+    GetJournalsRequest,
 )
 from alpaca.common.enums import BaseURL
 
@@ -150,3 +151,92 @@ def test_reverse_batch_journal(reqmock, client: BrokerClient):
     assert reqmock.called_once
     assert len(response) == 2
     assert isinstance(response[0], BatchJournalResponse)
+
+
+def test_get_journals(reqmock, client: BrokerClient):
+
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX}/v1/journals",
+        text="""
+            [
+              {
+                "id": "0a9152c4-d232-4b00-9102-5fa19aca40cb",
+                "entry_type": "JNLC",
+                "from_account": "94fa473d-9a92-40cd-908c-25da9fba1e65",
+                "to_account": "d7017fd9-60dd-425b-a09a-63ff59368b62",
+                "symbol": "",
+                "qty": null,
+                "price": null,
+                "status": "pending",
+                "settle_date": null,
+                "system_date": null,
+                "net_amount": "10",
+                "description": ""
+              },
+              {
+                "id": "84379534-bcee-4c22-abe8-a4a6286dd100",
+                "entry_type": "JNLC",
+                "from_account": "8f8c8cee-2591-4f83-be12-82c659b5e748",
+                "to_account": "d7017fd9-60dd-425b-a09a-63ff59368b62",
+                "symbol": "",
+                "qty": null,
+                "price": null,
+                "status": "pending",
+                "settle_date": null,
+                "system_date": null,
+                "net_amount": "100",
+                "description": ""
+              }
+            ]
+                """,
+    )
+
+    response = client.get_journals(journal_filter=GetJournalsRequest())
+
+    assert reqmock.called_once
+    assert len(response) > 0
+    assert isinstance(response[0], Journal)
+
+
+def test_get_journal_by_id(reqmock, client: BrokerClient):
+
+    journal_id = "0a9152c4-d232-4b00-9102-5fa19aca40cb"
+
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX}/v1/journals/{journal_id}",
+        text="""
+              {
+                "id": "0a9152c4-d232-4b00-9102-5fa19aca40cb",
+                "entry_type": "JNLC",
+                "from_account": "94fa473d-9a92-40cd-908c-25da9fba1e65",
+                "to_account": "d7017fd9-60dd-425b-a09a-63ff59368b62",
+                "symbol": "",
+                "qty": null,
+                "price": null,
+                "status": "pending",
+                "settle_date": null,
+                "system_date": null,
+                "net_amount": "10",
+                "description": ""
+              }
+                """,
+    )
+
+    response = client.get_journal_by_id(journal_id=journal_id)
+
+    assert reqmock.called_once
+    assert isinstance(response, Journal)
+    assert response.id == UUID(journal_id)
+
+
+def test_get_journal_by_id(reqmock, client: BrokerClient):
+
+    journal_id = "0a9152c4-d232-4b00-9102-5fa19aca40cb"
+
+    reqmock.delete(
+        f"{BaseURL.BROKER_SANDBOX}/v1/journals/{journal_id}", status_code=204
+    )
+
+    client.cancel_journal_by_id(journal_id=journal_id)
+
+    assert reqmock.called_once

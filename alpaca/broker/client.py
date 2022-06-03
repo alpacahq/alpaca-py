@@ -5,6 +5,13 @@ from uuid import UUID
 from pydantic import parse_obj_as
 from requests import HTTPError, Response
 
+from . import (
+    CreateJournalRequest,
+    BatchJournalResponse,
+    CreateBatchJournalRequest,
+    CreateReverseBatchJournalRequest,
+    GetJournalsRequest,
+)
 from .constants import BROKER_DOCUMENT_UPLOAD_LIMIT
 from .enums import ACHRelationshipStatus
 from alpaca.broker.models import (
@@ -31,6 +38,7 @@ from alpaca.broker.models import (
     UploadDocumentRequest,
     Order,
 )
+from .models.journals import Journal
 from ..common import APIError
 from ..common.constants import ACCOUNT_ACTIVITIES_DEFAULT_PAGE_SIZE
 from ..common.enums import BaseURL, PaginationType
@@ -1135,7 +1143,7 @@ class BrokerClient(RESTClient):
         self,
         account_id: Union[UUID, str],
         watchlist_id: Union[UUID, str],
-        symbol_or_asset_id: Union[UUID, str],
+        symbol: str,
     ) -> Watchlist:
         pass
 
@@ -1150,6 +1158,122 @@ class BrokerClient(RESTClient):
         self,
         account_id: Union[UUID, str],
         watchlist_id: Union[UUID, str],
-        symbol_or_asset_id: Union[UUID, str],
+        symbol: str,
     ) -> Watchlist:
         pass
+
+    # ############################## JOURNALS ################################# #
+
+    def create_journal(
+        self,
+        journal_data: CreateJournalRequest,
+    ) -> Journal:
+        """
+        The journal API allows you to transfer cash and securities between accounts.
+
+        Creates a new journal request.
+
+        Args:
+            journal_data (CreateJournalRequest): THe journal to be submitted.
+
+        Returns:
+            Journal: The submitted journal.
+        """
+        params = journal_data.to_request_fields() if journal_data else {}
+
+        response = self.post("/journals", params)
+
+        return Journal(**response)
+
+    def create_batch_journal(
+        self,
+        batch_data: CreateBatchJournalRequest,
+    ) -> List[BatchJournalResponse]:
+        """
+        A batch journal moves assets from one account into many others.
+
+        Currently, cash batch journals are supported.
+
+        Args:
+            batch_data (CreateBatchJournalRequest): The batch journals to be submitted.
+
+        Returns:
+            BatchJournalResponse: The submitted batch journals.
+        """
+        params = batch_data.to_request_fields() if batch_data else {}
+
+        response = self.post("/journals/batch", params)
+
+        parse_obj_as(List[BatchJournalResponse], response)
+
+    def create_reverse_batch_journal(
+        self,
+        reverse_batch_data: CreateReverseBatchJournalRequest,
+    ) -> List[BatchJournalResponse]:
+        """
+        A  reverse batch journal moves assets into one account from many others.
+
+        Currently, cash reverse batch journals are supported.
+
+        Args:
+            reverse_batch_data (CreateReverseBatchJournalRequest): The reverse batch journals to be submitted.
+
+        Returns:
+            BatchJournalResponse: The submitted reverse batch journals.
+        """
+        params = reverse_batch_data.to_request_fields() if reverse_batch_data else {}
+
+        response = self.post("/journals/reverse_batch", params)
+
+        parse_obj_as(List[BatchJournalResponse], response)
+
+    def get_journals(
+        self, journal_filter: Optional[GetJournalsRequest] = None
+    ) -> List[Journal]:
+        """
+        Returns journals from the master list.
+
+        Args:
+            journal_filter (Optional[GetJournalsRequest]): The parameters to filter the query by.
+
+        Returns:
+            List[Journal]: The journals from the query.
+        """
+        params = journal_filter.to_request_fields() if journal_filter else {}
+
+        response = self.get("/journals", params)
+
+        return parse_obj_as(List[Journal], response)
+
+    def get_journal_by_id(self, journal_id: Union[UUID, str] = None) -> Journal:
+        """
+        Returns a specific journal by its id.
+
+        Args:
+            journal_id (Union[UUID, str]): The id of the journal to retrieve.
+
+        Returns:
+            Journal: The journal with given id.
+        """
+        journal_id = validate_uuid_id_param(journal_id, "journal id")
+
+        response = self.get(f"/journals/{journal_id}")
+
+        return Journal(**response)
+
+    def cancel_journal_by_id(
+        self,
+        journal_id: Union[UUID, str],
+    ) -> None:
+        """
+        Cancels a specific journal by its id.
+
+        Args:
+            journal_id (Union[UUID, str]): The id of the journal to be cancelled.
+
+        Returns:
+            None
+        """
+        journal_id = validate_uuid_id_param(journal_id, "journal id")
+
+        self.delete(f"/journals/{journal_id}")

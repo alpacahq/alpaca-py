@@ -1089,6 +1089,15 @@ class BrokerClient(RESTClient):
         self,
         account_id: Union[UUID, str],
     ) -> List[Watchlist]:
+        """
+        Returns all watchlists for an account.
+
+        Args:
+            account_id (Union[UUID, str]): The account to retrieve watchlists for
+
+        Returns:
+            List[Watchlist]: The watchlists for that account
+        """
         account_id = validate_uuid_id_param(account_id, "account_id")
 
         result = self.get(f"/trading/accounts/{account_id}/watchlists")
@@ -1100,6 +1109,16 @@ class BrokerClient(RESTClient):
         account_id: Union[UUID, str],
         watchlist_id: Union[UUID, str],
     ) -> Watchlist:
+        """
+        Returns a specific watchlist by its id for a given account.
+
+        Args:
+            account_id (Union[UUID, str]): The account to retrieve watchlist data for.
+            watchlist_id (Union[UUID, str]): The watchlist to retrieve.
+
+        Returns:
+            Watchlist: The watchlist.
+        """
         account_id = validate_uuid_id_param(account_id, "account_id")
         watchlist_id = validate_uuid_id_param(watchlist_id, "watchlist_id")
 
@@ -1112,6 +1131,16 @@ class BrokerClient(RESTClient):
         account_id: Union[UUID, str],
         watchlist_data: CreateWatchlistRequest,
     ) -> Watchlist:
+        """
+        Creates a new watchlist for a given account.
+
+        Args:
+            account_id (Union[UUID, str]): The account to create a new watchlist for.
+            watchlist_data (CreateWatchlistRequest): The watchlist to create.
+
+        Returns:
+            Watchlist: The new watchlist.
+        """
         account_id = validate_uuid_id_param(account_id, "account_id")
 
         result = self.post(
@@ -1129,6 +1158,17 @@ class BrokerClient(RESTClient):
         # wide. Probably a good 0.2.x change
         watchlist_data: UpdateWatchlistRequest,
     ) -> Watchlist:
+        """
+        Updates a watchlist with new data.
+
+        Args:
+            account_id (Union[UUID, str]): The account whose watchlist to be updated.
+            watchlist_id (Union[UUID, str]): The watchlist to be updated.
+            watchlist_data (UpdateWatchlistRequest): The new watchlist data.
+
+        Returns:
+            Watchlist: The watchlist with updated data.
+        """
         watchlist_id = validate_uuid_id_param(watchlist_id, "watchlist_id")
         account_id = validate_uuid_id_param(account_id, "account_id")
 
@@ -1145,14 +1185,46 @@ class BrokerClient(RESTClient):
         watchlist_id: Union[UUID, str],
         symbol: str,
     ) -> Watchlist:
-        pass
+        """
+        Adds an asset by its symbol to a specified watchlist for a given account.
+        Args:
+            account_id (Union[UUID, str]): The account id that the watchlist belongs to.
+            watchlist_id (Union[UUID, str]): The watchlist to add the symbol to.
+            symbol (str): The symbol for the asset to add.
+
+        Returns:
+            Watchlist: The updated watchlist.
+        """
+        account_id = validate_uuid_id_param(account_id, "account_id")
+        watchlist_id = validate_uuid_id_param(watchlist_id, "watchlist_id")
+
+        params = {"symbol": symbol}
+
+        result = self.get(
+            f"/trading/accounts/{account_id}/watchlists/{watchlist_id}", params
+        )
+
+        return Watchlist(**result)
 
     def delete_watchlist_from_account_by_id(
         self,
         account_id: Union[UUID, str],
         watchlist_id: Union[UUID, str],
     ) -> None:
-        pass
+        """
+        Deletes a watchlist. This is permanent.
+
+        Args:
+            account_id (Union[UUID, str]): The account the watchlist belongs to.
+            watchlist_id (Union[UUID, str]): The watchlist to delete.
+
+        Returns:
+            None
+        """
+        account_id = validate_uuid_id_param(account_id, "account_id")
+        watchlist_id = validate_uuid_id_param(watchlist_id, "watchlist_id")
+
+        self.get(f"/trading/accounts/{account_id}/watchlists/{watchlist_id}")
 
     def remove_asset_from_watchlist_for_account_by_id(
         self,
@@ -1160,7 +1232,25 @@ class BrokerClient(RESTClient):
         watchlist_id: Union[UUID, str],
         symbol: str,
     ) -> Watchlist:
-        pass
+        """
+        Removes an asset from a watchlist for a given account.
+
+        Args:
+            account_id (Union[UUID, str]): The account the watchlist belongs to.
+            watchlist_id (Union[UUID, str]): The watchlist to remove the asset from.
+            symbol (str): The symbol for the asset to add.
+
+        Returns:
+            Watchlist: The updated watchlist.
+        """
+        account_id = validate_uuid_id_param(account_id, "account_id")
+        watchlist_id = validate_uuid_id_param(watchlist_id, "watchlist_id")
+
+        result = self.get(
+            f"/trading/accounts/{account_id}/watchlists/{watchlist_id}/{symbol}"
+        )
+
+        return Watchlist(**result)
 
     # ############################## JOURNALS ################################# #
 

@@ -1198,7 +1198,7 @@ class BrokerClient(RESTClient):
 
         params = {"symbol": symbol}
 
-        result = self.get(
+        result = self.post(
             f"/trading/accounts/{account_id}/watchlists/{watchlist_id}", params
         )
 
@@ -1222,7 +1222,7 @@ class BrokerClient(RESTClient):
         account_id = validate_uuid_id_param(account_id, "account_id")
         watchlist_id = validate_uuid_id_param(watchlist_id, "watchlist_id")
 
-        self.get(f"/trading/accounts/{account_id}/watchlists/{watchlist_id}")
+        self.delete(f"/trading/accounts/{account_id}/watchlists/{watchlist_id}")
 
     def remove_asset_from_watchlist_for_account_by_id(
         self,
@@ -1244,7 +1244,7 @@ class BrokerClient(RESTClient):
         account_id = validate_uuid_id_param(account_id, "account_id")
         watchlist_id = validate_uuid_id_param(watchlist_id, "watchlist_id")
 
-        result = self.get(
+        result = self.delete(
             f"/trading/accounts/{account_id}/watchlists/{watchlist_id}/{symbol}"
         )
 

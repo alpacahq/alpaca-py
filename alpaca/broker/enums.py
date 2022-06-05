@@ -458,3 +458,32 @@ class FeePaymentMethod(str, Enum):
 
     USER = "user"
     INVOICE = "invoice"
+
+
+class JournalEntryType(str, Enum):
+    """
+    Represents the types of journals. Cash journals are transfers of cash.
+    Security journals are transfers of securities like stocks.
+
+    Please see https://alpaca.markets/docs/api-references/broker-api/journals/ for more details.
+    """
+
+    CASH = "JNLC"
+    SECURITY = "JNLS"
+
+
+class JournalStatus(str, Enum):
+    """
+    The various states a journal can be in during its lifecycle.
+
+    Please see https://alpaca.markets/docs/api-references/broker-api/journals/#enumjournalstatus for more details.
+    """
+
+    QUEUED = "queued"
+    SENT_TO_CLEARING = "sent_to_clearing"
+    PENDING = "pending"
+    EXECUTED = "executed"
+    REJECTED = "rejected"
+    CANCELED = "canceled"
+    REFUSED = "refused"
+    DELETED = "deleted"

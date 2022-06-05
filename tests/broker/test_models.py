@@ -9,6 +9,7 @@ from alpaca.broker import (
     DocumentType,
     UploadW8BenDocumentRequest,
     W8BenDocument,
+    CreateJournalRequest,
 )
 from alpaca.broker.models import (
     AccountDocument,
@@ -29,6 +30,7 @@ from alpaca.broker.enums import (
     TransferType,
     TransferDirection,
     TransferTiming,
+    JournalEntryType,
 )
 from tests.broker.factories import create_dummy_w8ben_document
 from uuid import uuid4
@@ -294,19 +296,34 @@ def test_w8ben_document_validates_ftin_not_required_states():
     )
 
 
-class TestCreateBankRequest:
-    def test_valid_aba_bank(self):
+def test_valid_aba_bank():
+    CreateBankRequest(
+        name="name",
+        bank_code_type=IdentifierType.ABA,
+        bank_code="123456789",
+        account_number="123456789abc",
+    )
+
+
+def test_valid_bic_bank():
+    CreateBankRequest(
+        name="name",
+        bank_code_type=IdentifierType.BIC,
+        bank_code="123456789",
+        account_number="123456789abc",
+        country="United States",
+        state_province="New York",
+        postal_code="10036",
+        city="Manhattan",
+        street_address="Sixth Avenue & 42nd Street",
+    )
+
+
+def test_extra_parameters_for_aba_bank():
+    with pytest.raises(ValueError) as e:
         CreateBankRequest(
             name="name",
             bank_code_type=IdentifierType.ABA,
-            bank_code="123456789",
-            account_number="123456789abc",
-        )
-
-    def test_valid_bic_bank(self):
-        CreateBankRequest(
-            name="name",
-            bank_code_type=IdentifierType.BIC,
             bank_code="123456789",
             account_number="123456789abc",
             country="United States",
@@ -316,99 +333,135 @@ class TestCreateBankRequest:
             street_address="Sixth Avenue & 42nd Street",
         )
 
-    def test_extra_parameters_for_aba_bank(self):
-        with pytest.raises(ValueError) as e:
-            CreateBankRequest(
-                name="name",
-                bank_code_type=IdentifierType.ABA,
-                bank_code="123456789",
-                account_number="123456789abc",
-                country="United States",
-                state_province="New York",
-                postal_code="10036",
-                city="Manhattan",
-                street_address="Sixth Avenue & 42nd Street",
-            )
-
-        assert "You may only specify" in str(e.value)
-
-    def test_missing_parameters_for_bic_bank(self):
-        with pytest.raises(ValueError) as e:
-            CreateBankRequest(
-                name="name",
-                bank_code_type=IdentifierType.BIC,
-                bank_code="123456789",
-                account_number="123456789abc",
-            )
-
-        assert "You must specify" in str(e.value)
+    assert "You may only specify" in str(e.value)
 
 
-class TestCreateTransferRequest:
-    def test_valid_ach_transfer_request(self):
+def test_missing_parameters_for_bic_bank():
+    with pytest.raises(ValueError) as e:
+        CreateBankRequest(
+            name="name",
+            bank_code_type=IdentifierType.BIC,
+            bank_code="123456789",
+            account_number="123456789abc",
+        )
+
+    assert "You must specify" in str(e.value)
+
+
+def test_valid_ach_transfer_request():
+    CreateACHTransferRequest(
+        relationship_id=uuid4(),
+        amount="100.0",
+        direction=TransferDirection.INCOMING,
+        timing=TransferTiming.IMMEDIATE,
+    )
+
+
+def test_valid_bank_transfer_request():
+    CreateBankTransferRequest(
+        bank_id=uuid4(),
+        amount="100.0",
+        direction=TransferDirection.INCOMING,
+        timing=TransferTiming.IMMEDIATE,
+    )
+
+
+def test_zero_transfer_amount():
+    with pytest.raises(ValueError) as e:
         CreateACHTransferRequest(
             relationship_id=uuid4(),
-            amount="100.0",
+            amount="0",
             direction=TransferDirection.INCOMING,
             timing=TransferTiming.IMMEDIATE,
         )
 
-    def test_valid_bank_transfer_request(self):
+    assert "You must provide an amount > 0." in str(e.value)
+
+
+def test_negative_transfer_amount():
+    with pytest.raises(ValueError) as e:
+        CreateACHTransferRequest(
+            relationship_id=uuid4(),
+            amount="-100.0",
+            direction=TransferDirection.INCOMING,
+            timing=TransferTiming.IMMEDIATE,
+        )
+
+    assert "You must provide an amount > 0." in str(e.value)
+
+
+def test_ach_transfer_with_wire_transfer_type():
+    with pytest.raises(ValueError) as e:
+        CreateACHTransferRequest(
+            relationship_id=uuid4(),
+            amount="0",
+            direction=TransferDirection.INCOMING,
+            timing=TransferTiming.IMMEDIATE,
+            transfer_type=TransferType.WIRE,
+        )
+
+    assert "Transfer type must be TransferType.ACH for ACH transfer requests." in str(
+        e.value
+    )
+
+
+def test_bank_transfer_with_ach_transfer_type():
+    with pytest.raises(ValueError) as e:
         CreateBankTransferRequest(
-            bank_id=uuid4(),
-            amount="100.0",
+            relationship_id=uuid4(),
+            amount="0",
             direction=TransferDirection.INCOMING,
             timing=TransferTiming.IMMEDIATE,
+            transfer_type=TransferType.ACH,
         )
 
-    def test_zero_transfer_amount(self):
-        with pytest.raises(ValueError) as e:
-            CreateACHTransferRequest(
-                relationship_id=uuid4(),
-                amount="0",
-                direction=TransferDirection.INCOMING,
-                timing=TransferTiming.IMMEDIATE,
-            )
+    assert "Transfer type must be TransferType.WIRE for bank transfer requests." in str(
+        e.value
+    )
 
-        assert "You must provide an amount > 0." in str(e.value)
 
-    def test_negative_transfer_amount(self):
-        with pytest.raises(ValueError) as e:
-            CreateACHTransferRequest(
-                relationship_id=uuid4(),
-                amount="-100.0",
-                direction=TransferDirection.INCOMING,
-                timing=TransferTiming.IMMEDIATE,
-            )
+def test_journal_with_amount_and_qty():
 
-        assert "You must provide an amount > 0." in str(e.value)
-
-    def test_ach_transfer_with_wire_transfer_type(self):
-        with pytest.raises(ValueError) as e:
-            CreateACHTransferRequest(
-                relationship_id=uuid4(),
-                amount="0",
-                direction=TransferDirection.INCOMING,
-                timing=TransferTiming.IMMEDIATE,
-                transfer_type=TransferType.WIRE,
-            )
-
-        assert (
-            "Transfer type must be TransferType.ACH for ACH transfer requests."
-            in str(e.value)
+    with pytest.raises(ValueError) as e:
+        CreateJournalRequest(
+            from_account="c94bu7rn-4483-4199-840f-6c5fe0b7ca24",
+            entry_type=JournalEntryType.CASH,
+            to_account="fn68sbrk-6f2a-433c-8c33-17b66b8941fa",
+            amount=51,
+            qty=32,
         )
 
-    def test_bank_transfer_with_ach_transfer_type(self):
-        with pytest.raises(ValueError) as e:
-            CreateBankTransferRequest(
-                relationship_id=uuid4(),
-                amount="0",
-                direction=TransferDirection.INCOMING,
-                timing=TransferTiming.IMMEDIATE,
-                transfer_type=TransferType.ACH,
-            )
+    assert "Symbol and qty are reserved for security journals." in str(e.value)
 
-        assert (
-            "Transfer type must be TransferType.WIRE for bank transfer requests."
-            in str(e.value)
+    with pytest.raises(ValueError) as e:
+        CreateJournalRequest(
+            from_account="5f7fb16f-b530-4b1a-bffe-d710fbd106b7",
+            entry_type=JournalEntryType.SECURITY,
+            to_account="c117d42d-e1c8-4281-a6be-4e39fae2c821",
+            qty=32,
         )
+
+    assert (
+        "Security journals must contain a symbol and corresponding qty to transfer."
+        in str(e.value)
+    )
+
+    with pytest.raises(ValueError) as e:
+        CreateJournalRequest(
+            from_account="c94bu7rn-4483-4199-840f-6c5fe0b7ca24",
+            entry_type=JournalEntryType.SECURITY,
+            to_account="fn68sbrk-6f2a-433c-8c33-17b66b8941fa",
+            amount=20,
+            qty=2,
+        )
+
+    assert "Amount is reserved for cash journals." in str(e.value)
+
+    with pytest.raises(ValueError) as e:
+        CreateJournalRequest(
+            from_account="c94bu7rn-4483-4199-840f-6c5fe0b7ca24",
+            entry_type=JournalEntryType.CASH,
+            to_account="fn68sbrk-6f2a-433c-8c33-17b66b8941fa",
+        )
+
+    assert "Cash journals must contain an amount to transfer." in str(e.value)

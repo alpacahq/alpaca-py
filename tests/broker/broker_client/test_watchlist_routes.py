@@ -229,3 +229,117 @@ def test_update_watchlist_for_account_by_id_validates_ids(
             account_id=id,
             watchlist_data=request,
         )
+
+
+def test_add_asset_to_watchlist(reqmock, client: BrokerClient):
+    account_id = "0d969814-40d6-4b2b-99ac-2e37427f1ad2"
+    watchlist_id = "7c3ac77f-894c-4c08-987f-18a2e43e8e2a"
+    symbol = "AAPL"
+
+    reqmock.post(
+        f"{BaseURL.BROKER_SANDBOX}/v1/trading/accounts/{account_id}/watchlists/{watchlist_id}",
+        text="""
+    {
+      "id": "7c3ac77f-894c-4c08-987f-18a2e43e8e2a",
+      "account_id": "0d969814-40d6-4b2b-99ac-2e37427f1ad2",
+      "created_at": "2022-05-20T16:17:30.159561Z",
+      "updated_at": "2022-05-20T16:17:30.159561Z",
+      "name": "new name test",
+      "assets": [
+        {
+          "id": "93f58d0b-6c53-432d-b8ce-2bad264dbd94",
+          "class": "us_equity",
+          "exchange": "NASDAQ",
+          "symbol": "AAPL",
+          "name": "Apple Inc. Common Stock",
+          "status": "active",
+          "tradable": true,
+          "marginable": true,
+          "shortable": true,
+          "easy_to_borrow": true,
+          "fractionable": true
+        }
+      ]
+    }
+            """,
+    )
+
+    response = client.add_asset_to_watchlist_for_account_by_id(
+        account_id, watchlist_id, symbol
+    )
+
+    assert reqmock.called_once
+    assert isinstance(response, Watchlist)
+    assert len(response.assets) > 0
+    assert response.assets[0].symbol == symbol
+
+
+def test_remove_asset_to_watchlist_for_account(reqmock, client: BrokerClient):
+    account_id = "0d969814-40d6-4b2b-99ac-2e37427f1ad2"
+    watchlist_id = "7c3ac77f-894c-4c08-987f-18a2e43e8e2a"
+    symbol = "AAPL"
+
+    reqmock.delete(
+        f"{BaseURL.BROKER_SANDBOX}/v1/trading/accounts/{account_id}/watchlists/{watchlist_id}/{symbol}",
+        text="""
+    {
+      "id": "7c3ac77f-894c-4c08-987f-18a2e43e8e2a",
+      "account_id": "0d969814-40d6-4b2b-99ac-2e37427f1ad2",
+      "created_at": "2022-05-20T16:17:30.159561Z",
+      "updated_at": "2022-05-20T16:17:30.159561Z",
+      "name": "new name test",
+      "assets": [
+      ]
+    }
+            """,
+    )
+
+    response = client.remove_asset_from_watchlist_for_account_by_id(
+        account_id, watchlist_id, symbol
+    )
+
+    assert reqmock.called_once
+    assert isinstance(response, Watchlist)
+    assert len(response.assets) == 0
+
+
+def test_remove_asset_from_watchlist_for_account(reqmock, client: BrokerClient):
+    account_id = "0d969814-40d6-4b2b-99ac-2e37427f1ad2"
+    watchlist_id = "7c3ac77f-894c-4c08-987f-18a2e43e8e2a"
+    symbol = "AAPL"
+
+    reqmock.delete(
+        f"{BaseURL.BROKER_SANDBOX}/v1/trading/accounts/{account_id}/watchlists/{watchlist_id}/{symbol}",
+        text="""
+    {
+      "id": "7c3ac77f-894c-4c08-987f-18a2e43e8e2a",
+      "account_id": "0d969814-40d6-4b2b-99ac-2e37427f1ad2",
+      "created_at": "2022-05-20T16:17:30.159561Z",
+      "updated_at": "2022-05-20T16:17:30.159561Z",
+      "name": "new name test",
+      "assets": [
+      ]
+    }
+            """,
+    )
+
+    response = client.remove_asset_from_watchlist_for_account_by_id(
+        account_id, watchlist_id, symbol
+    )
+
+    assert reqmock.called_once
+    assert isinstance(response, Watchlist)
+    assert len(response.assets) == 0
+
+
+def test_delete_watchlist_for_account(reqmock, client: BrokerClient):
+    account_id = "0d969814-40d6-4b2b-99ac-2e37427f1ad2"
+    watchlist_id = "7c3ac77f-894c-4c08-987f-18a2e43e8e2a"
+
+    reqmock.delete(
+        f"{BaseURL.BROKER_SANDBOX}/v1/trading/accounts/{account_id}/watchlists/{watchlist_id}",
+    )
+
+    client.delete_watchlist_from_account_by_id(account_id, watchlist_id)
+
+    assert reqmock.called_once

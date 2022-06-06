@@ -315,7 +315,7 @@ class BrokerClient(RESTClient):
               will be upcast into UUID instances and checked for validity.
 
         Returns:
-            TradeAccount: TradeAccount info for the given account if found.
+            alpaca.broker.models.accounts.TradeAccount: TradeAccount info for the given account if found.
         """
 
         account_id = validate_uuid_id_param(account_id)

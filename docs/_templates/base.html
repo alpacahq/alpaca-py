@@ -1,0 +1,23 @@
+{# Adds Google Analytics to the head of document #}
+{% extends "!base.html" %}
+{% block extrahead %}
+    {{ super() }}
+    <!-- GA4 - Global site tag (gtag.js) - Google Analytics 4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-F38QD4C4M3"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-F38QD4C4M3');
+    </script>
+    <!-- Google Analytics (Old) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-113069056-7"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'UA-113069056-7');
+    </script>
+{% endblock %}

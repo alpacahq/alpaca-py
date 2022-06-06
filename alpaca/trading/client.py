@@ -110,18 +110,16 @@ class TradingClient(RESTClient):
 
         return Order(**response)
 
-    def get_order_by_client_id(self, client_id: Union[UUID, str]) -> Order:
+    def get_order_by_client_id(self, client_id: str) -> Order:
         """
         Returns a specific order by its client order id.
 
         Args:
-            client_id (Union[UUID, str]): The unique client order id identifier for the order.
+            client_id (str): The client order identifier for the order.
 
         Returns:
             Order: The queried order.
         """
-        client_id = validate_uuid_id_param(client_id, "client_id")
-
         response = self.get(f"/orders/{client_id}")
 
         return Order(**response)

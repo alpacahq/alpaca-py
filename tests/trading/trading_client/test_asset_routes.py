@@ -4,9 +4,8 @@ Contains tests for Trading API's asset routes.
 
 from typing import List
 from alpaca.common.enums import BaseURL, AssetStatus
-from alpaca.common.models import Asset
+from alpaca.common.models import Asset, GetAssetsRequest
 from alpaca.trading.client import TradingClient
-from alpaca.trading.models import GetAssetsRequest
 
 
 def test_get_all_assets(reqmock, trading_client: TradingClient):

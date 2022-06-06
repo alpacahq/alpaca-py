@@ -56,9 +56,9 @@ from ..common.models import (
     Watchlist,
     CreateWatchlistRequest,
     Asset,
+    GetAssetsRequest,
 )
 from ..common.rest import HTTPResult, RESTClient
-from ..trading.models import GetAssetsRequest
 
 
 def validate_uuid_id_param(

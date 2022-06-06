@@ -159,7 +159,7 @@ class TradingClient(RESTClient):
 
         return parse_obj_as(List[CancelOrderResponse], response)
 
-    def cancel_order_by_id(self, order_id: Union[UUID, str]) -> CancelOrderResponse:
+    def cancel_order_by_id(self, order_id: Union[UUID, str]) -> None:
         """
         Cancels a specific order by its order id.
 
@@ -170,40 +170,10 @@ class TradingClient(RESTClient):
             CancelOrderResponse: The HTTP response from the cancel request.
         """
         order_id = validate_uuid_id_param(order_id, "order_id")
-        status_code: Optional[int] = None
 
-        # We are making a direct HTTP call without using base class
-        # The _one_request method returns a NoneType for empty responses
-        # We need to capture the HTTP status code for empty responses
-        target_url = f"{self._base_url}/{self._api_version}/orders/{order_id}"
-        num_tries = 0
-
-        while num_tries <= self._retry:
-            response = self._session.delete(
-                url=target_url,
-                headers=self._get_default_headers(),
-                allow_redirects=True,
-                stream=True,
-            )
-            num_tries += 1
-            try:
-                response.raise_for_status()
-                status_code = response.status_code
-            except HTTPError as http_error:
-                if response.status_code in self._retry_codes:
-                    continue
-
-                if "code" in response.text:
-                    error = response.json()
-                    if "code" in error:
-                        status_code = error["code"]
-                else:
-                    raise http_error
-
-            # if we got here there were no issues', so status_code is now a value
-            break
-
-        return CancelOrderResponse(id=order_id, status=status_code)
+        # TODO: Should ideally return some information about the order's cancel status. (Issue #78).
+        # TODO: Currently no way to retrieve status details for empty responses with base REST implementation
+        self.delete(f"/orders/{order_id}")
 
     # ############################## POSITIONS ################################# #
 

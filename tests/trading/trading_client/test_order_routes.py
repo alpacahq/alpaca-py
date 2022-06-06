@@ -1,3 +1,4 @@
+from alpaca.common import APIError
 from alpaca.common.models import (
     Order,
     GetOrderByIdRequest,
@@ -10,6 +11,8 @@ from alpaca.common.models import (
 from alpaca.trading.client import TradingClient
 from alpaca.common.enums import OrderSide, OrderStatus, TimeInForce
 from alpaca.common.enums import BaseURL
+
+import pytest
 
 
 def test_market_order(reqmock, trading_client):
@@ -282,10 +285,39 @@ def test_cancel_order_by_id(reqmock, trading_client: TradingClient):
         status_code=status_code,
     )
 
-    response = trading_client.cancel_order_by_id(order_id)
+    trading_client.cancel_order_by_id(order_id)
 
-    assert type(response) is CancelOrderResponse
-    assert response.status == status_code
+    assert reqmock.called_once
+
+
+def test_cancel_order_throws_uncancelable_error(reqmock, trading_client: TradingClient):
+    order_id = "61e69015-8549-4bfd-b9c3-01e75843f47d"
+    status_code = 422
+
+    reqmock.delete(
+        f"{BaseURL.TRADING_PAPER}/v2/orders/{order_id}",
+        status_code=status_code,
+    )
+
+    with pytest.raises(APIError):
+        trading_client.cancel_order_by_id(order_id)
+
+    assert reqmock.called_once
+
+
+def test_cancel_order_throws_not_found_error(reqmock, trading_client: TradingClient):
+    order_id = "61e69015-8549-4bfd-b9c3-01e75843f47d"
+    status_code = 404
+
+    reqmock.delete(
+        f"{BaseURL.TRADING_PAPER}/v2/orders/{order_id}",
+        status_code=status_code,
+    )
+
+    with pytest.raises(APIError):
+        trading_client.cancel_order_by_id(order_id)
+
+    assert reqmock.called_once
 
 
 def test_cancel_orders(reqmock, trading_client: TradingClient):

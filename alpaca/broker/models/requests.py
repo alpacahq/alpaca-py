@@ -32,7 +32,14 @@ from ..enums import (
     VisaType,
 )
 from alpaca.common.enums import ActivityType, Sort
-from alpaca.common.models import NonEmptyRequest
+from alpaca.common.models import (
+    NonEmptyRequest,
+    OrderRequest as BaseOrderRequest,
+    MarketOrderRequest as BaseMarketOrderRequest,
+    LimitOrderRequest as BaseLimitOrderRequest,
+    StopOrderRequest as BaseStopOrderRequest,
+    TrailingStopOrderRequest as BaseTrailingStopOrderRequest,
+)
 
 
 class AccountCreationRequest(NonEmptyRequest):
@@ -599,3 +606,58 @@ class GetTransfersRequest(NonEmptyRequest):
     direction: Optional[TransferDirection]
     limit: Optional[int]
     offset: Optional[int]
+
+
+class OrderRequest(BaseOrderRequest):
+    """
+    See common OrderRequest model for full list of base attributes.
+
+    Attributes:
+        commission (float): The dollar value commission you want to charge the end user.
+    """
+
+    commission: float
+
+
+class MarketOrderRequest(BaseMarketOrderRequest):
+    """
+    See common MarketOrderRequest model for full list of base attributes.
+
+    Attributes:
+        commission (float): The dollar value commission you want to charge the end user.
+    """
+
+    commission: float
+
+
+class LimitOrderRequest(BaseLimitOrderRequest):
+    """
+    See common LimitOrderRequest model for full list of base attributes.
+
+    Attributes:
+        commission (float): The dollar value commission you want to charge the end user.
+    """
+
+    commission: float
+
+
+class StopOrderRequest(BaseStopOrderRequest):
+    """
+    See common StopOrderRequest model for full list of base attributes.
+
+    Attributes:
+        commission (float): The dollar value commission you want to charge the end user.
+    """
+
+    commission: float
+
+
+class TrailingStopOrderRequest(BaseTrailingStopOrderRequest):
+    """
+    See common TrailingStopOrderRequest model for full list of base attributes.
+
+    Attributes:
+        commission (float): The dollar value commission you want to charge the end user.
+    """
+
+    commission: float

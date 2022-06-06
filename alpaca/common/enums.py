@@ -256,3 +256,33 @@ class CorporateActionSubType(str, Enum):
     UNIT_SPLIT = "unit_split"
     REVERSE_SPLIT = "reverse_split"
     RECAPITALIZATION = "recapitalization"
+
+
+class AccountStatus(str, Enum):
+    """
+    The various statuses each brokerage account can take during its lifetime
+
+    see https://alpaca.markets/docs/broker/api-references/accounts/accounts/#account-status
+    """
+
+    ACCOUNT_CLOSED = "ACCOUNT_CLOSED"
+    ACCOUNT_UPDATED = "ACCOUNT_UPDATED"
+    ACTION_REQUIRED = "ACTION_REQUIRED"
+    ACTIVE = "ACTIVE"
+    AML_REVIEW = "AML_REVIEW"
+    APPROVAL_PENDING = "APPROVAL_PENDING"
+    APPROVED = "APPROVED"
+    DISABLED = "DISABLED"
+    DISABLE_PENDING = "DISABLE_PENDING"
+    EDITED = "EDITED"
+    INACTIVE = "INACTIVE"
+    KYC_SUBMITTED = "KYC_SUBMITTED"
+    LIMITED = "LIMITED"
+    ONBOARDING = "ONBOARDING"
+    PAPER_ONLY = "PAPER_ONLY"
+    REAPPROVAL_PENDING = "REAPPROVAL_PENDING"
+    REJECTED = "REJECTED"
+    RESUBMITTED = "RESUBMITTED"
+    SIGNED_UP = "SIGNED_UP"
+    SUBMISSION_FAILED = "SUBMISSION_FAILED"
+    SUBMITTED = "SUBMITTED"

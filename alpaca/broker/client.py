@@ -30,6 +30,8 @@ from alpaca.broker.models import (
     Transfer,
     UploadDocumentRequest,
     Order,
+    OrderRequest,
+    CancelOrderResponse,
     CreateJournalRequest,
     BatchJournalResponse,
     CreateBatchJournalRequest,
@@ -56,7 +58,10 @@ from ..common.models import (
     Watchlist,
     CreateWatchlistRequest,
     Asset,
+    ReplaceOrderRequest,
     GetAssetsRequest,
+    GetOrdersRequest,
+    GetOrderByIdRequest,
 )
 from ..common.rest import HTTPResult, RESTClient
 
@@ -1405,3 +1410,162 @@ class BrokerClient(RESTClient):
         response = self.get(f"/assets/{symbol_or_asset_id}")
 
         return Asset(**response)
+
+    # ############################## ORDERS ################################# #
+
+    def submit_order_for_account(
+        self, account_id: Union[UUID, str], order_data: OrderRequest
+    ) -> Order:
+        """Creates an order to buy or sell an asset for an account.
+
+        Args:
+            account_id (Union[UUID, str]): The account the order will be created for.
+            order_data (OrderRequest): The request data for creating a new order.
+
+        Returns:
+            Order: The resulting submitted order.
+        """
+
+        account_id = validate_uuid_id_param(account_id, "account_id")
+
+        data = order_data.to_request_fields()
+
+        response = self.post(f"/trading/accounts/{account_id}/orders", data)
+
+        return Order(**response)
+
+    def get_orders_for_account(
+        self, account_id: Union[UUID, str], filter: Optional[GetOrdersRequest] = None
+    ) -> List[Order]:
+        """
+        Returns all orders for an account. Orders can be filtered by parameters.
+
+        Args:
+            account_id (Union[UUID, str]): The account to get the orders for.
+            filter (Optional[GetOrdersRequest]): The parameters to filter the orders with.
+
+        Returns:
+            List[Order]: The queried orders.
+        """
+        account_id = validate_uuid_id_param(account_id, "account_id")
+
+        # checking to see if we specified at least one param
+        params = filter.to_request_fields() if filter is not None else {}
+
+        if "symbols" in params and type(params["symbols"]) is List:
+            params["symbols"] = ",".join(params["symbols"])
+
+        response = self.get(f"/trading/accounts/{account_id}/orders", params)
+
+        return parse_obj_as(List[Order], response)
+
+    def get_order_for_account_by_id(
+        self,
+        account_id: Union[UUID, str],
+        order_id: Union[UUID, str],
+        filter: Optional[GetOrderByIdRequest] = None,
+    ) -> Order:
+        """
+        Returns a specific order by its order id.
+
+        Args:
+            account_id (Union[UUID, str]): The account to get the order for.
+            order_id (Union[UUID, str]): The unique uuid identifier for the order.
+            filter (Optional[GetOrderByIdRequest]): The parameters for the query.
+
+        Returns:
+            Order: The order that was queried.
+        """
+        account_id = validate_uuid_id_param(account_id, "account_id")
+        order_id = validate_uuid_id_param(order_id, "order_id")
+
+        # checking to see if we specified at least one param
+        params = filter.to_request_fields() if filter is not None else {}
+
+        response = self.get(f"/trading/accounts/{account_id}/orders/{order_id}", params)
+
+        return Order(**response)
+
+    def get_order_for_account_by_client_id(
+        self, account_id: Union[UUID, str], client_id: str
+    ) -> Order:
+        """
+        Returns a specific order by its client order id.
+
+        Args:
+            account_id (Union[UUID, str]): The account to get the order for.
+            client_id (str): The client order identifier for the order.
+
+        Returns:
+            Order: The queried order.
+        """
+        account_id = validate_uuid_id_param(account_id, "account_id")
+
+        response = self.get(f"/trading/accounts/{account_id}/orders/{client_id}")
+
+        return Order(**response)
+
+    def replace_order_for_account_by_id(
+        self,
+        account_id: Union[UUID, str],
+        order_id: Union[UUID, str],
+        order_data: Optional[ReplaceOrderRequest] = None,
+    ) -> Order:
+        """
+        Updates an order with new parameters.
+
+        Args:
+            account_id (Union[UUID, str]): The account to replace the order for.
+            order_id (Union[UUID, str]): The unique uuid identifier for the order being replaced.
+            order_data (Optional[ReplaceOrderRequest]): The parameters we wish to update.
+
+        Returns:
+            Order: The updated order.
+        """
+        account_id = validate_uuid_id_param(account_id, "account_id")
+        order_id = validate_uuid_id_param(order_id, "order_id")
+
+        # checking to see if we specified at least one param
+        params = order_data.to_request_fields() if order_data is not None else {}
+
+        response = self.patch(
+            f"/trading/accounts/{account_id}/orders/{order_id}", params
+        )
+
+        return Order(**response)
+
+    def cancel_orders_for_account(
+        self, account_id: Union[UUID, str]
+    ) -> List[CancelOrderResponse]:
+        """
+        Cancels all orders.
+
+        Args:
+            account_id (Union[UUID, str]): The account to cancel the orders for.
+
+        Returns:
+            List[CancelOrderResponse]: The list of HTTP statuses for each order attempted to be cancelled.
+        """
+        account_id = validate_uuid_id_param(account_id, "account_id")
+
+        response = self.delete(f"/trading/accounts/{account_id}/orders")
+
+        return parse_obj_as(List[CancelOrderResponse], response)
+
+    def cancel_order_for_account_by_id(
+        self, account_id: Union[UUID, str], order_id: Union[UUID, str]
+    ) -> None:
+        """
+        Cancels a specific order by its order id.
+
+        Args:
+            account_id (Union[UUID, str]): The account to cancel the order for.
+            order_id (Union[UUID, str]): The unique uuid identifier of the order being cancelled.
+
+        """
+        account_id = validate_uuid_id_param(account_id, "account_id")
+        order_id = validate_uuid_id_param(order_id, "order_id")
+
+        # TODO: Should ideally return some information about the order's cancel status (Issue #78)
+        # TODO: Currently no way to retrieve status details for empty responses with base REST implementation
+        self.delete(f"/trading/accounts/{account_id}/orders/{order_id}")

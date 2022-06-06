@@ -6,7 +6,6 @@ from pydantic import parse_obj_as, root_validator, validator
 
 from .documents import AccountDocument
 from ..enums import (
-    AccountStatus,
     AgreementType,
     ClearingBroker,
     DTBPCheck,
@@ -17,7 +16,11 @@ from ..enums import (
     TradeConfirmationEmail,
     VisaType,
 )
-from ...common.models import ValidateBaseModel as BaseModel
+from alpaca.common.enums import AccountStatus
+from ...common.models import (
+    ValidateBaseModel as BaseModel,
+    TradeAccount as BaseTradeAccount,
+)
 
 
 class Contact(BaseModel):
@@ -285,50 +288,14 @@ class Account(BaseModel):
         )
 
 
-class TradeAccount(BaseModel):
+class TradeAccount(BaseTradeAccount):
     """
+    See Base TradeAccount model in common for full details on available fields.
     Represents trading account information for an Account.
 
     Attributes:
-        id (UUID): The account ID
-        account_number (str): The account number
-        status (AccountStatus): The current status of the account
-        crypto_status (Optional[AccountStatus]): The status of the account in regards to trading crypto. Only present if
-          crypto trading is enabled for your brokerage account.
-        currency (Optional[str]): Currently will always be the value "USD".
-        buying_power (str): Current available cash buying power. If multiplier = 2 then
-          buying_power = max(equity-initial_margin(0) * 2). If multiplier = 1 then buying_power = cash.
-        regt_buying_power (str): User’s buying power under Regulation T
-          (excess equity - (equity - margin value) - * margin multiplier)
-        daytrading_buying_power (str): The buying power for day trades for the account
-        non_marginable_buying_power (str): The non marginable buying power for the account
-        cash (str): Cash balance in the account
         cash_withdrawable (Optional[str]): Cash available for withdrawal from the account
         cash_transferable (Optional[str]): Cash available for transfer (JNLC) from the account
-        accrued_fees (str): Fees accrued in this account
-        pending_transfer_out (Optional[str]): Cash pending transfer out of this account
-        pending_transfer_in (Optional[str]): Cash pending transfer into this account
-        portfolio_value (str): Total value of cash + holding positions.
-          (This field is deprecated. It is equivalent to the equity field.)
-        pattern_day_trader (bool): Whether the account is flagged as pattern day trader or not.
-        trading_blocked (bool): If true, the account is not allowed to place orders.
-        transfers_blocked (bool): If true, the account is not allowed to request money transfers.
-        account_blocked (bool): If true, the account activity by user is prohibited.
-        created_at (datetime): Timestamp this account was created at
-        trade_suspended_by_user (bool): If true, the account is not allowed to place orders.
-        multiplier (str): Multiplier value for this account.
-        shorting_enabled (bool): Flag to denote whether or not the account is permitted to short
-        equity (str): This value is cash + long_market_value + short_market_value. This value isn't calculated in the
-          SDK it is computed on the server and we return the raw value here.
-        last_equity (str): Equity as of previous trading day at 16:00:00 ET
-        long_market_value (str): Real-time MtM value of all long positions held in the account
-        short_market_value (str): Real-time MtM value of all short positions held in the account
-        initial_margin (str): Reg T initial margin requirement
-        maintenance_margin (str): Maintenance margin requirement
-        last_maintenance_margin (str): Maintenance margin requirement on the previous trading day
-        sma (str): Value of Special Memorandum Account (will be used at a later date to provide additional buying_power)
-        daytrade_count (int): The current number of daytrades that have been made in the last 5 trading days
-          (inclusive of today)
         previous_close (Optional[datetime]): Previous sessions close time
         last_long_market_value (Optional[str]): Value of all long positions as of previous trading day at 16:00:00 ET
         last_short_market_value (Optional[str]): Value of all short positions as of previous trading day at 16:00:00 ET
@@ -341,39 +308,8 @@ class TradeAccount(BaseModel):
         clearing_broker (Optional[ClearingBroker]): The Clearing broker for this account
     """
 
-    id: UUID
-    account_number: str
-    status: AccountStatus
-    crypto_status: Optional[AccountStatus]
-    currency: Optional[str]
-    buying_power: str
-    regt_buying_power: str
-    daytrading_buying_power: str
-    non_marginable_buying_power: str
-    cash: str
     cash_withdrawable: Optional[str]
     cash_transferable: Optional[str]
-    accrued_fees: str
-    pending_transfer_out: Optional[str]
-    pending_transfer_in: Optional[str]
-    portfolio_value: str
-    pattern_day_trader: bool
-    trading_blocked: bool
-    transfers_blocked: bool
-    account_blocked: bool
-    created_at: datetime
-    trade_suspended_by_user: bool
-    multiplier: str
-    shorting_enabled: bool
-    equity: str
-    last_equity: str
-    long_market_value: str
-    short_market_value: str
-    initial_margin: str
-    maintenance_margin: str
-    last_maintenance_margin: str
-    sma: str
-    daytrade_count: int
     previous_close: Optional[datetime]
     last_long_market_value: Optional[str]
     last_short_market_value: Optional[str]
@@ -384,12 +320,6 @@ class TradeAccount(BaseModel):
     last_daytrade_count: Optional[int]
     last_buying_power: Optional[str]
     clearing_broker: Optional[ClearingBroker]
-
-    def __init__(self, **data: Any) -> None:
-        if "id" in data and type(data["id"]) == str:
-            data["id"] = UUID(data["id"])
-
-        super().__init__(**data)
 
 
 class TradeAccountConfiguration(BaseModel):

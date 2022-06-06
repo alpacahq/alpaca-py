@@ -16,7 +16,6 @@ from .documents import W8BenDocument
 from .trading import Order
 from ..enums import (
     AccountEntities,
-    AccountStatus,
     BankAccountType,
     DocumentType,
     EmploymentStatus,
@@ -32,7 +31,7 @@ from ..enums import (
     UploadDocumentSubType,
     VisaType,
 )
-from alpaca.common.enums import ActivityType, Sort
+from alpaca.common.enums import ActivityType, Sort, AccountStatus
 from alpaca.common.models import (
     NonEmptyRequest,
     OrderRequest as BaseOrderRequest,

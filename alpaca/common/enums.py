@@ -258,6 +258,14 @@ class CorporateActionSubType(str, Enum):
     RECAPITALIZATION = "recapitalization"
 
 
+class CorporateActionDateType(str, Enum):
+
+    DECLARATION_DATE = "declaration_date"
+    EX_DATE = "ex_date"
+    RECORD_DATE = "record_date"
+    PAYABLE_DATE = "payable_date"
+
+
 class AccountStatus(str, Enum):
     """
     The various statuses each brokerage account can take during its lifetime

@@ -13,6 +13,7 @@ from .accounts import (
     TrustedContact,
 )
 from .documents import W8BenDocument
+from .trading import Order
 from ..enums import (
     AccountEntities,
     AccountStatus,
@@ -32,7 +33,15 @@ from ..enums import (
     VisaType,
 )
 from alpaca.common.enums import ActivityType, Sort
-from alpaca.common.models import NonEmptyRequest
+from alpaca.common.models import (
+    NonEmptyRequest,
+    OrderRequest as BaseOrderRequest,
+    MarketOrderRequest as BaseMarketOrderRequest,
+    LimitOrderRequest as BaseLimitOrderRequest,
+    StopOrderRequest as BaseStopOrderRequest,
+    TrailingStopOrderRequest as BaseTrailingStopOrderRequest,
+    CancelOrderResponse as BaseCancelOrderResponse,
+)
 
 
 class AccountCreationRequest(NonEmptyRequest):
@@ -599,3 +608,69 @@ class GetTransfersRequest(NonEmptyRequest):
     direction: Optional[TransferDirection]
     limit: Optional[int]
     offset: Optional[int]
+
+
+class OrderRequest(BaseOrderRequest):
+    """
+    See common OrderRequest model for full list of base attributes.
+
+    Attributes:
+        commission (Optional[float]): The dollar value commission you want to charge the end user.
+    """
+
+    commission: Optional[float]
+
+
+class MarketOrderRequest(BaseMarketOrderRequest):
+    """
+    See common MarketOrderRequest model for full list of base attributes.
+
+    Attributes:
+        commission (Optional[float]): The dollar value commission you want to charge the end user.
+    """
+
+    commission: Optional[float]
+
+
+class LimitOrderRequest(BaseLimitOrderRequest):
+    """
+    See common LimitOrderRequest model for full list of base attributes.
+
+    Attributes:
+        commission (Optional[float]): The dollar value commission you want to charge the end user.
+    """
+
+    commission: Optional[float]
+
+
+class StopOrderRequest(BaseStopOrderRequest):
+    """
+    See common StopOrderRequest model for full list of base attributes.
+
+    Attributes:
+        commission (Optional[float]): The dollar value commission you want to charge the end user.
+    """
+
+    commission: Optional[float]
+
+
+class TrailingStopOrderRequest(BaseTrailingStopOrderRequest):
+    """
+    See common TrailingStopOrderRequest model for full list of base attributes.
+
+    Attributes:
+        commission (Optional[float]): The dollar value commission you want to charge the end user.
+    """
+
+    commission: Optional[float]
+
+
+class CancelOrderResponse(BaseCancelOrderResponse):
+    """
+    See common CancelOrderResponse model for full list of base attributes.
+
+    Attributes:
+        body (Order): The order being cancelled.
+    """
+
+    body: Order

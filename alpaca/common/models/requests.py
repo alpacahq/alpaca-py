@@ -137,10 +137,6 @@ class CreateWatchlistRequest(NonEmptyRequest):
     name: str
     symbols: List[str]
 
-    @root_validator()
-    def root_validator(cls, values: dict) -> dict:
-        return values
-
 
 class UpdateWatchlistRequest(NonEmptyRequest):
     """

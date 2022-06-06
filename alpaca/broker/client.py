@@ -55,6 +55,8 @@ from ..common.models import (
     UpdateWatchlistRequest,
     Watchlist,
     CreateWatchlistRequest,
+    Asset,
+    GetAssetsRequest,
 )
 from ..common.rest import HTTPResult, RESTClient
 
@@ -1365,3 +1367,41 @@ class BrokerClient(RESTClient):
         journal_id = validate_uuid_id_param(journal_id, "journal id")
 
         self.delete(f"/journals/{journal_id}")
+
+    # ############################## Assets ################################# #
+
+    def get_all_assets(self, filter: Optional[GetAssetsRequest] = None) -> List[Asset]:
+        """
+        The assets API serves as the master list of assets available for trade and data consumption from Alpaca.
+        Some assets are not tradable with Alpaca. These assets will be marked with the flag tradable=false.
+
+        Args:
+            filter (Optional[GetAssetsRequest]): The parameters that can be assets can be queried by.
+
+        Returns:
+            List[Asset]: The list of assets.
+        """
+        # checking to see if we specified at least one param
+        params = filter.to_request_fields() if filter is not None else {}
+
+        response = self.get(f"/assets", params)
+
+        return parse_obj_as(List[Asset], response)
+
+    def get_asset(self, symbol_or_asset_id: Union[UUID, str]) -> Asset:
+        """
+        Returns a specific asset by its symbol or asset id. If the specified asset does not exist
+        a 404 error will be thrown.
+
+        Args:
+            symbol_or_asset_id (Union[UUID, str]): The symbol or asset id for the specified asset
+
+        Returns:
+            Asset: The asset if it exists.
+        """
+
+        symbol_or_asset_id = validate_symbol_or_asset_id(symbol_or_asset_id)
+
+        response = self.get(f"/assets/{symbol_or_asset_id}")
+
+        return Asset(**response)

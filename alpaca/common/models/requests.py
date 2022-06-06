@@ -5,6 +5,7 @@ from uuid import UUID
 from pydantic import root_validator
 
 from .models import ValidateBaseModel as BaseModel
+from ..enums import AssetStatus, AssetClass, AssetExchange
 
 
 class NonEmptyRequest(BaseModel):
@@ -151,3 +152,18 @@ class UpdateWatchlistRequest(NonEmptyRequest):
             raise ValueError("One of 'name' or 'symbols' must be defined")
 
         return values
+
+
+class GetAssetsRequest(NonEmptyRequest):
+    """
+    When querying for available assets, this model provides the parameters that can be filtered by.
+
+    Attributes:
+        status (Optional[AssetStatus]): The active status of the asset.
+        asset_class (Optional[AssetClass]): The type of asset (i.e. us_equity, crypto).
+        exchange (Optional[AssetExchange]): The exchange the asset trades on.
+    """
+
+    status: Optional[AssetStatus]
+    asset_class: Optional[AssetClass]
+    exchange: Optional[AssetExchange]

@@ -15,6 +15,7 @@ from alpaca.common.models import (
     ClosePositionResponse,
     ClosePositionRequest,
     Asset,
+    GetAssetsRequest,
 )
 from .models import (
     OrderRequest,
@@ -22,7 +23,6 @@ from .models import (
     ReplaceOrderRequest,
     GetOrderByIdRequest,
     CancelOrderResponse,
-    GetAssetsRequest,
 )
 
 

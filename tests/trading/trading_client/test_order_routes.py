@@ -1,18 +1,15 @@
-from typing import List
-from alpaca.common.models.trading import Order
-from alpaca.trading.client import TradingClient
-from alpaca.common.enums import OrderSide, OrderStatus, OrderType, TimeInForce
-from alpaca.trading.models import (
-    MarketOrderRequest,
-    LimitOrderRequest,
-)
-from alpaca.common.enums import BaseURL
-from alpaca.trading.models.requests import (
+from alpaca.common.models import (
+    Order,
     GetOrderByIdRequest,
     GetOrdersRequest,
     ReplaceOrderRequest,
     CancelOrderResponse,
+    MarketOrderRequest,
+    LimitOrderRequest,
 )
+from alpaca.trading.client import TradingClient
+from alpaca.common.enums import OrderSide, OrderStatus, TimeInForce
+from alpaca.common.enums import BaseURL
 
 
 def test_market_order(reqmock, trading_client):

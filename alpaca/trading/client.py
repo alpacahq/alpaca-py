@@ -22,6 +22,9 @@ from alpaca.common.models import (
     GetOrderByIdRequest,
     CancelOrderResponse,
     TradeAccount,
+    Watchlist,
+    CreateWatchlistRequest,
+    UpdateWatchlistRequest,
 )
 
 
@@ -335,3 +338,145 @@ class TradingClient(RESTClient):
         response = self.get("/account")
 
         return TradeAccount(**response)
+
+    # ############################## WATCHLIST ################################# #
+
+    def get_watchlists(
+        self,
+    ) -> List[Watchlist]:
+        """
+        Returns all watchlists.
+
+        Returns:
+            List[Watchlist]: The list of all watchlists.
+        """
+
+        result = self.get(f"/watchlists")
+
+        return parse_obj_as(List[Watchlist], result)
+
+    def get_watchlist_by_id(
+        self,
+        watchlist_id: Union[UUID, str],
+    ) -> Watchlist:
+        """
+        Returns a specific watchlist by its id.
+
+        Args:
+            watchlist_id (Union[UUID, str]): The watchlist to retrieve.
+
+        Returns:
+            Watchlist: The watchlist.
+        """
+        watchlist_id = validate_uuid_id_param(watchlist_id, "watchlist_id")
+
+        result = self.get(f"/watchlists/{watchlist_id}")
+
+        return Watchlist(**result)
+
+    def create_watchlist(
+        self,
+        watchlist_data: CreateWatchlistRequest,
+    ) -> Watchlist:
+        """
+        Creates a new watchlist.
+
+        Args:
+            watchlist_data (CreateWatchlistRequest): The watchlist to create.
+
+        Returns:
+            Watchlist: The new watchlist.
+        """
+        result = self.post(
+            "/watchlists",
+            watchlist_data.to_request_fields(),
+        )
+
+        return Watchlist(**result)
+
+    def update_watchlist_by_id(
+        self,
+        watchlist_id: Union[UUID, str],
+        # Might be worth taking a union of this and Watchlist itself; but then we should make a change like that SDK
+        # wide. Probably a good 0.2.x change
+        watchlist_data: UpdateWatchlistRequest,
+    ) -> Watchlist:
+        """
+        Updates a watchlist with new data.
+
+        Args:
+            watchlist_id (Union[UUID, str]): The watchlist to be updated.
+            watchlist_data (UpdateWatchlistRequest): The new watchlist data.
+
+        Returns:
+            Watchlist: The watchlist with updated data.
+        """
+        watchlist_id = validate_uuid_id_param(watchlist_id, "watchlist_id")
+
+        result = self.put(
+            f"/watchlists/{watchlist_id}",
+            watchlist_data.to_request_fields(),
+        )
+
+        return Watchlist(**result)
+
+    def add_asset_to_watchlist_by_id(
+        self,
+        watchlist_id: Union[UUID, str],
+        symbol: str,
+    ) -> Watchlist:
+        """
+        Adds an asset by its symbol to a specified watchlist.
+
+        Args:
+            watchlist_id (Union[UUID, str]): The watchlist to add the symbol to.
+            symbol (str): The symbol for the asset to add.
+
+        Returns:
+            Watchlist: The updated watchlist.
+        """
+        watchlist_id = validate_uuid_id_param(watchlist_id, "watchlist_id")
+
+        params = {"symbol": symbol}
+
+        result = self.post(f"/watchlists/{watchlist_id}", params)
+
+        return Watchlist(**result)
+
+    def delete_watchlist_by_id(
+        self,
+        watchlist_id: Union[UUID, str],
+    ) -> None:
+        """
+        Deletes a watchlist. This is permanent.
+
+        Args:
+            watchlist_id (Union[UUID, str]): The watchlist to delete.
+
+        Returns:
+            None
+        """
+        watchlist_id = validate_uuid_id_param(watchlist_id, "watchlist_id")
+
+        self.delete(f"/watchlists/{watchlist_id}")
+
+    def remove_asset_from_watchlist_by_id(
+        self,
+        watchlist_id: Union[UUID, str],
+        symbol: str,
+    ) -> Watchlist:
+        """
+        Removes an asset from a watchlist.
+
+        Args:
+            watchlist_id (Union[UUID, str]): The watchlist to remove the asset from.
+            symbol (str): The symbol for the asset to add.
+
+        Returns:
+            Watchlist: The updated watchlist.
+        """
+        watchlist_id = validate_uuid_id_param(watchlist_id, "watchlist_id")
+
+        result = self.delete(f"/watchlists/{watchlist_id}/{symbol}")
+
+        return Watchlist(**result)

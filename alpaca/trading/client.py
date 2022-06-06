@@ -58,7 +58,7 @@ class TradingClient(RESTClient):
         """Creates an order to buy or sell an asset.
 
         Args:
-            order_data (OrderCreationRequest): The request data for creating a new order.
+            order_data (OrderRequest): The request data for creating a new order.
 
         Returns:
             Order: The resulting submitted order.

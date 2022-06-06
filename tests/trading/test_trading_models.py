@@ -2,10 +2,7 @@ from alpaca.common.enums import OrderSide, OrderType, TimeInForce
 from alpaca.trading.models import (
     MarketOrderRequest,
     TrailingStopOrderRequest,
-    ReplaceOrderRequest,
-    CancelOrderResponse,
 )
-from alpaca.trading.models.requests import GetOrdersRequest
 import pytest
 
 

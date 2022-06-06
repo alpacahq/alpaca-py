@@ -21,6 +21,7 @@ from alpaca.common.models import (
     ReplaceOrderRequest,
     GetOrderByIdRequest,
     CancelOrderResponse,
+    TradeAccount,
 )
 
 
@@ -319,3 +320,18 @@ class TradingClient(RESTClient):
         )
 
         return parse_obj_as(List[Calendar], result)
+
+    # ############################## ACCOUNT ################################# #
+
+    def get_account(self) -> TradeAccount:
+        """
+        Returns account details. Contains information like buying power,
+        number of day trades, and account status.
+
+        Returns:
+            TradeAccount: The account details
+        """
+
+        response = self.get("/account")
+
+        return TradeAccount(**response)

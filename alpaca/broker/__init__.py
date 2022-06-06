@@ -1,3 +1,3 @@
-from .client import BrokerClient, PaginationType
+from .client import BrokerClient
 from .enums import *
 from .models import *

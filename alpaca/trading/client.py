@@ -124,7 +124,7 @@ class TradingClient(RESTClient):
 
         return Order(**response)
 
-    def replace_order(
+    def replace_order_by_id(
         self,
         order_id: Union[UUID, str],
         order_data: Optional[ReplaceOrderRequest] = None,

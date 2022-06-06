@@ -268,7 +268,7 @@ def test_replace_order(reqmock, trading_client: TradingClient):
 
     replace_order_request = ReplaceOrderRequest(qty=1)
 
-    order = trading_client.replace_order(order_id, replace_order_request)
+    order = trading_client.replace_order_by_id(order_id, replace_order_request)
 
     assert type(order) is Order
 

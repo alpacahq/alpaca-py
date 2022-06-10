@@ -1,7 +1,8 @@
-{# Adds Google Analytics to the head of document #}
+{# Adds Carnas Font and Google Analytics to the head of document #}
 {% extends "!base.html" %}
 {% block extrahead %}
     {{ super() }}
+    <link rel="stylesheet" href="https://files.alpaca.markets/fonts/carnas/stylesheet.css" />
     <!-- GA4 - Global site tag (gtag.js) - Google Analytics 4 -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-F38QD4C4M3"></script>
     <script>

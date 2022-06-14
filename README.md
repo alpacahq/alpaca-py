@@ -18,7 +18,7 @@ interfaces with only the Market Data API, however the other APIs are coming soon
 
 ### Installation
 
-Alpaca-py is supported on Python 3.7+.  You can install Alpaca-py using pip.
+Alpaca-py is supported on Python 3.8+.  You can install Alpaca-py using pip.
 
 Run the following command in your terminal.
 

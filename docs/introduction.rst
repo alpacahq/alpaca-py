@@ -8,7 +8,7 @@ About
 
 Alpaca-py provides an interface for interacting with the various REST and WebSocket endpoints Alpaca offers.
 You can access both historical and live market data for equities and cryptocurrencies via the Market Data API. 
-You can place easily place trades for both crypto and equities through a uniform interface. Alpaca-py also offers the ability
+You can place trades for both crypto and equities through a uniform interface. Alpaca-py also offers the ability
 to manage your Broker API account by creating accounts, managing funds, and more. 
 
 Learn more about the API products Alpaca offers at the `homepage <https://alpaca.markets/>`_.

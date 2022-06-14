@@ -60,7 +60,7 @@ Accounts
 --------
 
 The accounts API allows you to create and manage brokerage accounts on behalf of your users. To learn more about
-accounts on Broker API, visit the `Alpaca API documentation <https://alpaca.markets/docs/api-references/broker-api/accounts/accounts/>`_.
+accounts on Broker API, visit the `Alpaca API documentation <https://alpaca.markets/docs/api-references/broker-api/accounts/accounts/>`__.
 
 
 Create an Account
@@ -190,7 +190,7 @@ Funding
 -------
 
 The funding API allows you to create Bank/ACH connections and transfer funds in and out of accounts.
-To learn more about funding on Broker API, please visit the `Alpaca API documentation <https://alpaca.markets/docs/api-references/broker-api/funding/transfers/>`_.
+To learn more about funding on Broker API, please visit the `Alpaca API documentation <https://alpaca.markets/docs/api-references/broker-api/funding/transfers/>`__.
 
 Create an ACH Relationship
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -257,7 +257,7 @@ Journals
 --------
 
 The journals API allows you to transfer cash and securities between accounts under your management.
-To learn more about the journals API, visit the `Alpaca API documentation <https://alpaca.markets/docs/api-references/broker-api/journals/>`_.
+To learn more about the journals API, visit the `Alpaca API documentation <https://alpaca.markets/docs/api-references/broker-api/journals/>`__.
 
 Create a Journal
 ^^^^^^^^^^^^^^^^
@@ -325,7 +325,7 @@ Trading
 -------
 
 The Broker trading API allows you to place orders and manage positions on behalf of your users.
-To learn more about trading on Broker API, visit the `Alpaca API documentation <https://alpaca.markets/docs/api-references/broker-api/trading/orders/>`_.
+To learn more about trading on Broker API, visit the `Alpaca API documentation <https://alpaca.markets/docs/api-references/broker-api/trading/orders/>`__.
 
 .. attention::
     Keep in mind, all models necessary for trading on Broker API live within the ``alpaca.broker`` and **not** ``alpaca.trading``. Although

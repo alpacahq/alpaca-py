@@ -774,7 +774,7 @@ class BrokerClient(RESTClient):
         bank_data: CreateBankRequest,
     ) -> Bank:
         """
-        Creates a single ACH relationship for the given account.
+        Creates a single bank relationship for the given account.
 
         Args:
             account_id (Union[UUID, str]): The ID of the Account to create the bank connection for.

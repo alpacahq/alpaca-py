@@ -220,7 +220,7 @@ class TimeInForce(str, Enum):
     """
 
     DAY = "day"
-    GTG = "gtg"
+    GTC = "gtc"
     OPG = "opg"
     CLS = "cls"
     IOC = "iok"

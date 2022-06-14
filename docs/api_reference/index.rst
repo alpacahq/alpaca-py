@@ -1,9 +1,8 @@
-API Reference
-=============
+Reference
+=========
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
 
    data_api
    trade_api

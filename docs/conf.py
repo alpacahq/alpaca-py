@@ -31,6 +31,7 @@ extensions = [
     "sphinx.ext.coverage",
     "sphinx.ext.napoleon",
     "sphinx.ext.doctest",
+    'sphinx_copybutton',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -226,3 +227,6 @@ html_theme_options = {
 # so a file named "default.css" will overwrite the builtin "default.css".
 # currently unused but uncomment in the future
 # html_static_path = ['_static']
+
+pygments_style = 'monokai'
+pygments_dark_style = 'monokai'

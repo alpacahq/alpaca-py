@@ -1,5 +1,5 @@
-Market Data API
-===============
+Market Data Module
+==================
 
 .. toctree::
    :maxdepth: 2

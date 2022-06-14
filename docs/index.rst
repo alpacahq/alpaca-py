@@ -1,15 +1,15 @@
-
 Welcome to alpaca-py's documentation!
 =====================================
 
+
+Contents
+========
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
 
-   
-   getting_started
+   introduction
    market_data
-   trade
+   trading
    broker
    api_reference/index
 

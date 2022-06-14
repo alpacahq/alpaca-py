@@ -1,5 +1,5 @@
-Broker API
-==========
+Broker Module
+=============
 
 .. toctree::
    :maxdepth: 2

@@ -230,3 +230,5 @@ html_theme_options = {
 
 pygments_style = 'monokai'
 pygments_dark_style = 'monokai'
+
+html_title = "Alpaca-py"

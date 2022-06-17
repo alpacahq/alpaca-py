@@ -345,7 +345,7 @@ for a successful order.
 
     from alpaca.broker import BrokerClient
     from alpaca.broker.models import MarketOrderRequest, LimitOrderRequest
-    from alpaca.broker.enums import OrderSide, TimeInForce
+    from alpaca.common.enums import OrderSide, TimeInForce
 
     broker_client = BrokerClient('api-key', 'secret-key')
 
@@ -383,7 +383,8 @@ for a successful order.
 Get All Positions
 ^^^^^^^^^^^^^^^^^
 
-You can retrieve all positions for a specific account using only the ``account_id``.
+You can retrieve all open positions for a specific account using only the ``account_id``.
+This will return a list of `Position` objects.
 
 
 .. code-block:: python

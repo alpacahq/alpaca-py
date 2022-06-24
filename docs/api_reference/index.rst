@@ -7,3 +7,4 @@ References
    data_api
    trade_api
    broker_api
+   common

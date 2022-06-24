@@ -33,8 +33,8 @@ Get Journal by ID
 .. automethod:: alpaca.broker.client.BrokerClient.get_journal_by_id
 
 
-Cancel Journal
---------------
+Cancel Journal by ID
+--------------------
 
-.. automethod:: alpaca.broker.client.BrokerClient.cancel_journal
+.. automethod:: alpaca.broker.client.BrokerClient.cancel_journal_by_id
 

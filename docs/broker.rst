@@ -29,7 +29,7 @@ To initialize a client, you will need to provide it your **API keys** which can 
 `Broker dashboard <https://broker-app.alpaca.markets/>`_. If you wish to use your sandbox keys,
 you will need to set the sandbox parameter to ``True`` when initializing.
 
-Learn more about ``BrokerClient`` in the :ref:`broker-client` page.
+Learn more about ``BrokerClient`` in the Broker reference page.
 
 
 

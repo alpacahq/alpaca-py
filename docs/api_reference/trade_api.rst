@@ -2,8 +2,8 @@
    :maxdepth: 2
    :caption: Contents:
 
-Trading Module
-==============
+Trading Reference
+=================
 
 Coming Soon!
 

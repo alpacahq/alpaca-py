@@ -1,5 +1,5 @@
-Reference
-=========
+References
+==========
 
 .. toctree::
    :maxdepth: 2
@@ -7,4 +7,3 @@ Reference
    data_api
    trade_api
    broker_api
-   common

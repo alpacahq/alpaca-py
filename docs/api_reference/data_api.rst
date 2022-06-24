@@ -1,5 +1,5 @@
-Market Data Module
-==================
+Market Data Reference
+=====================
 
 .. toctree::
    :maxdepth: 2

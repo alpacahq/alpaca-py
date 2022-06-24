@@ -27,7 +27,11 @@ What's New?
 If you use the previous SDK `alpaca-trade-api <https://github.com/alpacahq/alpaca-trade-api-python>`_, there are a few
 key differences to be aware of.
 
-Alpaca-py uses
+Alpaca-py uses a more OOP approach to submitting request compared to the previous SDK.
+To submit a request that requires body parameters, you will need to create
+a request object containing the desired request data. There is a request object for each
+type of request, for example to submit an order, you will need to provide
+an ``OrderRequest`` object.
 
 Installation
 ------------

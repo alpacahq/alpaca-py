@@ -126,25 +126,21 @@ Then we can pass those parts into the ``AccountCreationRequest`` model before su
           agreement=AgreementType.MARGIN,
           signed_at="2020-09-11T18:09:33Z",
           ip_address="185.13.21.99",
-          revision="16.2021.05"
         ),
         Agreement(
           agreement=AgreementType.ACCOUNT,
           signed_at="2020-09-11T18:13:44Z",
           ip_address="185.13.21.99",
-          revision="16.2021.05"
         ),
         Agreement(
           agreement=AgreementType.CUSTOMER,
           signed_at="2020-09-11T18:13:44Z",
           ip_address="185.13.21.99",
-          revision="16.2021.05"
         ),
         Agreement(
           agreement=AgreementType.CRYPTO,
           signed_at="2020-09-11T18:13:44Z",
           ip_address="185.13.21.99",
-          revision="16.2021.05"
         )
     ]
 

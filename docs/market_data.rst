@@ -1,3 +1,5 @@
+.. _market-data:
+
 ===========
 Market Data
 ===========

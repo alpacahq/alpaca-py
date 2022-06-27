@@ -22,7 +22,7 @@ Introduction
 Learn more about what Alpaca-py offers and how it's different from the previous SDK on the :ref:`introduction` page.
 
 
-Broker 
+Broker
 ------
 
 .. image:: images/icons/broker.png

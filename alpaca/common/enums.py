@@ -203,6 +203,10 @@ class AssetExchange(str, Enum):
     NYSE = "NYSE"
     NASDAQ = "NASDAQ"
     NYSEARCA = "NYSEARCA"
+    FTXU = "FTXU"
+    CBSE = "CBSE"
+    GNSS = "GNSS"
+    ERSX = "ERSX"
 
 
 class PositionSide(str, Enum):

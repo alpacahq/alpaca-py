@@ -5,7 +5,7 @@ import pandas as pd
 from pandas import DataFrame
 from pydantic import BaseModel
 
-from alpaca.common.time import TimeFrame
+from alpaca.data.time import TimeFrame
 from alpaca.common.types import RawData
 
 from .enums import Exchange

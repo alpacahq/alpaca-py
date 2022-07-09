@@ -8,7 +8,7 @@ import msgpack
 import websockets
 from pydantic import BaseModel
 
-from alpaca.common.time import TimeFrame
+from alpaca.data.time import TimeFrame
 from alpaca.common.types import RawData
 from alpaca.data.models import Bar, Quote, Trade
 

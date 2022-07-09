@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 from alpaca.common.enums import BaseURL
 from alpaca.common.rest import RESTClient
-from alpaca.common.time import TimeFrame
+from alpaca.data.time import TimeFrame
 from alpaca.common.types import RawData
 
 from .enums import Adjustment, DataFeed, Exchange

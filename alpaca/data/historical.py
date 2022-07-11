@@ -8,8 +8,9 @@ from alpaca.common.rest import RESTClient
 from alpaca.data.time import TimeFrame
 from alpaca.common.types import RawData
 
-from .enums import Adjustment, DataFeed, Exchange
+from .enums import DataFeed, Exchange
 from .models import XBBO, BarSet, Quote, QuoteSet, SnapshotSet, Trade, TradeSet
+from alpaca.data.requests import GetEquityBarsRequest
 from ..common.constants import DATA_V2_MAX_LIMIT
 
 
@@ -44,55 +45,40 @@ class HistoricalDataClient(RESTClient):
             raw_data=raw_data,
         )
 
-    def get_bars(
+    def get_equity_bars(
         self,
-        symbol_or_symbols: Union[str, List[str]],
-        timeframe: TimeFrame,
-        start: Optional[datetime] = None,
-        end: Optional[datetime] = None,
-        limit: Optional[int] = None,
-        adjustment: Optional[Adjustment] = None,
-        feed: Optional[DataFeed] = None,
+        request_data: GetEquityBarsRequest
     ) -> Union[BarSet, RawData]:
-        """Returns bar data for a security or list of securities over a given
-        time period and timeframe
+        """Returns bar data for a equity or list of equities over a given
+        time period and timeframe.
 
         Args:
-            symbol_or_symbols (Union[str, List[str]]): The security or multiple security ticker identifiers
-            timeframe (TimeFrame): The period over which the bars should be aggregated. (i.e. 5 Min bars, 1 Day bars)
-            start (Optional[datetime], optional): The beginning of the time interval for desired data. Defaults to None.
-            end (Optional[datetime], optional): The beginning of the time interval for desired data. Defaults to None.
-            limit (Optional[int], optional): Upper limit of number of data points to return. Defaults to None.
-            adjustment (Optional[Adjustment], optional): The type of corporate action data normalization. Defaults to None.
-            feed (Optional[DataFeed], optional): The equity data feed to retrieve from. Defaults to None.
+            request_data: GetEquityBarsRequest
 
         Returns:
             Union[BarSet, RawData]: The bar data either in raw or wrapped form
         """
-        # replace timeframe object with it's string representation
-        timeframe_value = timeframe.value
 
+        params = request_data.to_request_fields()
+
+        print(params)
         # paginated get request for market data api
         bars_generator = self._data_get(
             endpoint="bars",
-            symbol_or_symbols=symbol_or_symbols,
-            timeframe=timeframe_value,
-            start=start,
-            end=end,
-            max_items_limit=limit,
-            adjustment=adjustment,
-            feed=feed,
+            endpoint_base="stocks",
+            api_version="v2",
+            **params
         )
 
         # casting generator type outputted from _data_get to list
         raw_bars = list(bars_generator)
 
-        return self._format_data_response(
-            symbol_or_symbols=symbol_or_symbols,
-            raw_data=raw_bars,
-            model=BarSet,
-            timeframe=timeframe,
-        )
+        print(raw_bars)
+
+        # return self._format_data_response(
+        #     raw_data=raw_bars,
+        #     model=BarSet,
+        # )
 
     def get_quotes(
         self,
@@ -517,9 +503,9 @@ class HistoricalDataClient(RESTClient):
         self,
         endpoint: str,
         symbol_or_symbols: Union[str, List[str]],
-        endpoint_base: str = "stocks",
-        api_version: str = "v2",
-        max_items_limit: Optional[int] = None,
+        endpoint_base: str,
+        api_version: str,
+        limit: Optional[int] = None,
         page_limit: int = DATA_V2_MAX_LIMIT,
         **kwargs,
     ) -> Iterator[dict]:
@@ -531,7 +517,7 @@ class HistoricalDataClient(RESTClient):
             symbol_or_symbols (Union[str, List[str]]): The symbol or list of symbols that we want to query for
             endpoint_base (str, optional): The data API security type path. Defaults to 'stocks'.
             api_version (str, optional): Data API version. Defaults to "v2".
-            max_items_limit (Optional[int]): The maximum number of items to query. Defaults to None.
+            limit (Optional[int]): The maximum number of items to query. Defaults to None.
             page_limit (int, optional): The maximum number of items returned per page - different from limit. Defaults to DATA_V2_MAX_LIMIT.
 
         Yields:
@@ -559,9 +545,9 @@ class HistoricalDataClient(RESTClient):
             actual_limit = None
 
             # adjusts the limit parameter value if it is over the page_limit
-            if max_items_limit:
+            if limit:
                 # actual_limit is the adjusted total number of items to query per request
-                actual_limit = min(int(max_items_limit) - total_items, page_limit)
+                actual_limit = min(int(limit) - total_items, page_limit)
                 if actual_limit < 1:
                     break
 
@@ -595,7 +581,6 @@ class HistoricalDataClient(RESTClient):
 
     def _format_data_response(
         self,
-        symbol_or_symbols: Union[str, List[str]],
         raw_data: Union[RawData, List[RawData]],
         model: Type[BaseModel],
         **kwargs,

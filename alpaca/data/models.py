@@ -3,7 +3,7 @@ from typing import Dict, List, Optional, Union
 
 import pandas as pd
 from pandas import DataFrame
-from pydantic import BaseModel
+from alpaca.common.models import ValidateBaseModel as BaseModel
 
 from alpaca.data.time import TimeFrame
 from alpaca.common.types import RawData
@@ -64,8 +64,6 @@ class Bar(BaseModel):
     """Represents one bar/candlestick of aggregated trade data over a specified interval.
 
     Attributes:
-        symbol (str): The ticker identifier for the security whose data forms the bar
-        timeframe (TimeFrame): The interval of time price data has been aggregated over
         timestamp (datetime): The closing timestamp of the bar
         open (float): The opening price of the interval
         high (float): The high price during the interval
@@ -77,8 +75,6 @@ class Bar(BaseModel):
         exchange (Optional[float]): The exchange the bar was formed on
     """
 
-    symbol: str
-    timeframe: TimeFrame
     timestamp: datetime
     open: float
     high: float
@@ -89,63 +85,55 @@ class Bar(BaseModel):
     vwap: Optional[float] = None
     exchange: Optional[Exchange] = None
 
-    def __init__(self, symbol: str, timeframe: TimeFrame, raw_data: RawData) -> None:
+    def __init__(self, raw_data: RawData) -> None:
         """Instantiates a bar
 
         Args:
-            symbol (str): The ticker identifier for the security
-            timeframe (TimeFrame): The interval of time that price data has been aggregated
             raw_data (RawData): Raw unparsed bar data from API, contains ohlc and other fields.
         """
         mapped_bar = {
             BAR_MAPPING[key]: val for key, val in raw_data.items() if key in BAR_MAPPING
         }
 
-        super().__init__(symbol=symbol, timeframe=timeframe, **mapped_bar)
+        super().__init__(**mapped_bar)
 
 
 class BarSet(BaseModel, TimeSeriesMixin):
     """A collection of Bars.
 
     Attributes:
-        symbols (List[str]): The list of ticker identifiers for the securities whose data forms the set of bars.
-        timeframe (TimeFrame): The interval of time price data has been aggregated over.
-        bar_set(Dict[str, List[Bar]]): The collection of Bars keyed by symbol.
+        bars (Dict[str, List[Bar]]): The collection of Bars keyed by symbol.
         raw (Dict[str, List[RawData]]): The collection of raw data from the API call keyed by symbol.
         _key_mapping (Dict[str, str]): The mapping for names of data fields from raw format received from API to data models
     """
 
-    symbols: List[str]
-    timeframe: TimeFrame
-    bar_set: Dict[str, List[Bar]]
+    bars: Dict[str, List[Bar]]
     raw: Dict[str, List[RawData]]
     _key_mapping: Dict[str, str] = BAR_MAPPING
 
     def __init__(
         self,
         raw_data: Dict[str, List[RawData]],
-        timeframe: TimeFrame,
-        symbols: List[str],
     ) -> None:
         """A collection of Bars.
 
         Args:
             raw_data (Dict[str, List[RawData]]): The collection of raw bar data from API keyed by Symbol.
-            timeframe (TimeFrame): The interval of time price data has been aggregated over
-            symbols (List[str]): The list of ticker identifiers for the securities whose data forms the set of bars.
         """
 
         parsed_bars = {}
 
-        for _symbol, bars in raw_data.items():
-            parsed_bars[_symbol] = [Bar(_symbol, timeframe, bar) for bar in bars]
+        raw_bars = raw_data
+
+        for _symbol, bars in raw_bars.items():
+            parsed_bars[_symbol] = [Bar(bar) for bar in bars]
 
         super().__init__(
-            symbols=symbols, timeframe=timeframe, bar_set=parsed_bars, raw=raw_data
+            bar_set=parsed_bars, raw=raw_bars
         )
 
     def __getitem__(self, symbol: str) -> List[Bar]:
-        """Gives dictionary-like access to BarSet for multisymbol data
+        """Gives dictionary-like access to BarSet for multi-symbol data
 
         Args:
             symbol (str): The ticker identifier for the desired data
@@ -156,10 +144,10 @@ class BarSet(BaseModel, TimeSeriesMixin):
         Returns:
             List[Bar]: The BarSet data for the given symbol
         """
-        if symbol not in self.symbols:
+        if symbol not in self.bars:
             raise KeyError(f"No key {symbol} was found")
 
-        return self.bar_set[symbol]
+        return self.bars[symbol]
 
 
 class Quote(BaseModel):
@@ -241,7 +229,7 @@ class QuoteSet(BaseModel, TimeSeriesMixin):
         """Retrieves the quotes for a given symbol
 
         Args:
-            symbol (str): The ticker idenfitier for the desired data
+            symbol (str): The ticker identifier for the desired data
 
         Raises:
             KeyError: Cannot access data for symbol not in QuoteSet
@@ -249,10 +237,10 @@ class QuoteSet(BaseModel, TimeSeriesMixin):
         Returns:
             List[Quote]: The QuoteSet data for the given symbol
         """
-        if symbol not in self.symbols:
+        if symbol not in self.quotes:
             raise KeyError(f"No key {symbol} was found")
 
-        return self.quote_set[symbol]
+        return self.quotes[symbol]
 
 
 class Trade(BaseModel):

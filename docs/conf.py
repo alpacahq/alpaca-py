@@ -205,5 +205,5 @@ pygments_style = "monokai"
 pygments_dark_style = "monokai"
 
 html_title = "Alpaca-py"
-html_static_path = ['_static']
-html_css_files = ['css/custom.css']
+html_static_path = ["_static"]
+html_css_files = ["css/custom.css"]

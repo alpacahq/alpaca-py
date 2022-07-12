@@ -128,9 +128,7 @@ class BarSet(BaseModel, TimeSeriesMixin):
         for _symbol, bars in raw_bars.items():
             parsed_bars[_symbol] = [Bar(bar) for bar in bars]
 
-        super().__init__(
-            bar_set=parsed_bars, raw=raw_bars
-        )
+        super().__init__(bars=parsed_bars, raw=raw_bars)
 
     def __getitem__(self, symbol: str) -> List[Bar]:
         """Gives dictionary-like access to BarSet for multi-symbol data

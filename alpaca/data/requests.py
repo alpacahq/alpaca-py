@@ -1,12 +1,12 @@
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Union
 
 from alpaca.common.models import NonEmptyRequest
 from alpaca.data import TimeFrame, Adjustment, DataFeed, Exchange
 
 
 def convert_datetime_to_iso_8601_with_z_suffix(dt: datetime) -> str:
-    return dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+    return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 class BaseGetBarsRequest(NonEmptyRequest):
@@ -22,31 +22,19 @@ class BaseGetBarsRequest(NonEmptyRequest):
         end (Optional[datetime], optional): The beginning of the time interval for desired data. Defaults to None.
         limit (Optional[int], optional): Upper limit of number of data points to return. Defaults to None.
     """
-    symbol_or_symbols: str
+
+    symbol_or_symbols: Union[str, List[str]]
     timeframe: TimeFrame
-    start: Optional[datetime]
-    end: Optional[datetime]
+    start: Optional[Union[datetime, str]]
+    end: Optional[Union[datetime, str]]
     limit: Optional[int]
 
+    # Allows TimeFrame as a non-pydantic BaseModel field
     class Config:
         arbitrary_types_allowed = True
 
-        json_encoders = {
-            # custom output conversion for datetime
-            datetime: convert_datetime_to_iso_8601_with_z_suffix
-        }
 
-    def __init__(self, **data):
-        if "start" in data and isinstance(data["start"], str):
-            data["start"] = datetime.fromisoformat(data["start"])
-
-        if "end" in data and isinstance(data["end"], str):
-            data["end"] = datetime.fromisoformat(data["end"])
-
-        super().__init__(**data)
-
-
-class GetEquityBarsRequest(BaseGetBarsRequest):
+class GetStockBarsRequest(BaseGetBarsRequest):
     """
     The request model for retrieving bar data for equities.
 
@@ -72,10 +60,3 @@ class GetCryptoBarsRequest(BaseGetBarsRequest):
     """
 
     exchanges: Optional[List[Exchange]]
-
-
-
-
-
-
-

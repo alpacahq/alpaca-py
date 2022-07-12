@@ -1,4 +1,5 @@
 from datetime import datetime
+from itertools import chain
 from typing import Iterator, List, Optional, Type, Union
 
 from pydantic import BaseModel
@@ -10,7 +11,7 @@ from alpaca.common.types import RawData
 
 from .enums import DataFeed, Exchange
 from .models import XBBO, BarSet, Quote, QuoteSet, SnapshotSet, Trade, TradeSet
-from alpaca.data.requests import GetEquityBarsRequest
+from alpaca.data.requests import GetStockBarsRequest
 from ..common.constants import DATA_V2_MAX_LIMIT
 
 
@@ -45,9 +46,8 @@ class HistoricalDataClient(RESTClient):
             raw_data=raw_data,
         )
 
-    def get_equity_bars(
-        self,
-        request_data: GetEquityBarsRequest
+    def get_stock_bars(
+        self, request_data: GetStockBarsRequest
     ) -> Union[BarSet, RawData]:
         """Returns bar data for a equity or list of equities over a given
         time period and timeframe.
@@ -61,24 +61,15 @@ class HistoricalDataClient(RESTClient):
 
         params = request_data.to_request_fields()
 
-        print(params)
         # paginated get request for market data api
         bars_generator = self._data_get(
-            endpoint="bars",
-            endpoint_base="stocks",
-            api_version="v2",
-            **params
+            endpoint="bars", endpoint_base="stocks", api_version="v2", **params
         )
 
         # casting generator type outputted from _data_get to list
-        raw_bars = list(bars_generator)
+        raw_bars = list(bars_generator)[0]
 
-        print(raw_bars)
-
-        # return self._format_data_response(
-        #     raw_data=raw_bars,
-        #     model=BarSet,
-        # )
+        return BarSet(raw_bars)
 
     def get_quotes(
         self,
@@ -560,11 +551,15 @@ class HistoricalDataClient(RESTClient):
                 # required for /news endpoint
                 _endpoint = endpoint or endpoint_base
 
-                data = resp.get(_endpoint, []) or []
+                resp["bars"] = { resp["symbol"]: resp["bars"] }
+                data_by_symbol = resp.get(_endpoint, {}) or {}
 
-                for item in data:
+                for item in data_by_symbol:
                     total_items += 1
-                    yield item
+                    # yield item
+
+                yield data_by_symbol
+
             else:
                 data_by_symbol = resp.get(endpoint, {}) or {}
 
@@ -583,7 +578,6 @@ class HistoricalDataClient(RESTClient):
         self,
         raw_data: Union[RawData, List[RawData]],
         model: Type[BaseModel],
-        **kwargs,
     ) -> Union[BarSet, RawData]:
         """Formats the response from market data API.
 
@@ -595,30 +589,7 @@ class HistoricalDataClient(RESTClient):
         Returns:
             Union[BarSet, RawData]: The bar data either in raw or wrapped form
         """
-        if isinstance(symbol_or_symbols, str):
-            # BarSet expects a symbol keyed dictionary of bar data from API
-            _raw_data_dict = {symbol_or_symbols: raw_data}
 
-            return self.response_wrapper(
-                model,
-                symbols=[symbol_or_symbols],
-                raw_data=_raw_data_dict,
-                **kwargs,
-            )
+        # print(raw_data)
 
-        # merge list of dictionaries (symbol (key): List[Bar] (value)) yielded by _data_get
-        raw_multi_symbol_data = {}
-
-        for _data_by_symbol in raw_data:
-            for _symbol, _bars in _data_by_symbol.items():
-                if _symbol not in raw_multi_symbol_data:
-                    raw_multi_symbol_data[_symbol] = _bars
-                else:
-                    raw_multi_symbol_data[_symbol].extend(_bars)
-
-        return self.response_wrapper(
-            model,
-            symbols=symbol_or_symbols,
-            raw_data=raw_multi_symbol_data,
-            **kwargs,
-        )
+        return model(raw_data[0])

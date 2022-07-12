@@ -16,6 +16,7 @@ from ..enums import (
     OrderStatus,
     Sort,
 )
+from ...data import TimeFrame
 
 
 class NonEmptyRequest(BaseModel):
@@ -56,6 +57,9 @@ class NonEmptyRequest(BaseModel):
 
             if isinstance(val, list):
                 return [map_values(v) for v in val]
+
+            if isinstance(val, datetime):
+                return val.isoformat("T") + "Z"
 
             return val
 

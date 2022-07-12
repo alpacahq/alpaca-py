@@ -67,9 +67,11 @@ class HistoricalDataClient(RESTClient):
         )
 
         # casting generator type outputted from _data_get to list
-        raw_bars = list(bars_generator)[0]
+        raw_bars = list(bars_generator)
 
-        return BarSet(raw_bars)
+        print(len(raw_bars))
+
+        return BarSet(raw_bars[0])
 
     def get_quotes(
         self,
@@ -517,7 +519,8 @@ class HistoricalDataClient(RESTClient):
         page_token = None
         total_items = 0
 
-        data = kwargs
+        # params contains the payload data
+        params = kwargs
 
         path = f"/{endpoint_base}"
 
@@ -526,7 +529,7 @@ class HistoricalDataClient(RESTClient):
         if not multi_symbol and symbol_or_symbols:
             path += f"/{symbol_or_symbols}"
         else:
-            data["symbols"] = ",".join(symbol_or_symbols)
+            params["symbols"] = ",".join(symbol_or_symbols)
 
         if endpoint:
             path += f"/{endpoint}"
@@ -542,26 +545,23 @@ class HistoricalDataClient(RESTClient):
                 if actual_limit < 1:
                     break
 
-            data["limit"] = actual_limit
-            data["page_token"] = page_token
+            params["limit"] = actual_limit
+            params["page_token"] = page_token
 
-            resp = self.get(path, data, api_version=api_version)
+            response = self.get(path=path, data=params, api_version=api_version)
 
             if not multi_symbol:
                 # required for /news endpoint
                 _endpoint = endpoint or endpoint_base
 
-                resp["bars"] = { resp["symbol"]: resp["bars"] }
-                data_by_symbol = resp.get(_endpoint, {}) or {}
+                data_by_symbol = response.get(_endpoint, []) or []
 
                 for item in data_by_symbol:
                     total_items += 1
-                    # yield item
-
-                yield data_by_symbol
+                    yield item
 
             else:
-                data_by_symbol = resp.get(endpoint, {}) or {}
+                data_by_symbol = response.get(endpoint, {}) or {}
 
                 # if we've sent a request with a limit, increment count
                 if actual_limit:
@@ -569,7 +569,7 @@ class HistoricalDataClient(RESTClient):
 
                 yield data_by_symbol
 
-            page_token = resp.get("next_page_token")
+            page_token = response.get("next_page_token")
 
             if not page_token:
                 break

@@ -12,7 +12,7 @@ Get All Positions
 Get Open Position
 -----------------
 
-.. automethod:: alpaca.trading.client.TradingClient.get_all_positions
+.. automethod:: alpaca.trading.client.TradingClient.get_open_position
 
 Close All Positions
 -------------------

@@ -57,9 +57,15 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # Furo theme - https://github.com/pradyunsg/furo
 # Default css color variables used by the theme are listed below commented out.
 #
+html_title = "Alpaca-py"
+html_static_path = ['_static']
+html_css_files = ['css/custom.css']
 html_theme = "furo"
 html_favicon = "https://files.alpaca.markets/webassets/favicon-32x32.png"
 html_theme_options = {
+    "sidebar_hide_name": True,
+    "light_logo": "/images/alpaca-py-logo-light.png",
+    "dark_logo": "/images/alpaca-py-logo-dark.png",
     "light_css_variables": {
         # Fonts
         "font-stack": "'Carnas', sans-serif",
@@ -204,6 +210,4 @@ html_theme_options = {
 pygments_style = "monokai"
 pygments_dark_style = "monokai"
 
-html_title = "Alpaca-py"
-html_static_path = ['_static']
-html_css_files = ['css/custom.css']
+

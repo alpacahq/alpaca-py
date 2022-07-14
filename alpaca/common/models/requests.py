@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from typing import Any, List, Optional
 from uuid import UUID
 
@@ -15,6 +15,8 @@ from ..enums import (
     OrderClass,
     OrderStatus,
     Sort,
+    CorporateActionType,
+    CorporateActionDateType,
 )
 
 
@@ -412,5 +414,43 @@ class TrailingStopOrderRequest(OrderRequest):
             )
         elif trail_percent_set and trail_price_set:
             raise ValueError("Both trail_percent and trail_price cannot be set.")
+
+        return values
+
+
+class GetCorporateAnnouncementsRequest(NonEmptyRequest):
+    """
+    Contains parameters for querying corporate action data.
+
+    Attributes:
+        ca_types (List[CorporateActionType]): A list of corporate action types.
+        since (date): The start (inclusive) of the date range when searching corporate action announcements.
+            The date range is limited to 90 days.
+        until (date): The end (inclusive) of the date range when searching corporate action announcements.
+            The date range is limited to 90 days.
+        symbol (Optional[str]): The symbol of the company initiating the announcement.
+        cusip (Optional[str]): The CUSIP of the company initiating the announcement.
+        date_type (Optional[CorporateActionDateType]): The date type for the announcement.
+    """
+
+    ca_types: List[CorporateActionType]
+    since: date
+    until: date
+    symbol: Optional[str]
+    cusip: Optional[str]
+    date_type: Optional[CorporateActionDateType]
+
+    @root_validator()
+    def root_validator(cls, values: dict) -> dict:
+
+        since = values.get("since")
+        until = values.get("until")
+
+        if (
+            since is not None
+            and until is not None
+            and (until - since) > timedelta(days=90)
+        ):
+            raise ValueError("The date range is limited to 90 days.")
 
         return values

@@ -12,6 +12,26 @@ Alpaca-py Documentation
 
 The official Python SDK for Alpaca's APIs.
 
+
+.. container:: badges-row 
+
+   |GitHub stars|
+
+   .. |GitHub stars| image:: https://img.shields.io/github/stars/Naereen/StrapDown.js.svg?style=social&label=Star&maxAge=2592000
+      :target: https://github.com/alpacahq/alpaca-py
+
+   |PyPI version shields.io|
+
+   .. |PyPI version shields.io| image:: https://img.shields.io/pypi/v/ansicolortags.svg
+      :target: https://pypi.org/project/alpaca-trade-api/
+
+   |PyPI pyversions|
+
+   .. |PyPI pyversions| image:: https://img.shields.io/pypi/pyversions/ansicolortags.svg
+      :target: https://pypi.org/project/alpaca-trade-api/
+
+
+
 ----
 
 Introduction

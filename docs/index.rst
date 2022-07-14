@@ -27,12 +27,12 @@ Alpaca-py Documentation
    |PyPI version shields.io|
 
    .. |PyPI version shields.io| image:: https://img.shields.io/pypi/v/ansicolortags.svg
-      :target: https://pypi.org/project/alpaca-trade-api/
+      :target: https://pypi.org/project/alpaca-py/
 
    |PyPI pyversions|
 
    .. |PyPI pyversions| image:: https://img.shields.io/pypi/pyversions/ansicolortags.svg
-      :target: https://pypi.org/project/alpaca-trade-api/
+      :target: https://pypi.org/project/alpaca-py/
 
 
 

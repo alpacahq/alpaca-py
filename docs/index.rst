@@ -10,7 +10,11 @@
 Alpaca-py Documentation
 =======================
 
-The official Python SDK for Alpaca's APIs.
+.. container:: homepage-banner
+   
+   .. image:: images/alpaca-py-banner.png
+      :alt: The official Python SDK for Alpaca's APIs.
+
 
 
 .. container:: badges-row 

@@ -113,3 +113,6 @@
 .badges-row > p {
   margin-right: 1rem;
 }
+.badges-row > p:last-child {
+  margin-right: 0;
+}

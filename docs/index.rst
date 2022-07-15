@@ -10,7 +10,31 @@
 Alpaca-py Documentation
 =======================
 
-The official Python SDK for Alpaca's APIs.
+.. container:: homepage-banner
+   
+   .. image:: images/alpaca-py-banner.png
+      :alt: The official Python SDK for Alpaca's APIs.
+
+
+
+.. container:: badges-row 
+
+   |GitHub stars|
+
+   .. |GitHub stars| image:: https://img.shields.io/github/stars/Naereen/StrapDown.js.svg?style=social&label=Star&maxAge=2592000
+      :target: https://github.com/alpacahq/alpaca-py
+
+   |PyPI version shields.io|
+
+   .. |PyPI version shields.io| image:: https://img.shields.io/pypi/v/ansicolortags.svg
+      :target: https://pypi.org/project/alpaca-py/
+
+   |PyPI pyversions|
+
+   .. |PyPI pyversions| image:: https://img.shields.io/pypi/pyversions/ansicolortags.svg
+      :target: https://pypi.org/project/alpaca-py/
+
+
 
 ----
 

@@ -76,6 +76,11 @@
         });
 
         window.addEventListener("DOMContentLoaded", function(){
+           searchEvent();
+           ctaEvent();
+        });
+
+        function searchEvent() {
             const form = document.querySelector("form.sidebar-search-container");
             if (!form) return;
             form.addEventListener("submit",function(evt){
@@ -86,7 +91,20 @@
                     search_input: q
                 });
             });
-        });
+        }
+
+        function ctaEvent() {
+            const cta = document.getElementById("main-cta");
+            if (!cta) return;
+            cta.addEventListener("click", function() {
+                const eventName = window.location.pathname.includes("broker")
+                    ? "docs_python_sdk_broker_cta_clicked" 
+                    : "docs_python_sdk_lpca_cta_clicked";
+                amplitude.getInstance().logEvent(eventName,{
+                    url,
+                });
+            });
+        }
 
         function replaceAll(str, target, replacement) {
             return str.split("").map(function (char) {

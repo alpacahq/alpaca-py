@@ -1,5 +1,3 @@
-from typing import Dict, Union, Any
-
-from ..common.time import TimeFrame
+from typing import Dict, Any
 
 RawData = Dict[str, Any]

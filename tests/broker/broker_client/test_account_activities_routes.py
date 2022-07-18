@@ -253,7 +253,7 @@ def test_get_activities_for_account_max_items_and_single_request_date(
     assert len(result) == max_limit
 
     request = reqmock.request_history[0]
-    assert "date" in request.qs and request.qs["date"] == [f"{date_str} 00:00:00"]
+    assert "date" in request.qs and request.qs["date"] == [f"{date_str}t00:00:00z"]
     assert "page_size" in request.qs and request.qs["page_size"] == ["2"]
 
 

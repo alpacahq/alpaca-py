@@ -1,6 +1,6 @@
 from enum import Enum
 
-from pydantic import BaseModel
+from alpaca.common.models import ValidateBaseModel as BaseModel
 
 
 class classproperty(property):
@@ -14,7 +14,7 @@ class classproperty(property):
         return classmethod(self.fget).__get__(None, owner)()
 
 
-class TimeFrameUnit(Enum):
+class TimeFrameUnit(str, Enum):
     """Quantity of time used as unit"""
 
     Minute: str = "Min"
@@ -24,7 +24,7 @@ class TimeFrameUnit(Enum):
     Month: str = "Month"
 
 
-class TimeFrame(BaseModel):
+class TimeFrame:
     """A time interval specified in multiples of defined units (minute, day, etc)
 
     Attributes:
@@ -40,7 +40,8 @@ class TimeFrame(BaseModel):
 
     def __init__(self, amount, unit) -> None:
         self.validate_timeframe(amount, unit)
-        super().__init__(amount_value=amount, unit_value=unit)
+        self.amount_value = amount
+        self.unit_value = unit
 
     @property
     def amount(self) -> int:

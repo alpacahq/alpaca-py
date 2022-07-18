@@ -4,7 +4,6 @@ version = "0.2.0"
 description = "The new official Python SDK for the https://alpaca.markets/ API"
 authors = [
     "Rahul Chowdhury <rahul.chowdhury@alpaca.markets>",
-    "Andrew Mcdonald Притула <andrew.mcdonald@alpaca.markets>"
 ]
 readme = "README.md"
 license = "Apache-2.0"

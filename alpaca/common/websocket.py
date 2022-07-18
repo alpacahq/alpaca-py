@@ -8,7 +8,7 @@ import msgpack
 import websockets
 from pydantic import BaseModel
 
-from alpaca.common.time import TimeFrame
+from alpaca.data.time import TimeFrame
 from alpaca.common.types import RawData
 from alpaca.data.models import Bar, Quote, Trade
 
@@ -171,8 +171,7 @@ class BaseStream:
                 result = Quote(msg["S"], msg)
 
             elif msg_type in ("b", "u", "d"):
-                timeframe = TimeFrame.Day if msg_type == "d" else TimeFrame.Minute
-                result = Bar(msg["S"], timeframe, msg)
+                result = Bar(msg["S"], msg)
 
         return result
 

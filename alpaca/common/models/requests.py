@@ -57,6 +57,9 @@ class NonEmptyRequest(BaseModel):
             if isinstance(val, list):
                 return [map_values(v) for v in val]
 
+            if isinstance(val, datetime):
+                return val.isoformat("T") + "Z"
+
             return val
 
         # pydantic almost has what we need by passing exclude_none to dict() but it returns:

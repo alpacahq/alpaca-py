@@ -6,13 +6,13 @@ from alpaca.data.models import Bar, Trade
 
 
 @pytest.fixture
-def client():
+def ws_client():
     client = BaseStream("endpoint", "key-id", "secret-key")
     return client
 
 
 @pytest.fixture
-def raw_client():
+def raw_ws_client():
     raw_client = BaseStream("endpoint", "key-id", "secret-key", raw_data=True)
     return raw_client
 
@@ -27,7 +27,7 @@ def timestamp():
     return MockTimestamp(0, 0)
 
 
-def test_cast(client, raw_client, timestamp):
+def test_cast(ws_client, raw_ws_client, timestamp):
 
     # Bar
     bar_msg_type = "b"
@@ -43,7 +43,7 @@ def test_cast(client, raw_client, timestamp):
         "vw": 177.987562,
     }
 
-    bar_cast_msg = client._cast(bar_msg_type, bar_msg_dict)
+    bar_cast_msg = ws_client._cast(bar_msg_type, bar_msg_dict)
 
     assert type(bar_cast_msg) == Bar
 
@@ -64,7 +64,7 @@ def test_cast(client, raw_client, timestamp):
         "t": timestamp,
     }
 
-    trade_cast_msg = client._cast(trade_msg_type, trade__msg_dict)
+    trade_cast_msg = ws_client._cast(trade_msg_type, trade__msg_dict)
 
     assert type(trade_cast_msg) == Trade
 
@@ -88,7 +88,7 @@ def test_cast(client, raw_client, timestamp):
         "vw": 177.987562,
     }
 
-    raw_bar_cast_msg = raw_client._cast(raw_bar_msg_type, raw_bar_msg_dict)
+    raw_bar_cast_msg = raw_ws_client._cast(raw_bar_msg_type, raw_bar_msg_dict)
 
     assert type(raw_bar_cast_msg) == dict
 
@@ -109,7 +109,7 @@ def test_cast(client, raw_client, timestamp):
         "t": timestamp,
     }
 
-    raw_trade_cast_msg = raw_client._cast(raw_trade_msg_type, raw_trade__msg_dict)
+    raw_trade_cast_msg = raw_ws_client._cast(raw_trade_msg_type, raw_trade__msg_dict)
 
     assert type(raw_trade_cast_msg) == dict
 

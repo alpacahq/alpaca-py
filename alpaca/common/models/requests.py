@@ -16,7 +16,6 @@ from ..enums import (
     OrderStatus,
     Sort,
 )
-from ...data import TimeFrame
 
 
 class NonEmptyRequest(BaseModel):

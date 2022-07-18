@@ -9,7 +9,6 @@ BAR_MAPPING: Dict[str, str] = {
     "v": "volume",
     "n": "trade_count",
     "vw": "vwap",
-    "x": "exchange",
 }
 
 QUOTE_MAPPING: Dict[str, str] = {
@@ -22,7 +21,6 @@ QUOTE_MAPPING: Dict[str, str] = {
     "bs": "bid_size",
     "c": "conditions",
     "z": "tape",
-    "x": "exchange",
 }
 
 TRADE_MAPPING: Dict[str, str] = {
@@ -41,14 +39,4 @@ SNAPSHOT_MAPPING: Dict[str, str] = {
     "minuteBar": "minute_bar",
     "dailyBar": "daily_bar",
     "prevDailyBar": "previous_daily_bar",
-}
-
-XBBO_MAPPING: Dict[str, str] = {
-    "t": "timestamp",
-    "ax": "ask_exchange",
-    "ap": "ask_price",
-    "as": "ask_size",
-    "bx": "bid_exchange",
-    "bp": "bid_price",
-    "bs": "bid_size",
 }

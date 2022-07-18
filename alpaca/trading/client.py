@@ -332,7 +332,7 @@ class TradingClient(RESTClient):
         number of day trades, and account status.
 
         Returns:
-            TradeAccount: The account details
+            alpaca.common.models.accounts.TradeAccount: The account details
         """
 
         response = self.get("/account")

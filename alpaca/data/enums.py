@@ -2,15 +2,9 @@ from enum import Enum
 
 
 class Exchange(str, Enum):
-    """The exchanges that provide data feeds to Alpaca
+    """The exchanges that provide data feeds to Alpaca.
 
     Attributes:
-        FTXU (str): FTX exchange
-        CBSE (str): Coinbase exchange
-        GNSS (str): Genesis exchange
-        ERSX (str): ErisX exchange
-        IEX (str): Investors Exchange
-
         Z (str): Cboe BZ
         I (str): International Securities Exchange
         M (str): Chicago Stock Exchange
@@ -34,12 +28,6 @@ class Exchange(str, Enum):
         H (str): MIAX
         K (str): Cboe EDGX
     """
-
-    # CRYPTO
-    FTXU: str = "FTXU"
-    CBSE: str = "CBSE"
-    GNSS: str = "GNSS"
-    ERSX: str = "ERSX"
 
     Z: str = "Z"
     I: str = "I"

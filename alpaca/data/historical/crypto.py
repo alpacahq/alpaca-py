@@ -1,5 +1,4 @@
 from collections import defaultdict
-from datetime import datetime
 from typing import Union, Optional, List
 
 from alpaca.common import RawData, DATA_V2_MAX_LIMIT, BaseURL

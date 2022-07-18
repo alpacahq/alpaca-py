@@ -1,3 +1,2 @@
 from .stock import StockHistoricalDataClient
-
-# from .crypto import CryptoHistoricalDataClient
+from .crypto import CryptoHistoricalDataClient

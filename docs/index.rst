@@ -21,17 +21,17 @@ Alpaca-py Documentation
 
    |GitHub stars|
 
-   .. |GitHub stars| image:: https://img.shields.io/github/stars/Naereen/StrapDown.js.svg?style=social&label=Star&maxAge=2592000
+   .. |GitHub stars| image:: https://img.shields.io/github/stars/alpacahq/alpaca-py?style=social
       :target: https://github.com/alpacahq/alpaca-py
 
    |PyPI version shields.io|
 
-   .. |PyPI version shields.io| image:: https://img.shields.io/pypi/v/ansicolortags.svg
+   .. |PyPI version shields.io| image:: https://img.shields.io/pypi/v/alpaca-py
       :target: https://pypi.org/project/alpaca-py/
 
    |PyPI pyversions|
 
-   .. |PyPI pyversions| image:: https://img.shields.io/pypi/pyversions/ansicolortags.svg
+   .. |PyPI pyversions| image:: https://img.shields.io/pypi/pyversions/alpaca-py
       :target: https://pypi.org/project/alpaca-py/
 
 

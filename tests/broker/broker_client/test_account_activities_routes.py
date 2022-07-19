@@ -5,11 +5,11 @@ import pytest
 from requests_mock import Mocker
 
 from alpaca.broker.client import BrokerClient, PaginationType
-from alpaca.broker.models import (
+from alpaca.broker.requests import (
     GetAccountActivitiesRequest,
 )
 from alpaca.common.enums import BaseURL
-from alpaca.common.models import (
+from alpaca.trading.models import (
     BaseActivity,
     NonTradeActivity,
     TradeActivity,

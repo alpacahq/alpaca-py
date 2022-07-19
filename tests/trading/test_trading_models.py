@@ -1,5 +1,5 @@
-from alpaca.common.enums import OrderSide, OrderType, TimeInForce
-from alpaca.common.models import (
+from alpaca.trading.enums import OrderSide, OrderType, TimeInForce
+from alpaca.trading.requests import (
     MarketOrderRequest,
     TrailingStopOrderRequest,
 )

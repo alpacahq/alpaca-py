@@ -1,5 +1,5 @@
 from alpaca.common import APIError
-from alpaca.common.models import (
+from alpaca.trading.requests import (
     GetOrderByIdRequest,
     GetOrdersRequest,
     ReplaceOrderRequest,
@@ -9,7 +9,7 @@ from alpaca.common.models import (
 )
 from alpaca.trading.models import Order
 from alpaca.trading.client import TradingClient
-from alpaca.common.enums import OrderSide, OrderStatus, TimeInForce
+from alpaca.trading.enums import OrderSide, OrderStatus, TimeInForce
 from alpaca.common.enums import BaseURL
 
 import pytest

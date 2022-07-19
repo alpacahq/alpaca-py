@@ -13,6 +13,9 @@ from alpaca.broker import (
 )
 from alpaca.broker.models import (
     AccountDocument,
+    TradeDocument,
+)
+from alpaca.broker.requests import (
     AccountUpdateRequest,
     UpdatableTrustedContact,
     UpdatableContact,
@@ -20,7 +23,6 @@ from alpaca.broker.models import (
     UpdatableDisclosures,
     GetAccountActivitiesRequest,
     GetTradeDocumentsRequest,
-    TradeDocument,
     CreateBankRequest,
     CreateACHTransferRequest,
     CreateBankTransferRequest,

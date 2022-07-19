@@ -1,17 +1,15 @@
-from collections import defaultdict
-
 from alpaca.data.historical import StockHistoricalDataClient
 from alpaca.data.requests import (
     StockBarsRequest,
     StockQuotesRequest,
     StockTradesRequest,
-    LatestStockTradeRequest,
-    LatestStockQuoteRequest,
+    StockLatestTradeRequest,
+    StockLatestQuoteRequest,
     StockSnapshotRequest,
 )
-from alpaca.data.time import TimeFrame
+from alpaca.data.timeframe import TimeFrame
 from alpaca.data.enums import Exchange, DataFeed
-from alpaca.data.models import BarSet, Quote, QuoteSet, SnapshotSet, Trade, TradeSet
+from alpaca.data.models import BarSet, QuoteSet, SnapshotSet, TradeSet
 
 
 def test_get_bars(reqmock, stock_client: StockHistoricalDataClient):
@@ -728,9 +726,9 @@ def test_get_latest_trade(reqmock, stock_client: StockHistoricalDataClient):
     } 
         """,
     )
-    request = LatestStockTradeRequest(symbol_or_symbols=symbol, feed=DataFeed.IEX)
+    request = StockLatestTradeRequest(symbol_or_symbols=symbol, feed=DataFeed.IEX)
 
-    trade = stock_client.get_latest_stock_trade(request_params=request)
+    trade = stock_client.get_stock_latest_trade(request_params=request)
 
     assert isinstance(trade, TradeSet)
 
@@ -766,10 +764,10 @@ def test_raw_get_latest_trade(reqmock, raw_stock_client: StockHistoricalDataClie
         """,
     )
 
-    request = LatestStockTradeRequest(symbol_or_symbols=symbol)
+    request = StockLatestTradeRequest(symbol_or_symbols=symbol)
 
     # raw data client
-    raw_trade = raw_stock_client.get_latest_stock_trade(request)
+    raw_trade = raw_stock_client.get_stock_latest_trade(request)
 
     assert raw_trade[symbol][0]["i"] == 22730
     assert raw_trade[symbol][0]["s"] == 100
@@ -814,9 +812,9 @@ def test_get_multisymbol_latest_trade(reqmock, stock_client: StockHistoricalData
     }
         """,
     )
-    request = LatestStockTradeRequest(symbol_or_symbols=symbols, feed=DataFeed.IEX)
+    request = StockLatestTradeRequest(symbol_or_symbols=symbols, feed=DataFeed.IEX)
 
-    trade = stock_client.get_latest_stock_trade(request_params=request)
+    trade = stock_client.get_stock_latest_trade(request_params=request)
 
     assert isinstance(trade, TradeSet)
 
@@ -865,9 +863,9 @@ def test_raw_get_multisymbol_latest_trade(
     }
         """,
     )
-    request = LatestStockTradeRequest(symbol_or_symbols=symbols)
+    request = StockLatestTradeRequest(symbol_or_symbols=symbols)
 
-    trade = raw_stock_client.get_latest_stock_trade(request_params=request)
+    trade = raw_stock_client.get_stock_latest_trade(request_params=request)
 
     assert trade["AAPL"][0]["p"] == 161.2958
     assert trade["AAPL"][0]["s"] == 100
@@ -901,9 +899,9 @@ def test_get_latest_quote(reqmock, stock_client: StockHistoricalDataClient):
         """,
     )
 
-    request = LatestStockQuoteRequest(symbol_or_symbols=symbol)
+    request = StockLatestQuoteRequest(symbol_or_symbols=symbol)
 
-    quote = stock_client.get_latest_stock_quote(request)
+    quote = stock_client.get_stock_latest_quote(request)
 
     assert isinstance(quote, QuoteSet)
 
@@ -940,9 +938,9 @@ def test_raw_get_latest_quote(reqmock, raw_stock_client: StockHistoricalDataClie
     }  
         """,
     )
-    request = LatestStockQuoteRequest(symbol_or_symbols=symbol)
+    request = StockLatestQuoteRequest(symbol_or_symbols=symbol)
     # raw data client
-    raw_quote = raw_stock_client.get_latest_stock_quote(request)
+    raw_quote = raw_stock_client.get_stock_latest_quote(request)
 
     assert raw_quote[symbol][0]["bp"] == 161.1
     assert raw_quote[symbol][0]["as"] == 13

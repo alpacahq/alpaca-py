@@ -1,7 +1,7 @@
 import datetime
 from alpaca.broker.client import BrokerClient
 from alpaca.common.enums import BaseURL
-from alpaca.common.models import (
+from alpaca.trading.requests import (
     ClosePositionRequest,
     GetPortfolioHistoryRequest,
 )

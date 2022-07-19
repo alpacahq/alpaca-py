@@ -15,13 +15,9 @@ from alpaca.common.constants import (
 
 from alpaca import __version__
 from alpaca.common.exceptions import APIError, RetryException
-from alpaca.common.types import RawData
+from alpaca.common.types import RawData, HTTPResult, Credentials
 from .constants import PageItem
 from .enums import PaginationType, BaseURL
-
-# TODO: Refine this type
-HTTPResult = Union[dict, List[dict], Any]
-Credentials = Tuple[str, str]
 
 
 class RESTClient(ABC):

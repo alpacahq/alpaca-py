@@ -1,7 +1,7 @@
 from uuid import UUID
 
 from alpaca.common.enums import BaseURL
-from alpaca.common.models import (
+from alpaca.trading.requests import (
     ClosePositionRequest,
 )
 from alpaca.trading.models import (

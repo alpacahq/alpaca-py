@@ -4,7 +4,7 @@ import pytest
 
 from alpaca.broker import BrokerClient
 from alpaca.common.enums import BaseURL
-from alpaca.common.models import (
+from alpaca.trading.requests import (
     CreateWatchlistRequest,
     UpdateWatchlistRequest,
 )

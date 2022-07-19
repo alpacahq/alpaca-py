@@ -11,12 +11,16 @@ from alpaca.broker.enums import (
 from alpaca.broker.models import (
     ACHRelationship,
     Bank,
+    Transfer,
+)
+
+from alpaca.broker.requests import (
     CreateACHRelationshipRequest,
     CreateACHTransferRequest,
     CreateBankRequest,
     GetTransfersRequest,
-    Transfer,
 )
+
 from alpaca.common.enums import BaseURL, PaginationType
 
 

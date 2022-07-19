@@ -5,16 +5,8 @@ from alpaca.common.utils import validate_uuid_id_param, validate_symbol_or_asset
 from alpaca.common.rest import RESTClient
 from typing import Optional, List, Union
 from alpaca.common.enums import BaseURL
-from alpaca.trading.models import (
-    Order,
-    Position,
-    ClosePositionResponse,
-    Asset,
-    Watchlist,
-)
-from alpaca.common.models import (
-    Clock,
-    Calendar,
+
+from alpaca.trading.requests import (
     GetCalendarRequest,
     ClosePositionRequest,
     GetAssetsRequest,
@@ -23,9 +15,19 @@ from alpaca.common.models import (
     ReplaceOrderRequest,
     GetOrderByIdRequest,
     CancelOrderResponse,
-    TradeAccount,
     CreateWatchlistRequest,
     UpdateWatchlistRequest,
+)
+
+from alpaca.trading.models import (
+    Order,
+    Position,
+    ClosePositionResponse,
+    Asset,
+    Watchlist,
+    Clock,
+    Calendar,
+    TradeAccount,
 )
 
 

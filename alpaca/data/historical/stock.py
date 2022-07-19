@@ -11,8 +11,8 @@ from alpaca.data.requests import (
     StockBarsRequest,
     StockQuotesRequest,
     StockTradesRequest,
-    LatestStockTradeRequest,
-    LatestStockQuoteRequest,
+    StockLatestTradeRequest,
+    StockLatestQuoteRequest,
     StockSnapshotRequest,
 )
 from alpaca.common.constants import DATA_V2_MAX_LIMIT
@@ -136,13 +136,13 @@ class StockHistoricalDataClient(RESTClient):
             raw_data=raw_trades,
         )
 
-    def get_latest_stock_trade(
-        self, request_params: LatestStockTradeRequest
+    def get_stock_latest_trade(
+        self, request_params: StockLatestTradeRequest
     ) -> Union[TradeSet, RawData]:
         """Retrieves the latest trade for an equity symbol or list of equities.
 
         Args:
-            request_params (LatestStockTradeRequest): The request object for retrieving the latest trade data.
+            request_params (StockLatestTradeRequest): The request object for retrieving the latest trade data.
 
         Returns:
             Union[TradeSet, RawData]: The latest trade in raw or wrapped format
@@ -162,13 +162,13 @@ class StockHistoricalDataClient(RESTClient):
 
         return self.response_wrapper(model=TradeSet, raw_data=raw_latest_trades)
 
-    def get_latest_stock_quote(
-        self, request_params: LatestStockQuoteRequest
+    def get_stock_latest_quote(
+        self, request_params: StockLatestQuoteRequest
     ) -> Union[QuoteSet, RawData]:
         """Retrieves the latest quote for an equity symbol or list of equity symbols.
 
         Args:
-            request_params (LatestStockQuoteRequest): The request object for retrieving the latest quote data.
+            request_params (StockLatestQuoteRequest): The request object for retrieving the latest quote data.
 
         Returns:
             Union[QuoteSet, RawData]: The latest quote in raw or wrapped format
@@ -210,6 +210,7 @@ class StockHistoricalDataClient(RESTClient):
 
         return self.response_wrapper(model=SnapshotSet, raw_data=raw_snapshots)
 
+    # TODO: Remove duplication
     def _data_get(
         self,
         endpoint_asset_class: str,

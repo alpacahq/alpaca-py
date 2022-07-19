@@ -1,14 +1,16 @@
 import pytest
-from alpaca.common.models import (
+from alpaca.trading.models import (
     Clock,
     Calendar,
-    ClosePositionRequest,
     CorporateActionAnnouncement,
+)
+from alpaca.trading.requests import (
+    ClosePositionRequest,
     UpdateWatchlistRequest,
 )
 from datetime import datetime, date
 from uuid import UUID
-from alpaca.common.enums import (
+from alpaca.trading.enums import (
     AssetClass,
     AssetExchange,
     OrderType,

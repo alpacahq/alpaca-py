@@ -58,8 +58,8 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # Default css color variables used by the theme are listed below commented out.
 #
 html_title = "Alpaca-py"
-html_static_path = ['_static']
-html_css_files = ['css/custom.css']
+html_static_path = ["_static"]
+html_css_files = ["css/custom.css"]
 html_theme = "furo"
 html_favicon = "https://files.alpaca.markets/webassets/favicon-32x32.png"
 html_theme_options = {

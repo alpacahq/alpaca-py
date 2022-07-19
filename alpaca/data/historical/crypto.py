@@ -2,15 +2,16 @@ from collections import defaultdict
 from typing import Union, Optional, List
 
 from alpaca.common import RawData, DATA_V2_MAX_LIMIT, BaseURL
-from alpaca.common.rest import RESTClient, HTTPResult, Credentials
+from alpaca.common.rest import RESTClient
+from alpaca.common.types import HTTPResult, Credentials
 from alpaca.data import BarSet, QuoteSet, TradeSet, SnapshotSet
 from alpaca.data.historical.stock import DataExtensionType
 from alpaca.data.requests import (
     CryptoBarsRequest,
     CryptoQuotesRequest,
     CryptoTradesRequest,
-    LatestCryptoTradeRequest,
-    LatestCryptoQuoteRequest,
+    CryptoLatestTradeRequest,
+    CryptoLatestQuoteRequest,
     CryptoSnapshotRequest,
 )
 
@@ -21,6 +22,8 @@ class CryptoHistoricalDataClient(RESTClient):
 
     This client does not need any authentication to use.
     You can instantiate it with or without API keys.
+
+    However, authenticating increases your data rate limit.
 
     Learn more about crypto historical data here:
     https://alpaca.markets/docs/api-references/market-data-api/crypto-pricing-data/historical/
@@ -129,7 +132,7 @@ class CryptoHistoricalDataClient(RESTClient):
         return self.response_wrapper(model=TradeSet, raw_data=raw_trades)
 
     def get_crypto_latest_trade(
-        self, request_params: LatestCryptoTradeRequest
+        self, request_params: CryptoLatestTradeRequest
     ) -> Union[TradeSet, RawData]:
         """Returns the latest trade for a coin for a specific exchange
 
@@ -153,7 +156,7 @@ class CryptoHistoricalDataClient(RESTClient):
         return self.response_wrapper(model=TradeSet, raw_data=raw_trades)
 
     def get_crypto_latest_quote(
-        self, request_params: LatestCryptoQuoteRequest
+        self, request_params: CryptoLatestQuoteRequest
     ) -> Union[QuoteSet, RawData]:
         """Returns the latest quote for a coin for a specific exchange
 

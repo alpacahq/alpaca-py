@@ -1,30 +1,33 @@
 from uuid import UUID
 from pydantic import parse_obj_as
-from requests import HTTPError
 
-from alpaca.broker.client import validate_uuid_id_param, validate_symbol_or_asset_id
+from alpaca.common.utils import validate_uuid_id_param, validate_symbol_or_asset_id
 from alpaca.common.rest import RESTClient
 from typing import Optional, List, Union
 from alpaca.common.enums import BaseURL
-from alpaca.common.models import (
-    Order,
-    Clock,
-    Calendar,
+
+from alpaca.trading.requests import (
     GetCalendarRequest,
-    Position,
-    ClosePositionResponse,
     ClosePositionRequest,
-    Asset,
     GetAssetsRequest,
     OrderRequest,
     GetOrdersRequest,
     ReplaceOrderRequest,
     GetOrderByIdRequest,
     CancelOrderResponse,
-    TradeAccount,
-    Watchlist,
     CreateWatchlistRequest,
     UpdateWatchlistRequest,
+)
+
+from alpaca.trading.models import (
+    Order,
+    Position,
+    ClosePositionResponse,
+    Asset,
+    Watchlist,
+    Clock,
+    Calendar,
+    TradeAccount,
 )
 
 

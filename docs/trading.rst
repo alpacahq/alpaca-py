@@ -22,7 +22,7 @@ whether you've been flagged by as a pattern day trader, your total equity.
 
 .. code-block:: python
 
-    from alpaca.trading import TradingClient
+    from alpaca.trading.client import TradingClient
 
     trading_client = TradingClient('api-key', 'secret-key')
 
@@ -45,8 +45,8 @@ provided, a list of all available assets will be returned. Search parameters for
 
 .. code-block:: python
 
-    from alpaca.trading import TradingClient
-    from alpaca.common.models import GetAssetsRequest
+    from alpaca.trading.client import TradingClient
+    from alpaca.common.requests import GetAssetsRequest
     from alpaca.common.enums import AssetClass
 
     trading_client = TradingClient('api-key', 'secret-key')
@@ -75,11 +75,11 @@ for a successful order.
 
 .. code-block:: python
 
-    from alpaca.broker import BrokerClient
-    from alpaca.common.models import MarketOrderRequest, LimitOrderRequest
+    from alpaca.trading.client import TradingClient
+    from alpaca.common.requests import MarketOrderRequest, LimitOrderRequest
     from alpaca.common.enums import OrderSide, TimeInForce
 
-    trading_client = TradingClientClient('api-key', 'secret-key')
+    trading_client = TradingClient('api-key', 'secret-key')
 
 
     # preparing orders

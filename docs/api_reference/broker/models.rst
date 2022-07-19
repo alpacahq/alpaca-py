@@ -17,7 +17,3 @@ Models
 
 .. automodule:: alpaca.broker.models.documents
    :members:
-
-.. automodule:: alpaca.broker.models.requests
-   :members:
-

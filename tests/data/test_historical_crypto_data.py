@@ -1,23 +1,17 @@
-import pytest
-import requests_mock
-
 from alpaca.data.historical.crypto import CryptoHistoricalDataClient
 from alpaca.data.requests import (
     CryptoBarsRequest,
     CryptoQuotesRequest,
     CryptoTradesRequest,
-    LatestCryptoTradeRequest,
-    LatestCryptoQuoteRequest,
+    CryptoLatestTradeRequest,
+    CryptoLatestQuoteRequest,
     CryptoSnapshotRequest,
 )
-from alpaca.data.time import TimeFrame
-from alpaca.data.enums import Exchange
+from alpaca.data.timeframe import TimeFrame
 from alpaca.data.models import (
     BarSet,
-    Quote,
     QuoteSet,
     SnapshotSet,
-    Trade,
     TradeSet,
 )
 
@@ -215,7 +209,7 @@ def test_get_crypto_latest_trade(reqmock, crypto_client: CryptoHistoricalDataCli
         """,
     )
 
-    request = LatestCryptoTradeRequest(symbol_or_symbols=symbol)
+    request = CryptoLatestTradeRequest(symbol_or_symbols=symbol)
 
     trade = crypto_client.get_crypto_latest_trade(request)
 
@@ -248,7 +242,7 @@ def test_get_crypto_latest_quote(reqmock, crypto_client: CryptoHistoricalDataCli
         """,
     )
 
-    request = LatestCryptoQuoteRequest(symbol_or_symbols=symbol)
+    request = CryptoLatestQuoteRequest(symbol_or_symbols=symbol)
 
     quote = crypto_client.get_crypto_latest_quote(request)
 

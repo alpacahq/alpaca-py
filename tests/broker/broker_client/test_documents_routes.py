@@ -6,13 +6,14 @@ import pytest
 
 from alpaca.broker import UploadDocumentRequest
 from alpaca.broker.client import BrokerClient
-from alpaca.broker.constants import BROKER_DOCUMENT_UPLOAD_LIMIT
+from alpaca.common.constants import BROKER_DOCUMENT_UPLOAD_LIMIT
 from alpaca.broker.enums import (
     TradeDocumentType,
     UploadDocumentMimeType,
     DocumentType,
 )
-from alpaca.broker.models import GetTradeDocumentsRequest, TradeDocument
+from alpaca.broker.models import TradeDocument
+from alpaca.broker.requests import GetTradeDocumentsRequest
 from alpaca.common.enums import BaseURL
 
 

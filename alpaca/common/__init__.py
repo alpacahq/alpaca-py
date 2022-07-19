@@ -3,3 +3,7 @@ from .enums import *
 from .constants import *
 from .exceptions import *
 from .types import *
+from .utils import *
+from .requests import *
+from .rest import *
+from .websocket import *

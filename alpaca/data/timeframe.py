@@ -1,7 +1,5 @@
 from enum import Enum
 
-from alpaca.common.models import ValidateBaseModel as BaseModel
-
 
 class classproperty(property):
     """Allows us to create decorator of stacked classmethod and property decorators

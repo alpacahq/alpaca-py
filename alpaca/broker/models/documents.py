@@ -5,8 +5,8 @@ from uuid import UUID
 
 from pydantic import root_validator
 
-from ..enums import DocumentType, TradeDocumentSubType, TradeDocumentType
-from ...common.models import ValidateBaseModel as BaseModel
+from alpaca.broker.enums import DocumentType, TradeDocumentSubType, TradeDocumentType
+from alpaca.common.models import ValidateBaseModel as BaseModel
 
 IPAddress = Union[IPv4Address, IPv6Address]
 

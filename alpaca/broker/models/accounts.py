@@ -4,7 +4,7 @@ from uuid import UUID
 
 from pydantic import parse_obj_as, root_validator, validator
 
-from .documents import AccountDocument
+from alpaca.broker.models.documents import AccountDocument
 from ..enums import (
     AgreementType,
     ClearingBroker,
@@ -16,11 +16,11 @@ from ..enums import (
     TradeConfirmationEmail,
     VisaType,
 )
-from alpaca.common.enums import AccountStatus
-from ...common.models import (
+from alpaca.trading.enums import AccountStatus
+from alpaca.common.models import (
     ValidateBaseModel as BaseModel,
-    TradeAccount as BaseTradeAccount,
 )
+from alpaca.trading.models import TradeAccount as BaseTradeAccount
 
 
 class Contact(BaseModel):

@@ -1,5 +1,5 @@
 from alpaca.common.enums import BaseURL
-from alpaca.common.models import TradeAccount
+from alpaca.trading.models import TradeAccount
 from alpaca.trading.client import TradingClient
 
 

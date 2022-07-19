@@ -15,16 +15,18 @@ from alpaca.broker.enums import (
 )
 from alpaca.broker.models import (
     Account,
-    AccountCreationRequest,
-    AccountUpdateRequest,
     Contact,
     Identity,
-    ListAccountsRequest,
     TradeAccount,
+)
+from alpaca.broker.requests import (
     UpdatableContact,
     UpdatableDisclosures,
     UpdatableIdentity,
     UpdatableTrustedContact,
+    ListAccountsRequest,
+    AccountCreationRequest,
+    AccountUpdateRequest,
 )
 from alpaca.common import APIError
 from alpaca.common.enums import BaseURL

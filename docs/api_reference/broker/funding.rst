@@ -2,8 +2,6 @@
 Funding
 =======
 
-ACH
----
 
 Create ACH Relationship For Account
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

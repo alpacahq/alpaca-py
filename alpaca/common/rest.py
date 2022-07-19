@@ -24,36 +24,6 @@ HTTPResult = Union[dict, List[dict], Any]
 Credentials = Tuple[str, str]
 
 
-def validate_credentials(
-    api_key: Optional[str] = None,
-    secret_key: Optional[str] = None,
-    oauth_token: Optional[str] = None,
-) -> Credentials:
-    """Gathers API credentials from parameters and environment variables, and validates them.
-    Args:
-        api_key (Optional[str]): The API key for authentication. Defaults to None.
-        secret_key (Optional[str]): The secret key for authentication. Defaults to None.
-        oauth_token (Optional[str]): The oauth token if authenticating via OAuth. Defaults to None.
-    Raises:
-         ValueError: If the combination of keys and tokens provided are not valid.
-    Returns:
-        Credentials: The set of validated authentication keys
-    """
-
-    if not oauth_token and not api_key:
-        raise ValueError("You must supply a method of authentication")
-
-    if oauth_token and (api_key or secret_key):
-        raise ValueError(
-            "Either an oauth_token or an api_key may be supplied, but not both"
-        )
-
-    if not oauth_token and not (api_key and secret_key):
-        raise ValueError("A corresponding secret_key must be supplied with the api_key")
-
-    return api_key, secret_key, oauth_token
-
-
 class RESTClient(ABC):
     """Abstract base class for REST clients"""
 
@@ -87,7 +57,7 @@ class RESTClient(ABC):
             retry_exception_codes (Optional[List[int]]): The API exception codes to retry a request on.
         """
 
-        self._api_key, self._secret_key, self._oauth_token = validate_credentials(
+        self._api_key, self._secret_key, self._oauth_token = self._validate_credentials(
             api_key, secret_key, oauth_token
         )
         self._api_version: str = api_version
@@ -350,3 +320,35 @@ class RESTClient(ABC):
             return iterator
         else:
             raise ValueError(f"Invalid pagination type: {handle_pagination}.")
+
+    @staticmethod
+    def _validate_credentials(
+        api_key: Optional[str] = None,
+        secret_key: Optional[str] = None,
+        oauth_token: Optional[str] = None,
+    ) -> Credentials:
+        """Gathers API credentials from parameters and environment variables, and validates them.
+        Args:
+            api_key (Optional[str]): The API key for authentication. Defaults to None.
+            secret_key (Optional[str]): The secret key for authentication. Defaults to None.
+            oauth_token (Optional[str]): The oauth token if authenticating via OAuth. Defaults to None.
+        Raises:
+             ValueError: If the combination of keys and tokens provided are not valid.
+        Returns:
+            Credentials: The set of validated authentication keys
+        """
+
+        if not oauth_token and not api_key:
+            raise ValueError("You must supply a method of authentication")
+
+        if oauth_token and (api_key or secret_key):
+            raise ValueError(
+                "Either an oauth_token or an api_key may be supplied, but not both"
+            )
+
+        if not oauth_token and not (api_key and secret_key):
+            raise ValueError(
+                "A corresponding secret_key must be supplied with the api_key"
+            )
+
+        return api_key, secret_key, oauth_token

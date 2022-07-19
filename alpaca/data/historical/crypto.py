@@ -2,7 +2,7 @@ from collections import defaultdict
 from typing import Union, Optional, List
 
 from alpaca.common import RawData, DATA_V2_MAX_LIMIT, BaseURL
-from alpaca.common.rest import RESTClient, HTTPResult
+from alpaca.common.rest import RESTClient, HTTPResult, Credentials
 from alpaca.data import BarSet, QuoteSet, TradeSet, SnapshotSet
 from alpaca.data.historical.stock import DataExtensionType
 from alpaca.data.requests import (
@@ -16,6 +16,16 @@ from alpaca.data.requests import (
 
 
 class CryptoHistoricalDataClient(RESTClient):
+    """
+    A REST client for retrieving crypto market data.
+
+    This client does not need any authentication to use.
+    You can instantiate it with or without API keys.
+
+    Learn more about crypto historical data here:
+    https://alpaca.markets/docs/api-references/market-data-api/crypto-pricing-data/historical/
+    """
+
     def __init__(
         self,
         api_key: Optional[str] = None,
@@ -194,6 +204,7 @@ class CryptoHistoricalDataClient(RESTClient):
             raw_data=raw_snapshots,
         )
 
+    # TODO: Remove duplicate code
     def _data_get(
         self,
         endpoint_asset_class: str,
@@ -347,3 +358,27 @@ class CryptoHistoricalDataClient(RESTClient):
             data_by_symbol[symbol] = data
 
         return data_by_symbol
+
+    @staticmethod
+    def _validate_credentials(
+        api_key: Optional[str] = None,
+        secret_key: Optional[str] = None,
+        oauth_token: Optional[str] = None,
+    ) -> Credentials:
+        """Gathers API credentials from parameters and environment variables, and validates them.
+        Args:
+            api_key (Optional[str]): The API key for authentication. Defaults to None.
+            secret_key (Optional[str]): The secret key for authentication. Defaults to None.
+            oauth_token (Optional[str]): The oauth token if authenticating via OAuth. Defaults to None.
+        Raises:
+             ValueError: If the combination of keys and tokens provided are not valid.
+        Returns:
+            Credentials: The set of validated authentication keys
+        """
+
+        if oauth_token and (api_key or secret_key):
+            raise ValueError(
+                "Either an oauth_token or an api_key may be supplied, but not both"
+            )
+
+        return api_key, secret_key, oauth_token

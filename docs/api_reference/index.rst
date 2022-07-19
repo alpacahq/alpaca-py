@@ -5,6 +5,6 @@ References
    :maxdepth: 2
 
    data_api
-   trade_api
+   trading_api
    broker_api
    common

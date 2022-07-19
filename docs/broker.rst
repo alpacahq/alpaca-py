@@ -78,14 +78,14 @@ Then we can pass those parts into the ``AccountCreationRequest`` model before su
 
 .. code-block:: python
 
-    from alpaca.broker import BrokerClient
+    from alpaca.broker.client import BrokerClient
     from alpaca.broker.models import (
-                            AccountCreationRequest,
                             Contact,
                             Identity,
                             Disclosures,
                             Agreement
                         )
+    from alpaca.broker.requests import AccountCreationRequest
     from alpaca.broker.enums import TaxIdType, FundingSource, AgreementType
 
     broker_client = BrokerClient('api-key', 'secret-key')
@@ -168,8 +168,8 @@ your management. The method takes an optional parameter ``search_parameters`` wh
 
 .. code-block:: python
 
-    from alpaca.broker import BrokerClient
-    from alpaca.broker.models import ListAccountsRequest
+    from alpaca.broker.client import BrokerClient
+    from alpaca.broker.requests import ListAccountsRequest
     from alpaca.broker.enums import AccountEntities
 
     broker_client = BrokerClient('api-key', 'secret-key')
@@ -204,8 +204,8 @@ In this example we will use use routing and account numbers to establish an ACH 
 
 .. code-block:: python
 
-    from alpaca.broker import BrokerClient
-    from alpaca.broker.models import CreateACHRelationshipRequest
+    from alpaca.broker.client import BrokerClient
+    from alpaca.broker.requests import CreateACHRelationshipRequest
     from alpaca.broker.enums import BankAccountType
 
     broker_client = BrokerClient('api-key', 'secret-key')
@@ -235,8 +235,8 @@ ACH relationships must use ``CreateACHTransferRequest`` and bank relationships m
 
 .. code-block:: python
 
-    from alpaca.broker import BrokerClient
-    from alpaca.broker.models import CreateACHTransferRequest
+    from alpaca.broker.client import BrokerClient
+    from alpaca.broker.requests import CreateACHTransferRequest
     from alpaca.broker.enums import TransferDirection, TransferTiming
 
     broker_client = BrokerClient('api-key', 'secret-key')
@@ -266,8 +266,8 @@ between accounts. Security journals move stocks between accounts.
 
 .. code-block:: python
 
-    from alpaca.broker import BrokerClient
-    from alpaca.broker.models import CreateJournalRequest
+    from alpaca.broker.client import BrokerClient
+    from alpaca.broker.requests import CreateJournalRequest
     from alpaca.broker.enums import JournalEntryType
 
     broker_client = BrokerClient('api-key', 'secret-key')
@@ -288,8 +288,8 @@ A batch journal lets you journal from one account into many accounts at the same
 
 .. code-block:: python
 
-    from alpaca.broker import BrokerClient
-    from alpaca.broker.models import CreateBatchJournalRequest, BatchJournalRequestEntry
+    from alpaca.broker.client import BrokerClient
+    from alpaca.broker.requests import CreateBatchJournalRequest, BatchJournalRequestEntry
     from alpaca.broker.enums import JournalEntryType
 
     broker_client = BrokerClient('api-key', 'secret-key')
@@ -341,8 +341,8 @@ for a successful order.
 
 .. code-block:: python
 
-    from alpaca.broker import BrokerClient
-    from alpaca.broker.models import MarketOrderRequest, LimitOrderRequest
+    from alpaca.broker.client import BrokerClient
+    from alpaca.broker.requests import MarketOrderRequest, LimitOrderRequest
     from alpaca.common.enums import OrderSide, TimeInForce
 
     broker_client = BrokerClient('api-key', 'secret-key')
@@ -355,7 +355,8 @@ for a successful order.
                         symbol="BTCUSD",
                         notional=5000,
                         side=OrderSide.BUY
-                        time_in_force=TimeInForce.DAY
+                        time_in_force=TimeInForce.DAY,
+                        commission=1
                    )
 
     limit_order_data = LimitOrderRequest(
@@ -363,7 +364,8 @@ for a successful order.
                         limit_price=300,
                         qty=10,
                         side=OrderSide.SELL,
-                        time_in_force=TimeInForce
+                        time_in_force=TimeInForce,
+                        commission=1
                   )
 
     # Market order

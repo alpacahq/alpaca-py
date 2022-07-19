@@ -53,11 +53,16 @@ To submit an order, you will need to provide a ``MarketOrderRequest`` object.
 
     from alpaca.trading.client import TradingClient
     from alpaca.trading.requests import MarketOrderRequest
-    from alpaca.trading.enums import OrderSide
+    from alpaca.trading.enums import OrderSide, TimeInForce
 
     client = TradingClient('api-key', 'secret-key')
 
-    request_params = MarketOrderRequest(symbol="SPY", qty=3, side=OrderSide.BUY)
+    request_params = MarketOrderRequest(
+                            symbol="SPY",
+                            qty=3,
+                            side=OrderSide.BUY,
+                            time_in_force=TimeInForce.DAY
+                            )
 
     client.submit_order(order_data=request_params)
 

@@ -1,7 +1,7 @@
 .. toctree::
    :hidden:
 
-   introduction
+   getting_started
    market_data
    trading
    broker

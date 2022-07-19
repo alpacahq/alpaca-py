@@ -1,6 +1,6 @@
-==========
-Stock Data
-==========
+=================
+Stock Market Data
+=================
 
 .. toctree::
    :maxdepth: 2

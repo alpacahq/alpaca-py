@@ -1,6 +1,6 @@
-===========
-Crypto Data
-===========
+==================
+Crypto Market Data
+==================
 
 .. toctree::
    :maxdepth: 2

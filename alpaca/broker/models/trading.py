@@ -1,4 +1,4 @@
-from alpaca.common.models.trading import Order as BaseOrder
+from alpaca.trading.models import Order as BaseOrder
 
 
 class Order(BaseOrder):

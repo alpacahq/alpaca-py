@@ -1,4 +1,4 @@
-from alpaca.common.models import Asset, Order
+from alpaca.trading.models import Asset, Order
 from alpaca.common.enums import (
     AssetClass,
     OrderClass,

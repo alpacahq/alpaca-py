@@ -7,8 +7,9 @@ from alpaca.common.enums import BaseURL
 from alpaca.common.models import (
     CreateWatchlistRequest,
     UpdateWatchlistRequest,
-    Watchlist,
 )
+
+from alpaca.trading.models import Watchlist
 
 
 def test_get_watchlists_for_account(reqmock, client: BrokerClient):

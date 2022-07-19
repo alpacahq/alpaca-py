@@ -2,10 +2,12 @@ from uuid import UUID
 
 from alpaca.common.enums import BaseURL
 from alpaca.common.models import (
+    ClosePositionRequest,
+)
+from alpaca.trading.models import (
     Position,
     ClosePositionResponse,
     Order,
-    ClosePositionRequest,
 )
 from alpaca.trading.client import TradingClient
 

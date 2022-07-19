@@ -2,11 +2,13 @@ import datetime
 from alpaca.broker.client import BrokerClient
 from alpaca.common.enums import BaseURL
 from alpaca.common.models import (
+    ClosePositionRequest,
+    GetPortfolioHistoryRequest,
+)
+from alpaca.trading.models import (
     Position,
     ClosePositionResponse,
-    ClosePositionRequest,
     PortfolioHistory,
-    GetPortfolioHistoryRequest,
 )
 from alpaca.broker.models import Order
 from uuid import UUID

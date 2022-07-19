@@ -2,10 +2,6 @@ import pytest
 from alpaca.common.models import (
     Clock,
     Calendar,
-    Position,
-    ClosePositionResponse,
-    Order,
-    PortfolioHistory,
     ClosePositionRequest,
     CorporateActionAnnouncement,
     UpdateWatchlistRequest,
@@ -23,7 +19,12 @@ from alpaca.common.enums import (
     CorporateActionType,
     CorporateActionSubType,
 )
-from factories import create_dummy_asset, create_dummy_order
+from alpaca.trading.models import (
+    Position,
+    ClosePositionResponse,
+    Order,
+)
+from factories import create_dummy_order
 
 
 def test_clock_timestamps():

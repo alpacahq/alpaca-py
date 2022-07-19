@@ -29,7 +29,9 @@ from alpaca.broker.enums import (
     TransferType,
     UploadDocumentMimeType,
     UploadDocumentSubType,
-    VisaType, JournalEntryType, JournalStatus,
+    VisaType,
+    JournalEntryType,
+    JournalStatus,
 )
 from alpaca.common.enums import Sort
 from alpaca.trading.enums import ActivityType, AccountStatus
@@ -311,6 +313,7 @@ class GetAccountActivitiesRequest(NonEmptyRequest):
 
 # ############################## Documents ################################# #
 
+
 class GetTradeDocumentsRequest(NonEmptyRequest):
     """
     Represents the various filters you can specify when making a call to get TradeDocuments for an Account
@@ -443,7 +446,9 @@ class UploadW8BenDocumentRequest(NonEmptyRequest):
 
         return values
 
+
 # ############################## Banking and Transfers ################################# #
+
 
 class CreateACHRelationshipRequest(NonEmptyRequest):
     """

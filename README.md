@@ -1,4 +1,4 @@
-![Alpaca-py](https://github.com/alpacahq/alpaca-py/blob/master/docs/_static/images/alpaca-py-logo-light.png?raw=true)
+![Alpaca-py](https://github.com/alpacahq/alpaca-py/blob/master/docs/images/alpaca-py-banner.png?raw=true)
 
 [![Downloads](https://pepy.tech/badge/alpaca-py/month)](https://pepy.tech/project/alpaca-py)
 [![Python Versions](https://img.shields.io/pypi/pyversions/alpaca-py.svg?logo=python&logoColor=white)](https://pypi.org/project/alpaca-py)

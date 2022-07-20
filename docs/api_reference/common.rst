@@ -1,5 +1,5 @@
-Common Shared Functionality
-===========================
+Common
+======
 
 This module represents a bunch of classes that have common/shared functionality across the various API products we offer.
 

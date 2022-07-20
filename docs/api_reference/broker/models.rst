@@ -136,8 +136,3 @@ BatchJournalResponse
 
 .. autoclass:: alpaca.broker.models.journals.BatchJournalResponse
 
-
-Order
------
-
-.. autoclass:: alpaca.broker.models.trading.Order

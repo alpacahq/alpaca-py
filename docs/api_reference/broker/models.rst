@@ -136,3 +136,4 @@ BatchJournalResponse
 
 .. autoclass:: alpaca.broker.models.journals.BatchJournalResponse
 
+

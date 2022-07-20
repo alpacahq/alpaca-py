@@ -7,6 +7,9 @@ Market Data Reference
 
    data/stock
    data/crypto
-
+   data/timeframe
+   data/models
+   data/requests
+   data/enums
 
    

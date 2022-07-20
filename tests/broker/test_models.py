@@ -16,7 +16,7 @@ from alpaca.broker.models import (
     TradeDocument,
 )
 from alpaca.broker.requests import (
-    AccountUpdateRequest,
+    UpdateAccountRequest,
     UpdatableTrustedContact,
     UpdatableContact,
     UpdatableIdentity,
@@ -65,15 +65,15 @@ def test_document_validates_id():
 
 def test_account_update_request_to_request_fields():
     name = "TEST"
-    req = AccountUpdateRequest(trusted_contact=UpdatableTrustedContact(given_name=name))
+    req = UpdateAccountRequest(trusted_contact=UpdatableTrustedContact(given_name=name))
 
     result = req.to_request_fields()
     expected = {"trusted_contact": {"given_name": name}}
 
     assert expected == result
-    assert {} == AccountUpdateRequest().to_request_fields()
+    assert {} == UpdateAccountRequest().to_request_fields()
 
-    empty_req = AccountUpdateRequest(
+    empty_req = UpdateAccountRequest(
         identity=UpdatableIdentity(),
         disclosures=UpdatableDisclosures(),
         contact=UpdatableContact(),

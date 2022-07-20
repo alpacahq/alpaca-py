@@ -69,12 +69,12 @@ Create an Account
 ^^^^^^^^^^^^^^^^^
 
 You can create brokerage accounts on behalf of your users using the ``BrokerClient::create_account`` method.
-To create an account you need to first instantiate a ``AccountCreationRequest`` with all the relevant account details.
-``AccountCreationRequest`` requires ``contact``, ``identity``, ``disclosures``, and ``agreements``. There are also
+To create an account you need to first instantiate a ``CreateAccountRequest`` with all the relevant account details.
+``CreateAccountRequest`` requires ``contact``, ``identity``, ``disclosures``, and ``agreements``. There are also
 two additional fields which are optional: ``documents`` and ``trusted_contact``.
 
 First we will need to prepare our account data by organizing its constituent parts.
-Then we can pass those parts into the ``AccountCreationRequest`` model before submitting our request.
+Then we can pass those parts into the ``CreateAccountRequest`` model before submitting our request.
 
 .. code-block:: python
 
@@ -85,7 +85,7 @@ Then we can pass those parts into the ``AccountCreationRequest`` model before su
                             Disclosures,
                             Agreement
                         )
-    from alpaca.broker.requests import AccountCreationRequest
+    from alpaca.broker.requests import CreateAccountRequest
     from alpaca.broker.enums import TaxIdType, FundingSource, AgreementType
 
     broker_client = BrokerClient('api-key', 'secret-key')
@@ -146,8 +146,8 @@ Then we can pass those parts into the ``AccountCreationRequest`` model before su
         )
     ]
 
-    # ## AccountCreationRequest ## #
-    account_data = AccountCreationRequest(
+    # ## CreateAccountRequest ## #
+    account_data = CreateAccountRequest(
                             contact=contact_data,
                             identity=identity_data,
                             disclosures=disclosure_data,

@@ -1,6 +1,5 @@
-from typing import Optional, List
+from typing import List
 
-from alpaca.broker import TradeAccountConfiguration
 from alpaca.broker.models import (
     Identity,
     Contact,
@@ -8,6 +7,7 @@ from alpaca.broker.models import (
     Agreement,
     AccountDocument,
     TrustedContact,
+    TradeAccountConfiguration,
 )
 from alpaca.broker.enums import (
     DTBPCheck,

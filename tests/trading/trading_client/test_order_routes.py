@@ -1,4 +1,4 @@
-from alpaca.common import APIError
+from alpaca.common.exceptions import APIError
 from alpaca.trading.requests import (
     GetOrderByIdRequest,
     GetOrdersRequest,

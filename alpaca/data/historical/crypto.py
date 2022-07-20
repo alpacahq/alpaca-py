@@ -1,10 +1,12 @@
 from collections import defaultdict
 from typing import Union, Optional, List
 
-from alpaca.common import RawData, DATA_V2_MAX_LIMIT, BaseURL
+from alpaca.common.constants import DATA_V2_MAX_LIMIT
+from alpaca.common.types import RawData
+from alpaca.common.enums import BaseURL
 from alpaca.common.rest import RESTClient
 from alpaca.common.types import HTTPResult, Credentials
-from alpaca.data import BarSet, QuoteSet, TradeSet, SnapshotSet
+from alpaca.data.models import BarSet, QuoteSet, TradeSet, SnapshotSet
 from alpaca.data.historical.stock import DataExtensionType
 from alpaca.data.requests import (
     CryptoBarsRequest,
@@ -65,7 +67,7 @@ class CryptoHistoricalDataClient(RESTClient):
         """Gets bar/candle data for a cryptocurrency or list of cryptocurrencies.
 
         Args:
-
+            request_params (CryptoBarsRequest): The parameters for the request.
 
         Returns:
             Union[BarSet, RawData]: The crypto bar data either in raw or wrapped form
@@ -89,7 +91,7 @@ class CryptoHistoricalDataClient(RESTClient):
         """Returns Quote level 1 data over a given time period for a cryptocurrency or list of cryptocurrencies.
 
         Args:
-
+            request_params (CryptoQuotesRequest): The parameters for the request.
 
         Returns:
             Union[QuoteSet, RawData]: The quote data either in raw or wrapped form
@@ -113,7 +115,7 @@ class CryptoHistoricalDataClient(RESTClient):
         """Returns the price and sales history over a given time period for a cryptocurrency or list of cryptocurrencies.
 
         Args:
-
+            request_params (CryptoTradesRequest): The parameters for the request.
 
         Returns:
             Union[TradeSet, RawData]: The trade data either in raw or wrapped form
@@ -137,7 +139,7 @@ class CryptoHistoricalDataClient(RESTClient):
         """Returns the latest trade for a coin for a specific exchange
 
         Args:
-
+            request_params (CryptoLatestTradeRequest): The parameters for the request.
 
         Returns:
             Union[Trade, RawData]: The latest trade in raw or wrapped format
@@ -160,11 +162,11 @@ class CryptoHistoricalDataClient(RESTClient):
     ) -> Union[QuoteSet, RawData]:
         """Returns the latest quote for a coin for a specific exchange
 
-                Args:
-        =
+        Args:
+            request_params (CryptoLatestQuoteRequest): The parameters for the request.
 
-                Returns:
-                    Union[Quote, RawData]: The latest quote in raw or wrapped format
+        Returns:
+            Union[Quote, RawData]: The latest quote in raw or wrapped format
         """
 
         params = request_params.to_request_fields()
@@ -186,7 +188,7 @@ class CryptoHistoricalDataClient(RESTClient):
         latest daily bar and previous daily bar data for the queried symbols.
 
         Args:
-
+            request_params (CryptoSnapshotRequest): The parameters for the request.
 
         Returns:
             Union[SnapshotSet, RawData]: The snapshot data either in raw or wrapped form

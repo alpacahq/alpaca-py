@@ -4,7 +4,7 @@ from typing import List
 
 import pytest
 
-from alpaca.broker import UploadDocumentRequest
+from alpaca.broker.requests import UploadDocumentRequest
 from alpaca.broker.client import BrokerClient
 from alpaca.common.constants import BROKER_DOCUMENT_UPLOAD_LIMIT
 from alpaca.broker.enums import (

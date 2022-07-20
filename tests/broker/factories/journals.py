@@ -1,6 +1,6 @@
 from typing import List
 
-from alpaca.broker import BatchJournalRequestEntry, ReverseBatchJournalRequestEntry
+from alpaca.broker.requests import BatchJournalRequestEntry, ReverseBatchJournalRequestEntry
 
 
 def create_dummy_batch_journal_entries() -> List[BatchJournalRequestEntry]:

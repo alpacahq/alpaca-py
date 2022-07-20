@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional, Union, List
 
 from alpaca.common.requests import NonEmptyRequest
-from alpaca.data import Adjustment, DataFeed
+from alpaca.data.enums import Adjustment, DataFeed
 from alpaca.data.timeframe import TimeFrame
 
 

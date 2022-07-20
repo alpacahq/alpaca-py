@@ -1,14 +1,21 @@
 from uuid import UUID
 
-from alpaca.broker import (
+from alpaca.broker.client import (
     BrokerClient,
-    CreateJournalRequest,
-    JournalEntryType,
+)
+
+from alpaca.broker.enums import  JournalEntryType
+
+from alpaca.broker.models import (
     Journal,
-    CreateBatchJournalRequest,
     BatchJournalResponse,
+)
+
+from alpaca.broker.requests import (
     CreateReverseBatchJournalRequest,
     GetJournalsRequest,
+    CreateJournalRequest,
+    CreateBatchJournalRequest,
 )
 from alpaca.common.enums import BaseURL
 

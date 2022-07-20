@@ -26,7 +26,7 @@ from alpaca.broker.requests import (
     UpdatableTrustedContact,
     ListAccountsRequest,
     CreateAccountRequest,
-    AccountUpdateRequest,
+    UpdateAccountRequest,
 )
 from alpaca.common import APIError
 from alpaca.common.enums import BaseURL
@@ -266,7 +266,7 @@ def test_update_account(reqmock, client: BrokerClient):
 
     identity.family_name = family_name
 
-    update_data = AccountUpdateRequest(identity=identity)
+    update_data = UpdateAccountRequest(identity=identity)
 
     reqmock.patch(
         f"https://broker-api.sandbox.alpaca.markets/v1/accounts/{account_id}",
@@ -375,7 +375,7 @@ def test_update_account(reqmock, client: BrokerClient):
 
 def test_update_account_validates_account_id(reqmock, client: BrokerClient):
     # dummy update request just to test param parsing
-    update_data = AccountUpdateRequest()
+    update_data = UpdateAccountRequest()
 
     with pytest.raises(ValueError):
         client.update_account("not a uuid", update_data)
@@ -386,7 +386,7 @@ def test_update_account_validates_account_id(reqmock, client: BrokerClient):
 
 def test_update_account_validates_non_empty_request(reqmock, client: BrokerClient):
     account_id = "0d969814-40d6-4b2b-99ac-2e37427f1ad2"
-    update_data = AccountUpdateRequest(
+    update_data = UpdateAccountRequest(
         identity=UpdatableIdentity(),
         disclosures=UpdatableDisclosures(),
         contact=UpdatableContact(),

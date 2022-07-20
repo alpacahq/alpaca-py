@@ -37,7 +37,7 @@ from .requests import (
     GetTransfersRequest,
     ListAccountsRequest,
     CreateAccountRequest,
-    AccountUpdateRequest,
+    UpdateAccountRequest,
 )
 from alpaca.common.exceptions import APIError
 from alpaca.common.constants import (
@@ -187,7 +187,7 @@ class BrokerClient(RESTClient):
     def update_account(
         self,
         account_id: Union[UUID, str],
-        update_data: AccountUpdateRequest,
+        update_data: UpdateAccountRequest,
     ) -> Account:
         """
         Updates data for an account with an id of `account_id`. Note that not all data for an account is modifiable
@@ -199,7 +199,7 @@ class BrokerClient(RESTClient):
         Args:
             account_id (Union[UUID, str]): The id for the account you with to update. str uuid values will be upcast
             into UUID instances
-            update_data (AccountUpdateRequest): The data you wish to update this account to
+            update_data (UpdateAccountRequest): The data you wish to update this account to
 
         Returns:
             Account: Returns an Account instance with the updated data as returned from the api

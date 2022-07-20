@@ -188,7 +188,7 @@ class UpdatableTrustedContact(TrustedContact):
         return values
 
 
-class AccountUpdateRequest(NonEmptyRequest):
+class UpdateAccountRequest(NonEmptyRequest):
     """
     Represents the data allowed in a request to update an Account. Note not all fields of an account
     are currently modifiable so this model uses models that represent the subset of modifiable fields.

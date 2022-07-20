@@ -32,6 +32,7 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.doctest",
     "sphinx_copybutton",
+    "enum_tools.autoenum",
 ]
 
 # Add any paths that contain templates here, relative to this directory.

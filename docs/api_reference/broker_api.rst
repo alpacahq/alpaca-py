@@ -21,5 +21,6 @@ Contents
    broker/journals
    broker/trading
    broker/models
-
+   broker/requests
+   broker/enums
 

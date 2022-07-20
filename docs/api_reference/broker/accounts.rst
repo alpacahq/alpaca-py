@@ -52,5 +52,9 @@ Get Trade Configuration For Account
 .. automethod:: alpaca.broker.client.BrokerClient.get_trade_configuration_for_account
 
 
+Update Trade Configuration For Account
+--------------------------------------
+
+.. automethod:: alpaca.broker.client.BrokerClient.update_trade_configuration_for_account
 
 

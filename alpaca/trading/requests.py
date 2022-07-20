@@ -217,7 +217,6 @@ class CancelOrderResponse(BaseModel):
     status: int
 
 
-
 class OrderRequest(NonEmptyRequest):
     """Contains data for submitting an order.
 

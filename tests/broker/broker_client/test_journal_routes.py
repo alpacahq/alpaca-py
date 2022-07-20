@@ -4,7 +4,7 @@ from alpaca.broker.client import (
     BrokerClient,
 )
 
-from alpaca.broker.enums import  JournalEntryType
+from alpaca.broker.enums import JournalEntryType
 
 from alpaca.broker.models import (
     Journal,

@@ -29,28 +29,28 @@ class Exchange(str, Enum):
         K (str): Cboe EDGX
     """
 
-    Z: str = "Z"
-    I: str = "I"
-    M: str = "M"
-    U: str = "U"
-    L: str = "L"
-    W: str = "W"
-    X: str = "X"
-    B: str = "B"
-    D: str = "D"
-    J: str = "J"
-    P: str = "P"
-    Q: str = "Q"
-    S: str = "S"
-    V: str = "V"
-    A: str = "A"
-    E: str = "E"
-    N: str = "N"
-    T: str = "T"
-    Y: str = "Y"
-    C: str = "C"
-    H: str = "H"
-    K: str = "K"
+    Z = "Z"
+    I = "I"
+    M = "M"
+    U = "U"
+    L = "L"
+    W = "W"
+    X = "X"
+    B = "B"
+    D = "D"
+    J = "J"
+    P = "P"
+    Q = "Q"
+    S = "S"
+    V = "V"
+    A = "A"
+    E = "E"
+    N = "N"
+    T = "T"
+    Y = "Y"
+    C = "C"
+    H = "H"
+    K = "K"
 
 
 class DataFeed(str, Enum):
@@ -62,9 +62,9 @@ class DataFeed(str, Enum):
         OTC (str): Over the counter feed
     """
 
-    IEX: str = "iex"
-    SIP: str = "sip"
-    OTC: str = "otc"
+    IEX = "iex"
+    SIP = "sip"
+    OTC = "otc"
 
 
 class Adjustment(str, Enum):
@@ -77,7 +77,7 @@ class Adjustment(str, Enum):
         ALL (str): Data adjusted for all corporate actions
     """
 
-    RAW: str = "raw"
-    SPLIT: str = "split"
-    DIVIDEND: str = "dividend"
-    ALL: str = "all"
+    RAW = "raw"
+    SPLIT = "split"
+    DIVIDEND = "dividend"
+    ALL = "all"

@@ -979,7 +979,7 @@ class BrokerClient(RESTClient):
             close_options: The various close position request parameters.
 
         Returns:
-            Order: The order that was placed to close the position.
+            alpaca.broker.models.Order: The order that was placed to close the position.
         """
         account_id = validate_uuid_id_param(account_id)
         symbol_or_asset_id = validate_symbol_or_asset_id(symbol_or_asset_id)
@@ -1380,10 +1380,10 @@ class BrokerClient(RESTClient):
 
         Args:
             account_id (Union[UUID, str]): The account the order will be created for.
-            order_data (OrderRequest): The request data for creating a new order.
+            order_data (alpaca.broker.requests.OrderRequest): The request data for creating a new order.
 
         Returns:
-            Order: The resulting submitted order.
+            alpaca.broker.models.OrderOrder: The resulting submitted order.
         """
 
         account_id = validate_uuid_id_param(account_id, "account_id")
@@ -1405,7 +1405,7 @@ class BrokerClient(RESTClient):
             filter (Optional[GetOrdersRequest]): The parameters to filter the orders with.
 
         Returns:
-            List[Order]: The queried orders.
+            List[alpaca.broker.models.Order]: The queried orders.
         """
         account_id = validate_uuid_id_param(account_id, "account_id")
 
@@ -1434,7 +1434,7 @@ class BrokerClient(RESTClient):
             filter (Optional[GetOrderByIdRequest]): The parameters for the query.
 
         Returns:
-            Order: The order that was queried.
+            alpaca.broker.models.Order: The order that was queried.
         """
         account_id = validate_uuid_id_param(account_id, "account_id")
         order_id = validate_uuid_id_param(order_id, "order_id")
@@ -1457,7 +1457,7 @@ class BrokerClient(RESTClient):
             client_id (str): The client order identifier for the order.
 
         Returns:
-            Order: The queried order.
+            alpaca.broker.models.Order: The queried order.
         """
         account_id = validate_uuid_id_param(account_id, "account_id")
 
@@ -1480,7 +1480,7 @@ class BrokerClient(RESTClient):
             order_data (Optional[ReplaceOrderRequest]): The parameters we wish to update.
 
         Returns:
-            Order: The updated order.
+            alpaca.broker.models.Order: The updated order.
         """
         account_id = validate_uuid_id_param(account_id, "account_id")
         order_id = validate_uuid_id_param(order_id, "order_id")

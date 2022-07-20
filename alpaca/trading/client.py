@@ -65,10 +65,10 @@ class TradingClient(RESTClient):
         """Creates an order to buy or sell an asset.
 
         Args:
-            order_data (OrderRequest): The request data for creating a new order.
+            order_data (alpaca.trading.requests.OrderRequest): The request data for creating a new order.
 
         Returns:
-            Order: The resulting submitted order.
+            alpaca.trading.models.Order: The resulting submitted order.
         """
         data = order_data.to_request_fields()
         response = self.post("/orders", data)
@@ -83,7 +83,7 @@ class TradingClient(RESTClient):
             filter (Optional[GetOrdersRequest]): The parameters to filter the orders with.
 
         Returns:
-            List[Order]: The queried orders.
+            List[alpaca.trading.models.Order]: The queried orders.
         """
         # checking to see if we specified at least one param
         params = filter.to_request_fields() if filter is not None else {}
@@ -106,7 +106,7 @@ class TradingClient(RESTClient):
             filter (Optional[GetOrderByIdRequest]): The parameters for the query.
 
         Returns:
-            Order: The order that was queried.
+            alpaca.trading.models.Order: The order that was queried.
         """
         # checking to see if we specified at least one param
         params = filter.to_request_fields() if filter is not None else {}
@@ -125,7 +125,7 @@ class TradingClient(RESTClient):
             client_id (str): The client order identifier for the order.
 
         Returns:
-            Order: The queried order.
+            alpaca.trading.models.Order: The queried order.
         """
         response = self.get(f"/orders/{client_id}")
 
@@ -144,7 +144,7 @@ class TradingClient(RESTClient):
             order_data (Optional[ReplaceOrderRequest]): The parameters we wish to update.
 
         Returns:
-            Order: The updated order.
+            alpaca.trading.models.Order: The updated order.
         """
         # checking to see if we specified at least one param
         params = order_data.to_request_fields() if order_data is not None else {}
@@ -244,7 +244,7 @@ class TradingClient(RESTClient):
             close_options: The various close position request parameters.
 
         Returns:
-            Order: The order that was placed to close the position.
+            alpaca.trading.models.Order: The order that was placed to close the position.
         """
         symbol_or_asset_id = validate_symbol_or_asset_id(symbol_or_asset_id)
         response = self.delete(

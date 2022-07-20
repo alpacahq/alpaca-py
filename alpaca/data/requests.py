@@ -33,6 +33,10 @@ class BaseBarsRequest(BaseTimeseriesDataRequest):
     use the asset class specific request objects.
 
     Attributes:
+        symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
+        start (Optional[datetime]): The beginning of the time interval for desired data.
+        end (Optional[datetime]): The end of the time interval for desired data. Defaults to None.
+        limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
         timeframe (TimeFrame): The period over which the bars should be aggregated. (i.e. 5 Min bars, 1 Day bars)
     """
 
@@ -50,6 +54,10 @@ class StockBarsRequest(BaseBarsRequest):
     See BaseGetBarsRequest for more information on available parameters.
 
     Attributes:
+        symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
+        start (Optional[datetime]): The beginning of the time interval for desired data.
+        end (Optional[datetime]): The end of the time interval for desired data. Defaults to None.
+        limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
         adjustment (Optional[Adjustment]): The type of corporate action data normalization.
         feed (Optional[DataFeed]): The stock data feed to retrieve from.
     """
@@ -63,6 +71,12 @@ class CryptoBarsRequest(BaseBarsRequest):
     The request model for retrieving bar data for cryptocurrencies.
 
     See BaseGetBarsRequest for more information on available parameters.
+
+    Attributes:
+        symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
+        start (Optional[datetime]): The beginning of the time interval for desired data.
+        end (Optional[datetime]): The end of the time interval for desired data. Defaults to None.
+        limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
     """
 
     pass
@@ -78,6 +92,10 @@ class StockQuotesRequest(BaseTimeseriesDataRequest):
     See BaseTimeseriesDataRequest for more information on available parameters.
 
     Attributes:
+        symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
+        start (Optional[datetime]): The beginning of the time interval for desired data.
+        end (Optional[datetime]): The end of the time interval for desired data. Defaults to None.
+        limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
         feed (Optional[DataFeed]): The stock data feed to retrieve from.
     """
 
@@ -89,6 +107,12 @@ class CryptoQuotesRequest(BaseTimeseriesDataRequest):
     This request class is used to submit a request for crypto quote data.
 
     See BaseTimeseriesDataRequest for more information on available parameters.
+
+    Attributes:
+        symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
+        start (Optional[datetime]): The beginning of the time interval for desired data.
+        end (Optional[datetime]): The end of the time interval for desired data. Defaults to None.
+        limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
     """
 
     pass
@@ -104,6 +128,10 @@ class StockTradesRequest(BaseTimeseriesDataRequest):
     See BaseTimeseriesDataRequest for more information on available parameters.
 
     Attributes:
+        symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
+        start (Optional[datetime]): The beginning of the time interval for desired data.
+        end (Optional[datetime]): The end of the time interval for desired data. Defaults to None.
+        limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
         feed (Optional[DataFeed]): The stock data feed to retrieve from.
     """
 
@@ -115,6 +143,12 @@ class CryptoTradesRequest(BaseTimeseriesDataRequest):
     This request class is used to submit a request for crypto trade data.
 
     See BaseTimeseriesDataRequest for more information on available parameters.
+
+    Attributes:
+        symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
+        start (Optional[datetime]): The beginning of the time interval for desired data.
+        end (Optional[datetime]): The end of the time interval for desired data. Defaults to None.
+        limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
     """
 
     pass
@@ -142,6 +176,10 @@ class StockLatestTradeRequest(BaseStockLatestDataRequest):
     This request class is used to submit a request for the latest stock trade data.
 
     See BaseLatestStockDataRequest for more information on available parameters.
+
+    Attributes:
+        symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
+        feed (Optional[DataFeed]): The stock data feed to retrieve from.
     """
 
     pass
@@ -152,6 +190,10 @@ class StockLatestQuoteRequest(BaseStockLatestDataRequest):
     This request class is used to submit a request for the latest stock quote data.
 
     See BaseLatestStockDataRequest for more information on available parameters.
+
+    Attributes:
+        symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
+        feed (Optional[DataFeed]): The stock data feed to retrieve from.
     """
 
     pass
@@ -162,6 +204,10 @@ class StockLatestBarRequest(BaseStockLatestDataRequest):
     This request class is used to submit a request for the latest stock bar data.
 
     See BaseLatestStockDataRequest for more information on available parameters.
+
+    Attributes:
+        symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
+        feed (Optional[DataFeed]): The stock data feed to retrieve from.
     """
 
     pass
@@ -184,6 +230,9 @@ class CryptoLatestTradeRequest(BaseCryptoLatestDataRequest):
     This request class is used to submit a request for the latest crypto trade data.
 
     See BaseLatestCryptoDataRequest for more information on available parameters.
+
+    Attributes:
+        symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
     """
 
     pass
@@ -194,6 +243,9 @@ class CryptoLatestQuoteRequest(BaseCryptoLatestDataRequest):
     This request class is used to submit a request for the latest crypto quote data.
 
     See BaseLatestCryptoDataRequest for more information on available parameters.
+
+    Attributes:
+        symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
     """
 
     pass
@@ -204,6 +256,9 @@ class CryptoLatestBarRequest(BaseCryptoLatestDataRequest):
     This request class is used to submit a request for the latest crypto bar data.
 
     See BaseLatestCryptoDataRequest for more information on available parameters.
+
+    Attributes:
+        symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
     """
 
     pass

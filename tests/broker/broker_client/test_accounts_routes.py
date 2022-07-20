@@ -25,7 +25,7 @@ from alpaca.broker.requests import (
     UpdatableIdentity,
     UpdatableTrustedContact,
     ListAccountsRequest,
-    AccountCreationRequest,
+    CreateAccountRequest,
     AccountUpdateRequest,
 )
 from alpaca.common import APIError
@@ -119,7 +119,7 @@ def test_create_account(reqmock, client: BrokerClient):
         """,
     )
 
-    create_data = AccountCreationRequest(
+    create_data = CreateAccountRequest(
         agreements=factory.create_dummy_agreements(),
         contact=factory.create_dummy_contact(),
         disclosures=factory.create_dummy_disclosures(),

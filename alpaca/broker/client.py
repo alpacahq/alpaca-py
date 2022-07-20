@@ -36,7 +36,7 @@ from .requests import (
     GetTradeDocumentsRequest,
     GetTransfersRequest,
     ListAccountsRequest,
-    AccountCreationRequest,
+    CreateAccountRequest,
     AccountUpdateRequest,
 )
 from alpaca.common.exceptions import APIError
@@ -144,13 +144,13 @@ class BrokerClient(RESTClient):
 
     def create_account(
         self,
-        account_data: AccountCreationRequest,
+        account_data: CreateAccountRequest,
     ) -> Account:
         """
         Create an account.
 
         Args:
-            account_data (AccountCreationRequest): The data representing the Account you wish to create
+            account_data (CreateAccountRequest): The data representing the Account you wish to create
 
         Returns:
             Account: The newly created Account instance as returned from the API. Should now have id

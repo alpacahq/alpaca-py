@@ -49,7 +49,7 @@ from alpaca.trading.requests import (
 # ############################## Accounts ################################# #
 
 
-class AccountCreationRequest(NonEmptyRequest):
+class CreateAccountRequest(NonEmptyRequest):
     """Class used to format data necessary for making a request to create a brokerage account
 
     Attributes:

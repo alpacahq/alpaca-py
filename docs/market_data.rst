@@ -6,120 +6,65 @@ Market Data
 
 The market data API allows you to access both live and historical data for equities and cryptocurrencies. 
 Over 5 years of historical data is available for thousands of equity and cryptocurrency symbols. 
-Various data types are available such as bars/candles (OHLCV), trade data (price and sales), and quote data.
-For more information on the data types available, please look at the API reference. 
+Various data types are available such as bars/candles (OHLCV), trade data (price and sales), and quote data. For
+crypto, there is also orderbook data. For more information on the data types available,
+please look at the `API reference <https://alpaca.markets/docs/market-data/>`_.
 
 
-Equities
+Subscription Plans
+------------------
+
+Most market data features are free to use. However, if you are a professional or institution, you may
+wish to expand with the unlimited plan. Learn more about the subscriptions plans at
+`alpaca.markets/data <https://alpaca.markets/data>`_.
+
+
+API Keys
 --------
 
-Alpaca provides two market data subscription plans. The free plan offers data from IEX (Investors Exchange LLC), which accounts for 2.5% of market volume.
-The premium plan offers data from all US exchanges consolidated by the Securities Information Processor (SIP), which accounts for 100% of market volume. and from 
-Alpaca provides ultra low latency and high reliability as the data comes directly into Alpaca’s bare metal servers located in New Jersey sitting next to most of the market participants.
-SIP data is great for creating your trading app where accurate price information is essential for traders and internal use.
+Crypto data does not require authentication to use. i.e. you can initialize ``CryptoHistoricalDataClient`` without
+providing API keys. If you do provide API keys, your rate limit will be higher.
+
+However, to access stock data, you will need to provide your API keys. The keys can be found
+on the dashboard after signing in.
 
 
+Getting Started with Clients
+----------------------------
 
-Crypto
-------
-
-**Please note that Alpaca Crypto Data is in beta - we welcome any feedback to improve our offering.**
-
-Alpaca provides crypto data from multiple venues and but currently routes orders to FTX.US only.
-
-.. list-table:: Crypto Exchanges Supported by Alpaca
-   :widths: 25 25 50
-   :header-rows: 1
-
-   * - Exchange Code
-     - Name of Exchanges
-     - Enum Value
-   * - FTXU
-     - FTX
-     - ``Exchange.FTXU``
-   * - ERSX
-     - ErisX
-     - ``Exchange.ERSX``
-   * - CBSE
-     - Coinbase
-     - ``Exchange.CBSE``
-   * - GNSS
-     - Genesis
-     - ``Exchange.ERSX``
+There are 4 different clients that let you access market data. There are 2 historical data clients
+and 2 real-time data clients. The crypto data clients do not require API keys to use.
 
 
-Alpaca provides over 20 coin pairs for trading. The table below lists all the coins available and the pairs
-that can be traded.
+Historical Data
+^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+    from alpaca.data import CryptoHistoricalDataClient, StockHistoricalDataClient
+
+    API_KEY = "api-key"
+    SECRET_KEY = "secret-key"
+
+    # no keys required.
+    crypto_client = CryptoHistoricalDataClient()
+
+    # keys required
+    stock_client = StockHistoricalDataClient(API_KEY, SECRET_KEY)
 
 
-.. list-table:: Coins Available on Alpaca
-   :widths: 25 25 50
-   :header-rows: 1
+Real-time Data Stream
+^^^^^^^^^^^^^^^^^^^^^
 
-   * - Name
-     - Ticker
-     - Pairs Offered
-   * - Aave
-     - AAVE
-     - AAVEUSD
-   * - Basic Attention Token
-     - BAT
-     - BATUSD
-   * - Bitcoin
-     - BTC
-     - BTCUSD
-   * - Bitcoin Cash
-     - BCH
-     - BCHUSD
-   * - ChainLink Token
-     - LINK
-     - LINKUSD
-   * - Dai
-     - Dai
-     - DAIUSD
-   * - Dogecoin 
-     - DOGE
-     - DOGEUSD
-   * - Ethereum 
-     - ETH
-     - ETHUSD
-   * - Graph Token 
-     - GRT
-     - GRTUSD
-   * - Litecoin 
-     - LTC
-     - LTCUSD
-   * - Maker 
-     - MKR
-     - MKRUSD
-   * - Matic 
-     - MATIC
-     - MATICUSD
-   * - PAX Gold 
-     - PAXG
-     - PAXGUSD
-   * - Shiba Inu 
-     - SHIB
-     - SHIBUSD
-   * - Solana 
-     - SOL
-     - SOLUSD
-   * - Sushi 
-     - SUSHI
-     - SUSHIUSD
-   * - Tether 
-     - USDT
-     - USDTUSD
-   * - TRON 
-     - TRX
-     - TRXUSD
-   * - Uniswap Protocol Token 
-     - UNI
-     - UNIUSD
-   * - Wrapped BTC
-     - WBTC
-     - WBTCUSD
-   * - Yearn.Finance 
-     - YFI
-     - YFIUSD
+.. code-block:: python
 
+    from alpaca.data import CryptoDataStream, StockDataStream
+
+    API_KEY = "api-key"
+    SECRET_KEY = "secret-key"
+
+    # no keys required.
+    crypto_stream = CryptoDataStream()
+
+    # keys required
+    stock_stream = StockDataStream(API_KEY, SECRET_KEY)

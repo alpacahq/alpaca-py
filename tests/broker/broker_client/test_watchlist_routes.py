@@ -2,7 +2,7 @@ from typing import List
 
 import pytest
 
-from alpaca.broker import BrokerClient
+from alpaca.broker.client import BrokerClient
 from alpaca.common.enums import BaseURL
 from alpaca.trading.requests import (
     CreateWatchlistRequest,

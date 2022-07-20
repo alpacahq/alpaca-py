@@ -1,6 +1,6 @@
 from typing import Dict, Any
 
-from alpaca.common import RawData
+from alpaca.common.types import RawData
 from alpaca.common.models import ValidateBaseModel as BaseModel
 from alpaca.data.models import Trade, Quote, Bar
 from alpaca.data.mappings import SNAPSHOT_MAPPING

@@ -1,9 +1,9 @@
 from datetime import datetime
 from typing import Optional, Dict, List, Union
 
-from alpaca.common import RawData
+from alpaca.common.types import RawData
 from alpaca.common.models import ValidateBaseModel as BaseModel
-from alpaca.data import Exchange
+from alpaca.data.enums import Exchange
 from alpaca.data.mappings import TRADE_MAPPING
 from alpaca.data.models.base import TimeSeriesMixin, BaseDataSet
 

@@ -2,7 +2,7 @@ from datetime import datetime
 
 import pytest
 
-from alpaca.broker import (
+from alpaca.broker.requests import (
     UploadDocumentMimeType,
     UploadDocumentRequest,
     UploadDocumentSubType,

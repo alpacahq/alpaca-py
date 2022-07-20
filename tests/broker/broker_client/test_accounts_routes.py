@@ -6,7 +6,7 @@ from uuid import UUID
 
 import pytest
 
-from alpaca.broker import TradeAccountConfiguration
+from alpaca.broker.models import TradeAccountConfiguration
 from alpaca.broker.client import BrokerClient
 from alpaca.broker.enums import (
     AccountEntities,
@@ -28,7 +28,7 @@ from alpaca.broker.requests import (
     CreateAccountRequest,
     UpdateAccountRequest,
 )
-from alpaca.common import APIError
+from alpaca.common.exceptions import APIError
 from alpaca.common.enums import BaseURL
 from tests.broker.factories import accounts as factory
 

@@ -150,34 +150,6 @@ class StopLossRequest(NonEmptyRequest):
     limit_price: Optional[float] = None
 
 
-class OrderRequest(NonEmptyRequest):
-    """Contains data for submitting an order.
-
-    Attributes:
-        symbol (str): The symbol identifier for the asset being traded
-        qty (Optional[float]): The number of shares to trade. Fractional qty available only with market orders.
-        side (OrderSide): Whether the order will buy or sell the asset.
-        type (OrderType): The execution logic type of the order (market, limit, etc).
-        time_in_force (TimeInForce): The expiration logic of the order.
-        extended_hours (Optional[float]): Whether the order can be executed during regular market hours.
-        client_order_id (Optional[float]): A string to identify which client submitted the order.
-        order_class (Optional[OrderClass]): The class of the order. Simple orders have no other legs.
-        take_profit (Optional[TakeProfitRequest]): For orders with multiple legs, an order to exit a profitable trade.
-        stop_loss (Optional[StopLossRequest]): For orders with multiple legs, an order to exit a losing trade.
-    """
-
-    symbol: str
-    qty: float
-    side: OrderSide
-    type: OrderType
-    time_in_force: TimeInForce
-    order_class: Optional[OrderClass]
-    extended_hours: Optional[bool]
-    client_order_id: Optional[str]
-    take_profit: Optional[TakeProfitRequest]
-    stop_loss: Optional[StopLossRequest]
-
-
 class GetOrdersRequest(NonEmptyRequest):
     """Contains data for submitting a request to retrieve orders.
 
@@ -245,11 +217,49 @@ class CancelOrderResponse(BaseModel):
     status: int
 
 
+class OrderRequest(NonEmptyRequest):
+    """Contains data for submitting an order.
+
+    Attributes:
+        symbol (str): The symbol identifier for the asset being traded
+        qty (Optional[float]): The number of shares to trade. Fractional qty available only with market orders.
+        side (OrderSide): Whether the order will buy or sell the asset.
+        type (OrderType): The execution logic type of the order (market, limit, etc).
+        time_in_force (TimeInForce): The expiration logic of the order.
+        extended_hours (Optional[float]): Whether the order can be executed during regular market hours.
+        client_order_id (Optional[float]): A string to identify which client submitted the order.
+        order_class (Optional[OrderClass]): The class of the order. Simple orders have no other legs.
+        take_profit (Optional[TakeProfitRequest]): For orders with multiple legs, an order to exit a profitable trade.
+        stop_loss (Optional[StopLossRequest]): For orders with multiple legs, an order to exit a losing trade.
+    """
+
+    symbol: str
+    qty: float
+    side: OrderSide
+    type: OrderType
+    time_in_force: TimeInForce
+    order_class: Optional[OrderClass]
+    extended_hours: Optional[bool]
+    client_order_id: Optional[str]
+    take_profit: Optional[TakeProfitRequest]
+    stop_loss: Optional[StopLossRequest]
+
+
 class MarketOrderRequest(OrderRequest):
     """
     Used to submit a market order.
 
     Attributes:
+        symbol (str): The symbol identifier for the asset being traded
+        qty (Optional[float]): The number of shares to trade. Fractional qty available only with market orders.
+        side (OrderSide): Whether the order will buy or sell the asset.
+        type (OrderType): The execution logic type of the order (market, limit, etc).
+        time_in_force (TimeInForce): The expiration logic of the order.
+        extended_hours (Optional[float]): Whether the order can be executed during regular market hours.
+        client_order_id (Optional[float]): A string to identify which client submitted the order.
+        order_class (Optional[OrderClass]): The class of the order. Simple orders have no other legs.
+        take_profit (Optional[TakeProfitRequest]): For orders with multiple legs, an order to exit a profitable trade.
+        stop_loss (Optional[StopLossRequest]): For orders with multiple legs, an order to exit a losing trade.
         notional (Optional[float]): The cash value of the shares to trade. Only works with market orders.
     """
 
@@ -280,6 +290,16 @@ class StopOrderRequest(OrderRequest):
     Used to submit a stop order.
 
     Attributes:
+        symbol (str): The symbol identifier for the asset being traded
+        qty (Optional[float]): The number of shares to trade. Fractional qty available only with market orders.
+        side (OrderSide): Whether the order will buy or sell the asset.
+        type (OrderType): The execution logic type of the order (market, limit, etc).
+        time_in_force (TimeInForce): The expiration logic of the order.
+        extended_hours (Optional[float]): Whether the order can be executed during regular market hours.
+        client_order_id (Optional[float]): A string to identify which client submitted the order.
+        order_class (Optional[OrderClass]): The class of the order. Simple orders have no other legs.
+        take_profit (Optional[TakeProfitRequest]): For orders with multiple legs, an order to exit a profitable trade.
+        stop_loss (Optional[StopLossRequest]): For orders with multiple legs, an order to exit a losing trade.
         stop_price (float): The price at which the stop order is converted to a market order or a stop limit
             order is converted to a limit order.
     """
@@ -298,6 +318,16 @@ class LimitOrderRequest(OrderRequest):
     Used to submit a limit order.
 
     Attributes:
+        symbol (str): The symbol identifier for the asset being traded
+        qty (Optional[float]): The number of shares to trade. Fractional qty available only with market orders.
+        side (OrderSide): Whether the order will buy or sell the asset.
+        type (OrderType): The execution logic type of the order (market, limit, etc).
+        time_in_force (TimeInForce): The expiration logic of the order.
+        extended_hours (Optional[float]): Whether the order can be executed during regular market hours.
+        client_order_id (Optional[float]): A string to identify which client submitted the order.
+        order_class (Optional[OrderClass]): The class of the order. Simple orders have no other legs.
+        take_profit (Optional[TakeProfitRequest]): For orders with multiple legs, an order to exit a profitable trade.
+        stop_loss (Optional[StopLossRequest]): For orders with multiple legs, an order to exit a losing trade.
         limit_price (float): The worst fill price for a limit or stop limit order.
     """
 
@@ -315,6 +345,16 @@ class StopLimitOrderRequest(OrderRequest):
     Used to submit a stop limit order.
 
     Attributes:
+        symbol (str): The symbol identifier for the asset being traded
+        qty (Optional[float]): The number of shares to trade. Fractional qty available only with market orders.
+        side (OrderSide): Whether the order will buy or sell the asset.
+        type (OrderType): The execution logic type of the order (market, limit, etc).
+        time_in_force (TimeInForce): The expiration logic of the order.
+        extended_hours (Optional[float]): Whether the order can be executed during regular market hours.
+        client_order_id (Optional[float]): A string to identify which client submitted the order.
+        order_class (Optional[OrderClass]): The class of the order. Simple orders have no other legs.
+        take_profit (Optional[TakeProfitRequest]): For orders with multiple legs, an order to exit a profitable trade.
+        stop_loss (Optional[StopLossRequest]): For orders with multiple legs, an order to exit a losing trade.
         stop_price (float): The price at which the stop order is converted to a market order or a stop limit
             order is converted to a limit order.
         limit_price (float): The worst fill price for a limit or stop limit order.
@@ -335,6 +375,16 @@ class TrailingStopOrderRequest(OrderRequest):
     Used to submit a trailing stop order.
 
     Attributes:
+        symbol (str): The symbol identifier for the asset being traded
+        qty (Optional[float]): The number of shares to trade. Fractional qty available only with market orders.
+        side (OrderSide): Whether the order will buy or sell the asset.
+        type (OrderType): The execution logic type of the order (market, limit, etc).
+        time_in_force (TimeInForce): The expiration logic of the order.
+        extended_hours (Optional[float]): Whether the order can be executed during regular market hours.
+        client_order_id (Optional[float]): A string to identify which client submitted the order.
+        order_class (Optional[OrderClass]): The class of the order. Simple orders have no other legs.
+        take_profit (Optional[TakeProfitRequest]): For orders with multiple legs, an order to exit a profitable trade.
+        stop_loss (Optional[StopLossRequest]): For orders with multiple legs, an order to exit a losing trade.
         trail_price (Optional[float]): The absolute price difference by which the trailing stop will trail.
         trail_percent (Optional[float]): The percent price difference by which the trailing stop will trail.
     """

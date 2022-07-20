@@ -119,9 +119,15 @@ LimitOrderRequest
 
 
 StopOrderRequest
-------------------
+----------------
 
 .. autoclass:: alpaca.broker.requests.StopOrderRequest
+
+
+StopLimitOrderRequest
+---------------------
+
+.. autoclass:: alpaca.broker.requests.StopLimitOrderRequest
 
 
 TrailingStopOrderRequest

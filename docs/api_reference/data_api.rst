@@ -9,7 +9,6 @@ Market Data Reference
    data/crypto
    data/timeframe
    data/models
-   data/requests
    data/enums
 
    

@@ -7,3 +7,4 @@ Crypto Market Data
 
    crypto/historical
    crypto/live
+   crypto/requests

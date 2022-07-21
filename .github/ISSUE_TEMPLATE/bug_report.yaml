@@ -1,0 +1,75 @@
+name: 🐞 Bug report
+description: Create a bug report to help us improve the SDK
+title: "[Bug]: "
+labels: [ kind/bug ]
+assignees:
+  -
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report! Please fill the form in English!
+  - type: checkboxes
+    attributes:
+      label: Is there an existing issue for this?
+      description: Please search to see if an issue already exists for the bug you encountered.
+      options:
+        - label: I have searched the existing issues
+          required: true
+  - type: textarea
+    attributes:
+      label: Current Behavior
+      description: A concise description of what you're experiencing.
+      placeholder: |
+        When I do <X>, <Y> happens and I see the error message attached below:
+        ```...```
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Expected Behavior
+      description: A concise description of what you expected to happen.
+      placeholder: When I do <X>, <Z> should happen instead.
+    validations:
+      required: false
+
+  - type: textarea
+    attributes:
+      label: SDK Version I encountered this issue in
+      description: |
+        What versions of the SDK have you tried in which the issue is present.
+        Before opening an issue please make sure you try the latest version of the SDK in case a fix has already been made.
+      placeholder: |
+        alpaca-py version: 0.x.x
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Steps To Reproduce
+      description: Steps to reproduce the behavior.
+      placeholder: |
+        1. In this environment...
+        2. With this config...
+        3. Run '...'
+        4. See error...
+      render: markdown
+    validations:
+      required: true
+
+  - type: checkboxes
+    attributes:
+      label: Filled out the Steps to Reproduce section?
+      description: Please verify you have filled out the above section in regards to attaching steps or code that can reproduce your issue so that Alpaca developers can investigate. Not filling out the section will have your issue flagged as invalid and might not be investigated.
+      options:
+        - label: I have entered valid steps to reproduce my issue or have attached a minimally reproducible case in code that shows my issue happening; and understand that without this my issue will be flagged as invalid and closed after 30 days.
+          required: true
+
+  - type: textarea
+    attributes:
+      label: Anything else?
+      description: |
+        Links? References? Anything that will give us more context about the issue you are encountering!
+    validations:
+      required: false

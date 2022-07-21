@@ -1,0 +1,100 @@
+=====
+Enums
+=====
+
+
+OrderClass
+----------
+
+.. autoenum:: alpaca.trading.enums.OrderClass
+
+
+OrderType
+---------
+
+.. autoenum:: alpaca.trading.enums.OrderType
+
+
+OrderSide
+---------
+
+.. autoenum:: alpaca.trading.enums.OrderSide
+
+
+TimeInForce
+-----------
+
+.. autoenum:: alpaca.trading.enums.TimeInForce
+
+
+OrderStatus
+-----------
+
+.. autoenum:: alpaca.trading.enums.OrderStatus
+
+
+AssetClass
+----------
+
+.. autoenum:: alpaca.trading.enums.AssetClass
+
+
+AssetStatus
+-----------
+
+.. autoenum:: alpaca.trading.enums.AssetStatus
+
+
+AssetExchange
+-------------
+
+.. autoenum:: alpaca.trading.enums.AssetExchange
+
+
+PositionSide
+------------
+
+.. autoenum:: alpaca.trading.enums.PositionSide
+
+
+AccountStatus
+-------------
+
+.. autoenum:: alpaca.trading.enums.AccountStatus
+
+
+CorporateActionType
+-------------------
+
+.. autoenum:: alpaca.trading.enums.CorporateActionType
+
+
+CorporateActionSubType
+----------------------
+
+.. autoenum:: alpaca.trading.enums.CorporateActionSubType
+
+
+
+ActivityType
+------------
+
+.. autoenum:: alpaca.trading.enums.ActivityType
+
+
+TradeActivityType
+-----------------
+
+.. autoenum:: alpaca.trading.enums.TradeActivityType
+
+
+NonTradeActivityStatus
+----------------------
+
+.. autoenum:: alpaca.trading.enums.NonTradeActivityStatus
+
+
+
+
+
+

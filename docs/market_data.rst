@@ -68,3 +68,49 @@ Real-time Data Stream
 
     # keys required
     stock_stream = StockDataStream(API_KEY, SECRET_KEY)
+
+
+Retrieving Bar Data
+-------------------
+
+
+.. code-block:: python
+
+    from alpaca.data.historical import CryptoHistoricalDataClient
+    from alpaca.data.requests import CryptoBarsRequest
+    from alpaca.data.timeframe import TimeFrame
+
+    # no keys required for crypto data
+    client = CryptoHistoricalDataClient()
+
+    bars = client.get_crypto_bars(CryptoBarsRequest(symbol_or_symbols=["BTC/USD", "ETH/USD"], timeframe=TimeFrame.Day, start="2022-07-01"))
+
+    bars.df
+
+
+
+Subscribing to Real-Time Quote Data
+-----------------------------------
+
+.. code-block:: python
+
+    from alpaca.data.live import StockDataStream
+
+    API_KEY = 'api-key'
+    SECRET_KEY = 'secret-key'
+
+    wss_client = StockDataStream(API_KEY, SECRET_KEY)
+
+
+    # async handler
+    async def quote_data_handler(data: Any):
+        # quote data will arrive here
+        print(data)
+
+    wss_client.subscribe_quotes(quote_data_handler, "SPY")
+
+    wss_client.run()
+
+
+
+

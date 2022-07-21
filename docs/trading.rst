@@ -112,6 +112,43 @@ for a successful order.
 Positions
 ---------
 
+The positions endpoints lets you track and manage open positions in your portfolio.
+Learn more about the positions endpoints in the `API docs <https://alpaca.markets/docs/api-references/trading-api/positions/>`_.
+
+Getting All Positions
+^^^^^^^^^^^^^^^^^^^^^
+
+This method requires no parameters and returns all open positions in your portfolio. It will
+return a list of `Position` objects.
+
+.. code-block:: python
+
+    from alpaca.trading.client import TradingClient
+
+    client = TradingClient('api-key', 'secret-key')
+
+    client.get_all_positions()
+
+
+
+Close All Positions
+^^^^^^^^^^^^^^^^^^^
+
+This method closes all your open positions. If you set the `cancel_orders` parameter to `True`,
+the method will also cancel all open orders, preventing you from entering into a new position.
+
+.. code-block:: python
+
+    from alpaca.trading.client import TradingClient
+
+    client = TradingClient('api-key', 'secret-key')
+
+    # closes all position AND also cancels all open orders
+    client.close_all_positions(cancel_orders=True)
+
+
+
+
 
 
 

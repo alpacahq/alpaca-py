@@ -39,40 +39,47 @@ and 2 real-time data clients. The crypto data clients do not require API keys to
 Historical Data
 ^^^^^^^^^^^^^^^
 
+Historical Data can be queried by using one of the two historical data clients: `StockHistoricalDataClient`
+and `CryptoHistoricalDataClient`. Historical data is available for Bar, Trade and Quote datatypes.
+
 .. code-block:: python
 
     from alpaca.data import CryptoHistoricalDataClient, StockHistoricalDataClient
-
-    API_KEY = "api-key"
-    SECRET_KEY = "secret-key"
 
     # no keys required.
     crypto_client = CryptoHistoricalDataClient()
 
     # keys required
-    stock_client = StockHistoricalDataClient(API_KEY, SECRET_KEY)
+    stock_client = StockHistoricalDataClient("api-key",  "secret-key")
 
 
 Real-time Data Stream
 ^^^^^^^^^^^^^^^^^^^^^
 
+The data stream clients lets you subscribe to real-time data via WebSockets. There are clients
+for crypto data and stock data.
+
+
 .. code-block:: python
 
     from alpaca.data import CryptoDataStream, StockDataStream
-
-    API_KEY = "api-key"
-    SECRET_KEY = "secret-key"
 
     # no keys required.
     crypto_stream = CryptoDataStream()
 
     # keys required
-    stock_stream = StockDataStream(API_KEY, SECRET_KEY)
+    stock_stream = StockDataStream("api-key", "secret-key")
 
+
+Examples
+--------
 
 Retrieving Bar Data
--------------------
+^^^^^^^^^^^^^^^^^^^
 
+You can request bar data via the HistoricalDataClients. In this example, we query
+daily bar data for "BTC/USD" and "ETH/USD" since July 1st 2022. You can convert the
+response to a multi-index pandas dataframe using the `.df` property.
 
 .. code-block:: python
 
@@ -83,24 +90,32 @@ Retrieving Bar Data
     # no keys required for crypto data
     client = CryptoHistoricalDataClient()
 
-    bars = client.get_crypto_bars(CryptoBarsRequest(symbol_or_symbols=["BTC/USD", "ETH/USD"], timeframe=TimeFrame.Day, start="2022-07-01"))
+    request_params = CryptoBarsRequest(
+                            symbol_or_symbols=["BTC/USD", "ETH/USD"],
+                            timeframe=TimeFrame.Day,
+                            start="2022-07-01"
+                            )
 
+    bars = client.get_crypto_bars(request_params)
+
+    # convert to dataframe
     bars.df
 
 
 
 Subscribing to Real-Time Quote Data
------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This example shows how to receive live quote data for stocks. To receive real time data, you will need to provide
+the client an asynchronous function to handle the data. Finally, you will need to call the
+`run` method to start receiving data.
 
 .. code-block:: python
 
     from alpaca.data.live import StockDataStream
 
-    API_KEY = 'api-key'
-    SECRET_KEY = 'secret-key'
 
-    wss_client = StockDataStream(API_KEY, SECRET_KEY)
-
+    wss_client = StockDataStream('api-key', 'secret-key')
 
     # async handler
     async def quote_data_handler(data: Any):

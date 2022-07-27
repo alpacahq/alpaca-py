@@ -10,6 +10,12 @@ Alpaca-py provides an interface for interacting with the API products Alpaca off
 
 Learn more about the API products [Alpaca]((https://alpaca.markets/)) offers.
 
+# Table of Contents
+1. [About](#About)
+2. [Installation](#Installation)
+3. [Usage](#Usage)
+4. [What's New?](#What's New?)
+
 ## Installation
 
 Alpaca-py is supported on Python 3.7+.  You can install Alpaca-py using pip.

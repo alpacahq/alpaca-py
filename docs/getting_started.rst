@@ -83,26 +83,26 @@ Some examples of request models corresponding to methods:
 * ``GetOrdersRequest`` for ``TradingClient.get_orders()``
 * ``CryptoLatestOrderbookRequest`` for ``CryptoHistoricalDataClient.get_crypto_latest_orderbook()``
 
-**Usage Example**
+**Request Models Usage Example**
 
-To submit an order, you will need to provide a ``MarketOrderRequest`` object.
+To get historical bar data for crypto, you will need to provide a CryptoBarsRequest object.
 
 .. code-block:: python
 
-    from alpaca.trading.client import TradingClient
-    from alpaca.trading.requests import MarketOrderRequest
-    from alpaca.trading.enums import OrderSide, TimeInForce
+    from alpaca.data.historical import CryptoHistoricalDataClient
+    from alpaca.data.requests import CryptoBarsRequest
+    from alpaca.data.timeframe import TimeFrame
 
-    client = TradingClient('api-key', 'secret-key')
+    # no keys required for crypto data
+    client = CryptoHistoricalDataClient()
 
-    request_params = MarketOrderRequest(
-                            symbol="SPY",
-                            qty=3,
-                            side=OrderSide.BUY,
-                            time_in_force=TimeInForce.DAY
-                            )
+    request_params = CryptoBarsRequest(
+                            symbol_or_symbols=["BTC/USD", "ETH/USD"],
+                            timeframe=TimeFrame.Day,
+                            start="2022-07-01"
+                     )
 
-    client.submit_order(order_data=request_params)
+    bars = client.get_crypto_bars(request_params)
 
 Data Validation
 ^^^^^^^^^^^^^^^

@@ -128,8 +128,56 @@ def test_close_all_positions_for_account(reqmock, client: BrokerClient):
         text="""
         [
             {
-                "order_id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
-                "status_code": 201
+                "symbol": "BTCUSD",
+                "status": 200,
+                "body": {
+                    "id": "e6419d12-56e4-4d67-a61b-f6e464e1f8a8",
+                    "client_order_id": "c6814ede-8c93-4480-9a27-7a00853d9881",
+                    "created_at": "2022-07-27T08:12:33.66897767Z",
+                    "updated_at": "2022-07-27T08:12:33.66902729Z",
+                    "submitted_at": "2022-07-27T08:12:33.667750101Z",
+                    "filled_at": null,
+                    "expired_at": null,
+                    "canceled_at": null,
+                    "failed_at": null,
+                    "replaced_at": null,
+                    "replaced_by": null,
+                    "replaces": null,
+                    "asset_id": "276e2673-764b-4ab6-a611-caf665ca6340",
+                    "symbol": "BTC/USD",
+                    "asset_class": "crypto",
+                    "notional": null,
+                    "qty": "0.0283",
+                    "filled_qty": "0",
+                    "filled_avg_price": null,
+                    "order_class": "",
+                    "order_type": "market",
+                    "type": "market",
+                    "side": "sell",
+                    "time_in_force": "gtc",
+                    "limit_price": null,
+                    "stop_price": null,
+                    "status": "pending_new",
+                    "extended_hours": false,
+                    "legs": null,
+                    "trail_percent": null,
+                    "trail_price": null,
+                    "hwm": null,
+                    "subtag": null,
+                    "source": null
+                }
+            },
+            {
+                "symbol": "SQQQ",
+                "status": 403,
+                "body": {
+                    "available": "0",
+                    "code": 40310000,
+                    "existing_qty": "1000",
+                    "held_for_orders": "1000",
+                    "message": "insufficient qty available for order (requested: 1000, available: 0)",
+                    "symbol": "SQQQ"
+                }
             }
         ]
         """,

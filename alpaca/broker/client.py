@@ -53,6 +53,7 @@ from alpaca.trading.models import (
     Watchlist,
     Calendar,
     Clock,
+    CorporateActionAnnouncement,
 )
 from alpaca.trading.models import (
     BaseActivity,
@@ -69,6 +70,7 @@ from alpaca.trading.requests import (
     GetAssetsRequest,
     GetOrdersRequest,
     GetOrderByIdRequest,
+    GetCorporateAnnouncementsRequest,
 )
 from alpaca.trading.enums import (
     ActivityType,
@@ -1530,3 +1532,44 @@ class BrokerClient(RESTClient):
         # TODO: Should ideally return some information about the order's cancel status (Issue #78)
         # TODO: Currently no way to retrieve status details for empty responses with base REST implementation
         self.delete(f"/trading/accounts/{account_id}/orders/{order_id}")
+
+    # ############################## CORPORATE ACTIONS ################################# #
+
+    def get_corporate_annoucements(
+        self, filter: GetCorporateAnnouncementsRequest
+    ) -> List[CorporateActionAnnouncement]:
+        """
+        Returns corporate action announcements data given specified search criteria.
+        Args:
+            filter (GetCorporateAnnouncementsRequest): The parameters to filter the search by.
+        Returns:
+            List[CorporateActionAnnouncement]: The resulting announcements from the search.
+        """
+        params = filter.to_request_fields() if filter else {}
+
+        if "ca_types" in params and type(params["ca_types"]) is List:
+            params["ca_types"] = ",".join(params["ca_types"])
+
+        response = self.get("/corporate_actions/announcements", params)
+
+        return parse_obj_as(List[CorporateActionAnnouncement], response)
+
+    def get_corporate_announcment_by_id(
+        self, corporate_announcment_id: Union[UUID, str]
+    ) -> CorporateActionAnnouncement:
+        """
+        Returns a specific corporate action announcement.
+        Args:
+            corporate_announcment_id: The id of the desired corporate action announcement
+        Returns:
+            CorporateActionAnnouncement: The corporate action queried.
+        """
+        corporate_announcment_id = validate_uuid_id_param(
+            corporate_announcment_id, "corporate_announcment_id"
+        )
+
+        response = self.get(
+            f"/corporate_actions/announcements/{corporate_announcment_id}"
+        )
+
+        return CorporateActionAnnouncement(**response)

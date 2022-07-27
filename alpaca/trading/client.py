@@ -17,6 +17,7 @@ from alpaca.trading.requests import (
     CancelOrderResponse,
     CreateWatchlistRequest,
     UpdateWatchlistRequest,
+    GetCorporateAnnouncementsRequest,
 )
 
 from alpaca.trading.models import (
@@ -28,6 +29,7 @@ from alpaca.trading.models import (
     Clock,
     Calendar,
     TradeAccount,
+    CorporateActionAnnouncement,
 )
 
 
@@ -336,9 +338,7 @@ class TradingClient(RESTClient):
             List[Calendar]: A list of Calendar objects representing the market days.
         """
 
-        result = self.get(
-            "/calendar", filters.to_request_fields() if filters is not None else {}
-        )
+        result = self.get("/calendar", filters.to_request_fields() if filters else {})
 
         return parse_obj_as(List[Calendar], result)
 
@@ -498,3 +498,44 @@ class TradingClient(RESTClient):
         result = self.delete(f"/watchlists/{watchlist_id}/{symbol}")
 
         return Watchlist(**result)
+
+    # ############################## CORPORATE ACTIONS ################################# #
+
+    def get_corporate_annoucements(
+        self, filter: GetCorporateAnnouncementsRequest
+    ) -> List[CorporateActionAnnouncement]:
+        """
+        Returns corporate action announcements data given specified search criteria.
+        Args:
+            filter (GetCorporateAnnouncementsRequest): The parameters to filter the search by.
+        Returns:
+            List[CorporateActionAnnouncement]: The resulting announcements from the search.
+        """
+        params = filter.to_request_fields() if filter else {}
+
+        if "ca_types" in params and type(params["ca_types"]) is List:
+            params["ca_types"] = ",".join(params["ca_types"])
+
+        response = self.get("/corporate_actions/announcements", params)
+
+        return parse_obj_as(List[CorporateActionAnnouncement], response)
+
+    def get_corporate_announcment_by_id(
+        self, corporate_announcment_id: Union[UUID, str]
+    ) -> CorporateActionAnnouncement:
+        """
+        Returns a specific corporate action announcement.
+        Args:
+            corporate_announcment_id: The id of the desired corporate action announcement
+        Returns:
+            CorporateActionAnnouncement: The corporate action queried.
+        """
+        corporate_announcment_id = validate_uuid_id_param(
+            corporate_announcment_id, "corporate_announcment_id"
+        )
+
+        response = self.get(
+            f"/corporate_actions/announcements/{corporate_announcment_id}"
+        )
+
+        return CorporateActionAnnouncement(**response)

@@ -16,6 +16,7 @@ Contents
    broker/account_activities
    broker/calendar
    broker/clock
+   broker/corporate-actions
    broker/documents
    broker/funding
    broker/journals

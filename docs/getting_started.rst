@@ -25,6 +25,39 @@ Here are some things you can do with Alpaca-py.
 
 **Broker API & Connect**: Build investment apps - from robo-advisors to brokerages.
 
+
+Installation
+------------
+
+Alpaca-py is supported on Python 3.7+. You can install Alpaca-py using pip. To learn more
+about version histories, visit the `PyPI page <https://pypi.org/project/alpaca-py/>`_.
+
+To install Alpaca-py, run the following pip command in your terminal.
+
+.. code-block:: shell-session
+
+    pip install alpaca-py
+
+Errors
+^^^^^^
+
+Try upgrading your pip before installing if you face errors.
+
+.. code-block:: shell-session
+
+    pip install --upgrade pip
+
+Poetry
+^^^^^^
+
+If you're using poetry to manage dependencies in your project. You can add Alpaca-py
+to your project by running
+
+.. code-block:: shell-session
+
+    poetry add alpaca-py
+
+
 What's New?
 -----------
 
@@ -108,36 +141,6 @@ you to pick and choose clients based on your needs.
 **Market Data API:**  ``StockHistoricalDataClient``, ``CryptoHistoricalDataClient``, ``CryptoDataStream``, ``StockDataStream``
 
 
-Installation
-------------
-
-Alpaca-py is supported on Python 3.7+. You can install Alpaca-py using pip. To learn more
-about version histories, visit the `PyPI page <https://pypi.org/project/alpaca-py/>`_.
-
-To install Alpaca-py, run the following pip command in your terminal.
-
-.. code-block:: shell-session
-
-    pip install alpaca-py
-
-Errors
-^^^^^^
-
-Try upgrading your pip before installing if you face errors.
-
-.. code-block:: shell-session
-
-    pip install --upgrade pip
-
-Poetry
-^^^^^^
-
-If you're using poetry to manage dependencies in your project. You can add Alpaca-py
-to your project by running
-
-.. code-block:: shell-session
-
-    poetry add alpaca-py
 
 API Keys
 --------

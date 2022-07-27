@@ -42,10 +42,10 @@ Learn more about ``BrokerClient`` in the Broker reference page.
     BROKER_API_KEY = "api-key"
     BROKER_SECRET_KEY = "secret-key"
 
-    client = BrokerClient(
-                    api_key=Broker_API_KEY,
-                    secret_key=BROKER_SECRET_KEY,
-                    sandbox=True,
+    broker_client = BrokerClient(
+                        api_key=Broker_API_KEY,
+                        secret_key=BROKER_SECRET_KEY,
+                        sandbox=True,
                     )
 
 
@@ -177,8 +177,8 @@ your management. The method takes an optional parameter ``search_parameters`` wh
     # search for accounts created after January 30th 2022.
     #Response should contain Contact and Identity fields for each account.
     filter = ListAccountsRequest(
-                        created_after="2022-01-30",
-                        entities=[AccountEntities.Contact, AccountEntities.Identity]
+                        created_after=datetime.datetime.strptime("2022-01-30", "%Y-%m-%d"),
+                        entities=[AccountEntities.CONTACT, AccountEntities.IDENTITY]
                         )
 
     accounts = broker_client.list_accounts(search_parameters=filter)
@@ -246,9 +246,13 @@ ACH relationships must use ``CreateACHTransferRequest`` and bank relationships m
     transfer_data = CreateACHTransferRequest(
                         amount=1000,
                         direction=TransferDirection.INCOMING,
-                        timing=TransferTiming.IMMEDIATE
+                        timing=TransferTiming.IMMEDIATE,
                         relationship_id="0f08c6bc-8e9f-463d-a73f-fd047fdb5e94"
                     )
+    transfer = broker_client.create_transfer_for_account(
+                    account_id=account_id,
+                    transfer_data=transfer_data
+                )
 
 
 Journals
@@ -312,7 +316,7 @@ A batch journal lets you journal from one account into many accounts at the same
 
     batch_journal_data = CreateBatchJournalRequest(
                         entry_type=JournalEntryType.CASH,
-                        from_account="8f8c8cee-2591-4f83-be12-82c659b5e748"
+                        from_account="8f8c8cee-2591-4f83-be12-82c659b5e748",
                         entries=batch_entries
                     )
 
@@ -343,7 +347,7 @@ for a successful order.
 
     from alpaca.broker.client import BrokerClient
     from alpaca.broker.requests import MarketOrderRequest, LimitOrderRequest
-    from alpaca.common.enums import OrderSide, TimeInForce
+    from alpaca.trading.enums import OrderSide, TimeInForce
 
     broker_client = BrokerClient('api-key', 'secret-key')
 
@@ -353,29 +357,29 @@ for a successful order.
     # preparing orders
     market_order_data = MarketOrderRequest(
                         symbol="BTCUSD",
-                        notional=5000,
-                        side=OrderSide.BUY
-                        time_in_force=TimeInForce.DAY,
+                        qty=1,
+                        side=OrderSide.BUY,
+                        time_in_force=TimeInForce.GTC,
                         commission=1
-                   )
+                )
 
     limit_order_data = LimitOrderRequest(
                         symbol="SPY",
                         limit_price=300,
                         qty=10,
                         side=OrderSide.SELL,
-                        time_in_force=TimeInForce,
+                        time_in_force=TimeInForce.FOK,
                         commission=1
                   )
 
     # Market order
-    market_order = broker_client.submit_order(
+    market_order = broker_client.submit_order_for_account(
                     account_id=account_id,
                     order_data=market_order_data
                     )
 
     # Limit order
-    limit_order = broker_client.submit_order(
+    limit_order = broker_client.submit_order_for_account(
                     account_id=account_id,
                     order_data=limit_order_data
                    )

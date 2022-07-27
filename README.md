@@ -1,24 +1,45 @@
-# Alpaca-py
+[![Alpaca-py](https://github.com/alpacahq/alpaca-py/blob/master/docs/images/alpaca-py-banner.png?raw=true)](https://alpaca.markets/docs/python-sdk)
 
 [![Downloads](https://pepy.tech/badge/alpaca-py/month)](https://pepy.tech/project/alpaca-py)
 [![Python Versions](https://img.shields.io/pypi/pyversions/alpaca-py.svg?logo=python&logoColor=white)](https://pypi.org/project/alpaca-py)
 [![GitHub](https://img.shields.io/github/license/alpacahq/alpaca-py?color=blue)](https://github.com/alpacahq/alpaca-py/blob/master/LICENSE.md)
 [![PyPI](https://img.shields.io/pypi/v/alpaca-py?color=blue)](https://pypi.org/project/alpaca-py/)
-### About
 
-Alpaca-py provides an interface for interacting with the various REST and WebSocket endpoints Alpaca offers.
-You can access both historical and live market data for equities and cryptocurrencies via the Market Data API. 
-You can place trades for both crypto and equities through a uniform interface. Alpaca-py also offers the ability
-to manage your Broker API account by creating accounts, managing funds, and more. 
+## Table of Contents
+* [About](#about)
+* [Documentation](#documentation)
+* [Installation](#installation)
+* [What's New?](#whats-new)
+   1. [Broker API](#broker-api-new)
+   2. [OOP Design](#oop-design)
+   3. [Data Validation](#data-validation)
+   4. [Many Clients](#many-clients)
+* [API Keys](#api-keys)
+   1. [Trading and Market Data API Keys](#trading-api-keys)
+   2. [Broker API Keys](#trading-api-keys)
+* [Usage](#usage)
+   1. [Broker API Example](#broker-api-example)
+   2. [Trading API Example](#trading-api-example)
+   3. [Market Data API Example](#data-api-example)
+* [Contributing](https://github.com/alpacahq/alpaca-py/blob/master/CONTRIBUTING.md)
+* [License](https://github.com/alpacahq/alpaca-py/blob/master/LICENSE)
 
-Learn more about the API products [Alpaca]((https://alpaca.markets/)) offers.
+## About <a name="about"></a>
 
-**Note: AlpacaPy is in the very early stages of alpha development and is not production ready. Currently AlpacaPy
-interfaces with only the Market Data API, however the other APIs are coming soon.**
+Alpaca-py provides an interface for interacting with the API products Alpaca offers. These API products are provided as various REST, WebSocket and SSE endpoints that allow you to do everything from streaming market data to creating your own investment apps. 
 
-### Installation
+Learn more about the API products Alpaca offers at https://alpaca.markets.
 
-Alpaca-py is supported on Python 3.8+.  You can install Alpaca-py using pip.
+## Documentation <a name="documentation"></a>
+
+Alpaca-py has a supplementary documentation site which contains references for all clients, methods and models found in this codebase. The documentation
+also contains examples to get started with alpaca-py.
+
+You can find the documentation site here: https://alpaca.markets/docs/python-sdk
+
+## Installation <a name="installation"></a>
+
+Alpaca-py is supported on Python 3.7+.  You can install Alpaca-py using pip.
 
 Run the following command in your terminal.
 
@@ -26,14 +47,135 @@ Run the following command in your terminal.
   pip install alpaca-py
 ```
 
+## What’s New? <a name="whats-new"></a>
+If you’ve used the previous python SDK alpaca-trade-api, there are a few key differences to be aware of.
 
-### Dev setup
+### Broker API <a name="broker-api-new"></a>
+Alpaca-py lets you use Broker API to start building your investment apps! Learn more at the Broker page.
 
-This project is managed via poetry so setup should be just running `poetry install`.
+### OOP Design <a name="oop-design"></a>
+Alpaca-py uses a more OOP approach to submitting requests compared to the previous SDK. To submit a request, you will most likely need to create a request object containing the desired request data. There is a request object for each type of request.
 
-This repo is using [`pre-commit`](https://pre-commit.com/) to setup some checks to happen at commit time to keep the
-repo clean. To set these up after you've run `poetry install` just run `poetry run pre-commit install` to have
-pre-commit setup these hooks
+**Example**
+
+To submit an order, you will need to provide a `MarketOrderRequest` object.
+
+```python
+from alpaca.trading.client import TradingClient
+from alpaca.trading.requests import MarketOrderRequest
+from alpaca.trading.enums import OrderSide, TimeInForce
+
+client = TradingClient('api-key', 'secret-key')
+
+request_params = MarketOrderRequest(
+                        symbol="SPY",
+                        qty=3,
+                        side=OrderSide.BUY,
+                        time_in_force=TimeInForce.DAY
+                        )
+
+client.submit_order(order_data=request_params)
+```
+
+### Data Validation <a name="data-validation"></a>
+Alpaca-py uses pydantic to validate data models at run-time. This means if you are receiving request data via JSON from a client. You can handle parsing and validation through Alpaca’s request models. All request models can be instantiated by passing in data in dictionary format.
+
+### Many Clients <a name="many-clients"></a>
+Alpaca-py has a lot of client classes. There is a client for each API and even asset class specific clients (StockHistoricalData, CryptoDataStream). This requires you to pick and choose clients based on your needs.
+
+## API Keys <a name="api-keys"></a>
+
+### Trading and Market Data API <a name="trading-api-keys"></a>
+In order to use Alpaca’s services you’ll need to sign up for an Alpaca account and retrieve your API keys. Signing up is completely free and takes only a few minutes. Sandbox environments are available to test out the API. To use the sandbox environment, you will need to provide sandbox/paper keys. API keys are passed into Alpaca-py through either TradingClient, StockHistoricalDataClient, CryptoHistoricalDataClient, StockDataStream, or CryptoDataStream.
+
+### Broker API <a name="broker-api-keys"></a>
+To use the Broker API, you will need to sign up for a broker account and retrieve your Broker API keys. The API keys can be found on the dashboard once you’ve logged in. Alpaca also provides a sandbox environment to test out Broker API. To use the sandbox mode, provide your sandbox keys. Once you have your keys, you can pass them into BrokerClient to get started.
+
+## Usage <a name="usage"></a>
+Alpaca’s APIs allow you to do everything from building algorithmic trading strategies to building a full brokerage experience for your own end users. Here are some things you can do with Alpaca-py.
+
+To view full descriptions and examples view the [documentation page](https://alpaca.markets/docs/python-sdk/index.html).
+
+**Market Data API**: Access live and historical market data for 5000+ stocks and 20+ crypto.
+
+**Trading API**: Trade stock and crypto with lightning fast execution speeds.
+
+**Broker API & Connect**: Build investment apps - from robo-advisors to brokerages.
+
+### Broker API Example <a name="broker-api-example"></a>
+
+**Listing All Accounts**
+
+The BrokerClient::list_accounts method allows you to list all the brokerage accounts under your management. The method takes an optional parameter search_parameters which requires a ListAccountsRequest object. This parameter allows you filter the list of accounts returned.
+
+```python
+from alpaca.broker.client import BrokerClient
+from alpaca.broker.requests import ListAccountsRequest
+from alpaca.broker.enums import AccountEntities
+
+broker_client = BrokerClient('api-key', 'secret-key')
+
+# search for accounts created after January 30th 2022.
+# Response should contain Contact and Identity fields for each account.
+filter = ListAccountsRequest(
+                    created_after=datetime.datetime.strptime("2022-01-30", "%Y-%m-%d"),
+                    entities=[AccountEntities.CONTACT, AccountEntities.IDENTITY]
+                    )
+
+accounts = broker_client.list_accounts(search_parameters=filter)
+```
+
+### Trading API Example <a name="trading-api-example"></a>
+
+**Submitting an Order**
+
+To create on order on Alpaca-py you must use an OrderRequest object. There are different OrderRequest objects based on the type of order you want to make. For market orders, there is MarketOrderRequest, limit orders have LimitOrderRequest, stop orders StopOrderRequest, and trailing stop orders have TrailingStopOrderRequest. Each order type have their own required parameters for a successful order.
 
 
+```python
+from alpaca.trading.client import TradingClient
+from alpaca.trading.requests import MarketOrderRequest
+from alpaca.trading.enums import OrderSide, TimeInForce
 
+trading_client = TradingClient('api-key', 'secret-key')
+
+
+# preparing order data
+  market_order_data = MarketOrderRequest(
+                      symbol="BTC/USD",
+                      qty=0.0001,
+                      side=OrderSide.BUY,
+                      time_in_force=TimeInForce.DAY
+                  )
+
+# Market order
+market_order = trading_client.submit_order(
+                order_data=market_order_data
+```
+
+
+### Market Data API Example <a name="data-api-example"></a>
+**Querying Historical Bar Data**
+
+You can request bar data via the HistoricalDataClients. In this example, we query daily bar data for “BTC/USD” and “ETH/USD” since July 1st 2022. You can convert the response to a multi-index pandas dataframe using the .df property.
+
+```python
+from alpaca.data.historical import CryptoHistoricalDataClient
+from alpaca.data.requests import CryptoBarsRequest
+from alpaca.data.timeframe import TimeFrame
+
+# no keys required for crypto data
+client = CryptoHistoricalDataClient()
+
+request_params = CryptoBarsRequest(
+                        symbol_or_symbols=["BTC/USD", "ETH/USD"],
+                        timeframe=TimeFrame.Day,
+                        start="2022-07-01"
+                        )
+
+bars = client.get_crypto_bars(request_params)
+
+# convert to dataframe
+bars.df
+
+```

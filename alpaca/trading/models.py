@@ -498,7 +498,7 @@ class CorporateActionAnnouncement(BaseModel):
     initiating_original_cusip: str
     target_symbol: str
     target_original_cusip: str
-    declaration_date: date
+    declaration_date: Optional[date]
     ex_date: date
     record_date: date
     payable_date: date

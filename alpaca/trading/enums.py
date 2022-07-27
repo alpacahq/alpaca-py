@@ -257,3 +257,11 @@ class AccountStatus(str, Enum):
     SIGNED_UP = "SIGNED_UP"
     SUBMISSION_FAILED = "SUBMISSION_FAILED"
     SUBMITTED = "SUBMITTED"
+
+
+class CorporateActionDateType(str, Enum):
+
+    DECLARATION_DATE = "declaration_date"
+    EX_DATE = "ex_date"
+    RECORD_DATE = "record_date"
+    PAYABLE_DATE = "payable_date"

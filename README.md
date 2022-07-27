@@ -83,10 +83,32 @@ client.submit_order(order_data=request_params)
 ```
 
 ### Data Validation <a name="data-validation"></a>
-Alpaca-py uses pydantic to validate data models at run-time. This means if you are receiving request data via JSON from a client. You can handle parsing and validation through Alpaca’s request models. All request models can be instantiated by passing in data in dictionary format.
+Alpaca-py uses *pydantic* to validate data models at run-time. This means if you are receiving request data via JSON from a client. You can handle parsing and validation through Alpaca’s request models. All request models can be instantiated by passing in data in dictionary format.
+
+Here is a rough example of what is possible.
+
+```python
+
+ @app.route('/post_json', methods=['POST'])
+ def do_trade():
+     # ...
+
+     order_data_json = request.get_json()
+
+     # validate data
+     MarketOrderRequest(**order_data_json)
+
+     # ...
+```
 
 ### Many Clients <a name="many-clients"></a>
-Alpaca-py has a lot of client classes. There is a client for each API and even asset class specific clients (StockHistoricalData, CryptoDataStream). This requires you to pick and choose clients based on your needs.
+Alpaca-py has a lot of client classes. There is a client for each API and even asset class specific clients (``StockHistoricalDataClient``, ``CryptoDataStream``). This requires you to pick and choose clients based on your needs.
+
+**Broker API:** ``BrokerClient``
+
+**Trading API:** ``TradingClient``
+
+**Market Data API:**  ``StockHistoricalDataClient``, ``CryptoHistoricalDataClient``, ``CryptoDataStream``, ``StockDataStream``
 
 ## API Keys <a name="api-keys"></a>
 

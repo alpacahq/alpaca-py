@@ -56,8 +56,8 @@ provided, a list of all available assets will be returned. Search parameters for
 .. code-block:: python
 
     from alpaca.trading.client import TradingClient
-    from alpaca.common.requests import GetAssetsRequest
-    from alpaca.common.enums import AssetClass
+    from alpaca.trading.requests import GetAssetsRequest
+    from alpaca.trading.enums import AssetClass
 
     trading_client = TradingClient('api-key', 'secret-key')
 
@@ -96,11 +96,11 @@ for a successful order.
 
     # preparing orders
     market_order_data = MarketOrderRequest(
-                        symbol="BTCUSD",
-                        notional=5000,
-                        side=OrderSide.BUY
+                        symbol="BTC/USD",
+                        qty=0.0001,
+                        side=OrderSide.BUY,
                         time_in_force=TimeInForce.DAY
-                   )
+                    )
 
     # Market order
     market_order = trading_client.submit_order(
@@ -123,7 +123,7 @@ for a successful order.
                         limit_price=300,
                         qty=10,
                         side=OrderSide.SELL,
-                        time_in_force=TimeInForce
+                        time_in_force=TimeInForce.FOK
                   )
 
     # Limit order
@@ -188,9 +188,9 @@ return a list of `Position` objects.
 
     from alpaca.trading.client import TradingClient
 
-    client = TradingClient('api-key', 'secret-key')
+    trading_client = TradingClient('api-key', 'secret-key')
 
-    client.get_all_positions()
+    trading_client.get_all_positions()
 
 
 
@@ -204,10 +204,10 @@ the method will also cancel all open orders, preventing you from entering into a
 
     from alpaca.trading.client import TradingClient
 
-    client = TradingClient('api-key', 'secret-key')
+    trading_client = TradingClient('api-key', 'secret-key')
 
     # closes all position AND also cancels all open orders
-    client.close_all_positions(cancel_orders=True)
+    trading_client.close_all_positions(cancel_orders=True)
 
 
 

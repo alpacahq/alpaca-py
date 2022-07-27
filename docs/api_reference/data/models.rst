@@ -51,7 +51,14 @@ Snapshot
 .. autoclass:: alpaca.data.models.snapshots.Snapshot
 
 
-SnapshotSet
------------
+-----
 
-.. autoclass:: alpaca.data.models.snapshots.SnapshotSet
+Orderbook
+---------
+
+.. autoclass:: alpaca.data.models.orderbooks.Orderbook
+
+OrderbookQuote
+--------------
+
+.. autoclass:: alpaca.data.models.orderbooks.OrderbookQuote

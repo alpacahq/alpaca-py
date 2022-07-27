@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict
 
 from alpaca.common.types import RawData
 from alpaca.common.models import ValidateBaseModel as BaseModel
@@ -49,43 +49,3 @@ class Snapshot(BaseModel):
         )
 
         super().__init__(symbol=symbol, **mapped_snapshot)
-
-
-class SnapshotSet(BaseModel):
-    """A collection of Snapshots keyed by symbol
-
-    Attributes:
-        data (Dict[str, Snapshot]): Snapshot data keyed by symbol
-    """
-
-    data: Dict[str, Snapshot]
-
-    def __init__(self, raw_data: Dict[str, RawData]) -> None:
-        """Instantiates a collection of Snapshot.
-
-        Args:
-            raw_data: The raw snapshot data from API.
-        """
-        parsed_snapshots = {}
-
-        for symbol, snapshot in raw_data.items():
-            parsed_snapshots[symbol] = Snapshot(symbol, snapshot)
-
-        super().__init__(data=parsed_snapshots)
-
-    def __getitem__(self, symbol: str) -> Any:
-        """Gives dictionary-like access to multi-symbol data
-
-        Args:
-            symbol (str): The ticker identifier for the desired data
-
-        Raises:
-            KeyError: Symbol does not exist for data
-
-        Returns:
-            List[Bar]: The data for the given symbol
-        """
-        if symbol not in self.data:
-            raise KeyError(f"No key {symbol} was found.")
-
-        return self.data[symbol]

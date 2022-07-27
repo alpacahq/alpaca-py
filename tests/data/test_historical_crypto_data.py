@@ -1,3 +1,6 @@
+from typing import Dict
+
+from alpaca.data import Quote, Trade
 from alpaca.data.historical.crypto import CryptoHistoricalDataClient
 from alpaca.data.requests import (
     CryptoBarsRequest,
@@ -11,7 +14,7 @@ from alpaca.data.timeframe import TimeFrame
 from alpaca.data.models import (
     BarSet,
     QuoteSet,
-    SnapshotSet,
+    Snapshot,
     TradeSet,
 )
 
@@ -211,12 +214,16 @@ def test_get_crypto_latest_trade(reqmock, crypto_client: CryptoHistoricalDataCli
 
     request = CryptoLatestTradeRequest(symbol_or_symbols=symbol)
 
-    trade = crypto_client.get_crypto_latest_trade(request)
+    trades = crypto_client.get_crypto_latest_trade(request)
 
-    assert isinstance(trade, TradeSet)
+    assert isinstance(trades, Dict)
 
-    assert trade[symbol][0].price == 40650
-    assert trade[symbol][0].size == 0.1517
+    trade = trades[symbol]
+
+    assert isinstance(trade, Trade)
+
+    assert trade.price == 40650
+    assert trade.size == 0.1517
 
     assert reqmock.called_once
 
@@ -244,12 +251,16 @@ def test_get_crypto_latest_quote(reqmock, crypto_client: CryptoHistoricalDataCli
 
     request = CryptoLatestQuoteRequest(symbol_or_symbols=symbol)
 
-    quote = crypto_client.get_crypto_latest_quote(request)
+    quotes = crypto_client.get_crypto_latest_quote(request)
 
-    assert isinstance(quote, QuoteSet)
+    assert isinstance(quotes, Dict)
 
-    assert quote[symbol][0].ask_price == 40765.93
-    assert quote[symbol][0].bid_size == 4.0178
+    quote = quotes[symbol]
+
+    assert isinstance(quote, Quote)
+
+    assert quote.ask_price == 40765.93
+    assert quote.bid_size == 4.0178
 
     assert reqmock.called_once
 
@@ -366,13 +377,16 @@ def test_crypto_get_snapshot(reqmock, crypto_client: CryptoHistoricalDataClient)
     request = CryptoSnapshotRequest(symbol_or_symbols=symbols)
     snapshots = crypto_client.get_crypto_snapshot(request)
 
-    assert isinstance(snapshots, SnapshotSet)
+    assert isinstance(snapshots, Dict)
+    snapshot = snapshots["BTC/USD"]
 
-    assert snapshots["ETH/USD"].latest_trade.price == 3373.04
-    assert snapshots["ETH/USD"].latest_quote.bid_size == 0.001
-    assert snapshots["ETH/USD"].daily_bar.low == 3305
-    assert snapshots["BTC/USD"].minute_bar.close == 47532.2
-    assert snapshots["BTC/USD"].daily_bar.volume == 8888.08292165
-    assert snapshots["BTC/USD"].previous_daily_bar.high == 47694
+    assert isinstance(snapshot, Snapshot)
+
+    assert snapshot.latest_trade.price == 47537.64
+    assert snapshot.latest_quote.bid_size == 1.65666998
+    assert snapshot.daily_bar.low == 46770.7
+    assert snapshot.minute_bar.close == 47532.2
+    assert snapshot.daily_bar.volume == 8888.08292165
+    assert snapshot.previous_daily_bar.high == 47694
 
     assert reqmock.called_once

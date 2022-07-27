@@ -7,6 +7,10 @@
    broker
    api_reference/index
 
+.. meta::
+   :description: The Official Python SDK for Alpaca's Suite of APIs
+   
+
 Alpaca-py Documentation
 =======================
 

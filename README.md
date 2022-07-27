@@ -102,6 +102,8 @@ To view full descriptions and examples view the [documentation page](https://alp
 
 **Listing All Accounts**
 
+The BrokerClient::list_accounts method allows you to list all the brokerage accounts under your management. The method takes an optional parameter search_parameters which requires a ListAccountsRequest object. This parameter allows you filter the list of accounts returned.
+
 ```python
 from alpaca.broker.client import BrokerClient
 from alpaca.broker.requests import ListAccountsRequest
@@ -122,6 +124,9 @@ accounts = broker_client.list_accounts(search_parameters=filter)
 ### Trading API Example <a name="trading-api-example"></a>
 
 **Submitting an Order**
+
+To create on order on Alpaca-py you must use an OrderRequest object. There are different OrderRequest objects based on the type of order you want to make. For market orders, there is MarketOrderRequest, limit orders have LimitOrderRequest, stop orders StopOrderRequest, and trailing stop orders have TrailingStopOrderRequest. Each order type have their own required parameters for a successful order.
+
 
 ```python
 from alpaca.trading.client import TradingClient
@@ -146,6 +151,9 @@ market_order = trading_client.submit_order(
 
 
 ### Market Data API Example <a name="data-api-example"></a>
+** Querying Historical Bar Data**
+
+You can request bar data via the HistoricalDataClients. In this example, we query daily bar data for “BTC/USD” and “ETH/USD” since July 1st 2022. You can convert the response to a multi-index pandas dataframe using the .df property.
 
 ```python
 from alpaca.data.historical import CryptoHistoricalDataClient
@@ -167,7 +175,6 @@ bars = client.get_crypto_bars(request_params)
 bars.df
 
 ```
-
 
 ## Dev setup
 

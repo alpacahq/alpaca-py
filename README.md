@@ -4,17 +4,19 @@
 [![Python Versions](https://img.shields.io/pypi/pyversions/alpaca-py.svg?logo=python&logoColor=white)](https://pypi.org/project/alpaca-py)
 [![GitHub](https://img.shields.io/github/license/alpacahq/alpaca-py?color=blue)](https://github.com/alpacahq/alpaca-py/blob/master/LICENSE.md)
 [![PyPI](https://img.shields.io/pypi/v/alpaca-py?color=blue)](https://pypi.org/project/alpaca-py/)
+
+## Table of Contents
+1. [About](#About)
+2. [Installation](#Installation)
+3. [Usage](#Usage)
+4. [What's New?](#whats-new)
+
 ## About
 
 Alpaca-py provides an interface for interacting with the API products Alpaca offers. These API products are provided as various REST, WebSocket and SSE endpoints that allow you to do everything from streaming market data to creating your own trading apps. 
 
 Learn more about the API products [Alpaca]((https://alpaca.markets/)) offers.
 
-# Table of Contents
-1. [About](#About)
-2. [Installation](#Installation)
-3. [Usage](#Usage)
-4. [What's New?](#What's New?)
 
 ## Installation
 
@@ -35,7 +37,7 @@ Alpaca’s APIs allow you to do everything from building algorithmic trading str
 
 **Broker API & Connect**: Build investment apps - from robo-advisors to brokerages.
 
-## What’s New?
+## What’s New? <a name="whats-new"></a>
 If you’ve used the previous python SDK alpaca-trade-api, there are a few key differences to be aware of.
 
 ### Broker API

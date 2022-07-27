@@ -7,6 +7,7 @@
 
 ## Table of Contents
 * [About](#About)
+* [Documentation](#Documentation)
 * [Installation](#Installation)
 * [Usage](#Usage)
 * [What's New?](#whats-new)
@@ -18,7 +19,7 @@ Alpaca-py provides an interface for interacting with the API products Alpaca off
 
 Learn more about the API products Alpaca offers at https://alpaca.markets.
 
-## Documentation Site
+## Documentation
 
 Alpaca-py has a supplementary documentation site which contains references for all clients, methods and models found in this codebase. The documentation
 also contains examples to get started with alpaca-py.

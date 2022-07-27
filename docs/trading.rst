@@ -83,14 +83,16 @@ To create on order on Alpaca-py you must use an ``OrderRequest`` object. There a
 trailing stop orders have ``TrailingStopOrderRequest``. Each order type have their own required parameters
 for a successful order.
 
+
+**Market Order***
+
 .. code-block:: python
 
     from alpaca.trading.client import TradingClient
-    from alpaca.common.requests import MarketOrderRequest, LimitOrderRequest
+    from alpaca.common.requests import MarketOrderRequest
     from alpaca.common.enums import OrderSide, TimeInForce
 
-    trading_client = TradingClient('api-key', 'secret-key')
-
+    trading_client = TradingClient('api-key', 'secret-key', paper=True)
 
     # preparing orders
     market_order_data = MarketOrderRequest(
@@ -100,6 +102,22 @@ for a successful order.
                         time_in_force=TimeInForce.DAY
                    )
 
+    # Market order
+    market_order = trading_client.submit_order(
+                    order_data=market_order_data
+                    )
+
+**Limit Order**
+
+.. code-block:: python
+
+    from alpaca.trading.client import TradingClient
+    from alpaca.common.requests import LimitOrderRequest
+    from alpaca.common.enums import OrderSide, TimeInForce
+
+    trading_client = TradingClient('api-key', 'secret-key', paper=True)
+
+
     limit_order_data = LimitOrderRequest(
                         symbol="SPY",
                         limit_price=300,
@@ -108,16 +126,51 @@ for a successful order.
                         time_in_force=TimeInForce
                   )
 
-    # Market order
-    market_order = trading_client.submit_order(
-                    order_data=market_order_data
-                    )
-
     # Limit order
     limit_order = trading_client.submit_order(
                     order_data=limit_order_data
                    )
 
+
+Getting All Orders
+^^^^^^^^^^^^^^^^^^
+
+We can query all the orders associated with our account. It is possible to narrow
+the query by passing in parameters through the `GetOrdersRequest` model.
+
+.. code-block:: python
+
+    from alpaca.trading.client import TradingClient
+    from alpaca.common.requests import GetOrdersRequest
+    from alpaca.common.enums import OrderSide, OrderStatus
+
+    trading_client = TradingClient('api-key', 'secret-key', paper=True)
+
+    # params to filter orders by
+    request_params = GetOrdersRequest(
+                        status=OrderStatus.OPEN,
+                        side=OrderSide.SELL
+                    )
+
+    # orders that satisfy params
+    orders = trading_client.get_orders(filter=request_params)
+
+
+Cancel All Orders
+^^^^^^^^^^^^^^^^^
+
+We can attempt to cancel all open orders with this method. The method takes no parameters and returns a list
+of `CancelOrderResponse` objects. The cancellation of an order is not guaranteed. The `CancelOrderResponse` objects
+contain information about the cancel status of each attempted order cancellation.
+
+.. code-block:: python
+
+    from alpaca.trading.client import TradingClient
+
+    trading_client = TradingClient('api-key', 'secret-key', paper=True)
+
+    # attempt to cancel all open orders
+    cancel_statuses = trading_client.cancel_orders()
 
 Positions
 ---------

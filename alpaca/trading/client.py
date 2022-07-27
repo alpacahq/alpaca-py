@@ -41,7 +41,7 @@ class TradingClient(RESTClient):
         api_key: Optional[str] = None,
         secret_key: Optional[str] = None,
         oauth_token: Optional[str] = None,
-        sandbox: bool = True,
+        paper: bool = True,
         raw_data: bool = False,
         url_override: Optional[str] = None,
     ) -> None:
@@ -53,9 +53,9 @@ class TradingClient(RESTClient):
             base_url=url_override
             if url_override
             else BaseURL.TRADING_PAPER
-            if sandbox
+            if paper
             else BaseURL.TRADING_LIVE,
-            sandbox=sandbox,
+            sandbox=paper,
             raw_data=raw_data,
         )
 

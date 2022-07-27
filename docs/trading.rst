@@ -14,6 +14,16 @@ Alpaca offers a paper trading sandbox environment so you can test out the API or
 before you go live. The paper trading environment is free to use. You can learn more about paper trading
 on the `Alpaca API documentation <https://alpaca.markets/docs/trading/paper-trading/>`_.
 
+To use paper trading, you will need to set the `paper` parameter to `True` when instantiating the
+`TradingClient`. Make sure the keys you are providing correspond to a paper account.
+
+.. code-block:: python
+
+    from alpaca.trading.client import TradingClient
+
+    # paper=True enables paper trading
+    trading_client = TradingClient('api-key', 'secret-key', paper=True)
+
 Retrieving Account Details
 --------------------------
 

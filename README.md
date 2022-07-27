@@ -54,9 +54,14 @@ If you’ve used the previous python SDK alpaca-trade-api, there are a few key d
 Alpaca-py lets you use Broker API to start building your investment apps! Learn more at the [Broker](https://alpaca.markets/docs/python-sdk/broker.html) page.
 
 ### OOP Design <a name="oop-design"></a>
-Alpaca-py uses a more OOP approach to submitting requests compared to the previous SDK. To submit a request, you will most likely need to create a request object containing the desired request data. There is a request object for each type of request.
+Alpaca-py uses a more OOP approach to submitting requests compared to the previous SDK. To submit a request, you will most likely need to create a request object containing the desired request data. Generally, there is a unique request model for each method. 
 
-**Example**
+Some examples of request models corresponding to methods: 
+
+* ``GetOrdersRequest`` for ``TradingClient.get_orders()``
+* ``CryptoLatestOrderbookRequest`` for ``CryptoHistoricalDataClient.get_crypto_latest_orderbook()``
+
+**Usage Example**
 
 To submit an order, you will need to provide a `MarketOrderRequest` object.
 

@@ -113,10 +113,10 @@ Alpaca-py has a lot of client classes. There is a client for each API and even a
 ## API Keys <a name="api-keys"></a>
 
 ### Trading and Market Data API <a name="trading-api-keys"></a>
-In order to use Alpaca’s services you’ll need to sign up for an Alpaca account and retrieve your API keys. Signing up is completely free and takes only a few minutes. Sandbox environments are available to test out the API. To use the sandbox environment, you will need to provide sandbox/paper keys. API keys are passed into Alpaca-py through either TradingClient, StockHistoricalDataClient, CryptoHistoricalDataClient, StockDataStream, or CryptoDataStream.
+In order to use Alpaca’s services you’ll need to sign up for an Alpaca account and retrieve your API keys. Signing up is completely free and takes only a few minutes. Sandbox environments are available to test out the API. To use the sandbox environment, you will need to provide sandbox/paper keys. API keys are passed into Alpaca-py through either ``TradingClient``, ``StockHistoricalDataClient``, ``CryptoHistoricalDataClient``, ``StockDataStream``, or ``CryptoDataStream``.
 
 ### Broker API <a name="broker-api-keys"></a>
-To use the Broker API, you will need to sign up for a broker account and retrieve your Broker API keys. The API keys can be found on the dashboard once you’ve logged in. Alpaca also provides a sandbox environment to test out Broker API. To use the sandbox mode, provide your sandbox keys. Once you have your keys, you can pass them into BrokerClient to get started.
+To use the Broker API, you will need to sign up for a broker account and retrieve your Broker API keys. The API keys can be found on the dashboard once you’ve logged in. Alpaca also provides a sandbox environment to test out Broker API. To use the sandbox mode, provide your sandbox keys. Once you have your keys, you can pass them into ``BrokerClient`` to get started.
 
 ## Usage <a name="usage"></a>
 Alpaca’s APIs allow you to do everything from building algorithmic trading strategies to building a full brokerage experience for your own end users. Here are some things you can do with Alpaca-py.
@@ -133,7 +133,7 @@ To view full descriptions and examples view the [documentation page](https://alp
 
 **Listing All Accounts**
 
-The BrokerClient::list_accounts method allows you to list all the brokerage accounts under your management. The method takes an optional parameter search_parameters which requires a ListAccountsRequest object. This parameter allows you filter the list of accounts returned.
+The ``BrokerClient.list_accounts`` method allows you to list all the brokerage accounts under your management. The method takes an optional parameter ``search_parameters`` which requires a ``ListAccountsRequest`` object. This parameter allows you filter the list of accounts returned.
 
 ```python
 from alpaca.broker.client import BrokerClient
@@ -156,7 +156,7 @@ accounts = broker_client.list_accounts(search_parameters=filter)
 
 **Submitting an Order**
 
-To create on order on Alpaca-py you must use an OrderRequest object. There are different OrderRequest objects based on the type of order you want to make. For market orders, there is MarketOrderRequest, limit orders have LimitOrderRequest, stop orders StopOrderRequest, and trailing stop orders have TrailingStopOrderRequest. Each order type have their own required parameters for a successful order.
+To create on order on Alpaca-py you must use an ``OrderRequest`` object. There are different ``OrderRequest`` objects based on the type of order you want to make. For market orders, there is ``MarketOrderRequest``, limit orders have ``LimitOrderRequest``, stop orders ``StopOrderRequest``, and trailing stop orders have ``TrailingStopOrderRequest``. Each order type have their own required parameters for a successful order.
 
 
 ```python
@@ -185,7 +185,7 @@ market_order = trading_client.submit_order(
 ### Market Data API Example <a name="data-api-example"></a>
 **Querying Historical Bar Data**
 
-You can request bar data via the HistoricalDataClients. In this example, we query daily bar data for “BTC/USD” and “ETH/USD” since July 1st 2022. You can convert the response to a multi-index pandas dataframe using the .df property.
+You can request bar data via the HistoricalDataClients. In this example, we query daily bar data for “BTC/USD” and “ETH/USD” since July 1st 2022. You can convert the response to a multi-index pandas dataframe using the ``.df`` property.
 
 ```python
 from alpaca.data.historical import CryptoHistoricalDataClient

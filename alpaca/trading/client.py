@@ -239,6 +239,8 @@ class TradingClient(RESTClient):
             "/positions",
             {"cancel_orders": cancel_orders},
         )
+
+        print(response)
         return parse_obj_as(List[ClosePositionResponse], response)
 
     def close_position(
@@ -250,6 +252,8 @@ class TradingClient(RESTClient):
         Liquidates the position for a single asset.
 
         Places a single order to close the position for the asset.
+
+        **This method will throw an error if the position does not exist!**
 
         Args:
             symbol_or_asset_id (Union[UUID, str]): The symbol name of asset id of the position to close.

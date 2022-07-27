@@ -80,11 +80,21 @@ def test_position_uuid():
 
 def test_close_position_response_uuid():
     """Tests that the order id is up-casted to UUID."""
-    close_position_response = ClosePositionResponse(
-        order_id="904837e3-3b76-47ec-b432-046db621571b", status_code=201
-    )
+    data = {
+        "symbol": "SQQQ",
+        "status": 403,
+        "body": {
+            "available": "0",
+            "code": 40310000,
+            "existing_qty": "1000",
+            "held_for_orders": "1000",
+            "message": "insufficient qty available for order (requested: 1000, available: 0)",
+            "symbol": "SQQQ",
+        },
+    }
+    close_position_response = ClosePositionResponse(**data)
 
-    assert isinstance(close_position_response.order_id, UUID)
+    assert isinstance(close_position_response.symbol, str)
 
 
 def test_order_timestamps():

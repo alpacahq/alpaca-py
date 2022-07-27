@@ -631,7 +631,9 @@ class OrderRequest(BaseOrderRequest):
 
     Attributes:
         symbol (str): The symbol identifier for the asset being traded
-        qty (Optional[float]): The number of shares to trade. Fractional qty available only with market orders.
+        qty (Optional[float]): The number of shares to trade. Fractional qty for stocks only with market orders.
+        notional (Optional[float]): The base currency value of the shares to trade. For stocks, only works with MarketOrders.
+            **Does not work with qty**.
         side (OrderSide): Whether the order will buy or sell the asset.
         type (OrderType): The execution logic type of the order (market, limit, etc).
         time_in_force (TimeInForce): The expiration logic of the order.
@@ -652,7 +654,9 @@ class MarketOrderRequest(BaseMarketOrderRequest):
 
     Attributes:
         symbol (str): The symbol identifier for the asset being traded
-        qty (Optional[float]): The number of shares to trade. Fractional qty available only with market orders.
+        qty (Optional[float]): The number of shares to trade. Fractional qty for stocks only with market orders.
+        notional (Optional[float]): The base currency value of the shares to trade. For stocks, only works with MarketOrders.
+            **Does not work with qty**.
         side (OrderSide): Whether the order will buy or sell the asset.
         type (OrderType): The execution logic type of the order (market, limit, etc).
         time_in_force (TimeInForce): The expiration logic of the order.
@@ -661,7 +665,6 @@ class MarketOrderRequest(BaseMarketOrderRequest):
         order_class (Optional[OrderClass]): The class of the order. Simple orders have no other legs.
         take_profit (Optional[TakeProfitRequest]): For orders with multiple legs, an order to exit a profitable trade.
         stop_loss (Optional[StopLossRequest]): For orders with multiple legs, an order to exit a losing trade.
-        notional (Optional[float]): The cash value of the shares to trade. Only works with market orders.
         commission (Optional[float]): The dollar value commission you want to charge the end user.
     """
 
@@ -674,7 +677,9 @@ class LimitOrderRequest(BaseLimitOrderRequest):
 
     Attributes:
         symbol (str): The symbol identifier for the asset being traded
-        qty (Optional[float]): The number of shares to trade. Fractional qty available only with market orders.
+        qty (Optional[float]): The number of shares to trade. Fractional qty for stocks only with market orders.
+        notional (Optional[float]): The base currency value of the shares to trade. For stocks, only works with MarketOrders.
+            **Does not work with qty**.
         side (OrderSide): Whether the order will buy or sell the asset.
         type (OrderType): The execution logic type of the order (market, limit, etc).
         time_in_force (TimeInForce): The expiration logic of the order.
@@ -696,7 +701,9 @@ class StopOrderRequest(BaseStopOrderRequest):
 
     Attributes:
         symbol (str): The symbol identifier for the asset being traded
-        qty (Optional[float]): The number of shares to trade. Fractional qty available only with market orders.
+        qty (Optional[float]): The number of shares to trade. Fractional qty for stocks only with market orders.
+        notional (Optional[float]): The base currency value of the shares to trade. For stocks, only works with MarketOrders.
+            **Does not work with qty**.
         side (OrderSide): Whether the order will buy or sell the asset.
         type (OrderType): The execution logic type of the order (market, limit, etc).
         time_in_force (TimeInForce): The expiration logic of the order.
@@ -719,7 +726,9 @@ class StopLimitOrderRequest(BaseStopLimitOrderRequest):
 
     Attributes:
         symbol (str): The symbol identifier for the asset being traded
-        qty (Optional[float]): The number of shares to trade. Fractional qty available only with market orders.
+        qty (Optional[float]): The number of shares to trade. Fractional qty for stocks only with market orders.
+        notional (Optional[float]): The base currency value of the shares to trade. For stocks, only works with MarketOrders.
+            **Does not work with qty**.
         side (OrderSide): Whether the order will buy or sell the asset.
         type (OrderType): The execution logic type of the order (market, limit, etc).
         time_in_force (TimeInForce): The expiration logic of the order.
@@ -743,7 +752,9 @@ class TrailingStopOrderRequest(BaseTrailingStopOrderRequest):
 
     Attributes:
         symbol (str): The symbol identifier for the asset being traded
-        qty (Optional[float]): The number of shares to trade. Fractional qty available only with market orders.
+        qty (Optional[float]): The number of shares to trade. Fractional qty for stocks only with market orders.
+        notional (Optional[float]): The base currency value of the shares to trade. For stocks, only works with MarketOrders.
+            **Does not work with qty**.
         side (OrderSide): Whether the order will buy or sell the asset.
         type (OrderType): The execution logic type of the order (market, limit, etc).
         time_in_force (TimeInForce): The expiration logic of the order.

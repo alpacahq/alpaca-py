@@ -8,6 +8,7 @@ Contents
 .. toctree::
    :maxdepth: 2
 
+   trading/trading-client
    trading/account
    trading/positions
    trading/orders

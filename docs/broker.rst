@@ -388,7 +388,7 @@ Get All Positions
 ^^^^^^^^^^^^^^^^^
 
 You can retrieve all open positions for a specific account using only the ``account_id``.
-This will return a list of `Position` objects.
+This will return a list of ``Position`` objects.
 
 
 .. code-block:: python

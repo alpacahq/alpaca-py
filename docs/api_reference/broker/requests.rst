@@ -164,7 +164,3 @@ GetJournalsRequest
 
 .. autoclass:: alpaca.broker.requests.GetJournalsRequest
 
-
-
-
-

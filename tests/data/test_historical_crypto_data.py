@@ -1,6 +1,6 @@
 from typing import Dict
 
-from alpaca.data import Quote, Trade
+from alpaca.data import Quote, Trade, Bar
 from alpaca.data.historical.crypto import CryptoHistoricalDataClient
 from alpaca.data.requests import (
     CryptoBarsRequest,
@@ -9,6 +9,7 @@ from alpaca.data.requests import (
     CryptoLatestTradeRequest,
     CryptoLatestQuoteRequest,
     CryptoSnapshotRequest,
+    CryptoLatestBarRequest,
 )
 from alpaca.data.timeframe import TimeFrame
 from alpaca.data.models import (
@@ -388,5 +389,46 @@ def test_crypto_get_snapshot(reqmock, crypto_client: CryptoHistoricalDataClient)
     assert snapshot.minute_bar.close == 47532.2
     assert snapshot.daily_bar.volume == 8888.08292165
     assert snapshot.previous_daily_bar.high == 47694
+
+    assert reqmock.called_once
+
+
+def test_crypto_latest_bar(reqmock, crypto_client: CryptoHistoricalDataClient):
+
+    symbol = "BTC/USD"
+    reqmock.get(
+        f"https://data.alpaca.markets/v1beta2/crypto/latest/bars?symbols={symbol}",
+        text="""
+           {
+            "bars": {
+                "BTC/USD": 
+                    {
+                        "t": "2022-05-27T10:18:00Z",
+                        "o": 28999,
+                        "h": 29003,
+                        "l": 28999,
+                        "c": 29003,
+                        "v": 0.01,
+                        "n": 4,
+                        "vw": 29001
+                    }
+                
+            },
+            "next_page_token": null
+        }
+    """,
+    )
+
+    request = CryptoLatestBarRequest(symbol_or_symbols=symbol)
+
+    bars = crypto_client.get_crypto_latest_bar(request)
+
+    assert isinstance(bars, Dict)
+
+    bar = bars[symbol]
+
+    assert isinstance(bar, Bar)
+
+    assert bar.open == 28999
 
     assert reqmock.called_once

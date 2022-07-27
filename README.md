@@ -12,6 +12,8 @@
 * [Usage](#Usage)
 * [What's New?](#whats-new)
 * [API Keys](#api-keys)
+* [Contributing](https://github.com/alpacahq/alpaca-py/blob/master/CONTRIBUTING.md)
+* [License](https://github.com/alpacahq/alpaca-py/blob/master/LICENSE)
 
 ## About
 

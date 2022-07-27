@@ -6,10 +6,11 @@
 [![PyPI](https://img.shields.io/pypi/v/alpaca-py?color=blue)](https://pypi.org/project/alpaca-py/)
 
 ## Table of Contents
-1. [About](#About)
-2. [Installation](#Installation)
-3. [Usage](#Usage)
-4. [What's New?](#whats-new)
+* [About](#About)
+* [Installation](#Installation)
+* [Usage](#Usage)
+* [What's New?](#whats-new)
+* [API Keys](#api-keys)
 
 ## About
 
@@ -72,6 +73,14 @@ Alpaca-py uses pydantic to validate data models at run-time. This means if you a
 
 ### Many Clients
 Alpaca-py has a lot of client classes. There is a client for each API and even asset class specific clients (StockHistoricalData, CryptoDataStream). This requires you to pick and choose clients based on your needs.
+
+## API Keys <a name="api-keys"></a>
+
+### Trading and Market Data API
+In order to use Alpaca’s services you’ll need to sign up for an Alpaca account and retrieve your API keys. Signing up is completely free and takes only a few minutes. Sandbox environments are available to test out the API. To use the sandbox environment, you will need to provide sandbox/paper keys. API keys are passed into Alpaca-py through either TradingClient, StockHistoricalDataClient, CryptoHistoricalDataClient, StockDataStream, or CryptoDataStream.
+
+### Broker API
+To use the Broker API, you will need to sign up for a broker account and retrieve your Broker API keys. The API keys can be found on the dashboard once you’ve logged in. Alpaca also provides a sandbox environment to test out Broker API. To use the sandbox mode, provide your sandbox keys. Once you have your keys, you can pass them into BrokerClient to get started.
 
 ## Dev setup
 

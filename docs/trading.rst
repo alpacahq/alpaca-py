@@ -84,7 +84,15 @@ trailing stop orders have ``TrailingStopOrderRequest``. Each order type have the
 for a successful order.
 
 
-**Market Order***
+**Market Order**
+
+A market order is an order to buy or sell a stock at the best available price. Generally,
+this type of order will be executed immediately. However, the price at which a market order will be executed is not guaranteed.Mar
+
+Market orders allow the trade of fractional shares for stocks. Fractional shares must be denoted either with
+a non-integer `qty` value or with the use of the `notional` parameter. The `notional` parameter allows you to denote the amount you wish to trade in units of the quote currency.
+For example, instead of trading 1 share of SPY, we can trade $200 of SPY. `notional` orders are inherently
+fractional orders.
 
 .. code-block:: python
 
@@ -96,8 +104,8 @@ for a successful order.
 
     # preparing orders
     market_order_data = MarketOrderRequest(
-                        symbol="BTC/USD",
-                        qty=0.0001,
+                        symbol="SPY",
+                        qty=0.023,
                         side=OrderSide.BUY,
                         time_in_force=TimeInForce.DAY
                     )
@@ -119,7 +127,7 @@ for a successful order.
 
 
     limit_order_data = LimitOrderRequest(
-                        symbol="SPY",
+                        symbol="BTC/USD",
                         limit_price=300,
                         qty=10,
                         side=OrderSide.SELL,

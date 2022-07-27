@@ -22,25 +22,24 @@ wish to expand with the unlimited plan. Learn more about the subscriptions plans
 API Keys
 --------
 
-Crypto data does not require authentication to use. i.e. you can initialize ``CryptoHistoricalDataClient`` without
-providing API keys. If you do provide API keys, your rate limit will be higher.
-
-However, to access stock data, you will need to provide your API keys. The keys can be found
-on the dashboard after signing in.
-
-
-Getting Started with Clients
-----------------------------
-
-There are 4 different clients that let you access market data. There are 2 historical data clients
-and 2 real-time data clients. The crypto data clients do not require API keys to use.
+You can sign up for API keys `here <https://app.alpaca.markets/signup>`_. API keys allow you to access
+stock data. Keep in mind, crypto data does not require authentication to use. i.e. you can initialize ``CryptoHistoricalDataClient`` without
+providing API keys. However, if you do provide API keys, your rate limit will be higher.
 
 
 Historical Data
-^^^^^^^^^^^^^^^
+---------------
+
+There are 2 historical data clients: `StockHistoricalDataClient` and `CryptoHistoricalDataClient`.
+The crypto data client does not require API keys to use.
+
+
+Clients
+^^^^^^^
 
 Historical Data can be queried by using one of the two historical data clients: `StockHistoricalDataClient`
-and `CryptoHistoricalDataClient`. Historical data is available for Bar, Trade and Quote datatypes.
+and `CryptoHistoricalDataClient`. Historical data is available for Bar, Trade and Quote datatypes. For
+crypto, latest orderbook data is also available.
 
 .. code-block:: python
 
@@ -53,33 +52,60 @@ and `CryptoHistoricalDataClient`. Historical data is available for Bar, Trade an
     stock_client = StockHistoricalDataClient("api-key",  "secret-key")
 
 
-Real-time Data Stream
-^^^^^^^^^^^^^^^^^^^^^
+Retrieving Latest Quote Data
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The data stream clients lets you subscribe to real-time data via WebSockets. There are clients
-for crypto data and stock data.
+The latest quote data is available through the historical data clients.
+The method will return a dictionary of Trade objects that are keyed by the corresponding
+symbol.
 
+.. attention::
+    Models that are returned by both historical data clients are agnostic of the number of
+    symbols that were passed in. This means that you must use the symbol as a key to access
+    the data regardless of whether a single symbol or multiple symbols were queried. Below is an example
+    of this in action.
+
+**Multi Symbol**
 
 .. code-block:: python
 
-    from alpaca.data import CryptoDataStream, StockDataStream
+    from alpaca.data.historical import StockHistoricalDataClient
+    from alpaca.data.requests import StockLatestQuoteRequest
+    from alpaca.data.timeframe import TimeFrame
 
-    # no keys required.
-    crypto_stream = CryptoDataStream()
+    # keys required for stock historical data client
+    client = StockHistoricalDataClient('api-key', 'secret-key')
 
-    # keys required
-    stock_stream = StockDataStream("api-key", "secret-key")
+    # multi symbol request - single symbol is similar
+    multisymbol_request_params = StockLatestQuoteRequest(symbol_or_symbols=["SPY", "GLD", "TLT"])
+
+    latest_multisymbol_quotes = client.get_stock_latest_quote(request_params)
+
+    gld_latest_ask_price = latest_quotes["GLD"].ask_price
+
+**Single Symbol**
+
+.. code-block:: python
+
+    from alpaca.data.historical import StockHistoricalDataClient
+    from alpaca.data.requests import StockLatestQuoteRequest
+    from alpaca.data.timeframe import TimeFrame
+
+    # single symbol request
+    request_params = StockLatestQuoteRequest(symbol_or_symbols="ETH/USD")
+
+    latest_quote = client.get_stock_latest_quote(request_params)
+
+    # must use symbol to access even though it is single symbol
+    latest_quote["ETH/USD"].ask_price
 
 
-Examples
---------
+Retrieving Historical Bar Data
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Retrieving Bar Data
-^^^^^^^^^^^^^^^^^^^
-
-You can request bar data via the HistoricalDataClients. In this example, we query
-daily bar data for "BTC/USD" and "ETH/USD" since July 1st 2022. You can convert the
-response to a multi-index pandas dataframe using the `.df` property.
+You can request bar (candlestick) data via the HistoricalDataClients. In this example, we query
+daily bar data for "BTC/USD" and "ETH/USD" since July 1st 2022 using `CryptoHistoricalDataClient`.
+You can convert the response to a multi-index pandas dataframe using the `.df` property.
 
 .. code-block:: python
 
@@ -94,14 +120,36 @@ response to a multi-index pandas dataframe using the `.df` property.
                             symbol_or_symbols=["BTC/USD", "ETH/USD"],
                             timeframe=TimeFrame.Day,
                             start="2022-07-01"
-                            )
+                     )
 
     bars = client.get_crypto_bars(request_params)
 
     # convert to dataframe
     bars.df
 
+    # access bars as list - important to note that you must access by symbol key
+    # even for a single symbol request - models are agnostic to number of symbols
+    bars["BTC/USD"]
 
+Real Time Data
+--------------
+
+Clients
+^^^^^^^
+
+The data stream clients lets you subscribe to real-time data via WebSockets. There are clients
+for crypto data and stock data.
+
+
+.. code-block:: python
+
+    from alpaca.data import CryptoDataStream, StockDataStream
+
+    # no keys required.
+    crypto_stream = CryptoDataStream()
+
+    # keys required
+    stock_stream = StockDataStream("api-key", "secret-key")
 
 Subscribing to Real-Time Quote Data
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

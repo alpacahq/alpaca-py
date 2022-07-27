@@ -264,6 +264,9 @@ class CryptoLatestBarRequest(BaseCryptoLatestDataRequest):
     pass
 
 
+# ############################## Snapshots ################################# #
+
+
 class StockSnapshotRequest(NonEmptyRequest):
     """
     This request class is used to submit a request for snapshot data for stocks.
@@ -280,6 +283,20 @@ class StockSnapshotRequest(NonEmptyRequest):
 class CryptoSnapshotRequest(NonEmptyRequest):
     """
     This request class is used to submit a request for snapshot data for crypto.
+
+    Attributes:
+        symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
+    """
+
+    symbol_or_symbols: Union[str, List[str]]
+
+
+# ############################## Orderbooks ################################# #
+
+
+class CryptoLatestOrderbookRequest(NonEmptyRequest):
+    """
+    This request class is used to submit a request for latest orderbook data for crypto.
 
     Attributes:
         symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.

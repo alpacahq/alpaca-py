@@ -1,12 +1,14 @@
 from collections import defaultdict
-from typing import Union, Optional, List
+from typing import Union, Optional, List, Dict, Type
 
 from alpaca.common.constants import DATA_V2_MAX_LIMIT
 from alpaca.common.types import RawData
 from alpaca.common.enums import BaseURL
 from alpaca.common.rest import RESTClient
 from alpaca.common.types import HTTPResult, Credentials
-from alpaca.data.models import BarSet, QuoteSet, TradeSet, SnapshotSet
+from alpaca.data import Snapshot
+from alpaca.data.historical.utils import parse_obj_as_symbol_dict, parse_latest_data_response, parse_dataset_response
+from alpaca.data.models import BarSet, QuoteSet, TradeSet, Orderbook, Trade, Quote
 from alpaca.data.historical.stock import DataExtensionType
 from alpaca.data.requests import (
     CryptoBarsRequest,
@@ -15,6 +17,7 @@ from alpaca.data.requests import (
     CryptoLatestTradeRequest,
     CryptoLatestQuoteRequest,
     CryptoSnapshotRequest,
+    CryptoLatestOrderbookRequest,
 )
 
 
@@ -32,12 +35,12 @@ class CryptoHistoricalDataClient(RESTClient):
     """
 
     def __init__(
-        self,
-        api_key: Optional[str] = None,
-        secret_key: Optional[str] = None,
-        oauth_token: Optional[str] = None,
-        raw_data: bool = False,
-        url_override: Optional[str] = None,
+            self,
+            api_key: Optional[str] = None,
+            secret_key: Optional[str] = None,
+            oauth_token: Optional[str] = None,
+            raw_data: bool = False,
+            url_override: Optional[str] = None,
     ) -> None:
         """
         Instantiates a Historical Data Client for Crypto Data.
@@ -55,14 +58,14 @@ class CryptoHistoricalDataClient(RESTClient):
             api_key=api_key,
             secret_key=secret_key,
             oauth_token=oauth_token,
-            api_version="v2",
+            api_version="v1beta2",
             base_url=url_override if url_override is not None else BaseURL.DATA,
             sandbox=False,
             raw_data=raw_data,
         )
 
     def get_crypto_bars(
-        self, request_params: CryptoBarsRequest
+            self, request_params: CryptoBarsRequest
     ) -> Union[BarSet, RawData]:
         """Gets bar/candle data for a cryptocurrency or list of cryptocurrencies.
 
@@ -83,10 +86,10 @@ class CryptoHistoricalDataClient(RESTClient):
             **params,
         )
 
-        return self.response_wrapper(model=BarSet, raw_data=raw_bars)
+        return BarSet(raw_bars)
 
     def get_crypto_quotes(
-        self, request_params: CryptoQuotesRequest
+            self, request_params: CryptoQuotesRequest
     ) -> Union[QuoteSet, RawData]:
         """Returns Quote level 1 data over a given time period for a cryptocurrency or list of cryptocurrencies.
 
@@ -107,10 +110,10 @@ class CryptoHistoricalDataClient(RESTClient):
             **params,
         )
 
-        return self.response_wrapper(model=QuoteSet, raw_data=raw_quotes)
+        return QuoteSet(raw_quotes)
 
     def get_crypto_trades(
-        self, request_params: CryptoTradesRequest
+            self, request_params: CryptoTradesRequest
     ) -> Union[TradeSet, RawData]:
         """Returns the price and sales history over a given time period for a cryptocurrency or list of cryptocurrencies.
 
@@ -131,18 +134,18 @@ class CryptoHistoricalDataClient(RESTClient):
             **params,
         )
 
-        return self.response_wrapper(model=TradeSet, raw_data=raw_trades)
+        return TradeSet(raw_trades)
 
     def get_crypto_latest_trade(
-        self, request_params: CryptoLatestTradeRequest
-    ) -> Union[TradeSet, RawData]:
+            self, request_params: CryptoLatestTradeRequest
+    ) -> Union[Dict[str, Trade], RawData]:
         """Returns the latest trade for a coin for a specific exchange
 
         Args:
             request_params (CryptoLatestTradeRequest): The parameters for the request.
 
         Returns:
-            Union[Trade, RawData]: The latest trade in raw or wrapped format
+            Union[Dict[str, Trade], RawData]: The latest trade in raw or wrapped format
         """
 
         params = request_params.to_request_fields()
@@ -155,18 +158,18 @@ class CryptoHistoricalDataClient(RESTClient):
             **params,
         )
 
-        return self.response_wrapper(model=TradeSet, raw_data=raw_trades)
+        return parse_obj_as_symbol_dict(Trade, raw_trades)
 
     def get_crypto_latest_quote(
-        self, request_params: CryptoLatestQuoteRequest
-    ) -> Union[QuoteSet, RawData]:
+            self, request_params: CryptoLatestQuoteRequest
+    ) -> Union[Dict[str, Quote], RawData]:
         """Returns the latest quote for a coin for a specific exchange
 
         Args:
             request_params (CryptoLatestQuoteRequest): The parameters for the request.
 
         Returns:
-            Union[Quote, RawData]: The latest quote in raw or wrapped format
+            Union[Dict[str, Quote], RawData]: The latest quote in raw or wrapped format
         """
 
         params = request_params.to_request_fields()
@@ -179,16 +182,41 @@ class CryptoHistoricalDataClient(RESTClient):
             **params,
         )
 
-        return self.response_wrapper(model=QuoteSet, raw_data=raw_quotes)
+        return parse_obj_as_symbol_dict(Quote, raw_quotes)
+
+    def get_crypto_latest_orderbook(
+            self, request_params: CryptoLatestOrderbookRequest
+    ) -> Union[Dict[str, Orderbook], RawData]:
+        """
+        Returns the latest orderbook state for the queried crypto symbols.
+
+        Args:
+            request_params (CryptoOrderbookRequest): The parameters for the orderbook request.
+
+        Returns:
+            Union[Dict[str, Orderbook], RawData]: The orderbook data either in raw or wrapped form.
+        """
+
+        params = request_params.to_request_fields()
+
+        raw_orderbooks = self._data_get(
+            endpoint_asset_class="crypto",
+            endpoint_data_type="orderbooks",
+            api_version="v1beta2",
+            extension=DataExtensionType.LATEST,
+            **params,
+        )
+
+        return parse_obj_as_symbol_dict(Orderbook, raw_orderbooks)
 
     def get_crypto_snapshot(
-        self, request_params: CryptoSnapshotRequest
-    ) -> Union[SnapshotSet, RawData]:
+            self, request_params: CryptoSnapshotRequest
+    ) -> Union[Snapshot, RawData]:
         """Returns snapshots of queried crypto symbols. Snapshots contain latest trade, latest quote, latest minute bar,
         latest daily bar and previous daily bar data for the queried symbols.
 
         Args:
-            request_params (CryptoSnapshotRequest): The parameters for the request.
+            request_params (CryptoSnapshotRequest): The parameters for the snapshot request.
 
         Returns:
             Union[SnapshotSet, RawData]: The snapshot data either in raw or wrapped form
@@ -203,23 +231,20 @@ class CryptoHistoricalDataClient(RESTClient):
             extension=DataExtensionType.SNAPSHOT,
             **params,
         )
-        print(raw_snapshots)
-        return self.response_wrapper(
-            model=SnapshotSet,
-            raw_data=raw_snapshots,
-        )
+
+        return parse_obj_as_symbol_dict(Snapshot, raw_snapshots)
 
     # TODO: Remove duplicate code
     def _data_get(
-        self,
-        endpoint_asset_class: str,
-        endpoint_data_type: str,
-        api_version: str,
-        symbol_or_symbols: Union[str, List[str]],
-        limit: Optional[int] = None,
-        page_limit: int = DATA_V2_MAX_LIMIT,
-        extension: Optional[DataExtensionType] = None,
-        **kwargs,
+            self,
+            endpoint_asset_class: str,
+            endpoint_data_type: str,
+            api_version: str,
+            symbol_or_symbols: Union[str, List[str]],
+            limit: Optional[int] = None,
+            page_limit: int = DATA_V2_MAX_LIMIT,
+            extension: Optional[DataExtensionType] = None,
+            **kwargs,
     ) -> RawData:
         """Performs Data API GET requests accounting for pagination. Data in responses are limited to the page_limit,
         which defaults to 10,000 items. If any more data is requested, the data will be paginated.
@@ -262,6 +287,7 @@ class CryptoHistoricalDataClient(RESTClient):
         #       "symbol2": [ "data1", "data2", ... ],
         #                ....
         #    }
+        # using default dict to improve parsing,
         data_by_symbol = defaultdict(list)
 
         total_items = 0
@@ -284,10 +310,10 @@ class CryptoHistoricalDataClient(RESTClient):
             response = self.get(path=path, data=params, api_version=api_version)
 
             # TODO: Merge parsing if possible
-            if extension == DataExtensionType.SNAPSHOT:
-                self._parse_snapshot(response, data_by_symbol)
+            if extension == DataExtensionType.LATEST or extension == DataExtensionType.SNAPSHOT:
+                parse_latest_data_response(response, data_by_symbol)
             else:
-                self._parse_response(response, data_by_symbol)
+                parse_dataset_response(response, data_by_symbol)
 
             # if we've sent a request with a limit, increment count
             if actual_limit:
@@ -298,77 +324,14 @@ class CryptoHistoricalDataClient(RESTClient):
             if page_token is None:
                 break
 
-        return data_by_symbol
-
-    @staticmethod
-    def _parse_response(response: HTTPResult, data_by_symbol: dict) -> RawData:
-
-        # data_by_symbol is in format of
-        #    {
-        #       "symbol1": [ "data1", "data2", ... ],
-        #       "symbol2": [ "data1", "data2", ... ],
-        #                ....
-        #    }
-
-        response_data = CryptoHistoricalDataClient.get_data_from_response(response)
-
-        # add elements to data_by_symbol
-        # for list data types just extend
-        # for non-list types, add as element of a list.
-        # list comprehension used for speed
-        [
-            data_by_symbol[symbol].extend(data)
-            if isinstance(data, list)
-            else data_by_symbol[symbol].append(data)
-            for symbol, data in response_data.items()
-        ]
-
-        return data_by_symbol
-
-    @staticmethod
-    def get_data_from_response(response: HTTPResult) -> RawData:
-
-        data_keys = {
-            "trade",
-            "trades",
-            "quote",
-            "quotes",
-            "bar",
-            "bars",
-            "snapshot",
-            "snapshots",
-        }
-
-        selected_key = data_keys.intersection(response)
-
-        if selected_key is None or len(selected_key) < 1:
-            raise ValueError("The data in response does not match any known keys.")
-
-        # assume selected_key only contains 1 value
-        selected_key = selected_key.pop()
-
-        # formatting a single symbol response so that this method
-        # always returns a symbol keyed data dictionary
-        if "symbol" in response:
-            return {response["symbol"]: response[selected_key]}
-
-        return response[selected_key]
-
-    @staticmethod
-    def _parse_snapshot(response: HTTPResult, data_by_symbol: dict):
-        # TODO: Improve snapshot parsing
-        response_data = CryptoHistoricalDataClient.get_data_from_response(response)
-
-        for symbol, data in response_data.items():
-            data_by_symbol[symbol] = data
-
-        return data_by_symbol
+        # users receive Type dict
+        return dict(data_by_symbol)
 
     @staticmethod
     def _validate_credentials(
-        api_key: Optional[str] = None,
-        secret_key: Optional[str] = None,
-        oauth_token: Optional[str] = None,
+            api_key: Optional[str] = None,
+            secret_key: Optional[str] = None,
+            oauth_token: Optional[str] = None,
     ) -> Credentials:
         """Gathers API credentials from parameters and environment variables, and validates them.
         Args:
@@ -387,3 +350,4 @@ class CryptoHistoricalDataClient(RESTClient):
             )
 
         return api_key, secret_key, oauth_token
+

@@ -14,7 +14,6 @@ class Quote(BaseModel):
     Attributes:
         symbol (str): The ticker identifier for the security whose data forms the quote.
         timestamp (datetime): The time of submission of the quote.
-        exchange (Optional[Exchange]): The exchange the quote originates. Used when single origin for both ask and bid. Defaults to None.
         ask_exchange (Optional[str, Exchange]): The exchange the quote ask originates. Defaults to None.
         ask_price (float): The asking price of the quote.
         ask_size (float): The size of the quote ask.

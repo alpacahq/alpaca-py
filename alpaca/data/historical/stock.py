@@ -1,12 +1,15 @@
 from collections import defaultdict
 from enum import Enum
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Type, Dict
 
 from alpaca.common.enums import BaseURL
 from alpaca.common.rest import RESTClient, HTTPResult
 from alpaca.common.types import RawData
+from alpaca.data import Quote, Trade, Snapshot
+from alpaca.data.historical.utils import parse_obj_as_symbol_dict, parse_latest_data_response, parse_dataset_response, \
+    parse_snapshot_data
 
-from alpaca.data.models import BarSet, QuoteSet, SnapshotSet, TradeSet
+from alpaca.data.models import BarSet, QuoteSet, TradeSet
 from alpaca.data.requests import (
     StockBarsRequest,
     StockQuotesRequest,
@@ -85,7 +88,7 @@ class StockHistoricalDataClient(RESTClient):
             **params,
         )
 
-        return self.response_wrapper(model=BarSet, raw_data=raw_bars)
+        return BarSet(raw_bars)
 
     def get_stock_quotes(
         self, request_params: StockQuotesRequest
@@ -108,7 +111,7 @@ class StockHistoricalDataClient(RESTClient):
             **params,
         )
 
-        return self.response_wrapper(model=QuoteSet, raw_data=raw_quotes)
+        return QuoteSet(raw_quotes)
 
     def get_stock_trades(
         self, request_params: StockTradesRequest
@@ -131,10 +134,7 @@ class StockHistoricalDataClient(RESTClient):
             **params,
         )
 
-        return self.response_wrapper(
-            model=TradeSet,
-            raw_data=raw_trades,
-        )
+        return TradeSet(raw_trades)
 
     def get_stock_latest_trade(
         self, request_params: StockLatestTradeRequest
@@ -158,9 +158,7 @@ class StockHistoricalDataClient(RESTClient):
             **params,
         )
 
-        print("RAW", raw_latest_trades)
-
-        return self.response_wrapper(model=TradeSet, raw_data=raw_latest_trades)
+        return parse_obj_as_symbol_dict(Trade, raw_latest_trades)
 
     def get_stock_latest_quote(
         self, request_params: StockLatestQuoteRequest
@@ -183,11 +181,11 @@ class StockHistoricalDataClient(RESTClient):
             **params,
         )
 
-        return self.response_wrapper(model=QuoteSet, raw_data=raw_latest_quotes)
+        return parse_obj_as_symbol_dict(Quote, raw_latest_quotes)
 
     def get_stock_snapshot(
         self, request_params: StockSnapshotRequest
-    ) -> Union[SnapshotSet, RawData]:
+    ) -> Union[Dict[str, Snapshot], RawData]:
         """Returns snapshots of queried symbols. Snapshots contain latest trade, latest quote, latest minute bar,
         latest daily bar and previous daily bar data for the queried symbols.
 
@@ -208,7 +206,7 @@ class StockHistoricalDataClient(RESTClient):
             **params,
         )
 
-        return self.response_wrapper(model=SnapshotSet, raw_data=raw_snapshots)
+        return parse_obj_as_symbol_dict(Snapshot, raw_snapshots)
 
     # TODO: Remove duplication
     def _data_get(
@@ -286,14 +284,15 @@ class StockHistoricalDataClient(RESTClient):
             params["limit"] = actual_limit
             params["page_token"] = page_token
 
-            print(params)
             response = self.get(path=path, data=params, api_version=api_version)
 
             # TODO: Merge parsing if possible
             if extension == DataExtensionType.SNAPSHOT:
-                self._parse_snapshot(response, data_by_symbol)
+                parse_snapshot_data(response, data_by_symbol)
+            elif extension == DataExtensionType.LATEST:
+                parse_latest_data_response(response, data_by_symbol)
             else:
-                self._parse_response(response, data_by_symbol)
+                parse_dataset_response(response, data_by_symbol)
 
             # if we've sent a request with a limit, increment count
             if actual_limit:
@@ -304,62 +303,12 @@ class StockHistoricalDataClient(RESTClient):
             if page_token is None:
                 break
 
-        return data_by_symbol
+        # users receive Type dict
+        return dict(data_by_symbol)
 
-    @staticmethod
-    def _parse_response(response: HTTPResult, data_by_symbol: dict) -> RawData:
 
-        # data_by_symbol is in format of
-        #    {
-        #       "symbol1": [ "data1", "data2", ... ],
-        #       "symbol2": [ "data1", "data2", ... ],
-        #                ....
-        #    }
 
-        response_data = StockHistoricalDataClient.get_data_from_response(response)
 
-        # add elements to data_by_symbol
-        # for list data types just extend
-        # for non-list types, add as element of a list.
-        # list comprehension used for speed
-        [
-            data_by_symbol[symbol].extend(data)
-            if isinstance(data, list)
-            else data_by_symbol[symbol].append(data)
-            for symbol, data in response_data.items()
-        ]
 
-        return data_by_symbol
 
-    @staticmethod
-    def get_data_from_response(response: HTTPResult) -> RawData:
 
-        data_keys = {"trade", "trades", "quote", "quotes", "bar", "bars"}
-
-        selected_key = data_keys.intersection(response)
-
-        if selected_key is None or len(selected_key) < 1:
-            raise ValueError("The data in response does not match any known keys.")
-
-        # assume selected_key only contains 1 value
-        selected_key = selected_key.pop()
-
-        # formatting a single symbol response so that this method
-        # always returns a symbol keyed data dictionary
-        if "symbol" in response:
-            return {response["symbol"]: response[selected_key]}
-
-        return response[selected_key]
-
-    @staticmethod
-    def _parse_snapshot(response: HTTPResult, data_by_symbol: dict):
-        # TODO: Improve snapshot parsing
-        if "symbol" in response:
-            symbol = response["symbol"]
-            del response["symbol"]
-            data_by_symbol[symbol] = response
-        else:
-            for symbol, data in response.items():
-                data_by_symbol[symbol] = data
-
-        return data_by_symbol

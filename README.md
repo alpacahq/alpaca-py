@@ -151,7 +151,7 @@ market_order = trading_client.submit_order(
 
 
 ### Market Data API Example <a name="data-api-example"></a>
-** Querying Historical Bar Data**
+**Querying Historical Bar Data**
 
 You can request bar data via the HistoricalDataClients. In this example, we query daily bar data for “BTC/USD” and “ETH/USD” since July 1st 2022. You can convert the response to a multi-index pandas dataframe using the .df property.
 

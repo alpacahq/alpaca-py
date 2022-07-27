@@ -63,12 +63,6 @@ PortfolioHistory
 .. autoclass:: alpaca.trading.models.PortfolioHistory
 
 
-CorporateActionAnnouncement
----------------------------
-
-.. autoclass:: alpaca.trading.models.CorporateActionAnnouncement
-
-
 ClosePositionResponse
 ---------------------
 
@@ -79,4 +73,11 @@ FailedClosePositionDetails
 --------------------------
 
 .. autoclass:: alpaca.trading.models.FailedClosePositionDetails
+
+
+CorporateActionAnnouncement
+---------------------------
+
+.. autoclass:: alpaca.trading.models.CorporateActionAnnouncement
+
 

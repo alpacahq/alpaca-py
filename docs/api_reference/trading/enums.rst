@@ -63,18 +63,6 @@ AccountStatus
 .. autoenum:: alpaca.trading.enums.AccountStatus
 
 
-CorporateActionType
--------------------
-
-.. autoenum:: alpaca.trading.enums.CorporateActionType
-
-
-CorporateActionSubType
-----------------------
-
-.. autoenum:: alpaca.trading.enums.CorporateActionSubType
-
-
 
 ActivityType
 ------------
@@ -93,6 +81,24 @@ NonTradeActivityStatus
 
 .. autoenum:: alpaca.trading.enums.NonTradeActivityStatus
 
+
+
+CorporateActionType
+-------------------
+
+.. autoenum:: alpaca.trading.enums.CorporateActionType
+
+
+CorporateActionSubType
+----------------------
+
+.. autoenum:: alpaca.trading.enums.CorporateActionSubType
+
+
+CorporateActionDateType
+-----------------------
+
+.. autoenum:: alpaca.trading.enums.CorporateActionDateType
 
 
 

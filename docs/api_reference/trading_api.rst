@@ -16,6 +16,7 @@ Contents
    trading/watchlists
    trading/calendar
    trading/clock
+   trading/corporate-actions
    trading/models
    trading/requests
    trading/enums

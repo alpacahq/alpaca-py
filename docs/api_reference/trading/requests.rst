@@ -110,7 +110,10 @@ CancelOrderResponse
 .. autoclass:: alpaca.trading.requests.CancelOrderResponse
 
 
+GetCorporateAnnouncementsRequest
+--------------------------------
 
+.. autoclass:: alpaca.trading.requests.GetCorporateAnnouncementsRequest
 
 
 

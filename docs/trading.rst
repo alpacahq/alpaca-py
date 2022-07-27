@@ -84,11 +84,11 @@ for a successful order.
 
     # preparing orders
     market_order_data = MarketOrderRequest(
-                        symbol="BTCUSD",
-                        notional=5000,
+                        symbol="BTC/USD",
+                        qty=0.0001,
                         side=OrderSide.BUY,
                         time_in_force=TimeInForce.DAY
-                   )
+                    )
 
     limit_order_data = LimitOrderRequest(
                         symbol="SPY",

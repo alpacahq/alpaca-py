@@ -665,7 +665,6 @@ class MarketOrderRequest(BaseMarketOrderRequest):
         order_class (Optional[OrderClass]): The class of the order. Simple orders have no other legs.
         take_profit (Optional[TakeProfitRequest]): For orders with multiple legs, an order to exit a profitable trade.
         stop_loss (Optional[StopLossRequest]): For orders with multiple legs, an order to exit a losing trade.
-        notional (Optional[float]): The cash value of the shares to trade. Only works with market orders.
         commission (Optional[float]): The dollar value commission you want to charge the end user.
     """
 

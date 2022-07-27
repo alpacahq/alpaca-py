@@ -42,10 +42,15 @@ OOP Design
 
 Alpaca-py uses a more OOP approach to submitting requests compared to the previous SDK.
 To submit a request, you will most likely need to create
-a request object containing the desired request data. There is a request object for each
-type of request.
+a request object containing the desired request data. Generally, there is a unique request model
+for each method.
 
-**Example**
+Some examples of request models corresponding to methods:
+
+* ``GetOrdersRequest`` for ``TradingClient.get_orders()``
+* ``CryptoLatestOrderbookRequest`` for ``CryptoHistoricalDataClient.get_crypto_latest_orderbook()``
+
+**Usage Example**
 
 To submit an order, you will need to provide a ``MarketOrderRequest`` object.
 
@@ -74,6 +79,20 @@ if you are receiving request data via JSON from a client. You can handle parsing
 and validation through Alpaca's request models. All request models can be instantiated
 by passing in data in dictionary format.
 
+Here is a rough example of what is possible.
+
+.. code-block:: python
+
+    @app.route('/post_json', methods=['POST'])
+    def do_trade():
+        # ...
+
+        order_data_json = request.get_json()
+
+        # validate data
+        MarketOrderRequest(**order_data_json)
+
+        # ...
 
 Many Clients
 ^^^^^^^^^^^^
@@ -81,6 +100,12 @@ Many Clients
 Alpaca-py has a lot of client classes. There is a client for each API and even
 asset class specific clients (``StockHistoricalData``, ``CryptoDataStream``). This requires
 you to pick and choose clients based on your needs.
+
+**Broker API:** ``BrokerClient``
+
+**Trading API:** ``TradingClient``
+
+**Market Data API:**  ``StockHistoricalDataClient``, ``CryptoHistoricalDataClient``, ``CryptoDataStream``, ``StockDataStream``
 
 
 Installation

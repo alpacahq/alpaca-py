@@ -83,15 +83,19 @@ To create on order on Alpaca-py you must use an ``OrderRequest`` object. There a
 trailing stop orders have ``TrailingStopOrderRequest``. Each order type have their own required parameters
 for a successful order.
 
+.. hint::
+    For stocks, the notional parameter can only be used with Market orders.
+    For crypto, the notional parameter can be used with any order type.
 
 **Market Order**
 
 A market order is an order to buy or sell a stock at the best available price. Generally,
-this type of order will be executed immediately. However, the price at which a market order will be executed is not guaranteed.Mar
+this type of order will be executed immediately. However, the price at which a market order will be executed is not guaranteed.
 
 Market orders allow the trade of fractional shares for stocks. Fractional shares must be denoted either with
-a non-integer `qty` value or with the use of the `notional` parameter. The `notional` parameter allows you to denote the amount you wish to trade in units of the quote currency.
-For example, instead of trading 1 share of SPY, we can trade $200 of SPY. `notional` orders are inherently
+a non-integer ``qty`` value or with the use of the ``notional`` parameter.
+The ``notional`` parameter allows you to denote the amount you wish to trade in units of the quote currency.
+For example, instead of trading 1 share of SPY, we can trade $200 of SPY. ``notional`` orders are inherently
 fractional orders.
 
 .. code-block:: python
@@ -117,6 +121,9 @@ fractional orders.
 
 **Limit Order**
 
+A limit order is an order to buy or sell a stock at a specific price or better. You can
+use the ``LimitOrderRequest`` model to prepare your order details.
+
 .. code-block:: python
 
     from alpaca.trading.client import TradingClient
@@ -128,8 +135,8 @@ fractional orders.
 
     limit_order_data = LimitOrderRequest(
                         symbol="BTC/USD",
-                        limit_price=300,
-                        qty=10,
+                        limit_price=17000,
+                        notional=4000,
                         side=OrderSide.SELL,
                         time_in_force=TimeInForce.FOK
                   )
@@ -144,7 +151,7 @@ Getting All Orders
 ^^^^^^^^^^^^^^^^^^
 
 We can query all the orders associated with our account. It is possible to narrow
-the query by passing in parameters through the `GetOrdersRequest` model.
+the query by passing in parameters through the ``GetOrdersRequest`` model.
 
 .. code-block:: python
 
@@ -168,7 +175,7 @@ Cancel All Orders
 ^^^^^^^^^^^^^^^^^
 
 We can attempt to cancel all open orders with this method. The method takes no parameters and returns a list
-of `CancelOrderResponse` objects. The cancellation of an order is not guaranteed. The `CancelOrderResponse` objects
+of ``CancelOrderResponse`` objects. The cancellation of an order is not guaranteed. The ``CancelOrderResponse`` objects
 contain information about the cancel status of each attempted order cancellation.
 
 .. code-block:: python
@@ -190,7 +197,7 @@ Getting All Positions
 ^^^^^^^^^^^^^^^^^^^^^
 
 This method requires no parameters and returns all open positions in your portfolio. It will
-return a list of `Position` objects.
+return a list of ``Position`` objects.
 
 .. code-block:: python
 
@@ -205,7 +212,7 @@ return a list of `Position` objects.
 Close All Positions
 ^^^^^^^^^^^^^^^^^^^
 
-This method closes all your open positions. If you set the `cancel_orders` parameter to `True`,
+This method closes all your open positions. If you set the ``cancel_orders`` parameter to ``True``,
 the method will also cancel all open orders, preventing you from entering into a new position.
 
 .. code-block:: python

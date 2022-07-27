@@ -30,15 +30,15 @@ providing API keys. However, if you do provide API keys, your rate limit will be
 Historical Data
 ---------------
 
-There are 2 historical data clients: `StockHistoricalDataClient` and `CryptoHistoricalDataClient`.
+There are 2 historical data clients: ``StockHistoricalDataClient`` and ``CryptoHistoricalDataClient``.
 The crypto data client does not require API keys to use.
 
 
 Clients
 ^^^^^^^
 
-Historical Data can be queried by using one of the two historical data clients: `StockHistoricalDataClient`
-and `CryptoHistoricalDataClient`. Historical data is available for Bar, Trade and Quote datatypes. For
+Historical Data can be queried by using one of the two historical data clients: ``StockHistoricalDataClient``
+and ``CryptoHistoricalDataClient``. Historical data is available for Bar, Trade and Quote datatypes. For
 crypto, latest orderbook data is also available.
 
 .. code-block:: python
@@ -57,7 +57,7 @@ Retrieving Latest Quote Data
 
 The latest quote data is available through the historical data clients.
 The method will return a dictionary of Trade objects that are keyed by the corresponding
-symbol.
+symbol. We will need to use the ``StockLatestQuoteRequest`` model to prepare the request parameters.
 
 .. attention::
     Models that are returned by both historical data clients are agnostic of the number of
@@ -104,8 +104,8 @@ Retrieving Historical Bar Data
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 You can request bar (candlestick) data via the HistoricalDataClients. In this example, we query
-daily bar data for "BTC/USD" and "ETH/USD" since July 1st 2022 using `CryptoHistoricalDataClient`.
-You can convert the response to a multi-index pandas dataframe using the `.df` property.
+daily bar data for "BTC/USD" and "ETH/USD" since July 1st 2022 using ``CryptoHistoricalDataClient``.
+You can convert the response to a multi-index pandas dataframe using the ``.df`` property.
 
 .. code-block:: python
 
@@ -151,12 +151,13 @@ for crypto data and stock data.
     # keys required
     stock_stream = StockDataStream("api-key", "secret-key")
 
+
 Subscribing to Real-Time Quote Data
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This example shows how to receive live quote data for stocks. To receive real time data, you will need to provide
 the client an asynchronous function to handle the data. Finally, you will need to call the
-`run` method to start receiving data.
+``run`` method to start receiving data.
 
 .. code-block:: python
 

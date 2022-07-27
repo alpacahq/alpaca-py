@@ -183,7 +183,16 @@ class Order(BaseModel):
 
 
 class FailedClosePositionDetails(BaseModel):
+    """API response for failed close position request.
 
+    Attributes:
+        available (float): The qty available.
+        code (int): The status code.
+        existing_qty (float): The total qty in account.
+        held_for_orders (float): The qty locked up in existing orders.
+        message (str): Message for failed request.
+        symbol (str): The symbol for the request.
+    """
     available: float
     code: int
     existing_qty: float
@@ -193,7 +202,7 @@ class FailedClosePositionDetails(BaseModel):
 
 
 class ClosePositionResponse(BaseModel):
-    """
+    """API response for a close position request.
     Attributes:
         order_id (Optional[UUID]): ID of order that was created to liquidate the position.
         status (Optional[int]): Status code corresponding to the request to liquidate the position.

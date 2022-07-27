@@ -193,6 +193,7 @@ class FailedClosePositionDetails(BaseModel):
         message (str): Message for failed request.
         symbol (str): The symbol for the request.
     """
+
     available: float
     code: int
     existing_qty: float

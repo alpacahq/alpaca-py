@@ -6,8 +6,12 @@ from alpaca.common.enums import BaseURL
 from alpaca.common.rest import RESTClient, HTTPResult
 from alpaca.common.types import RawData
 from alpaca.data import Quote, Trade, Snapshot
-from alpaca.data.historical.utils import parse_obj_as_symbol_dict, parse_latest_data_response, parse_dataset_response, \
-    parse_snapshot_data
+from alpaca.data.historical.utils import (
+    parse_obj_as_symbol_dict,
+    parse_latest_data_response,
+    parse_dataset_response,
+    parse_snapshot_data,
+)
 
 from alpaca.data.models import BarSet, QuoteSet, TradeSet
 from alpaca.data.requests import (
@@ -305,10 +309,3 @@ class StockHistoricalDataClient(RESTClient):
 
         # users receive Type dict
         return dict(data_by_symbol)
-
-
-
-
-
-
-

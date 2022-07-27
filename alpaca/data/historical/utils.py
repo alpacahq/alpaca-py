@@ -47,7 +47,9 @@ def get_data_from_response(response: HTTPResult) -> RawData:
     return response[selected_key]
 
 
-def parse_dataset_response(response: HTTPResult, data_by_symbol: defaultdict) -> RawData:
+def parse_dataset_response(
+    response: HTTPResult, data_by_symbol: defaultdict
+) -> RawData:
     # data_by_symbol is in format of
     #    {
     #       "symbol1": [ "data1", "data2", ... ],

@@ -186,6 +186,7 @@ def test_get_quotes(reqmock, stock_client: StockHistoricalDataClient):
 
     assert reqmock.called_once
 
+
 def test_multisymbol_quotes(reqmock, stock_client: StockHistoricalDataClient):
 
     # test multisymbol request
@@ -597,4 +598,3 @@ def test_get_snapshot(reqmock, stock_client: StockHistoricalDataClient):
     assert snapshot.previous_daily_bar.high == 161
 
     assert reqmock.called_once
-

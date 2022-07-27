@@ -11,8 +11,8 @@ class OrderbookQuote(BaseModel):
     """A single bid or ask quote in the orderbook"""
 
     # using field aliases for easy parsing
-    price: float = Field(alias='p')
-    size: float = Field(alias='s')
+    price: float = Field(alias="p")
+    size: float = Field(alias="s")
 
 
 class Orderbook(BaseModel):
@@ -48,5 +48,3 @@ class Orderbook(BaseModel):
         mapped_book["asks"] = parse_obj_as(List[OrderbookQuote], mapped_book["asks"])
 
         super().__init__(symbol=symbol, **mapped_book)
-
-

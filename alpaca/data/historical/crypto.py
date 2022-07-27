@@ -7,7 +7,11 @@ from alpaca.common.enums import BaseURL
 from alpaca.common.rest import RESTClient
 from alpaca.common.types import HTTPResult, Credentials
 from alpaca.data import Snapshot
-from alpaca.data.historical.utils import parse_obj_as_symbol_dict, parse_latest_data_response, parse_dataset_response
+from alpaca.data.historical.utils import (
+    parse_obj_as_symbol_dict,
+    parse_latest_data_response,
+    parse_dataset_response,
+)
 from alpaca.data.models import BarSet, QuoteSet, TradeSet, Orderbook, Trade, Quote
 from alpaca.data.historical.stock import DataExtensionType
 from alpaca.data.requests import (
@@ -35,12 +39,12 @@ class CryptoHistoricalDataClient(RESTClient):
     """
 
     def __init__(
-            self,
-            api_key: Optional[str] = None,
-            secret_key: Optional[str] = None,
-            oauth_token: Optional[str] = None,
-            raw_data: bool = False,
-            url_override: Optional[str] = None,
+        self,
+        api_key: Optional[str] = None,
+        secret_key: Optional[str] = None,
+        oauth_token: Optional[str] = None,
+        raw_data: bool = False,
+        url_override: Optional[str] = None,
     ) -> None:
         """
         Instantiates a Historical Data Client for Crypto Data.
@@ -65,7 +69,7 @@ class CryptoHistoricalDataClient(RESTClient):
         )
 
     def get_crypto_bars(
-            self, request_params: CryptoBarsRequest
+        self, request_params: CryptoBarsRequest
     ) -> Union[BarSet, RawData]:
         """Gets bar/candle data for a cryptocurrency or list of cryptocurrencies.
 
@@ -89,7 +93,7 @@ class CryptoHistoricalDataClient(RESTClient):
         return BarSet(raw_bars)
 
     def get_crypto_quotes(
-            self, request_params: CryptoQuotesRequest
+        self, request_params: CryptoQuotesRequest
     ) -> Union[QuoteSet, RawData]:
         """Returns Quote level 1 data over a given time period for a cryptocurrency or list of cryptocurrencies.
 
@@ -113,7 +117,7 @@ class CryptoHistoricalDataClient(RESTClient):
         return QuoteSet(raw_quotes)
 
     def get_crypto_trades(
-            self, request_params: CryptoTradesRequest
+        self, request_params: CryptoTradesRequest
     ) -> Union[TradeSet, RawData]:
         """Returns the price and sales history over a given time period for a cryptocurrency or list of cryptocurrencies.
 
@@ -137,7 +141,7 @@ class CryptoHistoricalDataClient(RESTClient):
         return TradeSet(raw_trades)
 
     def get_crypto_latest_trade(
-            self, request_params: CryptoLatestTradeRequest
+        self, request_params: CryptoLatestTradeRequest
     ) -> Union[Dict[str, Trade], RawData]:
         """Returns the latest trade for a coin for a specific exchange
 
@@ -161,7 +165,7 @@ class CryptoHistoricalDataClient(RESTClient):
         return parse_obj_as_symbol_dict(Trade, raw_trades)
 
     def get_crypto_latest_quote(
-            self, request_params: CryptoLatestQuoteRequest
+        self, request_params: CryptoLatestQuoteRequest
     ) -> Union[Dict[str, Quote], RawData]:
         """Returns the latest quote for a coin for a specific exchange
 
@@ -185,7 +189,7 @@ class CryptoHistoricalDataClient(RESTClient):
         return parse_obj_as_symbol_dict(Quote, raw_quotes)
 
     def get_crypto_latest_orderbook(
-            self, request_params: CryptoLatestOrderbookRequest
+        self, request_params: CryptoLatestOrderbookRequest
     ) -> Union[Dict[str, Orderbook], RawData]:
         """
         Returns the latest orderbook state for the queried crypto symbols.
@@ -210,7 +214,7 @@ class CryptoHistoricalDataClient(RESTClient):
         return parse_obj_as_symbol_dict(Orderbook, raw_orderbooks)
 
     def get_crypto_snapshot(
-            self, request_params: CryptoSnapshotRequest
+        self, request_params: CryptoSnapshotRequest
     ) -> Union[Snapshot, RawData]:
         """Returns snapshots of queried crypto symbols. Snapshots contain latest trade, latest quote, latest minute bar,
         latest daily bar and previous daily bar data for the queried symbols.
@@ -236,15 +240,15 @@ class CryptoHistoricalDataClient(RESTClient):
 
     # TODO: Remove duplicate code
     def _data_get(
-            self,
-            endpoint_asset_class: str,
-            endpoint_data_type: str,
-            api_version: str,
-            symbol_or_symbols: Union[str, List[str]],
-            limit: Optional[int] = None,
-            page_limit: int = DATA_V2_MAX_LIMIT,
-            extension: Optional[DataExtensionType] = None,
-            **kwargs,
+        self,
+        endpoint_asset_class: str,
+        endpoint_data_type: str,
+        api_version: str,
+        symbol_or_symbols: Union[str, List[str]],
+        limit: Optional[int] = None,
+        page_limit: int = DATA_V2_MAX_LIMIT,
+        extension: Optional[DataExtensionType] = None,
+        **kwargs,
     ) -> RawData:
         """Performs Data API GET requests accounting for pagination. Data in responses are limited to the page_limit,
         which defaults to 10,000 items. If any more data is requested, the data will be paginated.
@@ -310,7 +314,10 @@ class CryptoHistoricalDataClient(RESTClient):
             response = self.get(path=path, data=params, api_version=api_version)
 
             # TODO: Merge parsing if possible
-            if extension == DataExtensionType.LATEST or extension == DataExtensionType.SNAPSHOT:
+            if (
+                extension == DataExtensionType.LATEST
+                or extension == DataExtensionType.SNAPSHOT
+            ):
                 parse_latest_data_response(response, data_by_symbol)
             else:
                 parse_dataset_response(response, data_by_symbol)
@@ -329,9 +336,9 @@ class CryptoHistoricalDataClient(RESTClient):
 
     @staticmethod
     def _validate_credentials(
-            api_key: Optional[str] = None,
-            secret_key: Optional[str] = None,
-            oauth_token: Optional[str] = None,
+        api_key: Optional[str] = None,
+        secret_key: Optional[str] = None,
+        oauth_token: Optional[str] = None,
     ) -> Credentials:
         """Gathers API credentials from parameters and environment variables, and validates them.
         Args:
@@ -350,4 +357,3 @@ class CryptoHistoricalDataClient(RESTClient):
             )
 
         return api_key, secret_key, oauth_token
-

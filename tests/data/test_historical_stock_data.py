@@ -1,6 +1,6 @@
 from typing import Dict
 
-from alpaca.data import Trade, Snapshot, Quote
+from alpaca.data import Trade, Snapshot, Quote, Bar
 from alpaca.data.historical import StockHistoricalDataClient
 from alpaca.data.requests import (
     StockBarsRequest,
@@ -9,6 +9,7 @@ from alpaca.data.requests import (
     StockLatestTradeRequest,
     StockLatestQuoteRequest,
     StockSnapshotRequest,
+    StockLatestBarRequest,
 )
 from alpaca.data.timeframe import TimeFrame
 from alpaca.data.enums import Exchange, DataFeed
@@ -596,5 +597,89 @@ def test_get_snapshot(reqmock, stock_client: StockHistoricalDataClient):
     assert snapshot.minute_bar.close == 161.365
     assert snapshot.daily_bar.volume == 31749988
     assert snapshot.previous_daily_bar.high == 161
+
+    assert reqmock.called_once
+
+
+def test_stock_latest_bar(reqmock, stock_client: StockHistoricalDataClient):
+    symbol = "SPY"
+    reqmock.get(
+        f"https://data.alpaca.markets/v2/stocks/{symbol}/bars/latest",
+        text="""
+        {
+            "symbol": "SPY",
+            "bar": {
+                "t": "2022-07-26T20:50:00Z",
+                "o": 392.18,
+                "h": 392.18,
+                "l": 392.18,
+                "c": 392.18,
+                "v": 2100,
+                "n": 2,
+                "vw": 392.18
+            }
+        }
+    """,
+    )
+
+    request = StockLatestBarRequest(symbol_or_symbols=symbol)
+
+    bars = stock_client.get_stock_latest_bar(request)
+
+    assert isinstance(bars, Dict)
+
+    bar = bars[symbol]
+
+    assert isinstance(bar, Bar)
+
+    assert bar.open == 392.18
+
+    assert reqmock.called_once
+
+
+def test_multi_stock_latest_bar(reqmock, stock_client: StockHistoricalDataClient):
+    symbols = ["SPY", "TSLA"]
+    _symbols_in_url = "%2C".join(s for s in symbols)
+    reqmock.get(
+        f"https://data.alpaca.markets/v2/stocks/bars/latest?symbols={_symbols_in_url}",
+        text="""
+    {
+        "bars": {
+            "SPY": {
+                "t": "2022-07-26T20:50:00Z",
+                "o": 392.18,
+                "h": 392.18,
+                "l": 392.18,
+                "c": 392.18,
+                "v": 2100,
+                "n": 2,
+                "vw": 392.18
+            },
+            "TSLA": {
+                "t": "2022-07-26T19:59:00Z",
+                "o": 776.605,
+                "h": 776.95,
+                "l": 776.41,
+                "c": 776.63,
+                "v": 5993,
+                "n": 124,
+                "vw": 776.654473
+            }
+        }
+    }
+    """,
+    )
+
+    request = StockLatestBarRequest(symbol_or_symbols=symbols)
+
+    bars = stock_client.get_stock_latest_bar(request)
+
+    assert isinstance(bars, Dict)
+
+    bar = bars[symbols[0]]
+
+    assert isinstance(bar, Bar)
+
+    assert bar.open == 392.18
 
     assert reqmock.called_once

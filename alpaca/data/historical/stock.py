@@ -5,7 +5,7 @@ from typing import List, Optional, Union, Type, Dict
 from alpaca.common.enums import BaseURL
 from alpaca.common.rest import RESTClient, HTTPResult
 from alpaca.common.types import RawData
-from alpaca.data import Quote, Trade, Snapshot
+from alpaca.data import Quote, Trade, Snapshot, Bar
 from alpaca.data.historical.utils import (
     parse_obj_as_symbol_dict,
     format_latest_data_response,
@@ -21,6 +21,7 @@ from alpaca.data.requests import (
     StockLatestTradeRequest,
     StockLatestQuoteRequest,
     StockSnapshotRequest,
+    StockLatestBarRequest,
 )
 from alpaca.common.constants import DATA_V2_MAX_LIMIT
 
@@ -142,14 +143,14 @@ class StockHistoricalDataClient(RESTClient):
 
     def get_stock_latest_trade(
         self, request_params: StockLatestTradeRequest
-    ) -> Union[TradeSet, RawData]:
+    ) -> Union[Dict[str, Trade], RawData]:
         """Retrieves the latest trade for an equity symbol or list of equities.
 
         Args:
             request_params (StockLatestTradeRequest): The request object for retrieving the latest trade data.
 
         Returns:
-            Union[TradeSet, RawData]: The latest trade in raw or wrapped format
+            Union[Dict[str, Trade], RawData]: The latest trade in raw or wrapped format
         """
 
         params = request_params.to_request_fields()
@@ -166,14 +167,14 @@ class StockHistoricalDataClient(RESTClient):
 
     def get_stock_latest_quote(
         self, request_params: StockLatestQuoteRequest
-    ) -> Union[QuoteSet, RawData]:
+    ) -> Union[Dict[str, Quote], RawData]:
         """Retrieves the latest quote for an equity symbol or list of equity symbols.
 
         Args:
             request_params (StockLatestQuoteRequest): The request object for retrieving the latest quote data.
 
         Returns:
-            Union[QuoteSet, RawData]: The latest quote in raw or wrapped format
+            Union[Dict[str, Quote], RawData]: The latest quote in raw or wrapped format
         """
         params = request_params.to_request_fields()
 
@@ -186,6 +187,29 @@ class StockHistoricalDataClient(RESTClient):
         )
 
         return parse_obj_as_symbol_dict(Quote, raw_latest_quotes)
+
+    def get_stock_latest_bar(
+        self, request_params: StockLatestBarRequest
+    ) -> Union[Dict[str, Bar], RawData]:
+        """Retrieves the latest minute bar for an equity symbol or list of equity symbols.
+
+        Args:
+            request_params (StockLatestBarRequest): The request object for retrieving the latest bar data.
+
+        Returns:
+            Union[Dict[str, Bar], RawData]: The latest minute bar in raw or wrapped format
+        """
+        params = request_params.to_request_fields()
+
+        raw_latest_bars = self._data_get(
+            endpoint_data_type="bars",
+            endpoint_asset_class="stocks",
+            api_version="v2",
+            extension=DataExtensionType.LATEST,
+            **params,
+        )
+
+        return parse_obj_as_symbol_dict(Bar, raw_latest_bars)
 
     def get_stock_snapshot(
         self, request_params: StockSnapshotRequest

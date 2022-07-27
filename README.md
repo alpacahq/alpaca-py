@@ -52,7 +52,7 @@ Alpaca-py lets you use Broker API to start building your investment apps! Learn 
 ### OOP Design
 Alpaca-py uses a more OOP approach to submitting requests compared to the previous SDK. To submit a request, you will most likely need to create a request object containing the desired request data. There is a request object for each type of request.
 
-Example
+**Example**
 
 To submit an order, you will need to provide a `MarketOrderRequest` object.
 

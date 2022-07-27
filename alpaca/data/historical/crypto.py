@@ -9,8 +9,8 @@ from alpaca.common.types import HTTPResult, Credentials
 from alpaca.data import Snapshot
 from alpaca.data.historical.utils import (
     parse_obj_as_symbol_dict,
-    parse_latest_data_response,
-    parse_dataset_response,
+    format_latest_data_response,
+    format_dataset_response,
 )
 from alpaca.data.models import BarSet, QuoteSet, TradeSet, Orderbook, Trade, Quote
 from alpaca.data.historical.stock import DataExtensionType
@@ -318,9 +318,9 @@ class CryptoHistoricalDataClient(RESTClient):
                 extension == DataExtensionType.LATEST
                 or extension == DataExtensionType.SNAPSHOT
             ):
-                parse_latest_data_response(response, data_by_symbol)
+                format_latest_data_response(response, data_by_symbol)
             else:
-                parse_dataset_response(response, data_by_symbol)
+                format_dataset_response(response, data_by_symbol)
 
             # if we've sent a request with a limit, increment count
             if actual_limit:

@@ -8,9 +8,9 @@ from alpaca.common.types import RawData
 from alpaca.data import Quote, Trade, Snapshot
 from alpaca.data.historical.utils import (
     parse_obj_as_symbol_dict,
-    parse_latest_data_response,
-    parse_dataset_response,
-    parse_snapshot_data,
+    format_latest_data_response,
+    format_dataset_response,
+    format_snapshot_data,
 )
 
 from alpaca.data.models import BarSet, QuoteSet, TradeSet
@@ -292,11 +292,11 @@ class StockHistoricalDataClient(RESTClient):
 
             # TODO: Merge parsing if possible
             if extension == DataExtensionType.SNAPSHOT:
-                parse_snapshot_data(response, data_by_symbol)
+                format_snapshot_data(response, data_by_symbol)
             elif extension == DataExtensionType.LATEST:
-                parse_latest_data_response(response, data_by_symbol)
+                format_latest_data_response(response, data_by_symbol)
             else:
-                parse_dataset_response(response, data_by_symbol)
+                format_dataset_response(response, data_by_symbol)
 
             # if we've sent a request with a limit, increment count
             if actual_limit:

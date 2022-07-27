@@ -21,7 +21,8 @@ from alpaca.data.requests import (
     CryptoLatestTradeRequest,
     CryptoLatestQuoteRequest,
     CryptoSnapshotRequest,
-    CryptoLatestOrderbookRequest, CryptoLatestBarRequest,
+    CryptoLatestOrderbookRequest,
+    CryptoLatestBarRequest,
 )
 
 

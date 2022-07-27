@@ -141,12 +141,12 @@ trading_client = TradingClient('api-key', 'secret-key')
 
 
 # preparing order data
-market_order_data = MarketOrderRequest(
-                    symbol="BTCUSD",
-                    notional=5000,
-                    side=OrderSide.BUY,
-                    time_in_force=TimeInForce.DAY
-               )
+  market_order_data = MarketOrderRequest(
+                      symbol="BTC/USD",
+                      qty=0.0001,
+                      side=OrderSide.BUY,
+                      time_in_force=TimeInForce.DAY
+                  )
 
 # Market order
 market_order = trading_client.submit_order(

@@ -91,4 +91,9 @@ Here are some libraries that work well with Alpaca-py.
 * `Pyfolio <https://github.com/quantopian/pyfolio>`_ -  Portfolio and risk analytics in Python.
 * `FinQuant <https://github.com/fmilthaler/FinQuant>`_ -  A program for financial portfolio management, analysis and optimisation.
 
+**FinTech Integrations**
+
+* `Plaid <https://github.com/plaid/plaid-python>`_ -  Connect user banking information.
+* `Onfido <https://github.com/onfido/onfido-python>`_ -  Identity verification / KYC.
+
 

@@ -65,7 +65,7 @@ html_theme = "furo"
 html_favicon = "https://files.alpaca.markets/webassets/favicon-32x32.png"
 html_theme_options = {
     "footer_icons": [
-        { 
+        {
             "name": "Alpaca Markets",
             "url": "https://alpaca.markets/",
             "html": """

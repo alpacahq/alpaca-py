@@ -1,12 +1,12 @@
 from collections import defaultdict
-from typing import Union, Optional, List, Dict, Type
+from typing import Union, Optional, List, Dict
 
 from alpaca.common.constants import DATA_V2_MAX_LIMIT
 from alpaca.common.types import RawData
 from alpaca.common.enums import BaseURL
 from alpaca.common.rest import RESTClient
-from alpaca.common.types import HTTPResult, Credentials
-from alpaca.data import Snapshot
+from alpaca.common.types import Credentials
+from alpaca.data import Snapshot, Bar
 from alpaca.data.historical.utils import (
     parse_obj_as_symbol_dict,
     format_latest_data_response,
@@ -22,6 +22,7 @@ from alpaca.data.requests import (
     CryptoLatestQuoteRequest,
     CryptoSnapshotRequest,
     CryptoLatestOrderbookRequest,
+    CryptoLatestBarRequest,
 )
 
 
@@ -119,7 +120,8 @@ class CryptoHistoricalDataClient(RESTClient):
     def get_crypto_trades(
         self, request_params: CryptoTradesRequest
     ) -> Union[TradeSet, RawData]:
-        """Returns the price and sales history over a given time period for a cryptocurrency or list of cryptocurrencies.
+        """Returns the price and sales history over a given time period for a cryptocurrency
+        or list of cryptocurrencies.
 
         Args:
             request_params (CryptoTradesRequest): The parameters for the request.
@@ -143,7 +145,7 @@ class CryptoHistoricalDataClient(RESTClient):
     def get_crypto_latest_trade(
         self, request_params: CryptoLatestTradeRequest
     ) -> Union[Dict[str, Trade], RawData]:
-        """Returns the latest trade for a coin for a specific exchange
+        """Returns the latest trade for a coin.
 
         Args:
             request_params (CryptoLatestTradeRequest): The parameters for the request.
@@ -167,7 +169,7 @@ class CryptoHistoricalDataClient(RESTClient):
     def get_crypto_latest_quote(
         self, request_params: CryptoLatestQuoteRequest
     ) -> Union[Dict[str, Quote], RawData]:
-        """Returns the latest quote for a coin for a specific exchange
+        """Returns the latest quote for a coin.
 
         Args:
             request_params (CryptoLatestQuoteRequest): The parameters for the request.
@@ -187,6 +189,30 @@ class CryptoHistoricalDataClient(RESTClient):
         )
 
         return parse_obj_as_symbol_dict(Quote, raw_quotes)
+
+    def get_crypto_latest_bar(
+        self, request_params: CryptoLatestBarRequest
+    ) -> Union[Dict[str, Bar], RawData]:
+        """Returns the latest minute bar for a coin.
+
+        Args:
+            request_params (CryptoLatestBarRequest): The parameters for the request.
+
+        Returns:
+            Union[Dict[str, Bar], RawData]: The latest bar in raw or wrapped format
+        """
+
+        params = request_params.to_request_fields()
+
+        raw_bars = self._data_get(
+            endpoint_asset_class="crypto",
+            endpoint_data_type="bars",
+            api_version="v1beta2",
+            extension=DataExtensionType.LATEST,
+            **params,
+        )
+
+        return parse_obj_as_symbol_dict(Bar, raw_bars)
 
     def get_crypto_latest_orderbook(
         self, request_params: CryptoLatestOrderbookRequest
@@ -259,7 +285,8 @@ class CryptoHistoricalDataClient(RESTClient):
             endpoint_asset_class (str): The data API security type path. Defaults to 'stocks'.
             api_version (str): Data API version. Defaults to "v2".
             limit (Optional[int]): The maximum number of items to query. Defaults to None.
-            page_limit (Optional[int]): The maximum number of items returned per page - different from limit. Defaults to DATA_V2_MAX_LIMIT.
+            page_limit (Optional[int]): The maximum number of items returned per page - different from limit.
+                Defaults to DATA_V2_MAX_LIMIT.
 
         Returns:
             RawData: Raw Market data from API

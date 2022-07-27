@@ -16,7 +16,7 @@
 
 Alpaca-py provides an interface for interacting with the API products Alpaca offers. These API products are provided as various REST, WebSocket and SSE endpoints that allow you to do everything from streaming market data to creating your own trading apps. 
 
-Learn more about the API products [Alpaca]((https://alpaca.markets/)) offers.
+Learn more about the API products Alpaca offers https://alpaca.markets.
 
 
 ## Installation

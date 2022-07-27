@@ -218,7 +218,8 @@ class CancelOrderResponse(BaseModel):
 
 
 class OrderRequest(NonEmptyRequest):
-    """Contains data for submitting an order.
+    """A base class for requests for creating an order. You probably shouldn't directly use
+    this class when submitting an order. Instead, use one of the order type specific classes.
 
     Attributes:
         symbol (str): The symbol identifier for the asset being traded

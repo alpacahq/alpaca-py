@@ -74,3 +74,9 @@ ClosePositionResponse
 
 .. autoclass:: alpaca.trading.models.ClosePositionResponse
 
+
+FailedClosePositionDetails
+--------------------------
+
+.. autoclass:: alpaca.trading.models.FailedClosePositionDetails
+

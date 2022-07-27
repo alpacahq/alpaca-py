@@ -101,8 +101,8 @@ fractional orders.
 .. code-block:: python
 
     from alpaca.trading.client import TradingClient
-    from alpaca.common.requests import MarketOrderRequest
-    from alpaca.common.enums import OrderSide, TimeInForce
+    from alpaca.trading.requests import MarketOrderRequest
+    from alpaca.trading.enums import OrderSide, TimeInForce
 
     trading_client = TradingClient('api-key', 'secret-key', paper=True)
 
@@ -112,12 +112,12 @@ fractional orders.
                         qty=0.023,
                         side=OrderSide.BUY,
                         time_in_force=TimeInForce.DAY
-                    )
+                        )
 
     # Market order
     market_order = trading_client.submit_order(
                     order_data=market_order_data
-                    )
+                   )
 
 **Limit Order**
 
@@ -127,8 +127,8 @@ use the ``LimitOrderRequest`` model to prepare your order details.
 .. code-block:: python
 
     from alpaca.trading.client import TradingClient
-    from alpaca.common.requests import LimitOrderRequest
-    from alpaca.common.enums import OrderSide, TimeInForce
+    from alpaca.trading.requests import LimitOrderRequest
+    from alpaca.trading.enums import OrderSide, TimeInForce
 
     trading_client = TradingClient('api-key', 'secret-key', paper=True)
 
@@ -139,12 +139,12 @@ use the ``LimitOrderRequest`` model to prepare your order details.
                         notional=4000,
                         side=OrderSide.SELL,
                         time_in_force=TimeInForce.FOK
-                  )
+                       )
 
     # Limit order
     limit_order = trading_client.submit_order(
                     order_data=limit_order_data
-                   )
+                  )
 
 
 Getting All Orders
@@ -156,16 +156,16 @@ the query by passing in parameters through the ``GetOrdersRequest`` model.
 .. code-block:: python
 
     from alpaca.trading.client import TradingClient
-    from alpaca.common.requests import GetOrdersRequest
-    from alpaca.common.enums import OrderSide, OrderStatus
+    from alpaca.trading.requests import GetOrdersRequest
+    from alpaca.trading.enums import OrderSide, OrderStatus
 
     trading_client = TradingClient('api-key', 'secret-key', paper=True)
 
     # params to filter orders by
     request_params = GetOrdersRequest(
-                        status=OrderStatus.OPEN,
+                        status=OrderStatus.NEW,
                         side=OrderSide.SELL
-                    )
+                     )
 
     # orders that satisfy params
     orders = trading_client.get_orders(filter=request_params)

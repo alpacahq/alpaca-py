@@ -239,6 +239,8 @@ class TradingClient(RESTClient):
             "/positions",
             {"cancel_orders": cancel_orders},
         )
+
+        print(response)
         return parse_obj_as(List[ClosePositionResponse], response)
 
     def close_position(

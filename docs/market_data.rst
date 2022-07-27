@@ -67,11 +67,14 @@ symbol. We will need to use the ``StockLatestQuoteRequest`` model to prepare the
 
 **Multi Symbol**
 
+Here is an example of submitting a data request for multiple symbols. The `symbol_or_symbols` parameter
+can accommodate both a single symbol or a list of symbols. Notice how the data for a single
+symbol is accessed after the query. We use the symbol we desire as a key to access the data.
+
 .. code-block:: python
 
     from alpaca.data.historical import StockHistoricalDataClient
     from alpaca.data.requests import StockLatestQuoteRequest
-    from alpaca.data.timeframe import TimeFrame
 
     # keys required for stock historical data client
     client = StockHistoricalDataClient('api-key', 'secret-key')
@@ -79,22 +82,29 @@ symbol. We will need to use the ``StockLatestQuoteRequest`` model to prepare the
     # multi symbol request - single symbol is similar
     multisymbol_request_params = StockLatestQuoteRequest(symbol_or_symbols=["SPY", "GLD", "TLT"])
 
-    latest_multisymbol_quotes = client.get_stock_latest_quote(request_params)
+    latest_multisymbol_quotes = client.get_stock_latest_quote(multisymbol_request_params)
 
-    gld_latest_ask_price = latest_quotes["GLD"].ask_price
+    gld_latest_ask_price = latest_multisymbol_quotes["GLD"].ask_price
 
 **Single Symbol**
 
+This is a similar example but for a single symbol. The key thing to notice is how we still
+need to use the symbol as a key to access the data we desire. This might seem odd since we only
+queried a single symbol. However, this must be done since the data models are agnostic to the number
+of symbols.
+
 .. code-block:: python
 
-    from alpaca.data.historical import StockHistoricalDataClient
-    from alpaca.data.requests import StockLatestQuoteRequest
-    from alpaca.data.timeframe import TimeFrame
+    from alpaca.data.historical import CryptoHistoricalDataClient
+    from alpaca.data.requests import CryptoLatestQuoteRequest
+
+    # no keys required
+    client = CryptoHistoricalDataClient()
 
     # single symbol request
-    request_params = StockLatestQuoteRequest(symbol_or_symbols="ETH/USD")
+    request_params = CryptoLatestQuoteRequest(symbol_or_symbols="ETH/USD")
 
-    latest_quote = client.get_stock_latest_quote(request_params)
+    latest_quote = client.get_crypto_latest_quote(request_params)
 
     # must use symbol to access even though it is single symbol
     latest_quote["ETH/USD"].ask_price
@@ -138,7 +148,9 @@ Clients
 ^^^^^^^
 
 The data stream clients lets you subscribe to real-time data via WebSockets. There are clients
-for crypto data and stock data.
+for crypto data and stock data. These clients are different from the historical ones. They do not
+have methods which return data immediately. Instead, the methods in these clients allow you to assign
+methods to receive real-time data.
 
 
 .. code-block:: python
@@ -156,8 +168,10 @@ Subscribing to Real-Time Quote Data
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This example shows how to receive live quote data for stocks. To receive real time data, you will need to provide
-the client an asynchronous function to handle the data. Finally, you will need to call the
-``run`` method to start receiving data.
+the client an asynchronous function to handle the data. The client will assign this provided method
+to receive the real-time data as it is available.
+
+Finally, you will need to call the ``run`` method to start receiving data.
 
 .. code-block:: python
 

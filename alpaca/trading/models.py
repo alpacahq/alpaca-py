@@ -1,7 +1,7 @@
 from alpaca.common.models import ValidateBaseModel as BaseModel
 from uuid import UUID
 from datetime import datetime, date
-from typing import Any, Optional, List
+from typing import Any, Optional, List, Union
 from alpaca.trading.enums import (
     AssetClass,
     AssetStatus,
@@ -99,17 +99,6 @@ class Position(BaseModel):
     change_today: str
 
 
-class ClosePositionResponse(BaseModel):
-    """
-    Attributes:
-        order_id (UUID): ID of order that was created to liquidate the position.
-        status_code (int): Status code corresponding to the request to liquidate the position.
-    """
-
-    order_id: UUID
-    status_code: int
-
-
 class Order(BaseModel):
     """
     Represents a request for the sale or purchase of an asset.
@@ -191,6 +180,31 @@ class Order(BaseModel):
             data["order_class"] = OrderClass.SIMPLE
 
         super().__init__(**data)
+
+
+class FailedClosePositionDetails(BaseModel):
+
+    available: float
+    code: int
+    existing_qty: float
+    held_for_orders: float
+    message: str
+    symbol: str
+
+
+class ClosePositionResponse(BaseModel):
+    """
+    Attributes:
+        order_id (Optional[UUID]): ID of order that was created to liquidate the position.
+        status (Optional[int]): Status code corresponding to the request to liquidate the position.
+        symbol (Optional[str]): The symbol of the position being closed.
+        body (Optional[dict]): Information relating to the successful or unsuccessful closing of the position.
+    """
+
+    order_id: Optional[UUID]
+    status: Optional[int]
+    symbol: Optional[str]
+    body: Union[FailedClosePositionDetails, Order]
 
 
 class PortfolioHistory(BaseModel):

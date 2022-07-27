@@ -1,4 +1,4 @@
-![Alpaca-py](https://github.com/alpacahq/alpaca-py/blob/master/docs/images/alpaca-py-banner.png?raw=true)
+[![Alpaca-py](https://github.com/alpacahq/alpaca-py/blob/master/docs/images/alpaca-py-banner.png?raw=true)](https://alpaca.markets/docs/python-sdk)
 
 [![Downloads](https://pepy.tech/badge/alpaca-py/month)](https://pepy.tech/project/alpaca-py)
 [![Python Versions](https://img.shields.io/pypi/pyversions/alpaca-py.svg?logo=python&logoColor=white)](https://pypi.org/project/alpaca-py)
@@ -16,8 +16,14 @@
 
 Alpaca-py provides an interface for interacting with the API products Alpaca offers. These API products are provided as various REST, WebSocket and SSE endpoints that allow you to do everything from streaming market data to creating your own trading apps. 
 
-Learn more about the API products Alpaca offers https://alpaca.markets.
+Learn more about the API products Alpaca offers at https://alpaca.markets.
 
+## Documentation Site
+
+Alpaca-py has a supplementary documentation site which contains references for all clients, methods and models found in this codebase. The documentation
+also contains examples to get started with alpaca-py.
+
+You can find the documentation site here: https://alpaca.markets/docs/python-sdk
 
 ## Installation
 

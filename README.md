@@ -141,7 +141,7 @@ trading_client = TradingClient('api-key', 'secret-key')
 
 
 # preparing order data
-  market_order_data = MarketOrderRequest(
+market_order_data = MarketOrderRequest(
                       symbol="BTC/USD",
                       qty=0.0001,
                       side=OrderSide.BUY,
@@ -151,6 +151,7 @@ trading_client = TradingClient('api-key', 'secret-key')
 # Market order
 market_order = trading_client.submit_order(
                 order_data=market_order_data
+                )
 ```
 
 

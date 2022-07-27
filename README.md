@@ -10,6 +10,10 @@
 * [Documentation](#documentation)
 * [Installation](#installation)
 * [What's New?](#whats-new)
+   1. [Broker API](#broker-api-new)
+   2. [OOP Design](#oop-design)
+   3. [Data Validation](#data-validation)
+   4. [Many Clients](#many-clients)
 * [API Keys](#api-keys)
    1. [Trading and Market Data API Keys](#trading-api-keys)
    2. [Broker API Keys](#trading-api-keys)
@@ -46,10 +50,10 @@ Run the following command in your terminal.
 ## What’s New? <a name="whats-new"></a>
 If you’ve used the previous python SDK alpaca-trade-api, there are a few key differences to be aware of.
 
-### Broker API
+### Broker API <a name="broker-api-new"></a>
 Alpaca-py lets you use Broker API to start building your investment apps! Learn more at the Broker page.
 
-### OOP Design
+### OOP Design <a name="oop-design"></a>
 Alpaca-py uses a more OOP approach to submitting requests compared to the previous SDK. To submit a request, you will most likely need to create a request object containing the desired request data. There is a request object for each type of request.
 
 **Example**
@@ -73,10 +77,10 @@ request_params = MarketOrderRequest(
 client.submit_order(order_data=request_params)
 ```
 
-### Data Validation
+### Data Validation <a name="data-validation"></a>
 Alpaca-py uses pydantic to validate data models at run-time. This means if you are receiving request data via JSON from a client. You can handle parsing and validation through Alpaca’s request models. All request models can be instantiated by passing in data in dictionary format.
 
-### Many Clients
+### Many Clients <a name="many-clients"></a>
 Alpaca-py has a lot of client classes. There is a client for each API and even asset class specific clients (StockHistoricalData, CryptoDataStream). This requires you to pick and choose clients based on your needs.
 
 ## API Keys <a name="api-keys"></a>

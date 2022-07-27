@@ -40,3 +40,14 @@ SNAPSHOT_MAPPING: Dict[str, str] = {
     "dailyBar": "daily_bar",
     "prevDailyBar": "previous_daily_bar",
 }
+
+ORDERBOOK_MAPPING: Dict[str, str] = {
+    "t": "timestamp",
+    "b": "bids",
+    "a": "asks",
+}
+
+ORDERBOOK_QUOTE_MAPPING: Dict[str, str] = {
+    "p": "price",
+    "s": "size",
+}

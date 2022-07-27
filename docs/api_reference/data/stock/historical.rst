@@ -2,6 +2,13 @@
 Historical Data
 ===============
 
+StockHistoricalDataClient
+-------------------------
+
+.. autoclass:: alpaca.data.historical.stock.StockHistoricalDataClient
+   :members: __init__
+
+
 Get Stock Bars
 --------------
 

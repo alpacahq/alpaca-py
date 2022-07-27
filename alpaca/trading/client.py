@@ -45,6 +45,18 @@ class TradingClient(RESTClient):
         raw_data: bool = False,
         url_override: Optional[str] = None,
     ) -> None:
+        """
+        Instantiates a client for trading and managing personal brokerage accounts.
+
+        Args:
+            api_key (Optional[str]): The API key for trading. Use paper keys if paper is set to true.
+            secret_key (Optional[str]): The secret key for trading. Use paper keys if paper is set to true.
+            oauth_token (Optional[str]): The oauth token for trading on behalf of end user.
+            paper (bool): True is paper trading should be enabled.
+            raw_data (bool): Whether API responses should be wrapped in data models or returned raw.
+                This has not been implemented yet.
+            url_override (Optional[str]): If specified allows you to override the base url the client points to for proxy/testing.
+        """
         super().__init__(
             api_key=api_key,
             secret_key=secret_key,

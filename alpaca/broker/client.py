@@ -113,6 +113,7 @@ class BrokerClient(RESTClient):
             api_version (str): API version. Defaults to 'v1'.
             sandbox (bool): True if using sandbox mode. Defaults to True.
             raw_data (bool): True if you want raw response instead of wrapped responses. Defaults to False.
+                This has not been implemented yet.
             url_override (Optional[str]): A url to override and use as the base url.
         """
         base_url = (

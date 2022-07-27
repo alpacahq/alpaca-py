@@ -10,7 +10,7 @@ Contents
 .. toctree::
    :maxdepth: 2
 
-
+   broker/broker-client
    broker/assets
    broker/accounts
    broker/account_activities

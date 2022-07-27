@@ -55,7 +55,7 @@ class StockHistoricalDataClient(RESTClient):
             secret_key (Optional[str], optional): Alpaca API secret key. Defaults to None.
             oauth_token (Optional[str]): The oauth token if authenticating via OAuth. Defaults to None.
             raw_data (bool, optional): If true, API responses will not be wrapped and raw responses will be returned from
-              methods. Defaults to False.
+              methods. Defaults to False. This has not been implemented yet.
             url_override (Optional[str], optional): If specified allows you to override the base url the client points
               to for proxy/testing.
         """

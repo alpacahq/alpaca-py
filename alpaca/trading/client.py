@@ -212,7 +212,7 @@ class TradingClient(RESTClient):
 
     def get_open_position(self, symbol_or_asset_id: Union[UUID, str]) -> Position:
         """
-        Gets the open position for an account for a single asset.
+        Gets the open position for an account for a single asset. Throws an APIError if the position does not exist.
 
         Args:
             symbol_or_asset_id (Union[UUID, str]): The symbol name of asset id of the position to get.

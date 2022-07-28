@@ -926,7 +926,7 @@ class BrokerClient(RESTClient):
         self, account_id: Union[UUID, str], symbol_or_asset_id: Union[UUID, str]
     ) -> Position:
         """
-        Gets the open position for an account for a single asset.
+        Gets the open position for an account for a single asset. Throws an APIError if the position does not exist.
 
         Args:
             account_id (Union[UUID, str]): The ID of the Account to get the open position for.

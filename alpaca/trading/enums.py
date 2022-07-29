@@ -174,6 +174,7 @@ class AssetExchange(str, Enum):
     CBSE = "CBSE"
     GNSS = "GNSS"
     ERSX = "ERSX"
+    OTC = "OTC"
 
 
 class PositionSide(str, Enum):

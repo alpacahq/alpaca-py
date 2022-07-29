@@ -176,6 +176,7 @@ class AssetExchange(str, Enum):
     ERSX = "ERSX"
     OTC = "OTC"
 
+
 class PositionSide(str, Enum):
     """
     Represents what side this position is.

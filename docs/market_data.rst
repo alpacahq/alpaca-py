@@ -157,8 +157,8 @@ methods to receive real-time data.
 
     from alpaca.data import CryptoDataStream, StockDataStream
 
-    # no keys required.
-    crypto_stream = CryptoDataStream()
+    # keys are required for live data
+    crypto_stream = CryptoDataStream("api-key", "secret-key")
 
     # keys required
     stock_stream = StockDataStream("api-key", "secret-key")

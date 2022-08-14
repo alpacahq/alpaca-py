@@ -27,7 +27,7 @@ class CryptoDataStream(BaseStream):
             websocket_params (Optional[Dict], optional): Any parameters for configuring websocket connection. Defaults to None.
         """
         super().__init__(
-            endpoint=BaseURL.MARKET_DATA_LIVE.value + "/v1beta1/crypto",
+            endpoint=BaseURL.MARKET_DATA_LIVE.value + "/v1beta2/crypto",
             api_key=api_key,
             secret_key=secret_key,
             raw_data=raw_data,

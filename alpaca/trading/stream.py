@@ -1,9 +1,13 @@
 import json
 import queue
-from typing import Optional, Dict, Callable
+from typing import Optional, Dict, Callable, Union
 import asyncio
 import websockets
 import logging
+
+from pydantic import BaseModel
+
+from alpaca.common import RawData
 from alpaca.common.enums import BaseURL
 from alpaca.trading import TradeUpdate
 
@@ -11,7 +15,13 @@ log = logging.getLogger(__name__)
 
 
 class TradingStream:
+    """
+    This is a WebSocket client which allows you to streaming data from your trading account.
 
+    Learn more here: https://alpaca.markets/docs/api-references/trading-api/streaming/
+
+    If using paper keys, make sure to set ``paper`` to True when instantiating the client.
+    """
     def __init__(self,
                  api_key: str,
                  secret_key: str,
@@ -59,19 +69,33 @@ class TradingStream:
         if msg.get('data').get('status') != 'authorized':
             raise ValueError('failed to authenticate')
 
-    async def _dispatch(self, msg):
+    async def _dispatch(self, msg: Dict) -> None:
+        """Distributes message from websocket connection to appropriate handler
+
+        Args:
+            msg (Dict): The message from the websocket connection
+        """
         stream = msg.get('stream')
         if stream == 'trade_updates':
             if self._trade_updates_handler:
                 await self._trade_updates_handler(self._cast(msg))
 
-    def _cast(self, msg):
+    def _cast(self, msg: Dict) -> Union[BaseModel, RawData]:
+        """Parses data from websocket message if raw_data is False, otherwise
+        returns raw websocket message
+
+        Args:
+            msg (Dict): The message containing market data
+
+        Returns:
+            Union[BaseModel, RawData]: The raw or parsed live data
+        """
         result = msg
         if not self._raw_data:
             result = TradeUpdate(**msg.get('data'))
         return result
 
-    async def _subscribe_trade_updates(self):
+    async def _subscribe_trade_updates(self) -> None:
         if self._trade_updates_handler:
             await self._ws.send(
                 json.dumps({
@@ -81,7 +105,16 @@ class TradingStream:
                     }
                 }))
 
-    def subscribe_trade_updates(self, handler):
+    def subscribe_trade_updates(self, handler: Callable):
+        """
+        Subscribes to trade updates for your trading account.
+
+        Args:
+            handler (Callable): The async handler that will receive trade update data.
+
+        Returns:
+            None
+        """
         self._ensure_coroutine(handler)
         self._trade_updates_handler = handler
         if self._running:
@@ -144,24 +177,28 @@ class TradingStream:
             finally:
                 await asyncio.sleep(0.01)
 
-    async def close(self):
+    async def close(self) -> None:
+        """Closes the websocket connection."""
         if self._ws:
             await self._ws.close()
             self._ws = None
             self._running = False
 
-    async def stop_ws(self):
+    async def stop_ws(self) -> None:
+        """Signals websocket connection should close by adding a closing message to the stop_stream_queue"""
         self._should_run = False
         if self._stop_stream_queue.empty():
             self._stop_stream_queue.put_nowait({"should_stop": True})
 
-    def stop(self):
+    def stop(self) -> None:
+        """Stops the websocket connection."""
         if self._loop.is_running():
             asyncio.run_coroutine_threadsafe(
                 self.stop_ws(),
                 self._loop).result()
 
-    def run(self):
+    def run(self) -> None:
+        """Starts up the websocket connection's event loop"""
         try:
             asyncio.run(self._run_forever())
         except KeyboardInterrupt:

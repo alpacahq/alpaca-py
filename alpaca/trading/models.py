@@ -175,7 +175,6 @@ class Order(BaseModel):
     hwm: Optional[str]
 
     def __init__(self, **data: Any) -> None:
-
         if "order_class" not in data or data["order_class"] == "":
             data["order_class"] = OrderClass.SIMPLE
 
@@ -508,12 +507,10 @@ class CorporateActionAnnouncement(BaseModel):
 
 
 class TradeUpdate(BaseModel):
-
-    event: TradeEvent
+    event: Union[TradeEvent, str]
     execution_id: UUID
     order: Order
     timestamp: datetime
     position_qty: Optional[float]
     price: Optional[float]
     qty: Optional[float]
-

@@ -266,3 +266,11 @@ class CorporateActionDateType(str, Enum):
     EX_DATE = "ex_date"
     RECORD_DATE = "record_date"
     PAYABLE_DATE = "payable_date"
+
+
+class TradeEvent(str, Enum):
+
+    FILL = "fill"
+    CANCELED = "canceled"
+    NEW = "new"
+    PARTIAL_FILL = "partial_fill"

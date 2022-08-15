@@ -9,6 +9,7 @@ Contents
    :maxdepth: 2
 
    trading/trading-client
+   trading/stream
    trading/account
    trading/positions
    trading/orders

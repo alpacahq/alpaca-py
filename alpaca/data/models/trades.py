@@ -24,7 +24,7 @@ class Trade(BaseModel):
 
     symbol: str
     timestamp: datetime
-    exchange: Optional[Exchange]
+    exchange: Optional[Union[Exchange, str]]
     price: float
     size: float
     id: int

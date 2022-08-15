@@ -18,6 +18,7 @@ from alpaca.trading.enums import (
     ActivityType,
     CorporateActionType,
     CorporateActionSubType,
+    TradeEvent,
 )
 from pydantic import Field
 
@@ -175,7 +176,6 @@ class Order(BaseModel):
     hwm: Optional[str]
 
     def __init__(self, **data: Any) -> None:
-
         if "order_class" not in data or data["order_class"] == "":
             data["order_class"] = OrderClass.SIMPLE
 
@@ -505,3 +505,13 @@ class CorporateActionAnnouncement(BaseModel):
     cash: float
     old_rate: float
     new_rate: float
+
+
+class TradeUpdate(BaseModel):
+    event: Union[TradeEvent, str]
+    execution_id: UUID
+    order: Order
+    timestamp: datetime
+    position_qty: Optional[float]
+    price: Optional[float]
+    qty: Optional[float]

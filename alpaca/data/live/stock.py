@@ -44,7 +44,7 @@ class StockDataStream(BaseStream):
             endpoint=(
                 url_override
                 if url_override is not None
-                else BaseURL.MARKET_DATA_LIVE.value + "/v2/" + feed.value
+                else BaseURL.MARKET_DATA_STREAM.value + "/v2/" + feed.value
             ),
             api_key=api_key,
             secret_key=secret_key,

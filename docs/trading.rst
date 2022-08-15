@@ -226,7 +226,7 @@ the method will also cancel all open orders, preventing you from entering into a
 
 
 Streaming Trade Updates
-^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------
 
 There is also a ``TradingStream`` websocket client which allows you to stream order updates.
 Whenever an order is submitted, filled, cancelled, etc, you will receive a response on the client.

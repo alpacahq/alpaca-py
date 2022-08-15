@@ -17,7 +17,8 @@ from alpaca.trading.enums import (
     NonTradeActivityStatus,
     ActivityType,
     CorporateActionType,
-    CorporateActionSubType, TradeEvent,
+    CorporateActionSubType,
+    TradeEvent,
 )
 from pydantic import Field
 

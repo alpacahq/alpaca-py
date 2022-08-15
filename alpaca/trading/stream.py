@@ -22,18 +22,26 @@ class TradingStream:
 
     If using paper keys, make sure to set ``paper`` to True when instantiating the client.
     """
-    def __init__(self,
-                 api_key: str,
-                 secret_key: str,
-                 paper: bool = True,
-                 raw_data: bool = False,
-                 url_override: str = None,
-                 websocket_params: Optional[Dict] = None):
+
+    def __init__(
+        self,
+        api_key: str,
+        secret_key: str,
+        paper: bool = True,
+        raw_data: bool = False,
+        url_override: str = None,
+        websocket_params: Optional[Dict] = None,
+    ):
         self._api_key = api_key
         self._secret_key = secret_key
         self._trade_updates_handler = None
-        self._endpoint = url_override if url_override \
-            else BaseURL.TRADING_STREAM_PAPER if paper else BaseURL.TRADING_STREAM_LIVE
+        self._endpoint = (
+            url_override
+            if url_override
+            else BaseURL.TRADING_STREAM_PAPER
+            if paper
+            else BaseURL.TRADING_STREAM_LIVE
+        )
         self._ws = None
         self._running = False
         self._loop = None
@@ -50,24 +58,24 @@ class TradingStream:
             self._websocket_params = websocket_params
 
     async def _connect(self):
-        self._ws = await websockets.connect(
-            self._endpoint,
-            **self._websocket_params
-        )
+        self._ws = await websockets.connect(self._endpoint, **self._websocket_params)
 
     async def _auth(self):
         await self._ws.send(
-            json.dumps({
-                'action': 'authenticate',
-                'data': {
-                    'key_id': self._api_key,
-                    'secret_key': self._secret_key,
+            json.dumps(
+                {
+                    "action": "authenticate",
+                    "data": {
+                        "key_id": self._api_key,
+                        "secret_key": self._secret_key,
+                    },
                 }
-            }))
+            )
+        )
         r = await self._ws.recv()
         msg = json.loads(r)
-        if msg.get('data').get('status') != 'authorized':
-            raise ValueError('failed to authenticate')
+        if msg.get("data").get("status") != "authorized":
+            raise ValueError("failed to authenticate")
 
     async def _dispatch(self, msg: Dict) -> None:
         """Distributes message from websocket connection to appropriate handler
@@ -75,8 +83,8 @@ class TradingStream:
         Args:
             msg (Dict): The message from the websocket connection
         """
-        stream = msg.get('stream')
-        if stream == 'trade_updates':
+        stream = msg.get("stream")
+        if stream == "trade_updates":
             if self._trade_updates_handler:
                 await self._trade_updates_handler(self._cast(msg))
 
@@ -92,18 +100,14 @@ class TradingStream:
         """
         result = msg
         if not self._raw_data:
-            result = TradeUpdate(**msg.get('data'))
+            result = TradeUpdate(**msg.get("data"))
         return result
 
     async def _subscribe_trade_updates(self) -> None:
         if self._trade_updates_handler:
             await self._ws.send(
-                json.dumps({
-                    'action': 'listen',
-                    'data': {
-                        'streams': ['trade_updates']
-                    }
-                }))
+                json.dumps({"action": "listen", "data": {"streams": ["trade_updates"]}})
+            )
 
     def subscribe_trade_updates(self, handler: Callable):
         """
@@ -119,13 +123,13 @@ class TradingStream:
         self._trade_updates_handler = handler
         if self._running:
             asyncio.run_coroutine_threadsafe(
-                self._subscribe_trade_updates(),
-                self._loop).result()
+                self._subscribe_trade_updates(), self._loop
+            ).result()
 
     async def _start_ws(self):
         await self._connect()
         await self._auth()
-        log.info(f'connected to: {self._endpoint}')
+        log.info(f"connected to: {self._endpoint}")
         await self._subscribe_trade_updates()
 
     async def _consume(self):
@@ -153,7 +157,7 @@ class TradingStream:
                 self._stop_stream_queue.get(timeout=1)
                 return
             await asyncio.sleep(0.1)
-        log.info('started trading stream')
+        log.info("started trading stream")
         self._should_run = True
         self._running = False
         while True:
@@ -169,11 +173,15 @@ class TradingStream:
             except websockets.WebSocketException as wse:
                 await self.close()
                 self._running = False
-                log.warning('trading stream websocket error, restarting ' +
-                            ' connection: ' + str(wse))
+                log.warning(
+                    "trading stream websocket error, restarting "
+                    + " connection: "
+                    + str(wse)
+                )
             except Exception as e:
-                log.exception('error during websocket '
-                              'communication: {}'.format(str(e)))
+                log.exception(
+                    "error during websocket " "communication: {}".format(str(e))
+                )
             finally:
                 await asyncio.sleep(0.01)
 
@@ -193,16 +201,14 @@ class TradingStream:
     def stop(self) -> None:
         """Stops the websocket connection."""
         if self._loop.is_running():
-            asyncio.run_coroutine_threadsafe(
-                self.stop_ws(),
-                self._loop).result()
+            asyncio.run_coroutine_threadsafe(self.stop_ws(), self._loop).result()
 
     def run(self) -> None:
         """Starts up the websocket connection's event loop"""
         try:
             asyncio.run(self._run_forever())
         except KeyboardInterrupt:
-            print('keyboard interrupt, bye')
+            print("keyboard interrupt, bye")
             pass
 
     def _ensure_coroutine(self, handler: Callable) -> None:

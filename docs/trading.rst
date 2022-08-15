@@ -225,8 +225,31 @@ the method will also cancel all open orders, preventing you from entering into a
     trading_client.close_all_positions(cancel_orders=True)
 
 
+Streaming Trade Updates
+^^^^^^^^^^^^^^^^^^^^^^^
 
+There is also a ``TradingStream`` websocket client which allows you to stream order updates.
+Whenever an order is submitted, filled, cancelled, etc, you will receive a response on the client.
 
+You can learn more on the `API documentation <https://alpaca.markets/docs/api-references/trading-api/streaming/>`_
+
+Here is an example
+
+.. code-block:: python
+
+    from alpaca.trading.stream import TradingStream
+
+    trading_stream = TradingStream('api-key', 'secret-key', paper=True)
+
+    async def update_handler(data):
+        # trade updates will arrive in our async handler
+        print(data)
+
+    # subscribe to trade updates and supply the handler as a parameter
+    trading_stream.subscribe_trade_updates(update_handler)
+
+    # start our websocket streaming
+    trading_stream.run()
 
 
 

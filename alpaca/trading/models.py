@@ -17,7 +17,7 @@ from alpaca.trading.enums import (
     NonTradeActivityStatus,
     ActivityType,
     CorporateActionType,
-    CorporateActionSubType,
+    CorporateActionSubType, TradeEvent,
 )
 from pydantic import Field
 
@@ -505,3 +505,15 @@ class CorporateActionAnnouncement(BaseModel):
     cash: float
     old_rate: float
     new_rate: float
+
+
+class TradeUpdate(BaseModel):
+
+    event: TradeEvent
+    execution_id: UUID
+    order: Order
+    timestamp: datetime
+    position_qty: Optional[float]
+    price: Optional[float]
+    qty: Optional[float]
+

@@ -26,8 +26,8 @@ class StockDataStream(BaseStream):
         Instantiates a WebSocket client for accessing live stock data.
 
         Args:
-            api_key (str): Alpaca API key. Defaults to None.
-            secret_key (str): Alpaca API secret key. Defaults to None.
+            api_key (str): Alpaca API key.
+            secret_key (str): Alpaca API secret key.
             raw_data (bool, optional): Whether to return wrapped data or raw API data. Defaults to False.
             feed (DataFeed, optional): Which market data feed to use; IEX or SIP. Defaults to IEX.
             websocket_params (Optional[Dict], optional): Any parameters for configuring websocket connection. Defaults to None.

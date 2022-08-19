@@ -33,7 +33,7 @@ class CryptoDataStream(BaseStream):
             endpoint=(
                 url_override
                 if url_override is not None
-                else BaseURL.MARKET_DATA_STREAM.value + "/v1beta2/crypto",
+                else BaseURL.MARKET_DATA_STREAM.value + "/v1beta2/crypto"
             ),
             api_key=api_key,
             secret_key=secret_key,

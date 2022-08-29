@@ -1,9 +1,12 @@
 from datetime import datetime
 from typing import Optional, Union, List
 
+from alpaca.common.utils import tz_aware
 from alpaca.common.requests import NonEmptyRequest
 from alpaca.data.enums import Adjustment, DataFeed
 from alpaca.data.timeframe import TimeFrame
+
+from pydantic import root_validator
 
 
 class BaseTimeseriesDataRequest(NonEmptyRequest):
@@ -14,7 +17,7 @@ class BaseTimeseriesDataRequest(NonEmptyRequest):
     Attributes:
         symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
         start (Optional[datetime]): The beginning of the time interval for desired data.
-        end (Optional[datetime]): The end of the time interval for desired data. Defaults to None.
+        end (Optional[datetime]): The end of the time interval for desired data.
         limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
     """
 
@@ -22,6 +25,20 @@ class BaseTimeseriesDataRequest(NonEmptyRequest):
     start: Optional[Union[datetime, str]]
     end: Optional[Union[datetime, str]]
     limit: Optional[int]
+
+    @root_validator()
+    def root_validator(cls, values: dict) -> dict:
+
+        _start = values.get("start")
+        _end = values.get("start")
+
+        if _start is not None and not tz_aware(_start):
+            raise ValueError("Start datetime must be timezone aware")
+
+        if _end is not None and not tz_aware(_end):
+            raise ValueError("End datetime must be timezone aware")
+
+        return values
 
 
 # ############################## Bars ################################# #

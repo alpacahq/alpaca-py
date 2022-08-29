@@ -1,10 +1,11 @@
 from typing import Union, Optional
 from uuid import UUID
+from datetime import datetime
 
 
 def validate_uuid_id_param(
-    id: Union[UUID, str],
-    var_name: Optional[str] = None,
+        id: Union[UUID, str],
+        var_name: Optional[str] = None,
 ) -> UUID:
     """
     A small helper function to eliminate duplicate checks of various id parameters to ensure they are
@@ -32,7 +33,7 @@ def validate_uuid_id_param(
 
 
 def validate_symbol_or_asset_id(
-    symbol_or_asset_id: Union[UUID, str]
+        symbol_or_asset_id: Union[UUID, str]
 ) -> Union[UUID, str]:
     """
     A helper function to eliminate duplicate checks of symbols or asset ids.
@@ -51,3 +52,16 @@ def validate_symbol_or_asset_id(
     raise ValueError(
         f"symbol_or_asset_id must be a UUID of an asset id or a string of a symbol."
     )
+
+
+def tz_aware(dt: datetime) -> bool:
+    """
+    Returns if a given datetime is timezone aware
+
+    Args:
+        dt: the datetime to bo checked
+
+    Returns: timezone awareness
+
+    """
+    return dt.tzinfo is not None and dt.tzinfo.utcoffset(dt) is not None

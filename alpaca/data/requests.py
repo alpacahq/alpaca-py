@@ -1,12 +1,9 @@
 from datetime import datetime
-from typing import Optional, Union, List
-
-from alpaca.common.utils import tz_aware
+from typing import Optional, Union, List, Any
+import pytz
 from alpaca.common.requests import NonEmptyRequest
 from alpaca.data.enums import Adjustment, DataFeed
 from alpaca.data.timeframe import TimeFrame
-
-from pydantic import root_validator
 
 
 class BaseTimeseriesDataRequest(NonEmptyRequest):
@@ -16,8 +13,8 @@ class BaseTimeseriesDataRequest(NonEmptyRequest):
 
     Attributes:
         symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
-        start (Optional[datetime]): The beginning of the time interval for desired data.
-        end (Optional[datetime]): The end of the time interval for desired data.
+        start (Optional[datetime]): The beginning of the time interval for desired data. Timezone naive inputs assumed to be in UTC.
+        end (Optional[datetime]): The end of the time interval for desired data. Timezone naive inputs assumed to be in UTC.
         limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
     """
 
@@ -26,19 +23,20 @@ class BaseTimeseriesDataRequest(NonEmptyRequest):
     end: Optional[Union[datetime, str]]
     limit: Optional[int]
 
-    @root_validator()
-    def root_validator(cls, values: dict) -> dict:
+    def __init__(self, **data: Any) -> None:
 
-        _start = values.get("start")
-        _end = values.get("start")
+        # convert timezone aware datetime to timezone naive UTC datetime
+        if (
+            "start" in data
+            and data["start"] is not None
+            and data["start"].tzinfo is not None
+        ):
+            data["start"] = data["start"].astimezone(pytz.utc).replace(tzinfo=None)
 
-        if _start is not None and not tz_aware(_start):
-            raise ValueError("Start datetime must be timezone aware")
+        if "end" in data and data["end"] is not None and data["end"].tzinfo is not None:
+            data["end"] = data["end"].astimezone(pytz.utc).replace(tzinfo=None)
 
-        if _end is not None and not tz_aware(_end):
-            raise ValueError("End datetime must be timezone aware")
-
-        return values
+        super().__init__(**data)
 
 
 # ############################## Bars ################################# #
@@ -51,8 +49,8 @@ class BaseBarsRequest(BaseTimeseriesDataRequest):
 
     Attributes:
         symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
-        start (Optional[datetime]): The beginning of the time interval for desired data.
-        end (Optional[datetime]): The end of the time interval for desired data. Defaults to None.
+        start (Optional[datetime]): The beginning of the time interval for desired data. Timezone naive inputs assumed to be in UTC.
+        end (Optional[datetime]): The end of the time interval for desired data. Defaults to now. Timezone naive inputs assumed to be in UTC.
         limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
         timeframe (TimeFrame): The period over which the bars should be aggregated. (i.e. 5 Min bars, 1 Day bars)
     """
@@ -72,8 +70,8 @@ class StockBarsRequest(BaseBarsRequest):
 
     Attributes:
         symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
-        start (Optional[datetime]): The beginning of the time interval for desired data.
-        end (Optional[datetime]): The end of the time interval for desired data. Defaults to None.
+        start (Optional[datetime]): The beginning of the time interval for desired data. Timezone naive inputs assumed to be in UTC.
+        end (Optional[datetime]): The end of the time interval for desired data. Defaults to now. Timezone naive inputs assumed to be in UTC.
         limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
         adjustment (Optional[Adjustment]): The type of corporate action data normalization.
         feed (Optional[DataFeed]): The stock data feed to retrieve from.
@@ -91,8 +89,8 @@ class CryptoBarsRequest(BaseBarsRequest):
 
     Attributes:
         symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
-        start (Optional[datetime]): The beginning of the time interval for desired data.
-        end (Optional[datetime]): The end of the time interval for desired data. Defaults to None.
+        start (Optional[datetime]): The beginning of the time interval for desired data. Timezone naive inputs assumed to be in UTC.
+        end (Optional[datetime]): The end of the time interval for desired data. Defaults to now. Timezone naive inputs assumed to be in UTC.
         limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
     """
 
@@ -110,8 +108,8 @@ class StockQuotesRequest(BaseTimeseriesDataRequest):
 
     Attributes:
         symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
-        start (Optional[datetime]): The beginning of the time interval for desired data.
-        end (Optional[datetime]): The end of the time interval for desired data. Defaults to None.
+        start (Optional[datetime]): The beginning of the time interval for desired data. Timezone naive inputs assumed to be in UTC.
+        end (Optional[datetime]): The end of the time interval for desired data. Defaults to now. Timezone naive inputs assumed to be in UTC.
         limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
         feed (Optional[DataFeed]): The stock data feed to retrieve from.
     """
@@ -127,8 +125,8 @@ class CryptoQuotesRequest(BaseTimeseriesDataRequest):
 
     Attributes:
         symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
-        start (Optional[datetime]): The beginning of the time interval for desired data.
-        end (Optional[datetime]): The end of the time interval for desired data. Defaults to None.
+        start (Optional[datetime]): The beginning of the time interval for desired data. Timezone naive inputs assumed to be in UTC.
+        end (Optional[datetime]): The end of the time interval for desired data. Defaults to now. Timezone naive inputs assumed to be in UTC.
         limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
     """
 
@@ -146,8 +144,8 @@ class StockTradesRequest(BaseTimeseriesDataRequest):
 
     Attributes:
         symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
-        start (Optional[datetime]): The beginning of the time interval for desired data.
-        end (Optional[datetime]): The end of the time interval for desired data. Defaults to None.
+        start (Optional[datetime]): The beginning of the time interval for desired data. Timezone naive inputs assumed to be in UTC.
+        end (Optional[datetime]): The end of the time interval for desired data. Defaults to now. Timezone naive inputs assumed to be in UTC.
         limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
         feed (Optional[DataFeed]): The stock data feed to retrieve from.
     """
@@ -163,8 +161,8 @@ class CryptoTradesRequest(BaseTimeseriesDataRequest):
 
     Attributes:
         symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
-        start (Optional[datetime]): The beginning of the time interval for desired data.
-        end (Optional[datetime]): The end of the time interval for desired data. Defaults to None.
+        start (Optional[datetime]): The beginning of the time interval for desired data. Timezone naive inputs assumed to be in UTC.
+        end (Optional[datetime]): The end of the time interval for desired data. Defaults to now. Timezone naive inputs assumed to be in UTC.
         limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
     """
 

@@ -4,8 +4,8 @@ from datetime import datetime
 
 
 def validate_uuid_id_param(
-        id: Union[UUID, str],
-        var_name: Optional[str] = None,
+    id: Union[UUID, str],
+    var_name: Optional[str] = None,
 ) -> UUID:
     """
     A small helper function to eliminate duplicate checks of various id parameters to ensure they are
@@ -33,7 +33,7 @@ def validate_uuid_id_param(
 
 
 def validate_symbol_or_asset_id(
-        symbol_or_asset_id: Union[UUID, str]
+    symbol_or_asset_id: Union[UUID, str]
 ) -> Union[UUID, str]:
     """
     A helper function to eliminate duplicate checks of symbols or asset ids.

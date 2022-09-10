@@ -44,6 +44,7 @@ class NonEmptyRequest(BaseModel):
             if isinstance(val, list):
                 return [map_values(v) for v in val]
 
+            # RFC 3339
             if isinstance(val, datetime):
                 return val.isoformat("T") + "Z"
 

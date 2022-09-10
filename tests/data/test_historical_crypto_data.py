@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Dict
 
 from alpaca.data import Quote, Trade, Bar
@@ -24,13 +25,15 @@ def test_get_crypto_bars(reqmock, crypto_client: CryptoHistoricalDataClient):
 
     # test multisymbol request
     symbols = ["BTC/USD", "ETH/USD"]
-    start = "2022-03-09"
-    end = "2022-03-09"
+    start = datetime(2022, 3, 9)
+    end = datetime(2022, 3, 9)
     timeframe = TimeFrame.Day
     _symbols_in_url = "%2C".join(s for s in symbols)
 
+    _start_in_url = start.isoformat("T") + "Z"
+    _end_in_url = end.isoformat("T") + "Z"
     reqmock.get(
-        f"https://data.alpaca.markets/v1beta2/crypto/bars?timeframe={timeframe}&start={start}&end={end}&symbols={_symbols_in_url}",
+        f"https://data.alpaca.markets/v1beta2/crypto/bars?timeframe={timeframe}&start={_start_in_url}&end={_end_in_url}&symbols={_symbols_in_url}",
         text="""
     {
         "bars": {
@@ -81,12 +84,15 @@ def test_get_crypto_quotes(reqmock, crypto_client: CryptoHistoricalDataClient):
 
     # test multisymbol request
     symbols = ["BTC/USD", "ETH/USD"]
-    start = "2022-03-09"
-    end = "2022-03-10"
+    start = datetime(2022, 3, 9)
+    end = datetime(2022, 3, 10)
     _symbols_in_url = "%2C".join(s for s in symbols)
 
+    _start_in_url = start.isoformat("T") + "Z"
+    _end_in_url = end.isoformat("T") + "Z"
+
     reqmock.get(
-        f"https://data.alpaca.markets/v1beta2/crypto/quotes?start={start}&end={end}&symbols={_symbols_in_url}",
+        f"https://data.alpaca.markets/v1beta2/crypto/quotes?start={_start_in_url}&end={_end_in_url}&symbols={_symbols_in_url}",
         text="""
     {
         "quotes": {
@@ -146,12 +152,13 @@ def test_get_trades(reqmock, crypto_client: CryptoHistoricalDataClient):
 
     # test multisymbol request
     symbols = ["BTC/USD", "ETH/USD"]
-    start = "2022-03-09"
-    end = "2022-03-09"
+    start = datetime(2022, 3, 9)
     _symbols_in_url = "%2C".join(s for s in symbols)
 
+    _start_in_url = start.isoformat("T") + "Z"
+
     reqmock.get(
-        f"https://data.alpaca.markets/v1beta2/crypto/trades?start={start}&symbols={_symbols_in_url}",
+        f"https://data.alpaca.markets/v1beta2/crypto/trades?start={_start_in_url}&symbols={_symbols_in_url}",
         text="""
     {
         "trades": {

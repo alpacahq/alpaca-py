@@ -19,8 +19,8 @@ class BaseTimeseriesDataRequest(NonEmptyRequest):
     """
 
     symbol_or_symbols: Union[str, List[str]]
-    start: Optional[Union[datetime, str]]
-    end: Optional[Union[datetime, str]]
+    start: Optional[datetime]
+    end: Optional[datetime]
     limit: Optional[int]
 
     def __init__(self, **data: Any) -> None:
@@ -29,11 +29,17 @@ class BaseTimeseriesDataRequest(NonEmptyRequest):
         if (
             "start" in data
             and data["start"] is not None
+            and isinstance(data["start"], datetime)
             and data["start"].tzinfo is not None
         ):
             data["start"] = data["start"].astimezone(pytz.utc).replace(tzinfo=None)
 
-        if "end" in data and data["end"] is not None and data["end"].tzinfo is not None:
+        if (
+            "end" in data
+            and data["end"] is not None
+            and isinstance(data["end"], datetime)
+            and data["end"].tzinfo is not None
+        ):
             data["end"] = data["end"].astimezone(pytz.utc).replace(tzinfo=None)
 
         super().__init__(**data)

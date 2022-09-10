@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Dict
 
 from alpaca.data import Trade, Snapshot, Quote, Bar
@@ -21,11 +22,11 @@ def test_get_bars(reqmock, stock_client: StockHistoricalDataClient):
 
     symbol = "AAPL"
     timeframe = TimeFrame.Day
-    start = "2022-02-01"
+    start = datetime(2022, 2, 1)
     limit = 2
-
+    _start_in_url = start.isoformat("T") + "Z"
     reqmock.get(
-        f"https://data.alpaca.markets/v2/stocks/{symbol}/bars?timeframe={timeframe}&start={start}&limit={limit}",
+        f"https://data.alpaca.markets/v2/stocks/{symbol}/bars?start={_start_in_url}&timeframe={timeframe}&limit={limit}",
         text="""
     {
         "bars": [
@@ -73,13 +74,16 @@ def test_get_bars(reqmock, stock_client: StockHistoricalDataClient):
 def test_multisymbol_get_bars(reqmock, stock_client: StockHistoricalDataClient):
     # test multisymbol request
     symbols = ["AAPL", "TSLA"]
-    start = "2022-02-01"
-    end = "2022-03-09"
+    start = datetime(2022, 2, 1)
+    end = datetime(2022, 3, 9)
     timeframe = TimeFrame.Day
     _symbols_in_url = "%2C".join(s for s in symbols)
 
+    _start_in_url = start.isoformat("T") + "Z"
+    _end_in_url = end.isoformat("T") + "Z"
+
     reqmock.get(
-        f"https://data.alpaca.markets/v2/stocks/bars?timeframe={timeframe}&start={start}&end={end}&symbols={_symbols_in_url}",
+        f"https://data.alpaca.markets/v2/stocks/bars?timeframe={timeframe}&start={_start_in_url}&end={_end_in_url}&symbols={_symbols_in_url}",
         text="""
     {
         "bars": {
@@ -132,11 +136,13 @@ def test_get_quotes(reqmock, stock_client: StockHistoricalDataClient):
     # Test single symbol request
 
     symbol = "AAPL"
-    start = "2022-03-09"
+    start = datetime(2022, 3, 9)
     limit = 2
 
+    _start_in_url = start.isoformat("T") + "Z"
+
     reqmock.get(
-        f"https://data.alpaca.markets/v2/stocks/{symbol}/quotes?start={start}&limit={limit}",
+        f"https://data.alpaca.markets/v2/stocks/{symbol}/quotes?start={_start_in_url}&limit={limit}",
         text="""
     {
         "quotes": [
@@ -192,11 +198,13 @@ def test_multisymbol_quotes(reqmock, stock_client: StockHistoricalDataClient):
 
     # test multisymbol request
     symbols = ["AAPL", "TSLA"]
-    start = "2022-03-09"
+    start = datetime(2022, 3, 9)
     _symbols_in_url = "%2C".join(s for s in symbols)
 
+    _start_in_url = start.isoformat("T") + "Z"
+
     reqmock.get(
-        f"https://data.alpaca.markets/v2/stocks/quotes?start={start}&symbols={_symbols_in_url}",
+        f"https://data.alpaca.markets/v2/stocks/quotes?start={_start_in_url}&symbols={_symbols_in_url}",
         text="""
     {
         "quotes": {
@@ -255,11 +263,13 @@ def test_multisymbol_quotes(reqmock, stock_client: StockHistoricalDataClient):
 def test_get_trades(reqmock, stock_client: StockHistoricalDataClient):
     # Test single symbol request
     symbol = "AAPL"
-    start = "2022-03-09"
+    start = datetime(2022, 3, 9)
     limit = 2
 
+    _start_in_url = start.isoformat("T") + "Z"
+
     reqmock.get(
-        f"https://data.alpaca.markets/v2/stocks/{symbol}/trades?start={start}&limit={limit}",
+        f"https://data.alpaca.markets/v2/stocks/{symbol}/trades?start={_start_in_url}&limit={limit}",
         text="""
     {
         "trades": [
@@ -315,12 +325,13 @@ def test_get_trades(reqmock, stock_client: StockHistoricalDataClient):
 def test_multisymbol_get_trades(reqmock, stock_client: StockHistoricalDataClient):
     # test multisymbol request
     symbols = ["AAPL", "TSLA"]
-    start = "2022-03-09"
-    end = "2022-03-09"
+    start = datetime(2022, 3, 9)
     _symbols_in_url = "%2C".join(s for s in symbols)
 
+    _start_in_url = start.isoformat("T") + "Z"
+
     reqmock.get(
-        f"https://data.alpaca.markets/v2/stocks/trades?start={start}&symbols={_symbols_in_url}",
+        f"https://data.alpaca.markets/v2/stocks/trades?start={_start_in_url}&symbols={_symbols_in_url}",
         text="""
     {
         "trades": {

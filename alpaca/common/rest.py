@@ -262,6 +262,7 @@ class RESTClient(ABC):
         """
         return self._request("DELETE", path, data)
 
+    # TODO: Refactor to be able to handle both parsing to types and parsing to collections of types (parse_as_obj)
     def response_wrapper(
         self, model: Type[BaseModel], raw_data: RawData, **kwargs
     ) -> Union[BaseModel, RawData]:

@@ -1,6 +1,7 @@
 from uuid import UUID
 from pydantic import parse_obj_as
 
+from alpaca.common import RawData
 from alpaca.common.utils import validate_uuid_id_param, validate_symbol_or_asset_id
 from alpaca.common.rest import RESTClient
 from typing import Optional, List, Union
@@ -75,7 +76,7 @@ class TradingClient(RESTClient):
 
     # ############################## ORDERS ################################# #
 
-    def submit_order(self, order_data: OrderRequest) -> Order:
+    def submit_order(self, order_data: OrderRequest) -> Union[Order, RawData]:
         """Creates an order to buy or sell an asset.
 
         Args:
@@ -87,9 +88,14 @@ class TradingClient(RESTClient):
         data = order_data.to_request_fields()
         response = self.post("/orders", data)
 
+        if self._use_raw_data:
+            return response
+
         return Order(**response)
 
-    def get_orders(self, filter: Optional[GetOrdersRequest] = None) -> List[Order]:
+    def get_orders(
+        self, filter: Optional[GetOrdersRequest] = None
+    ) -> Union[List[Order], RawData]:
         """
         Returns all orders. Orders can be filtered by parameters.
 
@@ -107,11 +113,14 @@ class TradingClient(RESTClient):
 
         response = self.get("/orders", params)
 
+        if self._use_raw_data:
+            return response
+
         return parse_obj_as(List[Order], response)
 
     def get_order_by_id(
         self, order_id: Union[UUID, str], filter: Optional[GetOrderByIdRequest] = None
-    ) -> Order:
+    ) -> Union[Order, RawData]:
         """
         Returns a specific order by its order id.
 
@@ -129,9 +138,12 @@ class TradingClient(RESTClient):
 
         response = self.get(f"/orders/{order_id}", params)
 
+        if self._use_raw_data:
+            return response
+
         return Order(**response)
 
-    def get_order_by_client_id(self, client_id: str) -> Order:
+    def get_order_by_client_id(self, client_id: str) -> Union[Order, RawData]:
         """
         Returns a specific order by its client order id.
 
@@ -143,13 +155,16 @@ class TradingClient(RESTClient):
         """
         response = self.get(f"/orders/{client_id}")
 
+        if self._use_raw_data:
+            return response
+
         return Order(**response)
 
     def replace_order_by_id(
         self,
         order_id: Union[UUID, str],
         order_data: Optional[ReplaceOrderRequest] = None,
-    ) -> Order:
+    ) -> Union[Order, RawData]:
         """
         Updates an order with new parameters.
 
@@ -167,9 +182,12 @@ class TradingClient(RESTClient):
 
         response = self.patch(f"/orders/{order_id}", params)
 
+        if self._use_raw_data:
+            return response
+
         return Order(**response)
 
-    def cancel_orders(self) -> List[CancelOrderResponse]:
+    def cancel_orders(self) -> Union[List[CancelOrderResponse], RawData]:
         """
         Cancels all orders.
 
@@ -177,6 +195,9 @@ class TradingClient(RESTClient):
             List[CancelOrderResponse]: The list of HTTP statuses for each order attempted to be cancelled.
         """
         response = self.delete(f"/orders")
+
+        if self._use_raw_data:
+            return response
 
         return parse_obj_as(List[CancelOrderResponse], response)
 
@@ -200,7 +221,7 @@ class TradingClient(RESTClient):
 
     def get_all_positions(
         self,
-    ) -> List[Position]:
+    ) -> Union[List[Position], RawData]:
         """
         Gets all the current open positions.
 
@@ -208,9 +229,15 @@ class TradingClient(RESTClient):
             List[Position]: List of open positions.
         """
         response = self.get("/positions")
+
+        if self._use_raw_data:
+            return response
+
         return parse_obj_as(List[Position], response)
 
-    def get_open_position(self, symbol_or_asset_id: Union[UUID, str]) -> Position:
+    def get_open_position(
+        self, symbol_or_asset_id: Union[UUID, str]
+    ) -> Union[Position, RawData]:
         """
         Gets the open position for an account for a single asset. Throws an APIError if the position does not exist.
 
@@ -222,9 +249,15 @@ class TradingClient(RESTClient):
         """
         symbol_or_asset_id = validate_symbol_or_asset_id(symbol_or_asset_id)
         response = self.get(f"/positions/{symbol_or_asset_id}")
+
+        if self._use_raw_data:
+            return response
+
         return Position(**response)
 
-    def close_all_positions(self, cancel_orders: bool) -> List[ClosePositionResponse]:
+    def close_all_positions(
+        self, cancel_orders: bool
+    ) -> Union[List[ClosePositionResponse], RawData]:
         """
         Liquidates all positions for an account.
 
@@ -242,13 +275,16 @@ class TradingClient(RESTClient):
             {"cancel_orders": cancel_orders},
         )
 
+        if self._use_raw_data:
+            return response
+
         return parse_obj_as(List[ClosePositionResponse], response)
 
     def close_position(
         self,
         symbol_or_asset_id: Union[UUID, str],
         close_options: Optional[ClosePositionRequest] = None,
-    ) -> Order:
+    ) -> Union[Order, RawData]:
         """
         Liquidates the position for a single asset.
 
@@ -268,11 +304,17 @@ class TradingClient(RESTClient):
             f"/positions/{symbol_or_asset_id}",
             close_options.to_request_fields() if close_options else {},
         )
+
+        if self._use_raw_data:
+            return response
+
         return Order(**response)
 
     # ############################## Assets ################################# #
 
-    def get_all_assets(self, filter: Optional[GetAssetsRequest] = None) -> List[Asset]:
+    def get_all_assets(
+        self, filter: Optional[GetAssetsRequest] = None
+    ) -> Union[List[Asset], RawData]:
         """
         The assets API serves as the master list of assets available for trade and data consumption from Alpaca.
         Some assets are not tradable with Alpaca. These assets will be marked with the flag tradable=false.
@@ -288,9 +330,12 @@ class TradingClient(RESTClient):
 
         response = self.get(f"/assets", params)
 
+        if self._use_raw_data:
+            return response
+
         return parse_obj_as(List[Asset], response)
 
-    def get_asset(self, symbol_or_asset_id: Union[UUID, str]) -> Asset:
+    def get_asset(self, symbol_or_asset_id: Union[UUID, str]) -> Union[Asset, RawData]:
         """
         Returns a specific asset by its symbol or asset id. If the specified asset does not exist
         a 404 error will be thrown.
@@ -306,11 +351,14 @@ class TradingClient(RESTClient):
 
         response = self.get(f"/assets/{symbol_or_asset_id}")
 
+        if self._use_raw_data:
+            return response
+
         return Asset(**response)
 
     # ############################## CLOCK & CALENDAR ################################# #
 
-    def get_clock(self) -> Clock:
+    def get_clock(self) -> Union[Clock, RawData]:
         """
         Gets the current market timestamp, whether or not the market is currently open, as well as the times
         of the next market open and close.
@@ -318,12 +366,18 @@ class TradingClient(RESTClient):
         Returns:
             Clock: The market Clock data
         """
-        return Clock(**self.get("/clock"))
+
+        response = self.get("/clock")
+
+        if self._use_raw_data:
+            return response
+
+        return Clock(response)
 
     def get_calendar(
         self,
         filters: Optional[GetCalendarRequest] = None,
-    ) -> List[Calendar]:
+    ) -> Union[List[Calendar], RawData]:
         """
         The calendar API serves the full list of market days from 1970 to 2029. It can also be queried by specifying a
         start and/or end time to narrow down the results.
@@ -340,20 +394,26 @@ class TradingClient(RESTClient):
 
         result = self.get("/calendar", filters.to_request_fields() if filters else {})
 
+        if self._use_raw_data:
+            return result
+
         return parse_obj_as(List[Calendar], result)
 
     # ############################## ACCOUNT ################################# #
 
-    def get_account(self) -> TradeAccount:
+    def get_account(self) -> Union[TradeAccount, RawData]:
         """
         Returns account details. Contains information like buying power,
         number of day trades, and account status.
 
         Returns:
-            alpaca.common.models.accounts.TradeAccount: The account details
+            alpaca.trading.models.TradeAccount: The account details
         """
 
         response = self.get("/account")
+
+        if self._use_raw_data:
+            return response
 
         return TradeAccount(**response)
 
@@ -361,7 +421,7 @@ class TradingClient(RESTClient):
 
     def get_watchlists(
         self,
-    ) -> List[Watchlist]:
+    ) -> Union[List[Watchlist], RawData]:
         """
         Returns all watchlists.
 
@@ -371,12 +431,15 @@ class TradingClient(RESTClient):
 
         result = self.get(f"/watchlists")
 
+        if self._use_raw_data:
+            return result
+
         return parse_obj_as(List[Watchlist], result)
 
     def get_watchlist_by_id(
         self,
         watchlist_id: Union[UUID, str],
-    ) -> Watchlist:
+    ) -> Union[Watchlist, RawData]:
         """
         Returns a specific watchlist by its id.
 
@@ -390,12 +453,15 @@ class TradingClient(RESTClient):
 
         result = self.get(f"/watchlists/{watchlist_id}")
 
+        if self._use_raw_data:
+            return result
+
         return Watchlist(**result)
 
     def create_watchlist(
         self,
         watchlist_data: CreateWatchlistRequest,
-    ) -> Watchlist:
+    ) -> Union[Watchlist, RawData]:
         """
         Creates a new watchlist.
 
@@ -410,6 +476,9 @@ class TradingClient(RESTClient):
             watchlist_data.to_request_fields(),
         )
 
+        if self._use_raw_data:
+            return result
+
         return Watchlist(**result)
 
     def update_watchlist_by_id(
@@ -418,7 +487,7 @@ class TradingClient(RESTClient):
         # Might be worth taking a union of this and Watchlist itself; but then we should make a change like that SDK
         # wide. Probably a good 0.2.x change
         watchlist_data: UpdateWatchlistRequest,
-    ) -> Watchlist:
+    ) -> Union[Watchlist, RawData]:
         """
         Updates a watchlist with new data.
 
@@ -436,13 +505,16 @@ class TradingClient(RESTClient):
             watchlist_data.to_request_fields(),
         )
 
+        if self._use_raw_data:
+            return result
+
         return Watchlist(**result)
 
     def add_asset_to_watchlist_by_id(
         self,
         watchlist_id: Union[UUID, str],
         symbol: str,
-    ) -> Watchlist:
+    ) -> Union[Watchlist, RawData]:
         """
         Adds an asset by its symbol to a specified watchlist.
 
@@ -458,6 +530,9 @@ class TradingClient(RESTClient):
         params = {"symbol": symbol}
 
         result = self.post(f"/watchlists/{watchlist_id}", params)
+
+        if self._use_raw_data:
+            return result
 
         return Watchlist(**result)
 
@@ -482,7 +557,7 @@ class TradingClient(RESTClient):
         self,
         watchlist_id: Union[UUID, str],
         symbol: str,
-    ) -> Watchlist:
+    ) -> Union[Watchlist, RawData]:
         """
         Removes an asset from a watchlist.
 
@@ -497,13 +572,16 @@ class TradingClient(RESTClient):
 
         result = self.delete(f"/watchlists/{watchlist_id}/{symbol}")
 
+        if self._use_raw_data:
+            return result
+
         return Watchlist(**result)
 
     # ############################## CORPORATE ACTIONS ################################# #
 
     def get_corporate_annoucements(
         self, filter: GetCorporateAnnouncementsRequest
-    ) -> List[CorporateActionAnnouncement]:
+    ) -> Union[List[CorporateActionAnnouncement], RawData]:
         """
         Returns corporate action announcements data given specified search criteria.
         Args:
@@ -518,11 +596,14 @@ class TradingClient(RESTClient):
 
         response = self.get("/corporate_actions/announcements", params)
 
+        if self._use_raw_data:
+            return response
+
         return parse_obj_as(List[CorporateActionAnnouncement], response)
 
     def get_corporate_announcment_by_id(
         self, corporate_announcment_id: Union[UUID, str]
-    ) -> CorporateActionAnnouncement:
+    ) -> Union[CorporateActionAnnouncement, RawData]:
         """
         Returns a specific corporate action announcement.
         Args:
@@ -537,5 +618,8 @@ class TradingClient(RESTClient):
         response = self.get(
             f"/corporate_actions/announcements/{corporate_announcment_id}"
         )
+
+        if self._use_raw_data:
+            return response
 
         return CorporateActionAnnouncement(**response)

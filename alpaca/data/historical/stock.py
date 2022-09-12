@@ -93,6 +93,9 @@ class StockHistoricalDataClient(RESTClient):
             **params,
         )
 
+        if self._use_raw_data:
+            return raw_bars
+
         return BarSet(raw_bars)
 
     def get_stock_quotes(
@@ -116,6 +119,9 @@ class StockHistoricalDataClient(RESTClient):
             **params,
         )
 
+        if self._use_raw_data:
+            return raw_quotes
+
         return QuoteSet(raw_quotes)
 
     def get_stock_trades(
@@ -138,6 +144,9 @@ class StockHistoricalDataClient(RESTClient):
             api_version="v2",
             **params,
         )
+
+        if self._use_raw_data:
+            return raw_trades
 
         return TradeSet(raw_trades)
 
@@ -163,6 +172,9 @@ class StockHistoricalDataClient(RESTClient):
             **params,
         )
 
+        if self._use_raw_data:
+            return raw_latest_trades
+
         return parse_obj_as_symbol_dict(Trade, raw_latest_trades)
 
     def get_stock_latest_quote(
@@ -186,6 +198,9 @@ class StockHistoricalDataClient(RESTClient):
             **params,
         )
 
+        if self._use_raw_data:
+            return raw_latest_quotes
+
         return parse_obj_as_symbol_dict(Quote, raw_latest_quotes)
 
     def get_stock_latest_bar(
@@ -208,6 +223,9 @@ class StockHistoricalDataClient(RESTClient):
             extension=DataExtensionType.LATEST,
             **params,
         )
+
+        if self._use_raw_data:
+            return raw_latest_bars
 
         return parse_obj_as_symbol_dict(Bar, raw_latest_bars)
 
@@ -233,6 +251,9 @@ class StockHistoricalDataClient(RESTClient):
             extension=DataExtensionType.SNAPSHOT,
             **params,
         )
+
+        if self._use_raw_data:
+            return raw_snapshots
 
         return parse_obj_as_symbol_dict(Snapshot, raw_snapshots)
 

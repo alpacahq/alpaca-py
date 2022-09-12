@@ -91,6 +91,9 @@ class CryptoHistoricalDataClient(RESTClient):
             **params,
         )
 
+        if self._use_raw_data:
+            return raw_bars
+
         return BarSet(raw_bars)
 
     def get_crypto_quotes(
@@ -114,6 +117,9 @@ class CryptoHistoricalDataClient(RESTClient):
             api_version="v1beta2",
             **params,
         )
+
+        if self._use_raw_data:
+            return raw_quotes
 
         return QuoteSet(raw_quotes)
 
@@ -140,6 +146,9 @@ class CryptoHistoricalDataClient(RESTClient):
             **params,
         )
 
+        if self._use_raw_data:
+            return raw_trades
+
         return TradeSet(raw_trades)
 
     def get_crypto_latest_trade(
@@ -163,6 +172,9 @@ class CryptoHistoricalDataClient(RESTClient):
             extension=DataExtensionType.LATEST,
             **params,
         )
+
+        if self._use_raw_data:
+            return raw_trades
 
         return parse_obj_as_symbol_dict(Trade, raw_trades)
 
@@ -188,6 +200,9 @@ class CryptoHistoricalDataClient(RESTClient):
             **params,
         )
 
+        if self._use_raw_data:
+            return raw_quotes
+
         return parse_obj_as_symbol_dict(Quote, raw_quotes)
 
     def get_crypto_latest_bar(
@@ -211,6 +226,9 @@ class CryptoHistoricalDataClient(RESTClient):
             extension=DataExtensionType.LATEST,
             **params,
         )
+
+        if self._use_raw_data:
+            return raw_bars
 
         return parse_obj_as_symbol_dict(Bar, raw_bars)
 
@@ -237,6 +255,9 @@ class CryptoHistoricalDataClient(RESTClient):
             **params,
         )
 
+        if self._use_raw_data:
+            return raw_orderbooks
+
         return parse_obj_as_symbol_dict(Orderbook, raw_orderbooks)
 
     def get_crypto_snapshot(
@@ -261,6 +282,9 @@ class CryptoHistoricalDataClient(RESTClient):
             extension=DataExtensionType.SNAPSHOT,
             **params,
         )
+
+        if self._use_raw_data:
+            return raw_snapshots
 
         return parse_obj_as_symbol_dict(Snapshot, raw_snapshots)
 

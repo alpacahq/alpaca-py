@@ -75,6 +75,7 @@ from alpaca.trading.requests import (
 from alpaca.trading.enums import (
     ActivityType,
 )
+from ..common import RawData
 from ..common.rest import HTTPResult, RESTClient
 from alpaca.common.utils import validate_uuid_id_param, validate_symbol_or_asset_id
 
@@ -126,7 +127,6 @@ class BrokerClient(RESTClient):
             else BaseURL.BROKER_PRODUCTION
         )
 
-        # TODO: Actually check raw_data everywhere
         super().__init__(
             base_url=base_url,
             api_key=api_key,
@@ -148,7 +148,7 @@ class BrokerClient(RESTClient):
     def create_account(
         self,
         account_data: CreateAccountRequest,
-    ) -> Account:
+    ) -> Union[Account, RawData]:
         """
         Create an account.
 
@@ -168,7 +168,7 @@ class BrokerClient(RESTClient):
     def get_account_by_id(
         self,
         account_id: Union[UUID, str],
-    ) -> Account:
+    ) -> Union[Account, RawData]:
         """
         Get an Account by its associated account_id.
 
@@ -191,7 +191,7 @@ class BrokerClient(RESTClient):
         self,
         account_id: Union[UUID, str],
         update_data: UpdateAccountRequest,
-    ) -> Account:
+    ) -> Union[Account, RawData]:
         """
         Updates data for an account with an id of `account_id`. Note that not all data for an account is modifiable
         after creation so there is a special data type of AccountUpdateRequest representing the data that is
@@ -214,6 +214,9 @@ class BrokerClient(RESTClient):
             raise ValueError("update_data must contain at least 1 field to change")
 
         response = self.patch(f"/accounts/{account_id}", params)
+
+        if self._use_raw_data:
+            return response
 
         return Account(**response)
 
@@ -242,7 +245,7 @@ class BrokerClient(RESTClient):
     def list_accounts(
         self,
         search_parameters: Optional[ListAccountsRequest] = None,
-    ) -> List[Account]:
+    ) -> Union[List[Account], RawData]:
         """
         Get a List of Accounts allowing for passing in some filters.
 
@@ -264,12 +267,15 @@ class BrokerClient(RESTClient):
             params,
         )
 
+        if self._use_raw_data:
+            return response
+
         return parse_obj_as(List[Account], response)
 
     def get_trade_account_by_id(
         self,
         account_id: Union[UUID, str],
-    ) -> TradeAccount:
+    ) -> Union[TradeAccount, RawData]:
         """
         Gets TradeAccount information for a given Account id.
 
@@ -284,6 +290,9 @@ class BrokerClient(RESTClient):
         account_id = validate_uuid_id_param(account_id)
 
         result = self.get(f"/trading/accounts/{account_id}/account")
+
+        if self._use_raw_data:
+            return result
 
         return TradeAccount(**result)
 
@@ -327,7 +336,7 @@ class BrokerClient(RESTClient):
     def get_trade_configuration_for_account(
         self,
         account_id: Union[UUID, str],
-    ) -> TradeAccountConfiguration:
+    ) -> Union[TradeAccountConfiguration, RawData]:
         """
         Gets the TradeAccountConfiguration for a given Account.
 
@@ -342,13 +351,16 @@ class BrokerClient(RESTClient):
 
         resp = self.get(f"/trading/accounts/{account_id}/account/configurations")
 
+        if self._use_raw_data:
+            return resp
+
         return TradeAccountConfiguration(**resp)
 
     def update_trade_configuration_for_account(
         self,
         account_id: Union[UUID, str],
         config: TradeAccountConfiguration,
-    ) -> TradeAccountConfiguration:
+    ) -> Union[TradeAccountConfiguration, RawData]:
         """
         Updates an Account with new TradeAccountConfiguration information.
 
@@ -364,6 +376,9 @@ class BrokerClient(RESTClient):
         result = self.patch(
             f"/trading/accounts/{account_id}/account/configurations", config.json()
         )
+
+        if self._use_raw_data:
+            return result
 
         return TradeAccountConfiguration(**result)
 
@@ -543,7 +558,7 @@ class BrokerClient(RESTClient):
         self,
         account_id: Union[UUID, str],
         documents_filter: Optional[GetTradeDocumentsRequest] = None,
-    ) -> List[TradeDocument]:
+    ) -> Union[List[TradeDocument], RawData]:
         """
         Gets the list of TradeDocuments for an Account.
 
@@ -563,13 +578,16 @@ class BrokerClient(RESTClient):
             documents_filter.to_request_fields() if documents_filter else {},
         )
 
+        if self._use_raw_data:
+            return result
+
         return parse_obj_as(List[TradeDocument], result)
 
     def get_trade_document_for_account_by_id(
         self,
         account_id: Union[UUID, str],
         document_id: Union[UUID, str],
-    ) -> TradeDocument:
+    ) -> Union[TradeDocument, RawData]:
         """
         Gets a single TradeDocument by its id
 
@@ -588,6 +606,9 @@ class BrokerClient(RESTClient):
         document_id = validate_uuid_id_param(document_id, "document_id")
 
         response = self.get(f"/accounts/{account_id}/documents/{document_id}")
+
+        if self._use_raw_data:
+            return response
 
         return parse_obj_as(TradeDocument, response)
 
@@ -659,7 +680,7 @@ class BrokerClient(RESTClient):
         self,
         account_id: Union[UUID, str],
         ach_data: Union[CreateACHRelationshipRequest, CreatePlaidRelationshipRequest],
-    ) -> ACHRelationship:
+    ) -> Union[ACHRelationship, RawData]:
         """
         Creates a single ACH relationship for the given account.
 
@@ -684,13 +705,17 @@ class BrokerClient(RESTClient):
         response = self.post(
             f"/accounts/{account_id}/ach_relationships", ach_data.to_request_fields()
         )
+
+        if self._use_raw_data:
+            return response
+
         return ACHRelationship(**response)
 
     def get_ach_relationships_for_account(
         self,
         account_id: Union[UUID, str],
         statuses: Optional[List[ACHRelationshipStatus]] = None,
-    ) -> List[ACHRelationship]:
+    ) -> Union[List[ACHRelationship], RawData]:
         """
         Gets the ACH relationships for an account.
 
@@ -708,6 +733,10 @@ class BrokerClient(RESTClient):
             params["statuses"] = ",".join(statuses)
 
         response = self.get(f"/accounts/{account_id}/ach_relationships", params)
+
+        if self._use_raw_data:
+            return response
+
         return parse_obj_as(List[ACHRelationship], response)
 
     def delete_ach_relationship_for_account(
@@ -735,7 +764,7 @@ class BrokerClient(RESTClient):
         self,
         account_id: Union[UUID, str],
         bank_data: CreateBankRequest,
-    ) -> Bank:
+    ) -> Union[Bank, RawData]:
         """
         Creates a single bank relationship for the given account.
 
@@ -750,12 +779,16 @@ class BrokerClient(RESTClient):
         response = self.post(
             f"/accounts/{account_id}/recipient_banks", bank_data.to_request_fields()
         )
+
+        if self._use_raw_data:
+            return response
+
         return Bank(**response)
 
     def get_banks_for_account(
         self,
         account_id: Union[UUID, str],
-    ) -> List[Bank]:
+    ) -> Union[List[Bank], RawData]:
         """
         Gets the Banks for an account.
 
@@ -767,6 +800,10 @@ class BrokerClient(RESTClient):
         """
         account_id = validate_uuid_id_param(account_id)
         response = self.get(f"/accounts/{account_id}/recipient_banks")
+
+        if self._use_raw_data:
+            return response
+
         return parse_obj_as(List[Bank], response)
 
     def delete_bank_for_account(
@@ -792,7 +829,7 @@ class BrokerClient(RESTClient):
         self,
         account_id: Union[UUID, str],
         transfer_data: Union[CreateACHTransferRequest, CreateBankTransferRequest],
-    ) -> Transfer:
+    ) -> Union[Transfer, RawData]:
         """
         Creates a single Transfer for the given account.
 
@@ -808,6 +845,10 @@ class BrokerClient(RESTClient):
         response = self.post(
             f"/accounts/{account_id}/transfers", transfer_data.to_request_fields()
         )
+
+        if self._use_raw_data:
+            return response
+
         return Transfer(**response)
 
     def get_transfers_for_account(
@@ -908,7 +949,7 @@ class BrokerClient(RESTClient):
     def get_all_positions_for_account(
         self,
         account_id: Union[UUID, str],
-    ) -> List[Position]:
+    ) -> Union[List[Position], RawData]:
         """
         Gets all the current positions for an account.
 
@@ -920,11 +961,15 @@ class BrokerClient(RESTClient):
         """
         account_id = validate_uuid_id_param(account_id)
         response = self.get(f"/trading/accounts/{account_id}/positions")
+
+        if self._use_raw_data:
+            return response
+
         return parse_obj_as(List[Position], response)
 
     def get_open_position_for_account(
         self, account_id: Union[UUID, str], symbol_or_asset_id: Union[UUID, str]
-    ) -> Position:
+    ) -> Union[Position, RawData]:
         """
         Gets the open position for an account for a single asset. Throws an APIError if the position does not exist.
 
@@ -940,11 +985,15 @@ class BrokerClient(RESTClient):
         response = self.get(
             f"/trading/accounts/{account_id}/positions/{symbol_or_asset_id}"
         )
+
+        if self._use_raw_data:
+            return response
+
         return Position(**response)
 
     def close_all_positions_for_account(
         self, account_id: Union[UUID, str], cancel_orders: bool
-    ) -> List[ClosePositionResponse]:
+    ) -> Union[List[ClosePositionResponse], RawData]:
         """
         Liquidates all positions for an account.
 
@@ -963,6 +1012,10 @@ class BrokerClient(RESTClient):
             f"/trading/accounts/{account_id}/positions",
             {"cancel_orders": cancel_orders},
         )
+
+        if self._use_raw_data:
+            return response
+
         return parse_obj_as(List[ClosePositionResponse], response)
 
     def close_position_for_account(
@@ -970,7 +1023,7 @@ class BrokerClient(RESTClient):
         account_id: Union[UUID, str],
         symbol_or_asset_id: Union[UUID, str],
         close_options: Optional[ClosePositionRequest] = None,
-    ) -> Order:
+    ) -> Union[Order, RawData]:
         """
         Liquidates the position for an account for a single asset.
 
@@ -990,13 +1043,17 @@ class BrokerClient(RESTClient):
             f"/trading/accounts/{account_id}/positions/{symbol_or_asset_id}",
             close_options.to_request_fields() if close_options else {},
         )
+
+        if self._use_raw_data:
+            return response
+
         return Order(**response)
 
     def get_portfolio_history_for_account(
         self,
         account_id: Union[UUID, str],
         history_filter: Optional[GetPortfolioHistoryRequest] = None,
-    ) -> PortfolioHistory:
+    ) -> Union[PortfolioHistory, RawData]:
         """
         Gets the portfolio history statistics for an account.
 
@@ -1013,11 +1070,15 @@ class BrokerClient(RESTClient):
             f"/trading/accounts/{account_id}/account/portfolio/history",
             history_filter.to_request_fields() if history_filter else {},
         )
+
+        if self._use_raw_data:
+            return response
+
         return PortfolioHistory(**response)
 
     # ############################## CLOCK & CALENDAR ################################# #
 
-    def get_clock(self) -> Clock:
+    def get_clock(self) -> Union[Clock, RawData]:
         """
         Gets the current market timestamp, whether or not the market is currently open, as well as the times
         of the next market open and close.
@@ -1025,12 +1086,18 @@ class BrokerClient(RESTClient):
         Returns:
             Clock: The market Clock data
         """
-        return Clock(**self.get("/clock"))
+
+        response = self.get("/clock")
+
+        if self._use_raw_data:
+            return response
+
+        return Clock(**response)
 
     def get_calendar(
         self,
         filters: Optional[GetCalendarRequest] = None,
-    ) -> List[Calendar]:
+    ) -> Union[List[Calendar], RawData]:
         """
         The calendar API serves the full list of market days from 1970 to 2029. It can also be queried by specifying a
         start and/or end time to narrow down the results.
@@ -1049,6 +1116,9 @@ class BrokerClient(RESTClient):
             "/calendar", filters.to_request_fields() if filters is not None else {}
         )
 
+        if self._use_raw_data:
+            return result
+
         return parse_obj_as(List[Calendar], result)
 
     # ############################## WATCHLISTS ################################# #
@@ -1056,7 +1126,7 @@ class BrokerClient(RESTClient):
     def get_watchlists_for_account(
         self,
         account_id: Union[UUID, str],
-    ) -> List[Watchlist]:
+    ) -> Union[List[Watchlist], RawData]:
         """
         Returns all watchlists for an account.
 
@@ -1070,13 +1140,16 @@ class BrokerClient(RESTClient):
 
         result = self.get(f"/trading/accounts/{account_id}/watchlists")
 
+        if self._use_raw_data:
+            return result
+
         return parse_obj_as(List[Watchlist], result)
 
     def get_watchlist_for_account_by_id(
         self,
         account_id: Union[UUID, str],
         watchlist_id: Union[UUID, str],
-    ) -> Watchlist:
+    ) -> Union[Watchlist, RawData]:
         """
         Returns a specific watchlist by its id for a given account.
 
@@ -1092,13 +1165,16 @@ class BrokerClient(RESTClient):
 
         result = self.get(f"/trading/accounts/{account_id}/watchlists/{watchlist_id}")
 
+        if self._use_raw_data:
+            return result
+
         return Watchlist(**result)
 
     def create_watchlist_for_account(
         self,
         account_id: Union[UUID, str],
         watchlist_data: CreateWatchlistRequest,
-    ) -> Watchlist:
+    ) -> Union[Watchlist, RawData]:
         """
         Creates a new watchlist for a given account.
 
@@ -1116,6 +1192,9 @@ class BrokerClient(RESTClient):
             watchlist_data.to_request_fields(),
         )
 
+        if self._use_raw_data:
+            return result
+
         return Watchlist(**result)
 
     def update_watchlist_for_account_by_id(
@@ -1125,7 +1204,7 @@ class BrokerClient(RESTClient):
         # Might be worth taking a union of this and Watchlist itself; but then we should make a change like that SDK
         # wide. Probably a good 0.2.x change
         watchlist_data: UpdateWatchlistRequest,
-    ) -> Watchlist:
+    ) -> Union[Watchlist, RawData]:
         """
         Updates a watchlist with new data.
 
@@ -1145,6 +1224,9 @@ class BrokerClient(RESTClient):
             watchlist_data.to_request_fields(),
         )
 
+        if self._use_raw_data:
+            return result
+
         return Watchlist(**result)
 
     def add_asset_to_watchlist_for_account_by_id(
@@ -1152,7 +1234,7 @@ class BrokerClient(RESTClient):
         account_id: Union[UUID, str],
         watchlist_id: Union[UUID, str],
         symbol: str,
-    ) -> Watchlist:
+    ) -> Union[Watchlist, RawData]:
         """
         Adds an asset by its symbol to a specified watchlist for a given account.
         Args:
@@ -1171,6 +1253,9 @@ class BrokerClient(RESTClient):
         result = self.post(
             f"/trading/accounts/{account_id}/watchlists/{watchlist_id}", params
         )
+
+        if self._use_raw_data:
+            return result
 
         return Watchlist(**result)
 
@@ -1199,7 +1284,7 @@ class BrokerClient(RESTClient):
         account_id: Union[UUID, str],
         watchlist_id: Union[UUID, str],
         symbol: str,
-    ) -> Watchlist:
+    ) -> Union[Watchlist, RawData]:
         """
         Removes an asset from a watchlist for a given account.
 
@@ -1218,6 +1303,9 @@ class BrokerClient(RESTClient):
             f"/trading/accounts/{account_id}/watchlists/{watchlist_id}/{symbol}"
         )
 
+        if self._use_raw_data:
+            return result
+
         return Watchlist(**result)
 
     # ############################## JOURNALS ################################# #
@@ -1225,7 +1313,7 @@ class BrokerClient(RESTClient):
     def create_journal(
         self,
         journal_data: CreateJournalRequest,
-    ) -> Journal:
+    ) -> Union[Journal, RawData]:
         """
         The journal API allows you to transfer cash and securities between accounts.
 
@@ -1241,12 +1329,15 @@ class BrokerClient(RESTClient):
 
         response = self.post("/journals", params)
 
+        if self._use_raw_data:
+            return response
+
         return Journal(**response)
 
     def create_batch_journal(
         self,
         batch_data: CreateBatchJournalRequest,
-    ) -> List[BatchJournalResponse]:
+    ) -> Union[List[BatchJournalResponse], RawData]:
         """
         A batch journal moves assets from one account into many others.
 
@@ -1262,12 +1353,15 @@ class BrokerClient(RESTClient):
 
         response = self.post("/journals/batch", params)
 
+        if self._use_raw_data:
+            return response
+
         return parse_obj_as(List[BatchJournalResponse], response)
 
     def create_reverse_batch_journal(
         self,
         reverse_batch_data: CreateReverseBatchJournalRequest,
-    ) -> List[BatchJournalResponse]:
+    ) -> Union[List[BatchJournalResponse], RawData]:
         """
         A  reverse batch journal moves assets into one account from many others.
 
@@ -1283,11 +1377,14 @@ class BrokerClient(RESTClient):
 
         response = self.post("/journals/reverse_batch", params)
 
+        if self._use_raw_data:
+            return response
+
         return parse_obj_as(List[BatchJournalResponse], response)
 
     def get_journals(
         self, journal_filter: Optional[GetJournalsRequest] = None
-    ) -> List[Journal]:
+    ) -> Union[List[Journal], RawData]:
         """
         Returns journals from the master list.
 
@@ -1301,9 +1398,14 @@ class BrokerClient(RESTClient):
 
         response = self.get("/journals", params)
 
+        if self._use_raw_data:
+            return response
+
         return parse_obj_as(List[Journal], response)
 
-    def get_journal_by_id(self, journal_id: Union[UUID, str] = None) -> Journal:
+    def get_journal_by_id(
+        self, journal_id: Union[UUID, str] = None
+    ) -> Union[Journal, RawData]:
         """
         Returns a specific journal by its id.
 
@@ -1316,6 +1418,9 @@ class BrokerClient(RESTClient):
         journal_id = validate_uuid_id_param(journal_id, "journal id")
 
         response = self.get(f"/journals/{journal_id}")
+
+        if self._use_raw_data:
+            return response
 
         return Journal(**response)
 
@@ -1338,7 +1443,9 @@ class BrokerClient(RESTClient):
 
     # ############################## Assets ################################# #
 
-    def get_all_assets(self, filter: Optional[GetAssetsRequest] = None) -> List[Asset]:
+    def get_all_assets(
+        self, filter: Optional[GetAssetsRequest] = None
+    ) -> Union[List[Asset], RawData]:
         """
         The assets API serves as the master list of assets available for trade and data consumption from Alpaca.
         Some assets are not tradable with Alpaca. These assets will be marked with the flag tradable=false.
@@ -1354,9 +1461,12 @@ class BrokerClient(RESTClient):
 
         response = self.get(f"/assets", params)
 
+        if self._use_raw_data:
+            return response
+
         return parse_obj_as(List[Asset], response)
 
-    def get_asset(self, symbol_or_asset_id: Union[UUID, str]) -> Asset:
+    def get_asset(self, symbol_or_asset_id: Union[UUID, str]) -> Union[Asset, RawData]:
         """
         Returns a specific asset by its symbol or asset id. If the specified asset does not exist
         a 404 error will be thrown.
@@ -1372,13 +1482,16 @@ class BrokerClient(RESTClient):
 
         response = self.get(f"/assets/{symbol_or_asset_id}")
 
+        if self._use_raw_data:
+            return response
+
         return Asset(**response)
 
     # ############################## ORDERS ################################# #
 
     def submit_order_for_account(
         self, account_id: Union[UUID, str], order_data: OrderRequest
-    ) -> Order:
+    ) -> Union[Order, RawData]:
         """Creates an order to buy or sell an asset for an account.
 
         Args:
@@ -1395,11 +1508,14 @@ class BrokerClient(RESTClient):
 
         response = self.post(f"/trading/accounts/{account_id}/orders", data)
 
+        if self._use_raw_data:
+            return response
+
         return Order(**response)
 
     def get_orders_for_account(
         self, account_id: Union[UUID, str], filter: Optional[GetOrdersRequest] = None
-    ) -> List[Order]:
+    ) -> Union[List[Order], RawData]:
         """
         Returns all orders for an account. Orders can be filtered by parameters.
 
@@ -1420,6 +1536,9 @@ class BrokerClient(RESTClient):
 
         response = self.get(f"/trading/accounts/{account_id}/orders", params)
 
+        if self._use_raw_data:
+            return response
+
         return parse_obj_as(List[Order], response)
 
     def get_order_for_account_by_id(
@@ -1427,7 +1546,7 @@ class BrokerClient(RESTClient):
         account_id: Union[UUID, str],
         order_id: Union[UUID, str],
         filter: Optional[GetOrderByIdRequest] = None,
-    ) -> Order:
+    ) -> Union[Order, RawData]:
         """
         Returns a specific order by its order id.
 
@@ -1447,11 +1566,14 @@ class BrokerClient(RESTClient):
 
         response = self.get(f"/trading/accounts/{account_id}/orders/{order_id}", params)
 
+        if self._use_raw_data:
+            return response
+
         return Order(**response)
 
     def get_order_for_account_by_client_id(
         self, account_id: Union[UUID, str], client_id: str
-    ) -> Order:
+    ) -> Union[Order, RawData]:
         """
         Returns a specific order by its client order id.
 
@@ -1466,6 +1588,9 @@ class BrokerClient(RESTClient):
 
         response = self.get(f"/trading/accounts/{account_id}/orders/{client_id}")
 
+        if self._use_raw_data:
+            return response
+
         return Order(**response)
 
     def replace_order_for_account_by_id(
@@ -1473,7 +1598,7 @@ class BrokerClient(RESTClient):
         account_id: Union[UUID, str],
         order_id: Union[UUID, str],
         order_data: Optional[ReplaceOrderRequest] = None,
-    ) -> Order:
+    ) -> Union[Order, RawData]:
         """
         Updates an order with new parameters.
 
@@ -1495,11 +1620,14 @@ class BrokerClient(RESTClient):
             f"/trading/accounts/{account_id}/orders/{order_id}", params
         )
 
+        if self._use_raw_data:
+            return response
+
         return Order(**response)
 
     def cancel_orders_for_account(
         self, account_id: Union[UUID, str]
-    ) -> List[CancelOrderResponse]:
+    ) -> Union[List[CancelOrderResponse], RawData]:
         """
         Cancels all orders.
 
@@ -1512,6 +1640,9 @@ class BrokerClient(RESTClient):
         account_id = validate_uuid_id_param(account_id, "account_id")
 
         response = self.delete(f"/trading/accounts/{account_id}/orders")
+
+        if self._use_raw_data:
+            return response
 
         return parse_obj_as(List[CancelOrderResponse], response)
 
@@ -1537,7 +1668,7 @@ class BrokerClient(RESTClient):
 
     def get_corporate_annoucements(
         self, filter: GetCorporateAnnouncementsRequest
-    ) -> List[CorporateActionAnnouncement]:
+    ) -> Union[List[CorporateActionAnnouncement], RawData]:
         """
         Returns corporate action announcements data given specified search criteria.
         Args:
@@ -1552,11 +1683,14 @@ class BrokerClient(RESTClient):
 
         response = self.get("/corporate_actions/announcements", params)
 
+        if self._use_raw_data:
+            return response
+
         return parse_obj_as(List[CorporateActionAnnouncement], response)
 
     def get_corporate_announcment_by_id(
         self, corporate_announcment_id: Union[UUID, str]
-    ) -> CorporateActionAnnouncement:
+    ) -> Union[CorporateActionAnnouncement, RawData]:
         """
         Returns a specific corporate action announcement.
         Args:
@@ -1571,5 +1705,8 @@ class BrokerClient(RESTClient):
         response = self.get(
             f"/corporate_actions/announcements/{corporate_announcment_id}"
         )
+
+        if self._use_raw_data:
+            return response
 
         return CorporateActionAnnouncement(**response)

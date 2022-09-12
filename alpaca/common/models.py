@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+import pprint
 
 
 class ValidateBaseModel(BaseModel, validate_assignment=True):
@@ -7,4 +8,5 @@ class ValidateBaseModel(BaseModel, validate_assignment=True):
     it or forget to specify it in our models where we want assignment validation
     """
 
-    pass
+    def __repr__(self):
+        return pprint.pformat(self.dict(), indent=4)

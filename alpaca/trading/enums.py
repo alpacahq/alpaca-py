@@ -195,7 +195,7 @@ class TimeInForce(str, Enum):
     GTC = "gtc"
     OPG = "opg"
     CLS = "cls"
-    IOC = "iok"
+    IOC = "ioc"
     FOK = "fok"
 
 

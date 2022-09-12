@@ -18,6 +18,7 @@ from alpaca.trading.enums import (
     OrderStatus,
     CorporateActionType,
     CorporateActionDateType,
+    QueryOrderStatus,
 )
 
 
@@ -156,7 +157,7 @@ class GetOrdersRequest(NonEmptyRequest):
     """Contains data for submitting a request to retrieve orders.
 
     Attributes:
-        status (Optional[OrderStatus]): Order status to be queried. open, closed or all. Defaults to open.
+        status (Optional[QueryOrderStatus]): Order status to be queried. open, closed or all. Defaults to open. Not same as OrderStatus property of Order.
         limit (Optional[int]): The maximum number of orders in response. Defaults to 50 and max is 500.
         after (Optional[datetime]): The response will include only ones submitted after this timestamp.
         until (Optional[datetime]): The response will include only ones submitted until this timestamp.
@@ -166,7 +167,7 @@ class GetOrdersRequest(NonEmptyRequest):
         symbols (Optional[List[str]]): List of symbols to filter by.
     """
 
-    status: Optional[OrderStatus]
+    status: Optional[QueryOrderStatus]
     limit: Optional[int]  # not pagination
     after: Optional[datetime]
     until: Optional[datetime]

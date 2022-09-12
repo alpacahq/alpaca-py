@@ -274,3 +274,10 @@ class TradeEvent(str, Enum):
     CANCELED = "canceled"
     NEW = "new"
     PARTIAL_FILL = "partial_fill"
+
+
+class QueryOrderStatus(str, Enum):
+
+    OPEN = "open"
+    CLOSED = "closed"
+    ALL = "all"

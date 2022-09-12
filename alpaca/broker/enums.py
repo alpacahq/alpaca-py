@@ -337,6 +337,8 @@ class BankAccountType(str, Enum):
 
     CHECKING = "CHECKING"
     SAVINGS = "SAVINGS"
+    # responses from plaid token connections sometimes return empty
+    NONE = ""
 
 
 class IdentifierType(str, Enum):

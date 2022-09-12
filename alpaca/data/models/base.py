@@ -62,5 +62,4 @@ class BaseDataSet(BaseModel):
             for symbol, data_list in self.data.items()
         }
 
-    def __str__(self) -> str:
-        return pprint.pformat(self.dict())
+

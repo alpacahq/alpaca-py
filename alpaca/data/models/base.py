@@ -61,5 +61,3 @@ class BaseDataSet(BaseModel):
             symbol: list(map(lambda d: d.dict(), data_list))
             for symbol, data_list in self.data.items()
         }
-
-

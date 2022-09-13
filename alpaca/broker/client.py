@@ -1,10 +1,8 @@
 import base64
-from alpaca import __version__
 from typing import Callable, Iterator, List, Optional, Union
 from uuid import UUID
 
 import sseclient
-import json
 
 from pydantic import parse_obj_as
 from requests import HTTPError, Response
@@ -83,51 +81,6 @@ from alpaca.trading.enums import (
 from ..common import RawData
 from ..common.rest import HTTPResult, RESTClient
 from alpaca.common.utils import validate_uuid_id_param, validate_symbol_or_asset_id
-
-
-class BrokerEventsClient(RESTClient):
-    def __init__(
-        self,
-        api_key: Optional[str] = None,
-        secret_key: Optional[str] = None,
-        api_version: str = "v1",
-        sandbox: bool = True,
-        raw_data: bool = False,
-        url_override: Optional[str] = None,
-    ):
-        """
-        Args:
-            api_key (Optional[str]): Broker API key - set sandbox to true if using sandbox keys. Defaults to None.
-            secret_key (Optional[str]): Broker API secret key - set sandbox to true if using sandbox keys. Defaults to None.
-            api_version (str): API version. Defaults to 'v1'.
-            sandbox (bool): True if using sandbox mode. Defaults to True.
-            raw_data (bool): True if you want raw response instead of wrapped responses. Defaults to False.
-                This has not been implemented yet.
-            url_override (Optional[str]): A url to override and use as the base url.
-        """
-        base_url = (
-            url_override
-            if url_override is not None
-            else BaseURL.BROKER_SANDBOX
-            if sandbox
-            else BaseURL.BROKER_PRODUCTION
-        )
-
-        super().__init__(
-            base_url=base_url,
-            api_key=api_key,
-            secret_key=secret_key,
-            api_version=api_version,
-            sandbox=sandbox,
-            raw_data=raw_data,
-        )
-
-    def _get_auth_headers(self) -> dict:
-        # We override this since we use Basic auth
-        auth_string = f"{self._api_key}:{self._secret_key}"
-        auth_string_encoded = base64.b64encode(str.encode(auth_string))
-
-        return {"Authorization": "Basic " + auth_string_encoded.decode("utf-8")}
 
 
 class BrokerClient(RESTClient):

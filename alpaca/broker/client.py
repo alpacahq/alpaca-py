@@ -2,6 +2,8 @@ import base64
 from typing import Callable, Iterator, List, Optional, Union
 from uuid import UUID
 
+import sseclient
+
 from pydantic import parse_obj_as
 from requests import HTTPError, Response
 
@@ -38,6 +40,7 @@ from .requests import (
     ListAccountsRequest,
     CreateAccountRequest,
     UpdateAccountRequest,
+    GetEventsRequest,
 )
 from alpaca.common.exceptions import APIError
 from alpaca.common.constants import (
@@ -1710,3 +1713,168 @@ class BrokerClient(RESTClient):
             return response
 
         return CorporateActionAnnouncement(**response)
+
+    # ############################## EVENTS ################################# #
+
+    def get_account_status_events(
+        self, filter: Optional[GetEventsRequest] = None
+    ) -> Iterator:
+        """
+        Subscribes to SSE stream for account status events.
+
+        Args:
+            filter: The arguments for filtering the events stream.
+
+        Returns:
+            Iterator: Yields events as they arrive
+        """
+
+        params = {}
+
+        if filter:
+            params = filter.to_request_fields()
+
+        url = self._base_url + "/" + self._api_version + "/events/accounts/status"
+
+        response = self._session.get(
+            url=url,
+            params=params,
+            stream=True,
+            headers=self._get_sse_headers(),
+        )
+
+        client = sseclient.SSEClient(response)
+
+        for event in client.events():
+            yield event.data
+
+    def get_trade_events(self, filter: Optional[GetEventsRequest] = None) -> Iterator:
+        """
+        Subscribes to SSE stream for trade events.
+
+        Args:
+            filter: The arguments for filtering the events stream.
+
+        Returns:
+            Iterator: Yields events as they arrive
+        """
+        params = {}
+
+        if filter:
+            params = filter.to_request_fields()
+
+        url = self._base_url + self._api_version + "/events/trades"
+
+        response = self._session.get(
+            url=url,
+            params=params,
+            stream=True,
+            headers=self._get_sse_headers(),
+        )
+
+        client = sseclient.SSEClient(response)
+
+        for event in client.events():
+            yield event.data
+
+    def get_journal_events(self, filter: Optional[GetEventsRequest] = None) -> Iterator:
+        """
+        Subscribes to SSE stream for journal status events.
+
+        Args:
+            filter: The arguments for filtering the events stream.
+
+        Returns:
+            Iterator: Yields events as they arrive
+        """
+        params = {}
+
+        if filter:
+            params = filter.to_request_fields()
+
+        url = self._base_url + self._api_version + "/events/journals/status"
+
+        response = self._session.get(
+            url=url,
+            params=params,
+            stream=True,
+            headers=self._get_sse_headers(),
+        )
+
+        client = sseclient.SSEClient(response)
+
+        for event in client.events():
+            yield event.data
+
+    def get_transfer_events(
+        self, filter: Optional[GetEventsRequest] = None
+    ) -> Iterator:
+        """
+        Subscribes to SSE stream for transfer status events.
+
+        Args:
+            filter: The arguments for filtering the events stream.
+
+        Returns:
+            Iterator: Yields events as they arrive
+        """
+        params = {}
+
+        if filter:
+            params = filter.to_request_fields()
+
+        url = self._base_url + self._api_version + "/events/transfers/status"
+
+        response = self._session.get(
+            url=url,
+            params=params,
+            stream=True,
+            headers=self._get_sse_headers(),
+        )
+
+        client = sseclient.SSEClient(response)
+
+        for event in client.events():
+            yield event.data
+
+    def get_non_trading_activity_events(
+        self, filter: Optional[GetEventsRequest] = None
+    ) -> Iterator:
+        """
+        Subscribes to SSE stream for non trading activity events.
+
+        Args:
+            filter: The arguments for filtering the events stream.
+
+        Returns:
+            Iterator: Yields events as they arrive
+        """
+        params = {}
+
+        if filter:
+            params = filter.to_request_fields()
+
+        url = self._base_url + self._api_version + "/events/nta"
+
+        response = self._session.get(
+            url=url,
+            params=params,
+            stream=True,
+            headers=self._get_sse_headers(),
+        )
+
+        client = sseclient.SSEClient(response)
+
+        for event in client.events():
+            yield event.data
+
+    def _get_sse_headers(self) -> dict:
+
+        headers = self._get_default_headers()
+
+        headers["Connection"] = "keep-alive"
+        headers["Cache-Control"] = "no-cache"
+        headers["Content-Type"] = "text/event-stream"
+        headers["Accept"] = "text/event-stream"
+
+        return headers

@@ -932,3 +932,11 @@ class GetJournalsRequest(NonEmptyRequest):
     entry_type: Optional[JournalEntryType]
     to_account: Optional[UUID]
     from_account: Optional[UUID]
+
+
+class GetEventsRequest(NonEmptyRequest):
+
+    since: date
+    until: date
+    since_id: int
+    until_id: int

@@ -372,7 +372,7 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return Clock(response)
+        return Clock(**response)
 
     def get_calendar(
         self,

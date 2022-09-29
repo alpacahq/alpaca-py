@@ -153,7 +153,7 @@ class TradingClient(RESTClient):
         Returns:
             alpaca.trading.models.Order: The queried order.
         """
-        response = self.get(f"/orders/{client_id}")
+        response = self.get("/orders:by_client_order_id", {"client_order_id": client_id})
 
         if self._use_raw_data:
             return response

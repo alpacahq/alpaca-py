@@ -108,7 +108,7 @@ class TradingClient(RESTClient):
         # checking to see if we specified at least one param
         params = filter.to_request_fields() if filter is not None else {}
 
-        if "symbols" in params and type(params["symbols"]) is List:
+        if "symbols" in params and isinstance(params["symbols"], list):
             params["symbols"] = ",".join(params["symbols"])
 
         response = self.get("/orders", params)
@@ -591,7 +591,7 @@ class TradingClient(RESTClient):
         """
         params = filter.to_request_fields() if filter else {}
 
-        if "ca_types" in params and type(params["ca_types"]) is List:
+        if "ca_types" in params and params["ca_types"]:
             params["ca_types"] = ",".join(params["ca_types"])
 
         response = self.get("/corporate_actions/announcements", params)

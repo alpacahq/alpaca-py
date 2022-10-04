@@ -57,6 +57,9 @@ class Asset(BaseModel):
     shortable: bool
     easy_to_borrow: bool
     fractionable: bool
+    min_order_size: Optional[float] = None
+    min_trade_increment: Optional[float] = None
+    price_increment: Optional[float] = None
 
 
 class Position(BaseModel):

@@ -163,7 +163,6 @@ class Order(BaseModel):
     filled_avg_price: Optional[str]
     order_class: OrderClass
     order_type: OrderType
-    type: OrderType
     side: OrderSide
     time_in_force: TimeInForce
     limit_price: Optional[str]

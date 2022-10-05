@@ -122,23 +122,23 @@ class Order(BaseModel):
         asset_class (AssetClass): Asset class of the asset.
         notional (Optional[str]): Ordered notional amount. If entered, qty will be null. Can take up to 9 decimal
           points.
-        qty (Optional[str]): Ordered quantity. If entered, notional will be null. Can take up to 9 decimal points.
-        filled_qty (Optional[str]): Filled quantity.
-        filled_avg_price (Optional[str]): Filled average price. Can be 0 until order is processed in case order is
+        qty (Optional[float]): Ordered quantity. If entered, notional will be null. Can take up to 9 decimal points.
+        filled_qty (Optional[float]): Filled quantity.
+        filled_avg_price (Optional[float]): Filled average price. Can be 0 until order is processed in case order is
           passed outside of market hours.
         order_class (OrderClass): Valid values: simple, bracket, oco or oto.
         order_type (OrderType): Deprecated with just type field below.
         type (OrderType): Valid values: market, limit, stop, stop_limit, trailing_stop.
         side (OrderSide): Valid values: buy and sell.
         time_in_force (TimeInForce): Length of time the order is in force.
-        limit_price (Optional[str]): Limit price of the order.
-        stop_price (Optional[str]): Stop price of the order.
+        limit_price (Optional[float]): Limit price of the order.
+        stop_price (Optional[float]): Stop price of the order.
         status (OrderStatus): The status of the order.
         extended_hours (bool): If true, eligible for execution outside regular trading hours.
         legs (Optional[List[alpaca.trading.models.Order]]): When querying non-simple order_class orders in a nested style,
           an array of order entities associated with this order. Otherwise, null.
-        trail_percent (Optional[str]): The percent value away from the high water mark for trailing stop orders.
-        trail_price (Optional[str]): The dollar value away from the high water mark for trailing stop orders.
+        trail_percent (Optional[float]): The percent value away from the high water mark for trailing stop orders.
+        trail_price (Optional[float]): The dollar value away from the high water mark for trailing stop orders.
         hwm (Optional[str]): The highest (lowest) market price seen since the trailing stop order was submitted.
     """
 
@@ -157,21 +157,21 @@ class Order(BaseModel):
     asset_id: UUID
     symbol: str
     asset_class: AssetClass
-    notional: Optional[str]
-    qty: Optional[str]
-    filled_qty: Optional[str]
-    filled_avg_price: Optional[str]
+    notional: Optional[float]
+    qty: Optional[float]
+    filled_qty: Optional[float]
+    filled_avg_price: Optional[float]
     order_class: OrderClass
     order_type: OrderType
     side: OrderSide
     time_in_force: TimeInForce
-    limit_price: Optional[str]
-    stop_price: Optional[str]
+    limit_price: Optional[float]
+    stop_price: Optional[float]
     status: OrderStatus
     extended_hours: bool
     legs: Optional[List["Order"]]
-    trail_percent: Optional[str]
-    trail_price: Optional[str]
+    trail_percent: Optional[float]
+    trail_price: Optional[float]
     hwm: Optional[str]
 
     def __init__(self, **data: Any) -> None:

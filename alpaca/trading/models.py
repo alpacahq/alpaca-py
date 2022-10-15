@@ -60,6 +60,7 @@ class Asset(BaseModel):
     min_order_size: Optional[float] = None
     min_trade_increment: Optional[float] = None
     price_increment: Optional[float] = None
+    maintenance_margin_requirement: Optional[float] = None
 
 
 class Position(BaseModel):

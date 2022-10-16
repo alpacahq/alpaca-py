@@ -591,7 +591,7 @@ class TradingClient(RESTClient):
         """
         params = filter.to_request_fields() if filter else {}
 
-        if "ca_types" in params and params["ca_types"]:
+        if "ca_types" in params and isinstance(params["ca_types"], list):
             params["ca_types"] = ",".join(params["ca_types"])
 
         response = self.get("/corporate_actions/announcements", params)

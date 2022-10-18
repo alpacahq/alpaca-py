@@ -139,6 +139,7 @@ class OrderStatus(str, Enum):
     REJECTED = "rejected"
     SUSPENDED = "suspended"
     CALCULATED = "calculated"
+    HELD = "held"
 
 
 class AssetClass(str, Enum):

@@ -503,7 +503,7 @@ class CorporateActionAnnouncement(BaseModel):
     target_symbol: str
     target_original_cusip: str
     declaration_date: Optional[date]
-    ex_date: date
+    ex_date: Optional[date]
     record_date: date
     payable_date: date
     cash: float

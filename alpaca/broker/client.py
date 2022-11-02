@@ -1763,7 +1763,7 @@ class BrokerClient(RESTClient):
         if filter:
             params = filter.to_request_fields()
 
-        url = self._base_url + self._api_version + "/events/trades"
+        url = self._base_url + "/" + self._api_version + "/events/trades"
 
         response = self._session.get(
             url=url,
@@ -1792,7 +1792,7 @@ class BrokerClient(RESTClient):
         if filter:
             params = filter.to_request_fields()
 
-        url = self._base_url + self._api_version + "/events/journals/status"
+        url = self._base_url + "/" + self._api_version + "/events/journals/status"
 
         response = self._session.get(
             url=url,
@@ -1823,7 +1823,7 @@ class BrokerClient(RESTClient):
         if filter:
             params = filter.to_request_fields()
 
-        url = self._base_url + self._api_version + "/events/transfers/status"
+        url = self._base_url + "/" + self._api_version + "/events/transfers/status"
 
         response = self._session.get(
             url=url,
@@ -1854,7 +1854,7 @@ class BrokerClient(RESTClient):
         if filter:
             params = filter.to_request_fields()
 
-        url = self._base_url + self._api_version + "/events/nta"
+        url = self._base_url + "/" + self._api_version + "/events/nta"
 
         response = self._session.get(
             url=url,

@@ -1,6 +1,9 @@
 import datetime
+
+from alpaca.broker import OrderRequest
 from alpaca.broker.client import BrokerClient
-from alpaca.common.enums import BaseURL
+
+from alpaca.common.enums import BaseURL, OrderSide, OrderType, TimeInForce
 from alpaca.common.models import (
     Position,
     ClosePositionResponse,
@@ -416,3 +419,69 @@ def test_get_portfolio_history_with_filter(reqmock, client: BrokerClient):
         "extended_hours": ["true"],
     }
     assert isinstance(portfolio_history, PortfolioHistory)
+
+
+def test_submit_order_for_account(reqmock, client: BrokerClient):
+    account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
+    symbol = "AAPL"
+    amount_notional = '10'
+    commission = 1.0
+
+    reqmock.post(
+        f"{BaseURL.BROKER_SANDBOX}/v1/trading/accounts/{account_id}/orders",
+        text=f"""
+        {{
+            "id": "e8da0077-82c2-438c-8829-994cbdabd0b7",
+            "client_order_id": "16a27e2b-7d68-4f4b-8671-a96534a9282b",
+            "created_at": "2022-11-07T18:49:31.993298206Z",
+            "updated_at": "2022-11-07T18:49:31.993343456Z",
+            "submitted_at": "2022-11-07T18:49:31.992088526Z",
+            "filled_at": null,
+            "expired_at": null,
+            "canceled_at": null,
+            "failed_at": null,
+            "replaced_at": null,
+            "replaced_by": null,
+            "replaces": null,
+            "asset_id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+            "symbol": "{symbol}",
+            "asset_class": "us_equity",
+            "notional": "{amount_notional}",
+            "qty": null,
+            "filled_qty": "0",
+            "filled_avg_price": null,
+            "order_class": "",
+            "order_type": "market",
+            "type": "market",
+            "side": "buy",
+            "time_in_force": "day",
+            "limit_price": null,
+            "stop_price": null,
+            "status": "pending_new",
+            "extended_hours": false,
+            "legs": null,
+            "trail_percent": null,
+            "trail_price": null,
+            "hwm": null,
+            "commission": "{commission}",
+            "subtag": null,
+            "source": null
+        }}
+        """,
+    )
+
+    order_req = OrderRequest(
+        symbol=symbol,
+        qty=0,
+        notional=amount_notional,
+        side=OrderSide.BUY,
+        type=OrderType.MARKET,
+        time_in_force=TimeInForce.DAY,
+        commission=commission
+    )
+
+    order = client.submit_order_for_account(account_id, order_req)
+    assert reqmock.called_once
+    assert isinstance(order, Order)
+    assert order.notional == amount_notional
+    assert order.commission == commission

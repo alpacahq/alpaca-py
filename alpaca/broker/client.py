@@ -1589,9 +1589,11 @@ class BrokerClient(RESTClient):
         """
         account_id = validate_uuid_id_param(account_id, "account_id")
 
-        params = { "client_order_id": client_id }
+        params = {"client_order_id": client_id}
 
-        response = self.get(f"/trading/accounts/{account_id}/orders:by_client_order_id", params)
+        response = self.get(
+            f"/trading/accounts/{account_id}/orders:by_client_order_id", params
+        )
 
         if self._use_raw_data:
             return response

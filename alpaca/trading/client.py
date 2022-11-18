@@ -581,7 +581,7 @@ class TradingClient(RESTClient):
 
     # ############################## CORPORATE ACTIONS ################################# #
 
-    def get_corporate_annoucements(
+    def get_corporate_announcements(
         self, filter: GetCorporateAnnouncementsRequest
     ) -> Union[List[CorporateActionAnnouncement], RawData]:
         """
@@ -603,7 +603,7 @@ class TradingClient(RESTClient):
 
         return parse_obj_as(List[CorporateActionAnnouncement], response)
 
-    def get_corporate_announcment_by_id(
+    def get_corporate_announcement_by_id(
         self, corporate_announcment_id: Union[UUID, str]
     ) -> Union[CorporateActionAnnouncement, RawData]:
         """

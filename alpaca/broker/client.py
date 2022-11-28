@@ -14,7 +14,6 @@ from alpaca.broker.models import (
     Bank,
     CIPInfo,
     TradeAccount,
-    TradeAccountConfiguration,
     TradeDocument,
     Transfer,
     Order,
@@ -57,6 +56,7 @@ from alpaca.trading.models import (
     Calendar,
     Clock,
     CorporateActionAnnouncement,
+    AccountConfiguration as TradeAccountConfiguration,
 )
 from alpaca.trading.models import (
     BaseActivity,

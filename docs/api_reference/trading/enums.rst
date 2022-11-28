@@ -101,6 +101,17 @@ CorporateActionDateType
 .. autoenum:: alpaca.trading.enums.CorporateActionDateType
 
 
+DTBPCheck
+---------
 
+.. autoenum:: alpaca.trading.enums.DTBPCheck
 
+PDTCheck
+---------
 
+.. autoenum:: alpaca.trading.enums.PDTCheck
+
+TradeConfirmationEmail
+----------------------
+
+.. autoenum:: alpaca.trading.enums.TradeConfirmationEmail

@@ -6,9 +6,11 @@ from alpaca.trading.enums import (
     AssetClass,
     AssetStatus,
     AssetExchange,
+    DTBPCheck,
     OrderStatus,
     OrderType,
     OrderClass,
+    PDTCheck,
     TimeInForce,
     OrderSide,
     PositionSide,
@@ -18,6 +20,7 @@ from alpaca.trading.enums import (
     ActivityType,
     CorporateActionType,
     CorporateActionSubType,
+    TradeConfirmationEmail,
     TradeEvent,
 )
 from pydantic import Field
@@ -468,6 +471,29 @@ class TradeAccount(BaseModel):
     last_maintenance_margin: str
     sma: str
     daytrade_count: int
+
+
+class AccountConfiguration(BaseModel):
+    """
+    Represents configuration options for a TradeAccount.
+
+    Attributes:
+        dtbp_check (DTBPCheck): Day Trade Buying Power Check. Controls Day Trading Margin Call (DTMC) checks.
+        fractional_trading (bool): If true, account is able to participate in fractional trading
+        max_margin_multiplier (str): A number between 1-4 that represents your max margin multiplier
+        no_shorting (bool): If true then Account becomes long-only mode.
+        pdt_check (PDTCheck): Controls Pattern Day Trader (PDT) checks.
+        suspend_trade (bool): If true Account becomes unable to submit new orders
+        trade_confirm_email (TradeConfirmationEmail): Controls whether Trade confirmation emails are sent.
+    """
+
+    dtbp_check: DTBPCheck
+    fractional_trading: bool
+    max_margin_multiplier: str
+    no_shorting: bool
+    pdt_check: PDTCheck
+    suspend_trade: bool
+    trade_confirm_email: TradeConfirmationEmail
 
 
 class CorporateActionAnnouncement(BaseModel):

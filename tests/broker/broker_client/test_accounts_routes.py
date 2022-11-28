@@ -6,12 +6,11 @@ from uuid import UUID
 
 import pytest
 
-from alpaca.broker.models import TradeAccountConfiguration
+from alpaca.trading.models import AccountConfiguration as TradeAccountConfiguration
+from alpaca.trading.enums import DTBPCheck, PDTCheck
 from alpaca.broker.client import BrokerClient
 from alpaca.broker.enums import (
     AccountEntities,
-    DTBPCheck,
-    PDTCheck,
 )
 from alpaca.broker.models import (
     Account,

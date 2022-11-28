@@ -1,5 +1,6 @@
 from uuid import UUID
 from pydantic import parse_obj_as
+import json
 
 from alpaca.common import RawData
 from alpaca.common.utils import validate_uuid_id_param, validate_symbol_or_asset_id
@@ -31,6 +32,7 @@ from alpaca.trading.models import (
     Calendar,
     TradeAccount,
     CorporateActionAnnouncement,
+    AccountConfiguration,
 )
 
 
@@ -418,6 +420,40 @@ class TradingClient(RESTClient):
             return response
 
         return TradeAccount(**response)
+
+    def get_account_configurations(self) -> Union[AccountConfiguration, RawData]:
+        """
+        Returns account configuration details. Contains information like shorting, margin multiplier
+        trader confirmation emails, and Pattern Day Trading (PDT) checks.
+
+        Returns:
+            alpaca.broker.models.AccountConfiguration: The account configuration details
+        """
+        response = self.get("/account/configurations")
+
+        if self._use_raw_data:
+            return response
+
+        return AccountConfiguration(**response)
+
+    def set_account_configurations(
+        self, account_configurations: AccountConfiguration
+    ) -> Union[AccountConfiguration, RawData]:
+        """
+        Returns account configuration details. Contains information like shorting, margin multiplier
+        trader confirmation emails, and Pattern Day Trading (PDT) checks.
+
+        Returns:
+            alpaca.broker.models.TradeAccountConfiguration: The account configuration details
+        """
+        response = self.patch(
+            "/account/configurations", data=account_configurations.dict()
+        )
+
+        if self._use_raw_data:
+            return response
+
+        return AccountConfiguration(**json.loads(response))
 
     # ############################## WATCHLIST ################################# #
 

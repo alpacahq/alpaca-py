@@ -51,11 +51,6 @@ TradeAccount
 .. autoclass:: alpaca.broker.models.accounts.TradeAccount
 
 
-TradeAccountConfiguration
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. autoclass:: alpaca.broker.models.accounts.TradeAccountConfiguration
-
 
 TradeDocument
 ^^^^^^^^^^^^^
@@ -135,5 +130,3 @@ BatchJournalResponse
 --------------------
 
 .. autoclass:: alpaca.broker.models.journals.BatchJournalResponse
-
-

@@ -75,7 +75,7 @@ class BaseStream:
 
         extra_headers = {
             "Content-Type": "application/msgpack",
-            "User-Agent": "APCA-PY/" + __version__
+            "User-Agent": "APCA-PY/" + __version__,
         }
 
         self._ws = await websockets.connect(

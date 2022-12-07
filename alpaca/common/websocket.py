@@ -7,6 +7,7 @@ from typing import Callable, Dict, Optional, Union, Tuple
 import msgpack
 import websockets
 from pydantic import BaseModel
+from alpaca import __version__
 
 from alpaca.common.types import RawData
 from alpaca.data.models import Bar, Quote, Trade
@@ -71,9 +72,15 @@ class BaseStream:
         Raises:
             ValueError: Raised if there is an unsuccessful connection
         """
+
+        extra_headers = {
+            "Content-Type": "application/msgpack",
+            "User-Agent": "APCA-PY/" + __version__
+        }
+
         self._ws = await websockets.connect(
             self._endpoint,
-            extra_headers={"Content-Type": "application/msgpack"},
+            extra_headers=extra_headers,
             **self._websocket_params,
         )
         r = await self._ws.recv()

@@ -5,7 +5,7 @@ from typing import List, Optional, Union, Type, Dict
 from alpaca.common.enums import BaseURL
 from alpaca.common.rest import RESTClient, HTTPResult
 from alpaca.common.types import RawData
-from alpaca.data import Quote, Trade, Snapshot, Bar
+from alpaca.data import Quote, Trade, Snapshot, Bar, DailyAuction
 from alpaca.data.historical.utils import (
     parse_obj_as_symbol_dict,
     format_latest_data_response,
@@ -22,6 +22,7 @@ from alpaca.data.requests import (
     StockLatestQuoteRequest,
     StockSnapshotRequest,
     StockLatestBarRequest,
+    StockAuctionRequest
 )
 from alpaca.common.constants import DATA_V2_MAX_LIMIT
 
@@ -239,7 +240,7 @@ class StockHistoricalDataClient(RESTClient):
             request_params (StockSnapshotRequest): The request object for retrieving snapshot data.
 
         Returns:
-            Union[SnapshotSet, RawData]: The snapshot data either in raw or wrapped form
+            Union[Dict[str, Snapshot], RawData]: The snapshot data either in raw or wrapped form
         """
 
         params = request_params.to_request_fields()
@@ -256,6 +257,32 @@ class StockHistoricalDataClient(RESTClient):
             return raw_snapshots
 
         return parse_obj_as_symbol_dict(Snapshot, raw_snapshots)
+
+    def get_stock_auctions(self, request_params: StockAuctionRequest) -> Union[Dict[str, Auction], RawData]:
+
+        """The historical auctions endpoint provides auction prices for the stock symbol between the specified dates.
+
+        Args:
+            request_params (StockAuctionRequest): The request object for retrieving auction data.
+
+        Returns:
+            Union[Dict[str, DailyAuction], RawData]: The auction data either in raw or wrapped form
+        """
+
+        params = request_params.to_request_fields()
+
+        raw_auctions = self._data_get(
+            endpoint_asset_class="stocks",
+            endpoint_data_type="auctions",
+            api_version="v2",
+            **params,
+        )
+
+        if self._use_raw_data:
+            return raw_auctions
+
+        return parse_obj_as_symbol_dict(DailyAuction, raw_auctions)
+
 
     # TODO: Remove duplication
     def _data_get(

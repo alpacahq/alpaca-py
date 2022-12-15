@@ -3,3 +3,4 @@ from .quotes import *
 from .trades import *
 from .snapshots import *
 from .orderbooks import *
+from .auctions import *

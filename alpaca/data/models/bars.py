@@ -20,7 +20,6 @@ class Bar(BaseModel):
         volume (float): The volume traded over the interval.
         trade_count (Optional[float]): The number of trades that occurred.
         vwap (Optional[float]): The volume weighted average price.
-        exchange (Optional[float]): The exchange the bar was formed on.
     """
 
     symbol: str

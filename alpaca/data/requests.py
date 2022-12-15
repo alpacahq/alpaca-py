@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 from typing import Optional, Union, List, Any
 import pytz
 from alpaca.common.requests import NonEmptyRequest

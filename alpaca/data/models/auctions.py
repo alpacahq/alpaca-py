@@ -5,6 +5,7 @@ from alpaca.common.types import RawData
 from alpaca.common.models import ValidateBaseModel as BaseModel
 from alpaca.data.models.base import BaseDataSet
 from alpaca.data.mappings import AUCTION_MAPPING, DAILY_AUCTION_MAPPING
+from alpaca.data.enums import Exchange
 
 
 class Auction(BaseModel):

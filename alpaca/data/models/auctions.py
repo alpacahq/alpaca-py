@@ -1,5 +1,5 @@
-from datetime import datetime
-from typing import Optional, Dict, List
+from datetime import datetime, date
+from typing import Optional, Dict, List, Union
 
 from alpaca.common.types import RawData
 from alpaca.common.models import ValidateBaseModel as BaseModel
@@ -13,14 +13,14 @@ class Auction(BaseModel):
 
     Attributes:
         timestamp (datetime): The timestamp in RFC-3339 format.
-        exchange (Optional[str, Exchange]): The exchange the auction originates
+        exchange (Union[str, Exchange]): The exchange the auction originates
         size (float): The auction trade size
         price (float): The auction trade price
         conditions (Optional[str]): The condition flag indicating that this is an auction.
     """
 
     timestamp: datetime
-    exchange: Optional[str, Exchange]
+    exchange: Union[str, Exchange]
     size: float
     price: float
     conditions: Optional[str]

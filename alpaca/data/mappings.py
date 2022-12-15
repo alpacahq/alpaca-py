@@ -57,12 +57,12 @@ AUCTION_MAPPING: Dict[str, str] = {
     "x": "exchange",
     "s": "size",
     "p": "price",
-    "c": "conditions"
+    "c": "conditions",
 }
 
 
 DAILY_AUCTION_MAPPING: Dict[str, str] = {
     "d": "date",
     "o": "opening_auctions",
-    "c": "closing_auctions"
+    "c": "closing_auctions",
 }

@@ -341,6 +341,7 @@ class StockAuctionRequest(NonEmptyRequest):
         feed (Optional[DataFeed]): The stock data feed to retrieve from.
         asof (Optional[date]): The asof date of the queried stock symbol in YYYY-MM-DD format. Default is the current day.
     """
+
     symbol_or_symbols: Union[str, List[str]]
     start: Optional[datetime]
     end: Optional[datetime]

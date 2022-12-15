@@ -31,7 +31,9 @@ class Auction(BaseModel):
             raw_data (RawData): Raw unparsed auction data from API
         """
         mapped_auction = {
-            AUCTION_MAPPING[key]: val for key, val in raw_data.items() if key in AUCTION_MAPPING
+            AUCTION_MAPPING[key]: val
+            for key, val in raw_data.items()
+            if key in AUCTION_MAPPING
         }
 
         super().__init__(symbol=symbol, **mapped_auction)
@@ -58,7 +60,9 @@ class DailyAuction(BaseModel):
             raw_data (RawData): Raw unparsed daily auction data from API
         """
         mapped_daily_auction = {
-            DAILY_AUCTION_MAPPING[key]: val for key, val in raw_data.items() if key in DAILY_AUCTION_MAPPING
+            DAILY_AUCTION_MAPPING[key]: val
+            for key, val in raw_data.items()
+            if key in DAILY_AUCTION_MAPPING
         }
 
         super().__init__(symbol=symbol, **mapped_daily_auction)

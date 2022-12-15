@@ -696,6 +696,7 @@ def test_multi_stock_latest_bar(reqmock, stock_client: StockHistoricalDataClient
 
     assert reqmock.called_once
 
+
 def test_stock_auction(reqmock, stock_client: StockHistoricalDataClient):
 
     symbol = "SPY"

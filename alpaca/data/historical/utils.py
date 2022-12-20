@@ -47,6 +47,7 @@ def get_data_from_response(response: HTTPResult) -> RawData:
         "snapshots",
         "orderbook",
         "orderbooks",
+        "auctions",
     }
 
     selected_key = data_keys.intersection(response)

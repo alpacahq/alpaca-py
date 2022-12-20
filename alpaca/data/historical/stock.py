@@ -260,7 +260,7 @@ class StockHistoricalDataClient(RESTClient):
 
     def get_stock_auctions(
         self, request_params: StockAuctionRequest
-    ) -> Union[Dict[str, Auction], RawData]:
+    ) -> Union[Dict[str, DailyAuction], RawData]:
 
         """The historical auctions endpoint provides auction prices for the stock symbol between the specified dates.
 

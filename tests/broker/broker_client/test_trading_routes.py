@@ -1,4 +1,4 @@
-import datetime
+from datetime import date
 from alpaca.broker.client import BrokerClient
 from alpaca.common.enums import BaseURL
 from alpaca.trading.requests import (
@@ -451,7 +451,7 @@ def test_get_portfolio_history_with_filter(reqmock, client: BrokerClient):
     history_filter = GetPortfolioHistoryRequest(
         period="1M",
         timeframe="15M",
-        date_end=datetime.date(2022, 1, 1),
+        date_end=date(2022, 1, 1),
         extended_hours=True,
     )
     portfolio_history = client.get_portfolio_history_for_account(

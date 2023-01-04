@@ -1,4 +1,5 @@
-from datetime import datetime
+from datetime import date, datetime
+from ipaddress import _IPAddressBase
 from typing import Any
 from uuid import UUID
 
@@ -47,6 +48,12 @@ class NonEmptyRequest(BaseModel):
             # RFC 3339
             if isinstance(val, datetime):
                 return val.isoformat("T") + "Z"
+
+            if isinstance(val, date):
+                return val.strftime("%Y-%m-%d")
+
+            if isinstance(val, _IPAddressBase):
+                return str(val)
 
             return val
 

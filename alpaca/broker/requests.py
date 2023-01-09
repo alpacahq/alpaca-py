@@ -936,7 +936,8 @@ class GetJournalsRequest(NonEmptyRequest):
 
 class GetEventsRequest(NonEmptyRequest):
 
-    since: date
-    until: date
-    since_id: int
-    until_id: int
+    id: Optional[str]
+    since: Optional[Union[date, str]]
+    until: Optional[Union[date, str]]
+    since_id: Optional[int]
+    until_id: Optional[int]

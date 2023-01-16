@@ -539,7 +539,7 @@ class CorporateActionAnnouncement(BaseModel):
 
 class TradeUpdate(BaseModel):
     event: Union[TradeEvent, str]
-    execution_id: UUID
+    execution_id: Optional[UUID]
     order: Order
     timestamp: datetime
     position_qty: Optional[float]

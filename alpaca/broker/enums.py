@@ -96,10 +96,10 @@ class EmploymentStatus(str, Enum):
     see https://alpaca.markets/docs/broker/api-references/accounts/accounts/#employment-status
     """
 
-    UNEMPLOYED = "unemployed"
-    EMPLOYED = "employed"
-    STUDENT = "student"
-    RETIRED = "retired"
+    UNEMPLOYED = "UNEMPLOYED"
+    EMPLOYED = "EMPLOYED"
+    STUDENT = "STUDENT"
+    RETIRED = "RETIRED"
 
 
 class AgreementType(str, Enum):

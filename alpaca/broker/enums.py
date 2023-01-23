@@ -223,6 +223,8 @@ class TradeDocumentType(str, Enum):
 
     ACCOUNT_STATEMENT = "account_statement"
     TRADE_CONFIRMATION = "trade_confirmation"
+    TRADE_CONFIRMATION_JSON = "trade_confirmation_json"
+
     TAX_STATEMENT = "tax_statement"
 
     # Legacy Values

@@ -47,6 +47,16 @@ Run the following command in your terminal.
   pip install alpaca-py
 ```
 
+## Update <a name="update"></a>
+
+If you already have Alpaca-py installed, and would like to use the latest version available...
+
+Run the following command in your terminal:
+
+```shell
+  pip install alpaca-py --upgrade
+```
+
 ## What’s New? <a name="whats-new"></a>
 If you’ve used the previous python SDK alpaca-trade-api, there are a few key differences to be aware of.
 

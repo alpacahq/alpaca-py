@@ -9,6 +9,7 @@
 * [About](#about)
 * [Documentation](#documentation)
 * [Installation](#installation)
+* [Update](#update)
 * [What's New?](#whats-new)
    1. [Broker API](#broker-api-new)
    2. [OOP Design](#oop-design)

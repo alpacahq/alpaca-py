@@ -144,7 +144,7 @@ To view full descriptions and examples view the [documentation page](https://alp
 
 **Listing All Accounts**
 
-The ``BrokerClient.list_accounts`` method allows you to list all the brokerage accounts under your management. The method takes an optional parameter ``search_parameters`` which requires a ``ListAccountsRequest`` object. This parameter allows you filter the list of accounts returned.
+The ``BrokerClient.list_accounts`` method allows you to list all the brokerage accounts under your management. The method takes an optional parameter ``search_parameters`` which requires a ``ListAccountsRequest`` object. This parameter allows you to filter the list of accounts returned.
 
 ```python
 from alpaca.broker.client import BrokerClient
@@ -167,7 +167,7 @@ accounts = broker_client.list_accounts(search_parameters=filter)
 
 **Submitting an Order**
 
-To create on order on Alpaca-py you must use an ``OrderRequest`` object. There are different ``OrderRequest`` objects based on the type of order you want to make. For market orders, there is ``MarketOrderRequest``, limit orders have ``LimitOrderRequest``, stop orders ``StopOrderRequest``, and trailing stop orders have ``TrailingStopOrderRequest``. Each order type have their own required parameters for a successful order.
+To create an order on Alpaca-py you must use an ``OrderRequest`` object. There are different ``OrderRequest`` objects based on the type of order you want to make. For market orders, there is ``MarketOrderRequest``, limit orders have ``LimitOrderRequest``, stop orders ``StopOrderRequest``, and trailing stop orders have ``TrailingStopOrderRequest``. Each order type have their own required parameters for a successful order.
 
 
 ```python

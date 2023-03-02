@@ -45,6 +45,7 @@ class StockHistoricalDataClient(RESTClient):
         api_key: Optional[str] = None,
         secret_key: Optional[str] = None,
         oauth_token: Optional[str] = None,
+        use_basic_auth: bool = False,
         raw_data: bool = False,
         url_override: Optional[str] = None,
     ) -> None:
@@ -64,6 +65,7 @@ class StockHistoricalDataClient(RESTClient):
             api_key=api_key,
             secret_key=secret_key,
             oauth_token=oauth_token,
+            use_basic_auth=use_basic_auth,
             api_version="v2",
             base_url=url_override if url_override is not None else BaseURL.DATA,
             sandbox=False,

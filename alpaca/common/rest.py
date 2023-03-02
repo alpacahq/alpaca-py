@@ -1,4 +1,5 @@
 import time
+import base64
 from abc import ABC
 from typing import Any, List, Optional, Type, Union, Tuple, Iterator
 
@@ -29,6 +30,7 @@ class RESTClient(ABC):
         api_key: Optional[str] = None,
         secret_key: Optional[str] = None,
         oauth_token: Optional[str] = None,
+        use_basic_auth: bool = False,
         api_version: str = "v2",
         sandbox: bool = False,
         raw_data: bool = False,
@@ -59,6 +61,7 @@ class RESTClient(ABC):
         self._api_version: str = api_version
         self._base_url: Union[BaseURL, str] = base_url
         self._sandbox: bool = sandbox
+        self._use_basic_auth: bool = use_basic_auth
         self._use_raw_data: bool = raw_data
         self._session: Session = Session()
 
@@ -156,6 +159,12 @@ class RESTClient(ABC):
 
         if self._oauth_token:
             headers["Authorization"] = "Bearer " + self._oauth_token
+        elif self._use_basic_auth:
+            api_key_secret = "{key}:{secret}".format(
+                key=self._api_key, secret=self._secret_key
+            ).encode("utf-8")
+            encoded_api_key_secret = base64.b64encode(api_key_secret).decode("utf-8")
+            headers["Authorization"] = "Basic " + encoded_api_key_secret
         else:
             headers["APCA-API-KEY-ID"] = self._api_key
             headers["APCA-API-SECRET-KEY"] = self._secret_key

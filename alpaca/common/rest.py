@@ -47,6 +47,7 @@ class RESTClient(ABC):
             api_key (Optional[str]): The api key string for authentication.
             secret_key (Optional[str]): The corresponding secret key string for the api key.
             oauth_token (Optional[str]): The oauth token if authenticating via OAuth.
+            use_basic_auth (bool): Whether API requests should use basic authorization headers.
             api_version (Optional[str]): The API version for the endpoints.
             sandbox (bool): False if the live API should be used.
             raw_data (bool): Whether API responses should be wrapped in data models or returned raw.

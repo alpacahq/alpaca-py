@@ -1,4 +1,6 @@
 from typing import List
+from alpaca.trading.enums import DTBPCheck, PDTCheck
+from alpaca.trading.models import AccountConfiguration as TradeAccountConfiguration
 
 from alpaca.broker.models import (
     Identity,
@@ -7,12 +9,9 @@ from alpaca.broker.models import (
     Agreement,
     AccountDocument,
     TrustedContact,
-    TradeAccountConfiguration,
 )
 from alpaca.broker.enums import (
-    DTBPCheck,
     FundingSource,
-    PDTCheck,
     TaxIdType,
     AgreementType,
 )

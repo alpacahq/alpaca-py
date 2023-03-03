@@ -1,9 +1,11 @@
+import json
 from alpaca.common.enums import BaseURL
-from alpaca.trading.models import TradeAccount
+from alpaca.trading.models import TradeAccount, AccountConfiguration
 from alpaca.trading.client import TradingClient
+from requests_mock import Mocker
 
 
-def test_get_account(reqmock, trading_client: TradingClient):
+def test_get_account(reqmock: Mocker, trading_client: TradingClient):
     reqmock.get(
         f"{BaseURL.TRADING_PAPER}/v2/account",
         text="""
@@ -44,3 +46,49 @@ def test_get_account(reqmock, trading_client: TradingClient):
 
     assert reqmock.called_once
     assert isinstance(account, TradeAccount)
+
+
+def test_get_account_configurations(reqmock: Mocker, trading_client: TradingClient):
+    reqmock.get(
+        f"{BaseURL.TRADING_PAPER}/v2/account/configurations",
+        text="""
+        {
+          "dtbp_check": "entry",
+          "no_shorting": false,
+          "suspend_trade": false,
+          "fractional_trading": true,
+          "max_margin_multiplier": "4",
+          "pdt_check": "entry",
+          "trade_confirm_email": "all"
+        }
+      """,
+    )
+
+    account_configurations = trading_client.get_account_configurations()
+    assert reqmock.called_once
+    assert isinstance(account_configurations, AccountConfiguration)
+
+
+def test_set_account_configurations(reqmock: Mocker, trading_client: TradingClient):
+    new_account_configurations = AccountConfiguration(
+        **{
+            "dtbp_check": "entry",
+            "no_shorting": True,
+            "suspend_trade": False,
+            "fractional_trading": True,
+            "max_margin_multiplier": "1",
+            "pdt_check": "both",
+            "trade_confirm_email": "all",
+        }
+    )
+    reqmock.patch(
+        f"{BaseURL.TRADING_PAPER}/v2/account/configurations",
+        json=json.dumps(new_account_configurations.dict()),
+    )
+
+    account_configurations = trading_client.set_account_configurations(
+        new_account_configurations
+    )
+    assert reqmock.called_once
+    assert isinstance(account_configurations, AccountConfiguration)
+    assert new_account_configurations == account_configurations

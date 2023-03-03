@@ -26,6 +26,11 @@ TradeAccount
 
 .. autoclass:: alpaca.trading.models.TradeAccount
 
+AccountConfiguration
+--------------------
+
+.. autoclass:: alpaca.trading.models.AccountConfiguration
+
 
 Watchlist
 ---------
@@ -79,5 +84,3 @@ CorporateActionAnnouncement
 ---------------------------
 
 .. autoclass:: alpaca.trading.models.CorporateActionAnnouncement
-
-

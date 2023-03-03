@@ -157,13 +157,13 @@ the query by passing in parameters through the ``GetOrdersRequest`` model.
 
     from alpaca.trading.client import TradingClient
     from alpaca.trading.requests import GetOrdersRequest
-    from alpaca.trading.enums import OrderSide, OrderStatus
+    from alpaca.trading.enums import OrderSide, QueryOrderStatus
 
     trading_client = TradingClient('api-key', 'secret-key', paper=True)
 
     # params to filter orders by
     request_params = GetOrdersRequest(
-                        status=OrderStatus.NEW,
+                        status=QueryOrderStatus.OPEN,
                         side=OrderSide.SELL
                      )
 

@@ -9,6 +9,7 @@
 * [About](#about)
 * [Documentation](#documentation)
 * [Installation](#installation)
+* [Update](#update)
 * [What's New?](#whats-new)
    1. [Broker API](#broker-api-new)
    2. [OOP Design](#oop-design)
@@ -45,6 +46,16 @@ Run the following command in your terminal.
 
 ```shell
   pip install alpaca-py
+```
+
+## Update <a name="update"></a>
+
+If you already have Alpaca-py installed, and would like to use the latest version available...
+
+Run the following command in your terminal:
+
+```shell
+  pip install alpaca-py --upgrade
 ```
 
 ## What’s New? <a name="whats-new"></a>
@@ -133,7 +144,7 @@ To view full descriptions and examples view the [documentation page](https://alp
 
 **Listing All Accounts**
 
-The ``BrokerClient.list_accounts`` method allows you to list all the brokerage accounts under your management. The method takes an optional parameter ``search_parameters`` which requires a ``ListAccountsRequest`` object. This parameter allows you filter the list of accounts returned.
+The ``BrokerClient.list_accounts`` method allows you to list all the brokerage accounts under your management. The method takes an optional parameter ``search_parameters`` which requires a ``ListAccountsRequest`` object. This parameter allows you to filter the list of accounts returned.
 
 ```python
 from alpaca.broker.client import BrokerClient
@@ -156,7 +167,7 @@ accounts = broker_client.list_accounts(search_parameters=filter)
 
 **Submitting an Order**
 
-To create on order on Alpaca-py you must use an ``OrderRequest`` object. There are different ``OrderRequest`` objects based on the type of order you want to make. For market orders, there is ``MarketOrderRequest``, limit orders have ``LimitOrderRequest``, stop orders ``StopOrderRequest``, and trailing stop orders have ``TrailingStopOrderRequest``. Each order type have their own required parameters for a successful order.
+To create an order on Alpaca-py you must use an ``OrderRequest`` object. There are different ``OrderRequest`` objects based on the type of order you want to make. For market orders, there is ``MarketOrderRequest``, limit orders have ``LimitOrderRequest``, stop orders ``StopOrderRequest``, and trailing stop orders have ``TrailingStopOrderRequest``. Each order type have their own required parameters for a successful order.
 
 
 ```python
@@ -191,6 +202,7 @@ You can request bar data via the HistoricalDataClients. In this example, we quer
 from alpaca.data.historical import CryptoHistoricalDataClient
 from alpaca.data.requests import CryptoBarsRequest
 from alpaca.data.timeframe import TimeFrame
+from datetime import datetime
 
 # no keys required for crypto data
 client = CryptoHistoricalDataClient()
@@ -198,7 +210,7 @@ client = CryptoHistoricalDataClient()
 request_params = CryptoBarsRequest(
                         symbol_or_symbols=["BTC/USD", "ETH/USD"],
                         timeframe=TimeFrame.Day,
-                        start="2022-07-01"
+                        start=datetime.strptime("2022-07-01", '%Y-%m-%d')
                         )
 
 bars = client.get_crypto_bars(request_params)

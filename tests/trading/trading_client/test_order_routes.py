@@ -179,7 +179,7 @@ def test_get_order_by_client_id(reqmock, trading_client: TradingClient):
     client_id = "eb9e2aaa-f71a-4f51-b5b4-52a6c565dad4"
 
     reqmock.get(
-        f"{BaseURL.TRADING_PAPER}/v2/orders/{client_id}",
+        f"{BaseURL.TRADING_PAPER}/v2/orders:by_client_order_id?client_order_id={client_id}",
         text="""
     {
         "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",

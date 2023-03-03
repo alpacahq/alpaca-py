@@ -14,7 +14,6 @@ from alpaca.broker.models import (
     Bank,
     CIPInfo,
     TradeAccount,
-    TradeAccountConfiguration,
     TradeDocument,
     Transfer,
     Order,
@@ -57,6 +56,7 @@ from alpaca.trading.models import (
     Calendar,
     Clock,
     CorporateActionAnnouncement,
+    AccountConfiguration as TradeAccountConfiguration,
 )
 from alpaca.trading.models import (
     BaseActivity,
@@ -1589,7 +1589,11 @@ class BrokerClient(RESTClient):
         """
         account_id = validate_uuid_id_param(account_id, "account_id")
 
-        response = self.get(f"/trading/accounts/{account_id}/orders/{client_id}")
+        params = {"client_order_id": client_id}
+
+        response = self.get(
+            f"/trading/accounts/{account_id}/orders:by_client_order_id", params
+        )
 
         if self._use_raw_data:
             return response
@@ -1669,7 +1673,7 @@ class BrokerClient(RESTClient):
 
     # ############################## CORPORATE ACTIONS ################################# #
 
-    def get_corporate_annoucements(
+    def get_corporate_announcements(
         self, filter: GetCorporateAnnouncementsRequest
     ) -> Union[List[CorporateActionAnnouncement], RawData]:
         """
@@ -1691,7 +1695,7 @@ class BrokerClient(RESTClient):
 
         return parse_obj_as(List[CorporateActionAnnouncement], response)
 
-    def get_corporate_announcment_by_id(
+    def get_corporate_announcement_by_id(
         self, corporate_announcment_id: Union[UUID, str]
     ) -> Union[CorporateActionAnnouncement, RawData]:
         """
@@ -1763,7 +1767,7 @@ class BrokerClient(RESTClient):
         if filter:
             params = filter.to_request_fields()
 
-        url = self._base_url + self._api_version + "/events/trades"
+        url = self._base_url + "/" + self._api_version + "/events/trades"
 
         response = self._session.get(
             url=url,
@@ -1792,7 +1796,7 @@ class BrokerClient(RESTClient):
         if filter:
             params = filter.to_request_fields()
 
-        url = self._base_url + self._api_version + "/events/journals/status"
+        url = self._base_url + "/" + self._api_version + "/events/journals/status"
 
         response = self._session.get(
             url=url,
@@ -1823,7 +1827,7 @@ class BrokerClient(RESTClient):
         if filter:
             params = filter.to_request_fields()
 
-        url = self._base_url + self._api_version + "/events/transfers/status"
+        url = self._base_url + "/" + self._api_version + "/events/transfers/status"
 
         response = self._session.get(
             url=url,
@@ -1854,7 +1858,7 @@ class BrokerClient(RESTClient):
         if filter:
             params = filter.to_request_fields()
 
-        url = self._base_url + self._api_version + "/events/nta"
+        url = self._base_url + "/" + self._api_version + "/events/nta"
 
         response = self._session.get(
             url=url,

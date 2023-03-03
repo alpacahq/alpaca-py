@@ -57,7 +57,7 @@ def test_get_announcements(reqmock, trading_client: TradingClient):
         ca_types=[CorporateActionType.DIVIDEND], since="2021-01-01", until="2021-02-01"
     )
 
-    response = trading_client.get_corporate_annoucements(ca_filter)
+    response = trading_client.get_corporate_announcements(ca_filter)
 
     assert reqmock.called_once
     assert isinstance(response, List)

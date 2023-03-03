@@ -130,3 +130,6 @@ dmypy.json
 
 #IDE configs
 .idea
+
+# Personal notebooks
+notebooks/

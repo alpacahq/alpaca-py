@@ -130,7 +130,8 @@ You can convert the response to a multi-index pandas dataframe using the ``.df``
     request_params = CryptoBarsRequest(
                             symbol_or_symbols=["BTC/USD", "ETH/USD"],
                             timeframe=TimeFrame.Day,
-                            start=datetime(2022, 7, 1)
+                            start=datetime(2022, 7, 1),
+                            end=datetime(2022, 9, 1)
                      )
 
     bars = client.get_crypto_bars(request_params)
@@ -182,7 +183,7 @@ Finally, you will need to call the ``run`` method to start receiving data.
     wss_client = StockDataStream('api-key', 'secret-key')
 
     # async handler
-    async def quote_data_handler(data: Any):
+    async def quote_data_handler(data):
         # quote data will arrive here
         print(data)
 

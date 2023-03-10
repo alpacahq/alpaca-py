@@ -81,3 +81,13 @@ class Adjustment(str, Enum):
     SPLIT = "split"
     DIVIDEND = "dividend"
     ALL = "all"
+
+
+class CryptoFeed(str, Enum):
+    """
+    Crypto location
+
+    Attributes:
+        US (str): United States crypto feed
+    """
+    US = "us"

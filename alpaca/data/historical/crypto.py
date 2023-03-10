@@ -24,6 +24,7 @@ from alpaca.data.requests import (
     CryptoLatestOrderbookRequest,
     CryptoLatestBarRequest,
 )
+from alpaca.data.enums import CryptoFeed
 
 
 class CryptoHistoricalDataClient(RESTClient):
@@ -63,19 +64,20 @@ class CryptoHistoricalDataClient(RESTClient):
             api_key=api_key,
             secret_key=secret_key,
             oauth_token=oauth_token,
-            api_version="v1beta2",
+            api_version="v1beta3",
             base_url=url_override if url_override is not None else BaseURL.DATA,
             sandbox=False,
             raw_data=raw_data,
         )
 
     def get_crypto_bars(
-        self, request_params: CryptoBarsRequest
+        self, request_params: CryptoBarsRequest, feed: CryptoFeed = CryptoFeed.US
     ) -> Union[BarSet, RawData]:
         """Gets bar/candle data for a cryptocurrency or list of cryptocurrencies.
 
         Args:
             request_params (CryptoBarsRequest): The parameters for the request.
+            feed (CryptoFeed): The data feed for crypto bars.
 
         Returns:
             Union[BarSet, RawData]: The crypto bar data either in raw or wrapped form
@@ -87,7 +89,8 @@ class CryptoHistoricalDataClient(RESTClient):
         raw_bars = self._data_get(
             endpoint_asset_class="crypto",
             endpoint_data_type="bars",
-            api_version="v1beta2",
+            api_version="v1beta3",
+            feed=feed,
             **params,
         )
 
@@ -96,41 +99,15 @@ class CryptoHistoricalDataClient(RESTClient):
 
         return BarSet(raw_bars)
 
-    def get_crypto_quotes(
-        self, request_params: CryptoQuotesRequest
-    ) -> Union[QuoteSet, RawData]:
-        """Returns Quote level 1 data over a given time period for a cryptocurrency or list of cryptocurrencies.
-
-        Args:
-            request_params (CryptoQuotesRequest): The parameters for the request.
-
-        Returns:
-            Union[QuoteSet, RawData]: The quote data either in raw or wrapped form
-        """
-
-        params = request_params.to_request_fields()
-
-        # paginated get request for market data api
-        raw_quotes = self._data_get(
-            endpoint_asset_class="crypto",
-            endpoint_data_type="quotes",
-            api_version="v1beta2",
-            **params,
-        )
-
-        if self._use_raw_data:
-            return raw_quotes
-
-        return QuoteSet(raw_quotes)
-
     def get_crypto_trades(
-        self, request_params: CryptoTradesRequest
+        self, request_params: CryptoTradesRequest, feed: CryptoFeed = CryptoFeed.US
     ) -> Union[TradeSet, RawData]:
         """Returns the price and sales history over a given time period for a cryptocurrency
         or list of cryptocurrencies.
 
         Args:
             request_params (CryptoTradesRequest): The parameters for the request.
+            feed (CryptoFeed): The data feed for crypto trades.
 
         Returns:
             Union[TradeSet, RawData]: The trade data either in raw or wrapped form
@@ -142,7 +119,8 @@ class CryptoHistoricalDataClient(RESTClient):
         raw_trades = self._data_get(
             endpoint_asset_class="crypto",
             endpoint_data_type="trades",
-            api_version="v1beta2",
+            api_version="v1beta3",
+            feed=feed,
             **params,
         )
 
@@ -152,12 +130,13 @@ class CryptoHistoricalDataClient(RESTClient):
         return TradeSet(raw_trades)
 
     def get_crypto_latest_trade(
-        self, request_params: CryptoLatestTradeRequest
+        self, request_params: CryptoLatestTradeRequest, feed: CryptoFeed = CryptoFeed.US
     ) -> Union[Dict[str, Trade], RawData]:
         """Returns the latest trade for a coin.
 
         Args:
             request_params (CryptoLatestTradeRequest): The parameters for the request.
+            feed (CryptoFeed): The data feed for the latest crypto trade.
 
         Returns:
             Union[Dict[str, Trade], RawData]: The latest trade in raw or wrapped format
@@ -168,8 +147,9 @@ class CryptoHistoricalDataClient(RESTClient):
         raw_trades = self._data_get(
             endpoint_asset_class="crypto",
             endpoint_data_type="trades",
-            api_version="v1beta2",
+            api_version="v1beta3",
             extension=DataExtensionType.LATEST,
+            feed=feed,
             **params,
         )
 
@@ -179,12 +159,13 @@ class CryptoHistoricalDataClient(RESTClient):
         return parse_obj_as_symbol_dict(Trade, raw_trades)
 
     def get_crypto_latest_quote(
-        self, request_params: CryptoLatestQuoteRequest
+        self, request_params: CryptoLatestQuoteRequest, feed: CryptoFeed = CryptoFeed.US
     ) -> Union[Dict[str, Quote], RawData]:
         """Returns the latest quote for a coin.
 
         Args:
             request_params (CryptoLatestQuoteRequest): The parameters for the request.
+            feed (CryptoFeed): The data feed for the latest crypto quote.
 
         Returns:
             Union[Dict[str, Quote], RawData]: The latest quote in raw or wrapped format
@@ -195,8 +176,9 @@ class CryptoHistoricalDataClient(RESTClient):
         raw_quotes = self._data_get(
             endpoint_asset_class="crypto",
             endpoint_data_type="quotes",
-            api_version="v1beta2",
+            api_version="v1beta3",
             extension=DataExtensionType.LATEST,
+            feed=feed,
             **params,
         )
 
@@ -206,12 +188,13 @@ class CryptoHistoricalDataClient(RESTClient):
         return parse_obj_as_symbol_dict(Quote, raw_quotes)
 
     def get_crypto_latest_bar(
-        self, request_params: CryptoLatestBarRequest
+        self, request_params: CryptoLatestBarRequest, feed: CryptoFeed = CryptoFeed.US
     ) -> Union[Dict[str, Bar], RawData]:
         """Returns the latest minute bar for a coin.
 
         Args:
             request_params (CryptoLatestBarRequest): The parameters for the request.
+            feed (CryptoFeed): The data feed for the latest crypto bar.
 
         Returns:
             Union[Dict[str, Bar], RawData]: The latest bar in raw or wrapped format
@@ -222,8 +205,9 @@ class CryptoHistoricalDataClient(RESTClient):
         raw_bars = self._data_get(
             endpoint_asset_class="crypto",
             endpoint_data_type="bars",
-            api_version="v1beta2",
+            api_version="v1beta3",
             extension=DataExtensionType.LATEST,
+            feed=feed,
             **params,
         )
 
@@ -233,13 +217,14 @@ class CryptoHistoricalDataClient(RESTClient):
         return parse_obj_as_symbol_dict(Bar, raw_bars)
 
     def get_crypto_latest_orderbook(
-        self, request_params: CryptoLatestOrderbookRequest
+        self, request_params: CryptoLatestOrderbookRequest, feed: CryptoFeed = CryptoFeed.US
     ) -> Union[Dict[str, Orderbook], RawData]:
         """
         Returns the latest orderbook state for the queried crypto symbols.
 
         Args:
             request_params (CryptoOrderbookRequest): The parameters for the orderbook request.
+            feed (CryptoFeed): The data feed for the latest crypto orderbook.
 
         Returns:
             Union[Dict[str, Orderbook], RawData]: The orderbook data either in raw or wrapped form.
@@ -250,8 +235,9 @@ class CryptoHistoricalDataClient(RESTClient):
         raw_orderbooks = self._data_get(
             endpoint_asset_class="crypto",
             endpoint_data_type="orderbooks",
-            api_version="v1beta2",
+            api_version="v1beta3",
             extension=DataExtensionType.LATEST,
+            feed=feed,
             **params,
         )
 
@@ -261,13 +247,14 @@ class CryptoHistoricalDataClient(RESTClient):
         return parse_obj_as_symbol_dict(Orderbook, raw_orderbooks)
 
     def get_crypto_snapshot(
-        self, request_params: CryptoSnapshotRequest
+        self, request_params: CryptoSnapshotRequest, feed: CryptoFeed = CryptoFeed.US
     ) -> Union[Snapshot, RawData]:
         """Returns snapshots of queried crypto symbols. Snapshots contain latest trade, latest quote, latest minute bar,
         latest daily bar and previous daily bar data for the queried symbols.
 
         Args:
             request_params (CryptoSnapshotRequest): The parameters for the snapshot request.
+            feed (CryptoFeed): The data feed for crypto snapshots.
 
         Returns:
             Union[SnapshotSet, RawData]: The snapshot data either in raw or wrapped form
@@ -278,8 +265,9 @@ class CryptoHistoricalDataClient(RESTClient):
         raw_snapshots = self._data_get(
             endpoint_asset_class="crypto",
             endpoint_data_type="snapshots",
-            api_version="v1beta2",
+            api_version="v1beta3",
             extension=DataExtensionType.SNAPSHOT,
+            feed=feed,
             **params,
         )
 
@@ -294,6 +282,7 @@ class CryptoHistoricalDataClient(RESTClient):
         endpoint_asset_class: str,
         endpoint_data_type: str,
         api_version: str,
+        feed: CryptoFeed,
         symbol_or_symbols: Union[str, List[str]],
         limit: Optional[int] = None,
         page_limit: int = DATA_V2_MAX_LIMIT,
@@ -311,6 +300,7 @@ class CryptoHistoricalDataClient(RESTClient):
             limit (Optional[int]): The maximum number of items to query. Defaults to None.
             page_limit (Optional[int]): The maximum number of items returned per page - different from limit.
                 Defaults to DATA_V2_MAX_LIMIT.
+            feed (CryptoFeed): The data feed for crypto snapshots.
 
         Returns:
             RawData: Raw Market data from API
@@ -320,6 +310,8 @@ class CryptoHistoricalDataClient(RESTClient):
 
         # stocks, crypto, etc
         path = f"/{endpoint_asset_class}"
+
+        path += f"/{feed}"
 
         if isinstance(symbol_or_symbols, str):
             symbol_or_symbols = [symbol_or_symbols]

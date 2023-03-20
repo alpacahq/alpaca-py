@@ -69,6 +69,23 @@ class CreateAccountRequest(NonEmptyRequest):
     documents: Optional[List[AccountDocument]] = None
     trusted_contact: Optional[TrustedContact] = None
 
+    @root_validator
+    def validate_parameters_only_optional_in_response(cls, values: dict) -> dict:
+        """
+        Validate parameters that are optional in the response but not in the request.
+        """
+        nullable_fields_by_model = {
+            "contact": "phone_number",
+            "identity": "date_of_birth",
+            "disclosures": "is_control_person",
+            "disclosures": "is_affiliated_exchange_or_finra",
+            "disclosures": "is_politically_exposed",
+        }
+        for model, field in nullable_fields_by_model.items():
+            if dict(values[model]).get(field, None) is None:
+                raise ValueError(f"{field} is required to create a new account.")
+        return values
+
 
 class UpdatableContact(Contact):
     """

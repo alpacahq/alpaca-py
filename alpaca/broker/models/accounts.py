@@ -37,7 +37,7 @@ class Contact(BaseModel):
     """
 
     email_address: str
-    phone_number: str
+    phone_number: Optional[str] = None
     street_address: List[str]
     unit: Optional[str] = None
     city: str
@@ -95,7 +95,7 @@ class Identity(BaseModel):
     given_name: str
     middle_name: Optional[str] = None
     family_name: str
-    date_of_birth: str
+    date_of_birth: Optional[str] = None
     tax_id: Optional[str] = None
     tax_id_type: Optional[TaxIdType] = None
     country_of_citizenship: Optional[str] = None
@@ -130,9 +130,9 @@ class Disclosures(BaseModel):
         employment_position (str): The user's employment position, if any
     """
 
-    is_control_person: bool
-    is_affiliated_exchange_or_finra: bool
-    is_politically_exposed: bool
+    is_control_person: Optional[bool] = None
+    is_affiliated_exchange_or_finra: Optional[bool] = None
+    is_politically_exposed: Optional[bool] = None
     immediate_family_exposed: bool
     employment_status: Optional[EmploymentStatus] = None
     employer_name: Optional[str] = None

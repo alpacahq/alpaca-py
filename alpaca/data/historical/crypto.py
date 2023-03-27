@@ -217,7 +217,9 @@ class CryptoHistoricalDataClient(RESTClient):
         return parse_obj_as_symbol_dict(Bar, raw_bars)
 
     def get_crypto_latest_orderbook(
-        self, request_params: CryptoLatestOrderbookRequest, feed: CryptoFeed = CryptoFeed.US
+        self,
+        request_params: CryptoLatestOrderbookRequest,
+        feed: CryptoFeed = CryptoFeed.US,
     ) -> Union[Dict[str, Orderbook], RawData]:
         """
         Returns the latest orderbook state for the queried crypto symbols.

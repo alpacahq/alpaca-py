@@ -90,4 +90,5 @@ class CryptoFeed(str, Enum):
     Attributes:
         US (str): United States crypto feed
     """
+
     US = "us"

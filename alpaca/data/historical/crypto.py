@@ -16,7 +16,6 @@ from alpaca.data.models import BarSet, QuoteSet, TradeSet, Orderbook, Trade, Quo
 from alpaca.data.historical.stock import DataExtensionType
 from alpaca.data.requests import (
     CryptoBarsRequest,
-    CryptoQuotesRequest,
     CryptoTradesRequest,
     CryptoLatestTradeRequest,
     CryptoLatestQuoteRequest,

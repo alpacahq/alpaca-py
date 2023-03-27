@@ -10,13 +10,14 @@ from alpaca.data.timeframe import TimeFrame
 class BaseTimeseriesDataRequest(NonEmptyRequest):
     """
     A base class for requests for time series data between a start and an end. This shouldn't be
-    instantiated directly. Instead you should use one of the data type specific classes.
+    instantiated directly. Instead, you should use one of the data type specific classes.
 
     Attributes:
         symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
         start (Optional[datetime]): The beginning of the time interval for desired data. Timezone naive inputs assumed to be in UTC.
         end (Optional[datetime]): The end of the time interval for desired data. Timezone naive inputs assumed to be in UTC.
         limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
+        currency (Optional[SupportedCurrencies]): The currency the data should be returned in. Default to USD.
     """
 
     symbol_or_symbols: Union[str, List[str]]
@@ -172,10 +173,12 @@ class BaseStockLatestDataRequest(NonEmptyRequest):
     Attributes:
         symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
         feed (Optional[DataFeed]): The stock data feed to retrieve from.
+        currency (Optional[SupportedCurrencies]): The currency the data should be returned in. Default to USD.
     """
 
     symbol_or_symbols: Union[str, List[str]]
     feed: Optional[DataFeed]
+    currency: Optional[SupportedCurrencies] = None  # None = USD
 
 
 class StockLatestTradeRequest(BaseStockLatestDataRequest):
@@ -281,10 +284,12 @@ class StockSnapshotRequest(NonEmptyRequest):
     Attributes:
         symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
         feed (Optional[DataFeed]): The stock data feed to retrieve from.
+        currency (Optional[SupportedCurrencies]): The currency the data should be returned in. Default to USD.
     """
 
     symbol_or_symbols: Union[str, List[str]]
     feed: Optional[DataFeed]
+    currency: Optional[SupportedCurrencies] = None  # None = USD
 
 
 class CryptoSnapshotRequest(NonEmptyRequest):

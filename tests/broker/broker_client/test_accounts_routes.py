@@ -28,7 +28,7 @@ from alpaca.broker.requests import (
     UpdateAccountRequest,
 )
 from alpaca.common.exceptions import APIError
-from alpaca.common.enums import BaseURL
+from alpaca.common.enums import BaseURL, SupportedCurrencies
 from tests.broker.factories import accounts as factory
 
 
@@ -132,6 +132,113 @@ def test_create_account(reqmock, client: BrokerClient):
     assert reqmock.called_once
     assert type(returned_account) == Account
     assert returned_account.id == UUID(created_id)
+
+
+def test_create_lct_account(reqmock, client: BrokerClient):
+    created_id = "0d969814-40d6-4b2b-99ac-2e37427f1ad2"
+
+    reqmock.post(
+        "https://broker-api.sandbox.alpaca.markets/v1/accounts",
+        text="""
+        {
+          "id": "0d969814-40d6-4b2b-99ac-2e37427f1ad2",
+          "account_number": "682389557",
+          "status": "SUBMITTED",
+          "crypto_status": "INACTIVE",
+          "currency": "USD",
+          "last_equity": "0",
+          "created_at": "2022-04-12T17:24:31.30283Z",
+          "contact": {
+            "email_address": "cool_alpaca@example.com",
+            "phone_number": "555-666-7788",
+            "street_address": [
+              "20 N San Mateo Dr"
+            ],
+            "unit": "Apt 1A",
+            "city": "San Mateo",
+            "state": "CA",
+            "postal_code": "94401"
+          },
+          "identity": {
+            "given_name": "John",
+            "family_name": "Doe",
+            "middle_name": "Smith",
+            "date_of_birth": "1990-01-01",
+            "tax_id_type": "USA_SSN",
+            "country_of_citizenship": "USA",
+            "country_of_birth": "USA",
+            "country_of_tax_residence": "USA",
+            "funding_source": [
+              "employment_income"
+            ],
+            "visa_type": null,
+            "visa_expiration_date": null,
+            "date_of_departure_from_usa": null,
+            "permanent_resident": null
+          },
+          "disclosures": {
+            "is_control_person": false,
+            "is_affiliated_exchange_or_finra": false,
+            "is_politically_exposed": false,
+            "immediate_family_exposed": false,
+            "is_discretionary": false
+          },
+          "agreements": [
+            {
+              "agreement": "margin_agreement",
+              "signed_at": "2020-09-11T18:09:33Z",
+              "ip_address": "185.13.21.99",
+              "revision": "16.2021.05"
+            },
+            {
+              "agreement": "account_agreement",
+              "signed_at": "2020-09-11T18:13:44Z",
+              "ip_address": "185.13.21.99",
+              "revision": "16.2021.05"
+            },
+            {
+              "agreement": "customer_agreement",
+              "signed_at": "2020-09-11T18:13:44Z",
+              "ip_address": "185.13.21.99",
+              "revision": "16.2021.05"
+            },
+            {
+              "agreement": "crypto_agreement",
+              "signed_at": "2020-09-11T18:13:44Z",
+              "ip_address": "185.13.21.99",
+              "revision": "04.2021.10"
+            }
+          ],
+          "trusted_contact": {
+            "given_name": "Jane",
+            "family_name": "Doe",
+            "email_address": "jane.doe@example.com"
+          },
+          "account_type": "trading",
+          "trading_configurations": null,
+          "currency": "EUR"
+        }
+        """,
+    )
+
+    currency = SupportedCurrencies.EUR
+
+    create_data = CreateAccountRequest(
+        agreements=factory.create_dummy_agreements(),
+        contact=factory.create_dummy_contact(),
+        disclosures=factory.create_dummy_disclosures(),
+        documents=factory.create_dummy_account_documents(),
+        identity=factory.create_dummy_identity(),
+        trusted_contact=factory.create_dummy_trusted_contact(),
+        currency=currency,
+    )
+
+    returned_account = client.create_account(create_data)
+
+    assert reqmock.called_once
+    assert type(returned_account) == Account
+    assert returned_account.id == UUID(created_id)
+    assert returned_account.currency == currency
 
 
 def test_get_account(reqmock, client: BrokerClient):

@@ -34,3 +34,29 @@ class PaginationType(str, Enum):
 class Sort(str, Enum):
     ASC = "asc"
     DESC = "desc"
+
+
+class SupportedCurrencies(str, Enum):
+    """
+    The various currecies that can be supported for LCT.
+
+    see https://alpaca.markets/support/local-currency-trading-faq
+    """
+
+    USD = "USD"
+    GBP = "GBP"
+    CHF = "CHF"
+    EUR = "EUR"
+    CAD = "CAD"
+    JPY = "JPY"
+    TRY = "TRY"
+    AUD = "AUD"
+    CZK = "CZK"
+    SEK = "SEK"
+    DKK = "DKK"
+    SGD = "SGD"
+    HKD = "HKD"
+    HUF = "HUF"
+    NZD = "NZD"
+    NOK = "NOK"
+    PLN = "PLN"

@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Optional, Union, List, Any
 import pytz
+from alpaca.common.enums import SupportedCurrencies
 from alpaca.common.requests import NonEmptyRequest
 from alpaca.data.enums import Adjustment, DataFeed
 from alpaca.data.timeframe import TimeFrame
@@ -22,6 +23,7 @@ class BaseTimeseriesDataRequest(NonEmptyRequest):
     start: Optional[datetime]
     end: Optional[datetime]
     limit: Optional[int]
+    currency: Optional[SupportedCurrencies] = None  # None = USD
 
     def __init__(self, **data: Any) -> None:
 

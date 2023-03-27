@@ -33,8 +33,8 @@ from alpaca.broker.enums import (
     JournalEntryType,
     JournalStatus,
 )
-from alpaca.common.enums import Sort
-from alpaca.trading.enums import ActivityType, AccountStatus
+from alpaca.common.enums import Sort, SupportedCurrencies
+from alpaca.trading.enums import ActivityType, AccountStatus, OrderType
 from alpaca.common.requests import NonEmptyRequest
 from alpaca.trading.requests import (
     OrderRequest as BaseOrderRequest,
@@ -68,6 +68,7 @@ class CreateAccountRequest(NonEmptyRequest):
     agreements: List[Agreement]
     documents: Optional[List[AccountDocument]] = None
     trusted_contact: Optional[TrustedContact] = None
+    currency: Optional[SupportedCurrencies] = None  # None = USD
 
     @root_validator
     def validate_parameters_only_optional_in_response(cls, values: dict) -> dict:
@@ -663,6 +664,19 @@ class OrderRequest(BaseOrderRequest):
     """
 
     commission: Optional[float]
+    currency: Optional[SupportedCurrencies] = None  # None = USD
+
+    @validator("type")
+    def order_type_must_be_market_for_lct(cls, value: OrderType) -> OrderType:
+        """
+        Order type must always be market if currency is not USD.
+        See https://alpaca.markets/docs/broker/integration/lct/#submit-stock-trade
+        """
+        if cls.currency and value != OrderType.MARKET:
+            raise ValueError(
+                "Order type must be OrderType.MARKET if the order is in a local currency."
+            )
+        return value
 
 
 class MarketOrderRequest(BaseMarketOrderRequest):
@@ -833,6 +847,7 @@ class CreateJournalRequest(NonEmptyRequest):
     transmitter_address: Optional[str]
     transmitter_financial_institution: Optional[str]
     transmitter_timestamp: Optional[str]
+    currency: Optional[SupportedCurrencies] = None  # None = USD
 
     @root_validator()
     def root_validator(cls, values: dict) -> dict:

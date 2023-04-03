@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "alpaca-py"
-version = "0.7.2"
+version = "0.8.0"
 description = "The Official Python SDK for Alpaca APIs"
 authors = [
     "Rahul Chowdhury <rahul.chowdhury@alpaca.markets>",

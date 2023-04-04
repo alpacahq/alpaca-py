@@ -113,7 +113,7 @@ class AllAccountsPositions(BaseModel):
 
     Attributes:
         as_of (datetime): Timestamp for which the positions are returned.
-        positions (dict[str, List[Position]]): Positions held by an account, keyed by account_id.
+        positions (Dict[str, List[Position]]): Positions held by an account, keyed by account_id.
     """
 
     as_of: datetime

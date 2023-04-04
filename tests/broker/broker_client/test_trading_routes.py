@@ -9,9 +9,69 @@ from alpaca.trading.models import (
     Position,
     ClosePositionResponse,
     PortfolioHistory,
+    AllAccountsPositions,
 )
 from alpaca.broker.models import Order
 from uuid import UUID
+
+
+def test_get_all_accounts_positions(reqmock, client: BrokerClient):
+    account_id = "02c64fbb-35f0-4403-9015-e5eac4b7ef70"
+
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX}/v1/accounts/positions",
+        text="""
+        {
+            "as_of": "2023-03-29T16:00:00-04:00",
+            "positions": {
+                "02c64fbb-35f0-4403-9015-e5eac4b7ef70": [
+                    {
+                        "asset_id": "8ccae427-5dd0-45b3-b5fe-7ba5e422c766",
+                        "symbol": "TSLA",
+                        "exchange": "NASDAQ",
+                        "asset_class": "us_equity",
+                        "asset_marginable": true,
+                        "qty": "0.173011547",
+                        "avg_entry_price": "286.9749783265074366",
+                        "side": "long",
+                        "market_value": "32.73205457693",
+                        "cost_basis": "49.6499849505605227113711001112",
+                        "unrealized_pl": "-16.9179303736305227113711001112",
+                        "unrealized_plpc": "-0.340743917454894",
+                        "unrealized_intraday_pl": "-16.9179303736305227113711001112",
+                        "unrealized_intraday_plpc": "-0.340743917454894",
+                        "current_price": "189.19",
+                        "lastday_price": "189.19",
+                        "change_today": "0",
+                        "swap_rate": "1.499868775739003",
+                        "avg_entry_swap_rate": "1.4947236256016263",
+                        "usd": {
+                            "avg_entry_price": "191.992",
+                            "market_value": "21.8232788803824064",
+                            "cost_basis": "33.216832931624",
+                            "unrealized_pl": "-11.2796070211508065",
+                            "unrealized_plpc": "-0.340743917454894",
+                            "unrealized_intraday_pl": "-11.2796070211508065",
+                            "unrealized_intraday_plpc": "-0.340743917454894",
+                            "current_price": "126.13770155111327",
+                            "lastday_price": "126.13770155111327",
+                            "change_today": "0"
+                        },
+                        "qty_available": "0.173011547"
+                    }
+                ]
+            }
+        }
+        """,
+    )
+
+    all_accounts_positions = client.get_all_accounts_positions()
+
+    assert reqmock.called_once
+    assert isinstance(all_accounts_positions, AllAccountsPositions)
+    assert isinstance(all_accounts_positions.positions, dict)
+    assert isinstance(all_accounts_positions.positions[account_id], list)
+    assert isinstance(all_accounts_positions.positions[account_id][0], Position)
 
 
 def test_get_all_positions_for_account(reqmock, client: BrokerClient):

@@ -107,6 +107,19 @@ class Position(BaseModel):
     change_today: str
 
 
+class AllAccountsPositions(BaseModel):
+    """
+    Represents the positions of every account as of last market close.
+
+    Attributes:
+        as_of (datetime): Timestamp for which the positions are returned.
+        positions (dict[str, List[Position]]): Positions held by an account, keyed by account_id.
+    """
+
+    as_of: datetime
+    positions: dict[str, List[Position]]
+
+
 class Order(BaseModel):
     """
     Represents a request for the sale or purchase of an asset.

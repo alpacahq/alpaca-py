@@ -978,7 +978,7 @@ class BrokerClient(RESTClient):
         Gets all the current positions for every account in bulk.
 
         Returns:
-            (AllAccountsPositions): The collection of open positions keyed by account_id.
+            AllAccountsPositions: The collection of open positions keyed by account_id.
         """
         response = self.get("/accounts/positions")
 

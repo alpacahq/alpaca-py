@@ -1,7 +1,7 @@
 from alpaca.common.models import ValidateBaseModel as BaseModel
 from uuid import UUID
 from datetime import datetime, date
-from typing import Any, Optional, List, Union
+from typing import Any, Optional, List, Union, Dict
 from alpaca.trading.enums import (
     AssetClass,
     AssetStatus,
@@ -117,7 +117,7 @@ class AllAccountsPositions(BaseModel):
     """
 
     as_of: datetime
-    positions: dict[str, List[Position]]
+    positions: Dict[str, List[Position]]
 
 
 class Order(BaseModel):

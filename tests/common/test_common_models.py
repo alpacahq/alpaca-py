@@ -73,6 +73,18 @@ def test_position_uuid():
         current_price="120.0",
         lastday_price="119.0",
         change_today="0.0084",
+        usd={
+            "avg_entry_price": "100.0",
+            "market_value": "600.0",
+            "cost_basis": "500.0",
+            "unrealized_pl": "100.0",
+            "unrealized_plpc": "0.20",
+            "unrealized_intraday_pl": "10.0",
+            "unrealized_intraday_plpc": "0.0084",
+            "current_price": "120.0",
+            "lastday_price": "119.0",
+            "change_today": "0.0084",
+        },
     )
 
     assert isinstance(position.asset_id, UUID)

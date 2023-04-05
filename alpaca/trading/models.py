@@ -66,6 +66,36 @@ class Asset(BaseModel):
     maintenance_margin_requirement: Optional[float] = None
 
 
+class USDPositionValues(BaseModel):
+    """
+    Represents an open long or short holding in an asset in USD.
+
+    Attributes:
+        avg_entry_price (str): The average entry price of the position.
+        market_value (str): Total dollar amount of the position.
+        cost_basis (str): Total cost basis in dollars.
+        unrealized_pl (str): Unrealized profit/loss in dollars.
+        unrealized_plpc (str): Unrealized profit/loss percent.
+        unrealized_intraday_pl (str): Unrealized profit/loss in dollars for the day.
+        unrealized_intraday_plpc (str): Unrealized profit/loss percent for the day.
+        current_price (str): Current asset price per share.
+        lastday_price (str): Last day’s asset price per share based on the closing value of the last trading day.
+        change_today (str): Percent change from last day's price.
+
+    """
+
+    avg_entry_price: str
+    market_value: str
+    cost_basis: str
+    unrealized_pl: str
+    unrealized_plpc: str
+    unrealized_intraday_pl: str
+    unrealized_intraday_plpc: str
+    current_price: str
+    lastday_price: str
+    change_today: str
+
+
 class Position(BaseModel):
     """
     Represents an open long or short holding in an asset.
@@ -75,6 +105,7 @@ class Position(BaseModel):
         symbol (str): Symbol of the asset.
         exchange (AssetExchange): Exchange name of the asset.
         asset_class (AssetClass): Name of the asset's asset class.
+        asset_marginable (Optional[bool]): Indicates if this asset is marginable.
         avg_entry_price (str): The average entry price of the position.
         qty (str): The number of shares of the position.
         side (PositionSide): "long" or "short" representing the side of the position.
@@ -87,12 +118,18 @@ class Position(BaseModel):
         current_price (str): Current asset price per share.
         lastday_price (str): Last day’s asset price per share based on the closing value of the last trading day.
         change_today (str): Percent change from last day's price.
+        swap_rate (Optional[str]): Swap rate is the exchange rate (without mark-up) used to convert the price into local currency or crypto asset.
+        avg_entry_swap_rate (Optional[str]): TODO
+        usd (USDPositionValues): Represents the position in USD values.
+        qty_available (Optional[str]): Total number of shares available minus open orders.
+
     """
 
     asset_id: UUID
     symbol: str
     exchange: AssetExchange
     asset_class: AssetClass
+    asset_marginable: Optional[bool]
     avg_entry_price: str
     qty: str
     side: PositionSide
@@ -105,6 +142,10 @@ class Position(BaseModel):
     current_price: str
     lastday_price: str
     change_today: str
+    swap_rate: Optional[str]
+    avg_entry_swap_rate: Optional[str]
+    usd: USDPositionValues
+    qty_available: Optional[str]
 
 
 class AllAccountsPositions(BaseModel):

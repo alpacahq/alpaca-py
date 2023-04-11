@@ -88,7 +88,6 @@ class RESTClient(ABC):
         base_url: Optional[Union[BaseURL, str]] = None,
         api_version: Optional[str] = None,
     ) -> HTTPResult:
-
         """Prepares and submits HTTP requests to given API endpoint and returns response.
         Handles retrying if 429 (Rate Limit) error arises.
 

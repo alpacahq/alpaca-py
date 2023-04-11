@@ -119,7 +119,7 @@ class Position(BaseModel):
         lastday_price (str): Last day’s asset price per share based on the closing value of the last trading day.
         change_today (str): Percent change from last day's price.
         swap_rate (Optional[str]): Swap rate is the exchange rate (without mark-up) used to convert the price into local currency or crypto asset.
-        avg_entry_swap_rate (Optional[str]): TODO
+        avg_entry_swap_rate (Optional[str]): The average exchange rate the price was converted into the local currency at.
         usd (USDPositionValues): Represents the position in USD values.
         qty_available (Optional[str]): Total number of shares available minus open orders.
 
@@ -144,7 +144,7 @@ class Position(BaseModel):
     change_today: str
     swap_rate: Optional[str]
     avg_entry_swap_rate: Optional[str]
-    usd: USDPositionValues
+    usd: Optional[USDPositionValues]
     qty_available: Optional[str]
 
 

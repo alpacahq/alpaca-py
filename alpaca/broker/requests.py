@@ -667,7 +667,9 @@ class OrderRequest(BaseOrderRequest):
     currency: Optional[SupportedCurrencies] = None  # None = USD
 
     @root_validator
-    def order_type_must_be_market_for_lct(cls, values: dict[str, Any]) -> OrderType:
+    def order_type_must_be_market_for_lct(
+        cls, values: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Order type must always be market if currency is not USD.
         See https://alpaca.markets/docs/broker/integration/lct/#submit-stock-trade

@@ -177,6 +177,7 @@ class AssetExchange(str, Enum):
     GNSS = "GNSS"
     ERSX = "ERSX"
     OTC = "OTC"
+    CRYPTO = "CRYPTO"
 
 
 class PositionSide(str, Enum):

@@ -1,3 +1,4 @@
+import base64
 from collections import defaultdict
 from enum import Enum
 from typing import List, Optional, Union, Type, Dict
@@ -46,6 +47,8 @@ class StockHistoricalDataClient(RESTClient):
         secret_key: Optional[str] = None,
         oauth_token: Optional[str] = None,
         raw_data: bool = False,
+        sandbox: bool = False,
+        broker: bool = False,
         url_override: Optional[str] = None,
     ) -> None:
         """
@@ -57,6 +60,8 @@ class StockHistoricalDataClient(RESTClient):
             oauth_token (Optional[str]): The oauth token if authenticating via OAuth. Defaults to None.
             raw_data (bool, optional): If true, API responses will not be wrapped and raw responses will be returned from
               methods. Defaults to False. This has not been implemented yet.
+            sandbox (bool, optional): If true, the BaseURL is the sandbox one. Defaults to False, so the default is production.
+            broker (bool, optional): If true, API keys are the Broker API keys. Defaults to False, which means that the API keys are from the Trading API.
             url_override (Optional[str], optional): If specified allows you to override the base url the client points
               to for proxy/testing.
         """
@@ -65,10 +70,28 @@ class StockHistoricalDataClient(RESTClient):
             secret_key=secret_key,
             oauth_token=oauth_token,
             api_version="v2",
-            base_url=url_override if url_override is not None else BaseURL.DATA,
-            sandbox=False,
+            base_url=url_override
+            if url_override is not None
+            else BaseURL.DATA_SANDBOX
+            if sandbox
+            else BaseURL.DATA,
+            sandbox=sandbox,
             raw_data=raw_data,
         )
+        self.broker = broker
+
+    def _get_auth_headers(self) -> dict:
+        """
+        We override this since we use Basic auth for Broker API keys.
+        """
+        if self.broker:
+            auth_string = f"{self._api_key}:{self._secret_key}"
+            auth_string_encoded = base64.b64encode(str.encode(auth_string))
+            headers = {"Authorization": "Basic " + auth_string_encoded.decode("utf-8")}
+        else:
+            # default headers
+            headers = super()._get_auth_headers()
+        return headers
 
     def get_stock_bars(
         self, request_params: StockBarsRequest

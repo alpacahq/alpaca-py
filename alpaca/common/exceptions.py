@@ -1,3 +1,6 @@
+import json
+
+
 class APIError(Exception):
     """
     Represent API related error.
@@ -11,7 +14,8 @@ class APIError(Exception):
 
     @property
     def code(self):
-        return self._error["code"]
+        error = json.loads(self._error)
+        return error["code"]
 
     @property
     def status_code(self):

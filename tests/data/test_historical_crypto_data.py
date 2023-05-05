@@ -5,7 +5,6 @@ from alpaca.data import Quote, Trade, Bar
 from alpaca.data.historical.crypto import CryptoHistoricalDataClient
 from alpaca.data.requests import (
     CryptoBarsRequest,
-    CryptoQuotesRequest,
     CryptoTradesRequest,
     CryptoLatestTradeRequest,
     CryptoLatestQuoteRequest,
@@ -15,7 +14,6 @@ from alpaca.data.requests import (
 from alpaca.data.timeframe import TimeFrame
 from alpaca.data.models import (
     BarSet,
-    QuoteSet,
     Snapshot,
     TradeSet,
 )
@@ -33,7 +31,7 @@ def test_get_crypto_bars(reqmock, crypto_client: CryptoHistoricalDataClient):
     _start_in_url = start.isoformat("T") + "Z"
     _end_in_url = end.isoformat("T") + "Z"
     reqmock.get(
-        f"https://data.alpaca.markets/v1beta2/crypto/bars?timeframe={timeframe}&start={_start_in_url}&end={_end_in_url}&symbols={_symbols_in_url}",
+        f"https://data.alpaca.markets/v1beta3/crypto/us/bars?timeframe={timeframe}&start={_start_in_url}&end={_end_in_url}&symbols={_symbols_in_url}",
         text="""
     {
         "bars": {
@@ -80,74 +78,6 @@ def test_get_crypto_bars(reqmock, crypto_client: CryptoHistoricalDataClient):
     assert barset.df.index.nlevels == 2
 
 
-def test_get_crypto_quotes(reqmock, crypto_client: CryptoHistoricalDataClient):
-
-    # test multisymbol request
-    symbols = ["BTC/USD", "ETH/USD"]
-    start = datetime(2022, 3, 9)
-    end = datetime(2022, 3, 10)
-    _symbols_in_url = "%2C".join(s for s in symbols)
-
-    _start_in_url = start.isoformat("T") + "Z"
-    _end_in_url = end.isoformat("T") + "Z"
-
-    reqmock.get(
-        f"https://data.alpaca.markets/v1beta2/crypto/quotes?start={_start_in_url}&end={_end_in_url}&symbols={_symbols_in_url}",
-        text="""
-    {
-        "quotes": {
-            "BTC/USD": [
-                {
-                    "t": "2022-03-09T06:00:00.03994496Z",
-                    "bp": 41397.43,
-                    "bs": 0.1847,
-                    "ap": 41659.6,
-                    "as": 0.385
-                },
-                {
-                    "t": "2022-03-09T06:00:00.060563155Z",
-                    "bp": 41414.38,
-                    "bs": 1.5,
-                    "ap": 41672.24,
-                    "as": 1.444128
-                }
-            ],
-            "ETH/USD": [
-                {
-                    "t": "2022-03-09T06:00:00.23589632Z",
-                    "bp": 2706.95,
-                    "bs": 5.46,
-                    "ap": 2723.85,
-                    "as": 3.9
-                },
-                {
-                    "t": "2022-03-09T06:00:00.290033408Z",
-                    "bp": 2706.95,
-                    "bs": 5.46,
-                    "ap": 2723.85,
-                    "as": 3.9
-                }
-            ]
-        },
-        "next_page_token": null
-    }   
-        """,
-    )
-
-    request = CryptoQuotesRequest(symbol_or_symbols=symbols, start=start, end=end)
-    quoteset = crypto_client.get_crypto_quotes(request)
-
-    assert isinstance(quoteset, QuoteSet)
-
-    assert quoteset["BTC/USD"][0].ask_size == 0.385
-    assert quoteset["ETH/USD"][0].bid_price == 2706.95
-
-    assert quoteset.df.index[0][1].day == 9
-    assert quoteset.df.index.nlevels == 2
-
-    assert reqmock.called_once
-
-
 def test_get_trades(reqmock, crypto_client: CryptoHistoricalDataClient):
 
     # test multisymbol request
@@ -158,7 +88,7 @@ def test_get_trades(reqmock, crypto_client: CryptoHistoricalDataClient):
     _start_in_url = start.isoformat("T") + "Z"
 
     reqmock.get(
-        f"https://data.alpaca.markets/v1beta2/crypto/trades?start={_start_in_url}&symbols={_symbols_in_url}",
+        f"https://data.alpaca.markets/v1beta3/crypto/us/trades?start={_start_in_url}&symbols={_symbols_in_url}",
         text="""
     {
         "trades": {
@@ -205,7 +135,7 @@ def test_get_crypto_latest_trade(reqmock, crypto_client: CryptoHistoricalDataCli
     symbol = "BTC/USD"
 
     reqmock.get(
-        f"https://data.alpaca.markets/v1beta2/crypto/latest/trades?symbols={symbol}",
+        f"https://data.alpaca.markets/v1beta3/crypto/us/latest/trades?symbols={symbol}",
         text="""
     {
         "symbol": "BTC/USD",
@@ -242,7 +172,7 @@ def test_get_crypto_latest_quote(reqmock, crypto_client: CryptoHistoricalDataCli
     symbol = "BTC/USD"
 
     reqmock.get(
-        f"https://data.alpaca.markets/v1beta2/crypto/latest/quotes?symbols={symbol}",
+        f"https://data.alpaca.markets/v1beta3/crypto/us/latest/quotes?symbols={symbol}",
         text="""
     {
         "symbol": "BTC/USD",
@@ -281,7 +211,7 @@ def test_crypto_get_snapshot(reqmock, crypto_client: CryptoHistoricalDataClient)
     _symbols_in_url = "%2C".join(s for s in symbols)
 
     reqmock.get(
-        f"https://data.alpaca.markets/v1beta2/crypto/snapshots?symbols={_symbols_in_url}",
+        f"https://data.alpaca.markets/v1beta3/crypto/us/snapshots?symbols={_symbols_in_url}",
         text="""
     {
         "snapshots": {
@@ -404,7 +334,7 @@ def test_crypto_latest_bar(reqmock, crypto_client: CryptoHistoricalDataClient):
 
     symbol = "BTC/USD"
     reqmock.get(
-        f"https://data.alpaca.markets/v1beta2/crypto/latest/bars?symbols={symbol}",
+        f"https://data.alpaca.markets/v1beta3/crypto/us/latest/bars?symbols={symbol}",
         text="""
            {
             "bars": {

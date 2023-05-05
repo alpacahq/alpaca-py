@@ -1,5 +1,5 @@
 import base64
-from typing import Callable, Iterator, List, Optional, Union
+from typing import Callable, Iterator, List, Optional, Union, Dict
 from uuid import UUID
 
 import sseclient
@@ -14,7 +14,6 @@ from alpaca.broker.models import (
     Bank,
     CIPInfo,
     TradeAccount,
-    TradeAccountConfiguration,
     TradeDocument,
     Transfer,
     Order,
@@ -51,12 +50,14 @@ from alpaca.common.enums import BaseURL, PaginationType
 from alpaca.trading.models import (
     PortfolioHistory,
     Position,
+    AllAccountsPositions,
     ClosePositionResponse,
     Asset,
     Watchlist,
     Calendar,
     Clock,
     CorporateActionAnnouncement,
+    AccountConfiguration as TradeAccountConfiguration,
 )
 from alpaca.trading.models import (
     BaseActivity,
@@ -970,6 +971,22 @@ class BrokerClient(RESTClient):
 
         return parse_obj_as(List[Position], response)
 
+    def get_all_accounts_positions(
+        self,
+    ) -> Union[AllAccountsPositions, RawData]:
+        """
+        Gets all the current positions for every account in bulk.
+
+        Returns:
+            AllAccountsPositions: The collection of open positions keyed by account_id.
+        """
+        response = self.get("/accounts/positions")
+
+        if self._use_raw_data:
+            return response
+
+        return AllAccountsPositions(**response)
+
     def get_open_position_for_account(
         self, account_id: Union[UUID, str], symbol_or_asset_id: Union[UUID, str]
     ) -> Union[Position, RawData]:
@@ -1589,7 +1606,11 @@ class BrokerClient(RESTClient):
         """
         account_id = validate_uuid_id_param(account_id, "account_id")
 
-        response = self.get(f"/trading/accounts/{account_id}/orders/{client_id}")
+        params = {"client_order_id": client_id}
+
+        response = self.get(
+            f"/trading/accounts/{account_id}/orders:by_client_order_id", params
+        )
 
         if self._use_raw_data:
             return response
@@ -1669,7 +1690,7 @@ class BrokerClient(RESTClient):
 
     # ############################## CORPORATE ACTIONS ################################# #
 
-    def get_corporate_annoucements(
+    def get_corporate_announcements(
         self, filter: GetCorporateAnnouncementsRequest
     ) -> Union[List[CorporateActionAnnouncement], RawData]:
         """
@@ -1691,7 +1712,7 @@ class BrokerClient(RESTClient):
 
         return parse_obj_as(List[CorporateActionAnnouncement], response)
 
-    def get_corporate_announcment_by_id(
+    def get_corporate_announcement_by_id(
         self, corporate_announcment_id: Union[UUID, str]
     ) -> Union[CorporateActionAnnouncement, RawData]:
         """
@@ -1763,7 +1784,7 @@ class BrokerClient(RESTClient):
         if filter:
             params = filter.to_request_fields()
 
-        url = self._base_url + self._api_version + "/events/trades"
+        url = self._base_url + "/" + self._api_version + "/events/trades"
 
         response = self._session.get(
             url=url,
@@ -1792,7 +1813,7 @@ class BrokerClient(RESTClient):
         if filter:
             params = filter.to_request_fields()
 
-        url = self._base_url + self._api_version + "/events/journals/status"
+        url = self._base_url + "/" + self._api_version + "/events/journals/status"
 
         response = self._session.get(
             url=url,
@@ -1823,7 +1844,7 @@ class BrokerClient(RESTClient):
         if filter:
             params = filter.to_request_fields()
 
-        url = self._base_url + self._api_version + "/events/transfers/status"
+        url = self._base_url + "/" + self._api_version + "/events/transfers/status"
 
         response = self._session.get(
             url=url,
@@ -1854,7 +1875,7 @@ class BrokerClient(RESTClient):
         if filter:
             params = filter.to_request_fields()
 
-        url = self._base_url + self._api_version + "/events/nta"
+        url = self._base_url + "/" + self._api_version + "/events/nta"
 
         response = self._session.get(
             url=url,
@@ -1869,7 +1890,6 @@ class BrokerClient(RESTClient):
             yield event.data
 
     def _get_sse_headers(self) -> dict:
-
         headers = self._get_default_headers()
 
         headers["Connection"] = "keep-alive"

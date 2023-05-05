@@ -8,11 +8,11 @@ corporate events.
 Get Corporate Actions
 ---------------------
 
-.. automethod:: alpaca.trading.client.TradingClient.get_corporate_annoucements
+.. automethod:: alpaca.trading.client.TradingClient.get_corporate_announcements
 
 
 
 Get  Corporate Action By ID
 ---------------------------
 
-.. automethod:: alpaca.trading.client.TradingClient.get_corporate_announcment_by_id
+.. automethod:: alpaca.trading.client.TradingClient.get_corporate_announcement_by_id

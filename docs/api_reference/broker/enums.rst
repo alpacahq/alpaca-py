@@ -82,21 +82,6 @@ UploadDocumentMimeType
 
 .. autoenum:: alpaca.broker.enums.UploadDocumentMimeType
 
-DTBPCheck
----------
-
-.. autoenum:: alpaca.broker.enums.DTBPCheck
-
-PDTCheck
----------
-
-.. autoenum:: alpaca.broker.enums.PDTCheck
-
-TradeConfirmationEmail
-----------------------
-
-.. autoenum:: alpaca.broker.enums.TradeConfirmationEmail
-
 ACHRelationshipStatus
 ---------------------
 
@@ -151,4 +136,3 @@ JournalStatus
 -------------
 
 .. autoenum:: alpaca.broker.enums.JournalStatus
-

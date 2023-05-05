@@ -1,6 +1,7 @@
 from alpaca.common.websocket import BaseStream
 from typing import Optional, Dict
 from alpaca.common.enums import BaseURL
+from alpaca.data.enums import CryptoFeed
 
 
 class CryptoDataStream(BaseStream):
@@ -15,6 +16,7 @@ class CryptoDataStream(BaseStream):
         api_key: str,
         secret_key: str,
         raw_data: bool = False,
+        feed: CryptoFeed = CryptoFeed.US,
         url_override: Optional[str] = None,
         websocket_params: Optional[Dict] = None,
     ) -> None:
@@ -33,7 +35,7 @@ class CryptoDataStream(BaseStream):
             endpoint=(
                 url_override
                 if url_override is not None
-                else BaseURL.MARKET_DATA_STREAM.value + "/v1beta2/crypto"
+                else BaseURL.MARKET_DATA_STREAM.value + f"/v1beta3/crypto/{feed}"
             ),
             api_key=api_key,
             secret_key=secret_key,

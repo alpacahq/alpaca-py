@@ -33,8 +33,8 @@ from alpaca.broker.enums import (
     JournalEntryType,
     JournalStatus,
 )
-from alpaca.common.enums import Sort
-from alpaca.trading.enums import ActivityType, AccountStatus
+from alpaca.common.enums import Sort, SupportedCurrencies
+from alpaca.trading.enums import ActivityType, AccountStatus, OrderType
 from alpaca.common.requests import NonEmptyRequest
 from alpaca.trading.requests import (
     OrderRequest as BaseOrderRequest,
@@ -68,6 +68,24 @@ class CreateAccountRequest(NonEmptyRequest):
     agreements: List[Agreement]
     documents: Optional[List[AccountDocument]] = None
     trusted_contact: Optional[TrustedContact] = None
+    currency: Optional[SupportedCurrencies] = None  # None = USD
+
+    @root_validator
+    def validate_parameters_only_optional_in_response(cls, values: dict) -> dict:
+        """
+        Validate parameters that are optional in the response but not in the request.
+        """
+        nullable_fields_by_model = {
+            "contact": "phone_number",
+            "identity": "date_of_birth",
+            "disclosures": "is_control_person",
+            "disclosures": "is_affiliated_exchange_or_finra",
+            "disclosures": "is_politically_exposed",
+        }
+        for model, field in nullable_fields_by_model.items():
+            if dict(values[model]).get(field, None) is None:
+                raise ValueError(f"{field} is required to create a new account.")
+        return values
 
 
 class UpdatableContact(Contact):
@@ -646,6 +664,19 @@ class OrderRequest(BaseOrderRequest):
     """
 
     commission: Optional[float]
+    currency: Optional[SupportedCurrencies] = None  # None = USD
+
+    @validator("type")
+    def order_type_must_be_market_for_lct(cls, value: OrderType) -> OrderType:
+        """
+        Order type must always be market if currency is not USD.
+        See https://alpaca.markets/docs/broker/integration/lct/#submit-stock-trade
+        """
+        if cls.currency and value != OrderType.MARKET:
+            raise ValueError(
+                "Order type must be OrderType.MARKET if the order is in a local currency."
+            )
+        return value
 
 
 class MarketOrderRequest(BaseMarketOrderRequest):
@@ -816,6 +847,7 @@ class CreateJournalRequest(NonEmptyRequest):
     transmitter_address: Optional[str]
     transmitter_financial_institution: Optional[str]
     transmitter_timestamp: Optional[str]
+    currency: Optional[SupportedCurrencies] = None  # None = USD
 
     @root_validator()
     def root_validator(cls, values: dict) -> dict:
@@ -936,7 +968,8 @@ class GetJournalsRequest(NonEmptyRequest):
 
 class GetEventsRequest(NonEmptyRequest):
 
-    since: date
-    until: date
-    since_id: int
-    until_id: int
+    id: Optional[str]
+    since: Optional[Union[date, str]]
+    until: Optional[Union[date, str]]
+    since_id: Optional[int]
+    until_id: Optional[int]

@@ -132,6 +132,7 @@ class OrderStatus(str, Enum):
     REPLACED = "replaced"
     PENDING_CANCEL = "pending_cancel"
     PENDING_REPLACE = "pending_replace"
+    PENDING_REVIEW = "pending_review"
     ACCEPTED = "accepted"
     PENDING_NEW = "pending_new"
     ACCEPTED_FOR_BIDDING = "accepted_for_bidding"
@@ -176,6 +177,7 @@ class AssetExchange(str, Enum):
     GNSS = "GNSS"
     ERSX = "ERSX"
     OTC = "OTC"
+    CRYPTO = "CRYPTO"
 
 
 class PositionSide(str, Enum):
@@ -282,3 +284,45 @@ class QueryOrderStatus(str, Enum):
     OPEN = "open"
     CLOSED = "closed"
     ALL = "all"
+
+
+class DTBPCheck(str, Enum):
+    """
+    Specifies when to run a DTBP check for an account.
+
+    NOTE: These values are currently the same as PDTCheck however they are not guaranteed to be in sync the future
+
+    please see https://alpaca.markets/docs/api-references/broker-api/trading/trading-configurations/#attributes
+    for more info.
+    """
+
+    BOTH = "both"
+    ENTRY = "entry"
+    EXIT = "exit"
+
+
+class PDTCheck(str, Enum):
+    """
+    Specifies when to run a PDT check for an account.
+
+    NOTE: These values are currently the same as DTBPCheck however they are not guaranteed to be in sync the future
+
+    please see https://alpaca.markets/docs/api-references/broker-api/trading/trading-configurations/#attributes
+    for more info.
+    """
+
+    BOTH = "both"
+    ENTRY = "entry"
+    EXIT = "exit"
+
+
+class TradeConfirmationEmail(str, Enum):
+    """
+    Used for controlling when an Account will receive a trade confirmation email.
+
+    please see https://alpaca.markets/docs/api-references/broker-api/trading/trading-configurations/#attributes
+    for more info.
+    """
+
+    ALL = "all"
+    NONE = "none"

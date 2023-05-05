@@ -1,14 +1,16 @@
 from alpaca.common.models import ValidateBaseModel as BaseModel
 from uuid import UUID
 from datetime import datetime, date
-from typing import Any, Optional, List, Union
+from typing import Any, Optional, List, Union, Dict
 from alpaca.trading.enums import (
     AssetClass,
     AssetStatus,
     AssetExchange,
+    DTBPCheck,
     OrderStatus,
     OrderType,
     OrderClass,
+    PDTCheck,
     TimeInForce,
     OrderSide,
     PositionSide,
@@ -18,6 +20,7 @@ from alpaca.trading.enums import (
     ActivityType,
     CorporateActionType,
     CorporateActionSubType,
+    TradeConfirmationEmail,
     TradeEvent,
 )
 from pydantic import Field
@@ -63,6 +66,36 @@ class Asset(BaseModel):
     maintenance_margin_requirement: Optional[float] = None
 
 
+class USDPositionValues(BaseModel):
+    """
+    Represents an open long or short holding in an asset in USD.
+
+    Attributes:
+        avg_entry_price (str): The average entry price of the position.
+        market_value (str): Total dollar amount of the position.
+        cost_basis (str): Total cost basis in dollars.
+        unrealized_pl (str): Unrealized profit/loss in dollars.
+        unrealized_plpc (str): Unrealized profit/loss percent.
+        unrealized_intraday_pl (str): Unrealized profit/loss in dollars for the day.
+        unrealized_intraday_plpc (str): Unrealized profit/loss percent for the day.
+        current_price (str): Current asset price per share.
+        lastday_price (str): Last day’s asset price per share based on the closing value of the last trading day.
+        change_today (str): Percent change from last day's price.
+
+    """
+
+    avg_entry_price: str
+    market_value: str
+    cost_basis: str
+    unrealized_pl: str
+    unrealized_plpc: str
+    unrealized_intraday_pl: str
+    unrealized_intraday_plpc: str
+    current_price: str
+    lastday_price: str
+    change_today: str
+
+
 class Position(BaseModel):
     """
     Represents an open long or short holding in an asset.
@@ -72,6 +105,7 @@ class Position(BaseModel):
         symbol (str): Symbol of the asset.
         exchange (AssetExchange): Exchange name of the asset.
         asset_class (AssetClass): Name of the asset's asset class.
+        asset_marginable (Optional[bool]): Indicates if this asset is marginable.
         avg_entry_price (str): The average entry price of the position.
         qty (str): The number of shares of the position.
         side (PositionSide): "long" or "short" representing the side of the position.
@@ -84,12 +118,18 @@ class Position(BaseModel):
         current_price (str): Current asset price per share.
         lastday_price (str): Last day’s asset price per share based on the closing value of the last trading day.
         change_today (str): Percent change from last day's price.
+        swap_rate (Optional[str]): Swap rate is the exchange rate (without mark-up) used to convert the price into local currency or crypto asset.
+        avg_entry_swap_rate (Optional[str]): The average exchange rate the price was converted into the local currency at.
+        usd (USDPositionValues): Represents the position in USD values.
+        qty_available (Optional[str]): Total number of shares available minus open orders.
+
     """
 
     asset_id: UUID
     symbol: str
     exchange: AssetExchange
     asset_class: AssetClass
+    asset_marginable: Optional[bool]
     avg_entry_price: str
     qty: str
     side: PositionSide
@@ -102,6 +142,23 @@ class Position(BaseModel):
     current_price: str
     lastday_price: str
     change_today: str
+    swap_rate: Optional[str]
+    avg_entry_swap_rate: Optional[str]
+    usd: Optional[USDPositionValues]
+    qty_available: Optional[str]
+
+
+class AllAccountsPositions(BaseModel):
+    """
+    Represents the positions of every account as of last market close.
+
+    Attributes:
+        as_of (datetime): Timestamp for which the positions are returned.
+        positions (Dict[str, List[Position]]): Positions held by an account, keyed by account_id.
+    """
+
+    as_of: datetime
+    positions: Dict[str, List[Position]]
 
 
 class Order(BaseModel):
@@ -404,36 +461,36 @@ class TradeAccount(BaseModel):
         crypto_status (Optional[AccountStatus]): The status of the account in regards to trading crypto. Only present if
           crypto trading is enabled for your brokerage account.
         currency (Optional[str]): Currently will always be the value "USD".
-        buying_power (str): Current available cash buying power. If multiplier = 2 then
+        buying_power (Optional[str]): Current available cash buying power. If multiplier = 2 then
           buying_power = max(equity-initial_margin(0) * 2). If multiplier = 1 then buying_power = cash.
-        regt_buying_power (str): User’s buying power under Regulation T
+        regt_buying_power (Optional[str]): User’s buying power under Regulation T
           (excess equity - (equity - margin value) - * margin multiplier)
-        daytrading_buying_power (str): The buying power for day trades for the account
-        non_marginable_buying_power (str): The non marginable buying power for the account
-        cash (str): Cash balance in the account
-        accrued_fees (str): Fees accrued in this account
+        daytrading_buying_power (Optional[str]): The buying power for day trades for the account
+        non_marginable_buying_power (Optional[str]): The non marginable buying power for the account
+        cash (Optional[str]): Cash balance in the account
+        accrued_fees (Optional[str]): Fees accrued in this account
         pending_transfer_out (Optional[str]): Cash pending transfer out of this account
         pending_transfer_in (Optional[str]): Cash pending transfer into this account
         portfolio_value (str): Total value of cash + holding positions.
           (This field is deprecated. It is equivalent to the equity field.)
-        pattern_day_trader (bool): Whether the account is flagged as pattern day trader or not.
-        trading_blocked (bool): If true, the account is not allowed to place orders.
-        transfers_blocked (bool): If true, the account is not allowed to request money transfers.
-        account_blocked (bool): If true, the account activity by user is prohibited.
-        created_at (datetime): Timestamp this account was created at
-        trade_suspended_by_user (bool): If true, the account is not allowed to place orders.
-        multiplier (str): Multiplier value for this account.
-        shorting_enabled (bool): Flag to denote whether or not the account is permitted to short
-        equity (str): This value is cash + long_market_value + short_market_value. This value isn't calculated in the
+        pattern_day_trader (Optional[bool]): Whether the account is flagged as pattern day trader or not.
+        trading_blocked (Optional[bool]): If true, the account is not allowed to place orders.
+        transfers_blocked (Optional[bool]): If true, the account is not allowed to request money transfers.
+        account_blocked (Optional[bool]): If true, the account activity by user is prohibited.
+        created_at (Optional[datetime]): Timestamp this account was created at
+        trade_suspended_by_user (Optional[bool]): If true, the account is not allowed to place orders.
+        multiplier (Optional[str]): Multiplier value for this account.
+        shorting_enabled (Optional[bool]): Flag to denote whether or not the account is permitted to short
+        equity (Optional[str]): This value is cash + long_market_value + short_market_value. This value isn't calculated in the
           SDK it is computed on the server and we return the raw value here.
-        last_equity (str): Equity as of previous trading day at 16:00:00 ET
-        long_market_value (str): Real-time MtM value of all long positions held in the account
-        short_market_value (str): Real-time MtM value of all short positions held in the account
-        initial_margin (str): Reg T initial margin requirement
-        maintenance_margin (str): Maintenance margin requirement
-        last_maintenance_margin (str): Maintenance margin requirement on the previous trading day
-        sma (str): Value of Special Memorandum Account (will be used at a later date to provide additional buying_power)
-        daytrade_count (int): The current number of daytrades that have been made in the last 5 trading days
+        last_equity (Optional[str]): Equity as of previous trading day at 16:00:00 ET
+        long_market_value (Optional[str]): Real-time MtM value of all long positions held in the account
+        short_market_value (Optional[str]): Real-time MtM value of all short positions held in the account
+        initial_margin (Optional[str]): Reg T initial margin requirement
+        maintenance_margin (Optional[str]): Maintenance margin requirement
+        last_maintenance_margin (Optional[str]): Maintenance margin requirement on the previous trading day
+        sma (Optional[str]): Value of Special Memorandum Account (will be used at a later date to provide additional buying_power)
+        daytrade_count (Optional[int]): The current number of daytrades that have been made in the last 5 trading days
           (inclusive of today)
     """
 
@@ -442,32 +499,55 @@ class TradeAccount(BaseModel):
     status: AccountStatus
     crypto_status: Optional[AccountStatus]
     currency: Optional[str]
-    buying_power: str
-    regt_buying_power: str
-    daytrading_buying_power: str
-    non_marginable_buying_power: str
-    cash: str
-    accrued_fees: str
+    buying_power: Optional[str]
+    regt_buying_power: Optional[str]
+    daytrading_buying_power: Optional[str]
+    non_marginable_buying_power: Optional[str]
+    cash: Optional[str]
+    accrued_fees: Optional[str]
     pending_transfer_out: Optional[str]
     pending_transfer_in: Optional[str]
-    portfolio_value: str
-    pattern_day_trader: bool
-    trading_blocked: bool
-    transfers_blocked: bool
-    account_blocked: bool
-    created_at: datetime
-    trade_suspended_by_user: bool
-    multiplier: str
-    shorting_enabled: bool
-    equity: str
-    last_equity: str
-    long_market_value: str
-    short_market_value: str
-    initial_margin: str
-    maintenance_margin: str
-    last_maintenance_margin: str
-    sma: str
-    daytrade_count: int
+    portfolio_value: Optional[str]
+    pattern_day_trader: Optional[bool]
+    trading_blocked: Optional[bool]
+    transfers_blocked: Optional[bool]
+    account_blocked: Optional[bool]
+    created_at: Optional[datetime]
+    trade_suspended_by_user: Optional[bool]
+    multiplier: Optional[str]
+    shorting_enabled: Optional[bool]
+    equity: Optional[str]
+    last_equity: Optional[str]
+    long_market_value: Optional[str]
+    short_market_value: Optional[str]
+    initial_margin: Optional[str]
+    maintenance_margin: Optional[str]
+    last_maintenance_margin: Optional[str]
+    sma: Optional[str]
+    daytrade_count: Optional[int]
+
+
+class AccountConfiguration(BaseModel):
+    """
+    Represents configuration options for a TradeAccount.
+
+    Attributes:
+        dtbp_check (DTBPCheck): Day Trade Buying Power Check. Controls Day Trading Margin Call (DTMC) checks.
+        fractional_trading (bool): If true, account is able to participate in fractional trading
+        max_margin_multiplier (str): A number between 1-4 that represents your max margin multiplier
+        no_shorting (bool): If true then Account becomes long-only mode.
+        pdt_check (PDTCheck): Controls Pattern Day Trader (PDT) checks.
+        suspend_trade (bool): If true Account becomes unable to submit new orders
+        trade_confirm_email (TradeConfirmationEmail): Controls whether Trade confirmation emails are sent.
+    """
+
+    dtbp_check: DTBPCheck
+    fractional_trading: bool
+    max_margin_multiplier: str
+    no_shorting: bool
+    pdt_check: PDTCheck
+    suspend_trade: bool
+    trade_confirm_email: TradeConfirmationEmail
 
 
 class CorporateActionAnnouncement(BaseModel):
@@ -503,7 +583,7 @@ class CorporateActionAnnouncement(BaseModel):
     target_symbol: str
     target_original_cusip: str
     declaration_date: Optional[date]
-    ex_date: date
+    ex_date: Optional[date]
     record_date: date
     payable_date: date
     cash: float
@@ -513,7 +593,7 @@ class CorporateActionAnnouncement(BaseModel):
 
 class TradeUpdate(BaseModel):
     event: Union[TradeEvent, str]
-    execution_id: UUID
+    execution_id: Optional[UUID]
     order: Order
     timestamp: datetime
     position_qty: Optional[float]

@@ -159,14 +159,14 @@ redis = ["redis (>=2.10.5)"]
 
 [[package]]
 name = "certifi"
-version = "2022.12.7"
+version = "2023.5.7"
 description = "Python package for providing Mozilla's CA Bundle."
 category = "main"
 optional = false
 python-versions = ">=3.6"
 files = [
-    {file = "certifi-2022.12.7-py3-none-any.whl", hash = "sha256:4ad3232f5e926d6718ec31cfc1fcadfde020920e278684144551c91769c7bc18"},
-    {file = "certifi-2022.12.7.tar.gz", hash = "sha256:35824b4c3a97115964b408844d64aa14db1cc518f6562e8d7261699d1350a9e3"},
+    {file = "certifi-2023.5.7-py3-none-any.whl", hash = "sha256:c6c2e98f5c7869efca1f8916fed228dd91539f9f1b444c314c06eef02980c716"},
+    {file = "certifi-2023.5.7.tar.gz", hash = "sha256:0f0d56dc5a6ad56fd4ba36484d6cc34451e1c6548c61daad8c320169f91eddc7"},
 ]
 
 [[package]]
@@ -1183,18 +1183,18 @@ test = ["fixtures", "mock", "purl", "pytest", "requests-futures", "sphinx", "tes
 
 [[package]]
 name = "ruamel-yaml"
-version = "0.17.22"
+version = "0.17.24"
 description = "ruamel.yaml is a YAML parser/emitter that supports roundtrip preservation of comments, seq/map flow style, and map key order"
 category = "dev"
 optional = false
 python-versions = ">=3"
 files = [
-    {file = "ruamel.yaml-0.17.22-py3-none-any.whl", hash = "sha256:b4c6e66d103d8af198aa6139580ab735169be4922eb4c515ac121bdabf6f9361"},
-    {file = "ruamel.yaml-0.17.22.tar.gz", hash = "sha256:c22ec58aaca5105f771cb8f7ac45ad631b5e8b00454ebe1822d442fb696e9e62"},
+    {file = "ruamel.yaml-0.17.24-py3-none-any.whl", hash = "sha256:f251bd9096207af604af69d6495c3c650a3338d0493d27b04bc55477d7a884ed"},
+    {file = "ruamel.yaml-0.17.24.tar.gz", hash = "sha256:90e398ee24524ebe20fc48cd1861cedd25520457b9a36cfb548613e57fde30a0"},
 ]
 
 [package.dependencies]
-"ruamel.yaml.clib" = {version = ">=0.2.6", markers = "platform_python_implementation == \"CPython\" and python_version < \"3.11\""}
+"ruamel.yaml.clib" = {version = ">=0.2.7", markers = "platform_python_implementation == \"CPython\" and python_version < \"3.12\""}
 
 [package.extras]
 docs = ["ryd"]

@@ -49,7 +49,6 @@ class StockHistoricalDataClient(RESTClient):
         use_basic_auth: bool = False,
         raw_data: bool = False,
         sandbox: bool = False,
-        broker: bool = False,
         url_override: Optional[str] = None,
     ) -> None:
         """
@@ -81,20 +80,6 @@ class StockHistoricalDataClient(RESTClient):
             sandbox=sandbox,
             raw_data=raw_data,
         )
-        self.broker = broker
-
-    def _get_auth_headers(self) -> dict:
-        """
-        We override this since we use Basic auth for Broker API keys.
-        """
-        if self.broker:
-            auth_string = f"{self._api_key}:{self._secret_key}"
-            auth_string_encoded = base64.b64encode(str.encode(auth_string))
-            headers = {"Authorization": "Basic " + auth_string_encoded.decode("utf-8")}
-        else:
-            # default headers
-            headers = super()._get_auth_headers()
-        return headers
 
     def get_stock_bars(
         self, request_params: StockBarsRequest

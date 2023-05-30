@@ -1,3 +1,4 @@
+from typing import Optional
 from alpaca.trading.models import Order as BaseOrder
 
 
@@ -9,4 +10,4 @@ class Order(BaseOrder):
         commission (float): The dollar value commission you want to charge the end user.
     """
 
-    commission: float | None = None
+    commission: Optional[float] = None

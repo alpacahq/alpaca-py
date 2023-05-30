@@ -14,9 +14,7 @@ jobs:
         with:
           python-version: 3.8
       - name: setup poetry
-        uses: abatilo/actions-poetry@v2.0.0
-        with:
-          poetry-version: 1.4.2
+        run: pip install poetry==1.4.2
       - name: Poetry install
         run: poetry install
       - name: run lint checks

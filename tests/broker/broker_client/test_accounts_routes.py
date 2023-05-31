@@ -799,7 +799,8 @@ def test_get_trade_configuration_for_account(reqmock, client: BrokerClient):
           "no_shorting": false,
           "pdt_check": "entry",
           "suspend_trade": false,
-          "trade_confirm_email": "all"
+          "trade_confirm_email": "all",
+          "ptp_no_exception": false
         }
         """,
     )
@@ -838,7 +839,8 @@ def test_update_trade_configuration_for_account(reqmock, client: BrokerClient):
           "no_shorting": false,
           "pdt_check": "entry",
           "suspend_trade": false,
-          "trade_confirm_email": "all"
+          "trade_confirm_email": "all",
+          "ptp_no_exception": false
         }
         """,
     )

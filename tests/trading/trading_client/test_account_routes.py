@@ -59,7 +59,8 @@ def test_get_account_configurations(reqmock: Mocker, trading_client: TradingClie
           "fractional_trading": true,
           "max_margin_multiplier": "4",
           "pdt_check": "entry",
-          "trade_confirm_email": "all"
+          "trade_confirm_email": "all",
+          "ptp_no_exception": false
         }
       """,
     )
@@ -79,6 +80,7 @@ def test_set_account_configurations(reqmock: Mocker, trading_client: TradingClie
             "max_margin_multiplier": "1",
             "pdt_check": "both",
             "trade_confirm_email": "all",
+            "ptp_no_exception": False,
         }
     )
     reqmock.patch(

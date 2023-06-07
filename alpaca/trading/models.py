@@ -580,8 +580,8 @@ class CorporateActionAnnouncement(BaseModel):
     ca_sub_type: CorporateActionSubType
     initiating_symbol: str
     initiating_original_cusip: str
-    target_symbol: str
-    target_original_cusip: str
+    target_symbol: Optional[str]
+    target_original_cusip: Optional[str]
     declaration_date: Optional[date]
     ex_date: Optional[date]
     record_date: date

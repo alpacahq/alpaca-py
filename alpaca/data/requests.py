@@ -3,7 +3,7 @@ from typing import Optional, Union, List, Any
 import pytz
 from alpaca.common.enums import SupportedCurrencies
 from alpaca.common.requests import NonEmptyRequest
-from alpaca.data.enums import Adjustment, DataFeed
+from alpaca.data.enums import Adjustment, DataFeed, MarketType, MostActivesBy
 from alpaca.data.timeframe import TimeFrame
 
 
@@ -315,3 +315,41 @@ class CryptoLatestOrderbookRequest(NonEmptyRequest):
     """
 
     symbol_or_symbols: Union[str, List[str]]
+
+
+# ############################## Screener #################################### #
+
+
+class ScreenerRequest(NonEmptyRequest):
+    """
+    This request class is used to submit a request for screener endpoints.
+
+    Attributes:
+        top (int): Number of top most active stocks to fetch per day.
+    """
+
+    top: int = 10
+
+
+class MostActivesRequest(ScreenerRequest):
+    """
+    This request class is used to submit a request for most actives screener endpoint.
+
+    Attributes:
+        by (MostActivesBy): The metric used for ranking the most active stocks.
+        top (int): Number of top most active stocks to fetch per day.
+    """
+
+    by: MostActivesBy = MostActivesBy.VOLUME
+
+
+class MarketMoversRequest(ScreenerRequest):
+    """
+    This request class is used to submit a request for most actives screener endpoint.
+
+    Attributes:
+        market_type (MarketType): Screen specific market (stocks or crypto).
+        top (int): Number of top most active stocks to fetch per day.
+    """
+
+    market_type: MarketType = MarketType.STOCKS

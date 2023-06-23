@@ -8,6 +8,8 @@ from alpaca.data.historical import StockHistoricalDataClient
 from alpaca.data.historical.crypto import CryptoHistoricalDataClient
 from alpaca.trading.client import TradingClient
 
+from alpaca.data.historical.screener import ScreenerClient
+
 
 @pytest.fixture
 def reqmock() -> Iterator[Mocker]:
@@ -53,6 +55,16 @@ def raw_stock_client():
 def crypto_client():
     client = CryptoHistoricalDataClient("key-id", "secret-key")
     return client
+
+
+@pytest.fixture
+def screener_client():
+    return ScreenerClient("key-id", "secret-key")
+
+
+@pytest.fixture
+def raw_screener_client():
+    return ScreenerClient("key-id", "secret-key", raw_data=True)
 
 
 @pytest.fixture

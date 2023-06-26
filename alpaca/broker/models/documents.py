@@ -29,16 +29,17 @@ class AccountDocument(BaseModel):
         mime_type (str): The format of content encoded by the string
     """
 
-    id: UUID
-    document_type: DocumentType
+    id: Optional[UUID]
+    document_type: Optional[DocumentType]
     document_sub_type: Optional[str] = None
     content: str
     mime_type: Optional[str] = None
 
     def __init__(self, **data: Any) -> None:
         # validate the incoming id field for uuid
-        if isinstance(data["id"], str):
-            data["id"] = UUID(data["id"])
+        _id = data.get("id", None)
+        if isinstance(_id, str):
+            data["id"] = UUID(_id)
 
         super().__init__(**data)
 

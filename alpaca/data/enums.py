@@ -92,3 +92,31 @@ class CryptoFeed(str, Enum):
     """
 
     US = "us"
+
+
+class MostActivesBy(str, Enum):
+    """
+    Most actives possible filters.
+
+    Attributes:
+        volume (str):
+            Retrieve most actives by trading volume.
+        trades (str):
+            Retrieve most actives by number of trades.
+    """
+
+    VOLUME = "volume"
+    TRADES = "trades"
+
+
+class MarketType(str, Enum):
+    """
+    Most actives possible filters.
+
+    Attributes:
+        stocks (str)
+        crypto (str)
+    """
+
+    STOCKS = "stocks"
+    CRYPTO = "crypto"

@@ -132,6 +132,7 @@ class DocumentType(str, Enum):
     LIMITED_TRADING_AUTHORIZATION = "limited_trading_authorization"
     W8BEN = "w8ben"
     SOCIAL_SECURITY_NUMBER_VERIFICATION = "social_security_number_verification"
+    NULL = ""
 
 
 class AccountEntities(str, Enum):

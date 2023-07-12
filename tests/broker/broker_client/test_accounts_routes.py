@@ -800,7 +800,7 @@ def test_get_trade_configuration_for_account(reqmock, client: BrokerClient):
           "pdt_check": "entry",
           "suspend_trade": false,
           "trade_confirm_email": "all",
-          "ptp_no_exception": false
+          "ptp_no_exception_entry": false
         }
         """,
     )
@@ -840,7 +840,7 @@ def test_update_trade_configuration_for_account(reqmock, client: BrokerClient):
           "pdt_check": "entry",
           "suspend_trade": false,
           "trade_confirm_email": "all",
-          "ptp_no_exception": false
+          "ptp_no_exception_entry": false
         }
         """,
     )

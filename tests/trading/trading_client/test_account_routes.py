@@ -60,7 +60,7 @@ def test_get_account_configurations(reqmock: Mocker, trading_client: TradingClie
           "max_margin_multiplier": "4",
           "pdt_check": "entry",
           "trade_confirm_email": "all",
-          "ptp_no_exception": false
+          "ptp_no_exception_entry": false
         }
       """,
     )
@@ -80,7 +80,7 @@ def test_set_account_configurations(reqmock: Mocker, trading_client: TradingClie
             "max_margin_multiplier": "1",
             "pdt_check": "both",
             "trade_confirm_email": "all",
-            "ptp_no_exception": False,
+            "ptp_no_exception_entry": False,
         }
     )
     reqmock.patch(

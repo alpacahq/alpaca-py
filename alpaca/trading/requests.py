@@ -121,11 +121,13 @@ class GetAssetsRequest(NonEmptyRequest):
         status (Optional[AssetStatus]): The active status of the asset.
         asset_class (Optional[AssetClass]): The type of asset (i.e. us_equity, crypto).
         exchange (Optional[AssetExchange]): The exchange the asset trades on.
+        attributes (Optional[str]): Comma separated values to query for more than one attribute.
     """
 
     status: Optional[AssetStatus]
     asset_class: Optional[AssetClass]
     exchange: Optional[AssetExchange]
+    attributes: Optional[str]
 
 
 class TakeProfitRequest(NonEmptyRequest):

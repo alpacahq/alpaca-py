@@ -3,6 +3,7 @@ from typing import Optional
 from uuid import UUID
 
 from alpaca.broker.enums import JournalEntryType, JournalStatus
+from alpaca.common.enums import SupportedCurrencies
 from alpaca.common.models import ValidateBaseModel as BaseModel
 
 
@@ -57,6 +58,7 @@ class Journal(BaseModel):
     transmitter_address: Optional[str]
     transmitter_financial_institution: Optional[str]
     transmitter_timestamp: Optional[str]
+    currency: SupportedCurrencies
 
 
 class BatchJournalResponse(Journal):

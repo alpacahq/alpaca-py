@@ -164,7 +164,7 @@ List All Accounts
 
 The ``BrokerClient::list_accounts`` method allows you to list all the brokerage accounts under
 your management. The method takes an optional parameter ``search_parameters`` which requires a
-``ListAccountsRequest`` object. This parameter allows you filter the list of accounts returned.
+``ListAccountsRequest`` object. This parameter allows you to filter the list of accounts returned.
 
 .. code-block:: python
 
@@ -193,14 +193,14 @@ To learn more about funding on Broker API, please visit the `Alpaca API document
 Create an ACH Relationship
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Before an account can be funded, it needs have an external account connection established. There are two types of
+Before an account can be funded, it needs to have an external account connection established. There are two types of
 connections that be created: ACH relationships and bank relationships. ACH Relationships can
 be created using routing and account numbers, or via Plaid.
 
 To use Plaid, you will require a ``processor_token`` provided by Plaid
 specifically for Alpaca. View this `article <https://alpaca.markets/learn/easily-allow-your-user-to-fund-their-account-with-plaid-and-broker-api/>`_ to learn more
 
-In this example we will use use routing and account numbers to establish an ACH relationship.
+In this example we will use routing and account numbers to establish an ACH relationship.
 
 .. code-block:: python
 
@@ -265,7 +265,7 @@ Create a Journal
 ^^^^^^^^^^^^^^^^
 
 A journal is made between two accounts. For every journal request, assets will leave ``from_account`` and into ``to_account``.
-There are are types of journals: cash journals and security journals. Cash journals move the account currency
+There are two types of journals: cash journals and security journals. Cash journals move the account currency
 between accounts. Security journals move stocks between accounts.
 
 .. code-block:: python
@@ -337,7 +337,7 @@ To learn more about trading on Broker API, visit the `Alpaca API documentation <
 Create an Order
 ^^^^^^^^^^^^^^^
 
-To create on order on Alpaca-py you must use an ``OrderRequest`` object. There are different
+To create an order on Alpaca-py you must use an ``OrderRequest`` object. There are different
 ``OrderRequest`` objects based on the type of order you want to make. For market orders, there is
 ``MarketOrderRequest``, limit orders have ``LimitOrderRequest``, stop orders ``StopOrderRequest``, and
 trailing stop orders have ``TrailingStopOrderRequest``. Each order type have their own required parameters

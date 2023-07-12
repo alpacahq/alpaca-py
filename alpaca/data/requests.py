@@ -1,27 +1,30 @@
 from datetime import datetime, date
 from typing import Optional, Union, List, Any
 import pytz
+from alpaca.common.enums import SupportedCurrencies
 from alpaca.common.requests import NonEmptyRequest
-from alpaca.data.enums import Adjustment, DataFeed
+from alpaca.data.enums import Adjustment, DataFeed, MarketType, MostActivesBy
 from alpaca.data.timeframe import TimeFrame
 
 
 class BaseTimeseriesDataRequest(NonEmptyRequest):
     """
     A base class for requests for time series data between a start and an end. This shouldn't be
-    instantiated directly. Instead you should use one of the data type specific classes.
+    instantiated directly. Instead, you should use one of the data type specific classes.
 
     Attributes:
         symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
         start (Optional[datetime]): The beginning of the time interval for desired data. Timezone naive inputs assumed to be in UTC.
         end (Optional[datetime]): The end of the time interval for desired data. Timezone naive inputs assumed to be in UTC.
         limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
+        currency (Optional[SupportedCurrencies]): The currency the data should be returned in. Default to USD.
     """
 
     symbol_or_symbols: Union[str, List[str]]
     start: Optional[datetime]
     end: Optional[datetime]
     limit: Optional[int]
+    currency: Optional[SupportedCurrencies] = None  # None = USD
 
     def __init__(self, **data: Any) -> None:
 
@@ -123,22 +126,6 @@ class StockQuotesRequest(BaseTimeseriesDataRequest):
     feed: Optional[DataFeed]
 
 
-class CryptoQuotesRequest(BaseTimeseriesDataRequest):
-    """
-    This request class is used to submit a request for crypto quote data.
-
-    See BaseTimeseriesDataRequest for more information on available parameters.
-
-    Attributes:
-        symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
-        start (Optional[datetime]): The beginning of the time interval for desired data. Timezone naive inputs assumed to be in UTC.
-        end (Optional[datetime]): The end of the time interval for desired data. Defaults to now. Timezone naive inputs assumed to be in UTC.
-        limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
-    """
-
-    pass
-
-
 # ############################## Trades ################################# #
 
 
@@ -186,10 +173,12 @@ class BaseStockLatestDataRequest(NonEmptyRequest):
     Attributes:
         symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
         feed (Optional[DataFeed]): The stock data feed to retrieve from.
+        currency (Optional[SupportedCurrencies]): The currency the data should be returned in. Default to USD.
     """
 
     symbol_or_symbols: Union[str, List[str]]
     feed: Optional[DataFeed]
+    currency: Optional[SupportedCurrencies] = None  # None = USD
 
 
 class StockLatestTradeRequest(BaseStockLatestDataRequest):
@@ -295,10 +284,12 @@ class StockSnapshotRequest(NonEmptyRequest):
     Attributes:
         symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
         feed (Optional[DataFeed]): The stock data feed to retrieve from.
+        currency (Optional[SupportedCurrencies]): The currency the data should be returned in. Default to USD.
     """
 
     symbol_or_symbols: Union[str, List[str]]
     feed: Optional[DataFeed]
+    currency: Optional[SupportedCurrencies] = None  # None = USD
 
 
 class CryptoSnapshotRequest(NonEmptyRequest):
@@ -348,3 +339,41 @@ class StockAuctionRequest(NonEmptyRequest):
     limit: Optional[int]
     asof: Optional[date]
     feed: Optional[DataFeed]
+
+# ############################## Screener #################################### #
+
+
+class ScreenerRequest(NonEmptyRequest):
+    """
+    This request class is used to submit a request for screener endpoints.
+
+    Attributes:
+        top (int): Number of top most active stocks to fetch per day.
+    """
+
+    top: int = 10
+
+
+class MostActivesRequest(ScreenerRequest):
+    """
+    This request class is used to submit a request for most actives screener endpoint.
+
+    Attributes:
+        by (MostActivesBy): The metric used for ranking the most active stocks.
+        top (int): Number of top most active stocks to fetch per day.
+    """
+
+    by: MostActivesBy = MostActivesBy.VOLUME
+
+
+class MarketMoversRequest(ScreenerRequest):
+    """
+    This request class is used to submit a request for most actives screener endpoint.
+
+    Attributes:
+        market_type (MarketType): Screen specific market (stocks or crypto).
+        top (int): Number of top most active stocks to fetch per day.
+    """
+
+    market_type: MarketType = MarketType.STOCKS
+

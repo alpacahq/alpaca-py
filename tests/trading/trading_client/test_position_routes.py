@@ -13,28 +13,39 @@ from alpaca.trading.client import TradingClient
 
 
 def test_get_all_positions(reqmock, trading_client: TradingClient):
-
     reqmock.get(
         f"{BaseURL.TRADING_PAPER}/v2/positions",
         text="""
         [
             {
-              "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
-              "symbol": "AAPL",
-              "exchange": "NASDAQ",
-              "asset_class": "us_equity",
-              "avg_entry_price": "100.0",
-              "qty": "5",
-              "side": "long",
-              "market_value": "600.0",
-              "cost_basis": "500.0",
-              "unrealized_pl": "100.0",
-              "unrealized_plpc": "0.20",
-              "unrealized_intraday_pl": "10.0",
-              "unrealized_intraday_plpc": "0.0084",
-              "current_price": "120.0",
-              "lastday_price": "119.0",
-              "change_today": "0.0084"
+                "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
+                "symbol": "AAPL",
+                "exchange": "NASDAQ",
+                "asset_class": "us_equity",
+                "avg_entry_price": "100.0",
+                "qty": "5",
+                "side": "long",
+                "market_value": "600.0",
+                "cost_basis": "500.0",
+                "unrealized_pl": "100.0",
+                "unrealized_plpc": "0.20",
+                "unrealized_intraday_pl": "10.0",
+                "unrealized_intraday_plpc": "0.0084",
+                "current_price": "120.0",
+                "lastday_price": "119.0",
+                "change_today": "0.0084",
+                "usd": {
+                    "avg_entry_price": "100.0",
+                    "market_value": "600.0",
+                    "cost_basis": "500.0",
+                    "unrealized_pl": "100.0",
+                    "unrealized_plpc": "0.20",
+                    "unrealized_intraday_pl": "10.0",
+                    "unrealized_intraday_plpc": "0.0084",
+                    "current_price": "120.0",
+                    "lastday_price": "119.0",
+                    "change_today": "0.0084"
+                }
             }
         ]
         """,
@@ -54,22 +65,34 @@ def test_get_open_position_with_asset_id(reqmock, trading_client: TradingClient)
         f"{BaseURL.TRADING_PAPER}/v2/positions/{asset_id}",
         text=f"""
         {{
-          "asset_id": "{asset_id}",
-          "symbol": "AAPL",
-          "exchange": "NASDAQ",
-          "asset_class": "us_equity",
-          "avg_entry_price": "100.0",
-          "qty": "5",
-          "side": "long",
-          "market_value": "600.0",
-          "cost_basis": "500.0",
-          "unrealized_pl": "100.0",
-          "unrealized_plpc": "0.20",
-          "unrealized_intraday_pl": "10.0",
-          "unrealized_intraday_plpc": "0.0084",
-          "current_price": "120.0",
-          "lastday_price": "119.0",
-          "change_today": "0.0084"
+            "asset_id": "{asset_id}",
+            "symbol": "AAPL",
+            "exchange": "NASDAQ",
+            "asset_class": "us_equity",
+            "avg_entry_price": "100.0",
+            "qty": "5",
+            "side": "long",
+            "market_value": "600.0",
+            "cost_basis": "500.0",
+            "unrealized_pl": "100.0",
+            "unrealized_plpc": "0.20",
+            "unrealized_intraday_pl": "10.0",
+            "unrealized_intraday_plpc": "0.0084",
+            "current_price": "120.0",
+            "lastday_price": "119.0",
+            "change_today": "0.0084",
+            "usd": {{
+                "avg_entry_price": "100.0",
+                "market_value": "600.0",
+                "cost_basis": "500.0",
+                "unrealized_pl": "100.0",
+                "unrealized_plpc": "0.20",
+                "unrealized_intraday_pl": "10.0",
+                "unrealized_intraday_plpc": "0.0084",
+                "current_price": "120.0",
+                "lastday_price": "119.0",
+                "change_today": "0.0084"
+            }}
         }}
         """,
     )
@@ -88,22 +111,34 @@ def test_get_open_position_with_symbol(reqmock, trading_client: TradingClient):
         f"{BaseURL.TRADING_PAPER}/v2/positions/{symbol}",
         text=f"""
         {{
-          "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
-          "symbol": "{symbol}",
-          "exchange": "NASDAQ",
-          "asset_class": "us_equity",
-          "avg_entry_price": "100.0",
-          "qty": "5",
-          "side": "long",
-          "market_value": "600.0",
-          "cost_basis": "500.0",
-          "unrealized_pl": "100.0",
-          "unrealized_plpc": "0.20",
-          "unrealized_intraday_pl": "10.0",
-          "unrealized_intraday_plpc": "0.0084",
-          "current_price": "120.0",
-          "lastday_price": "119.0",
-          "change_today": "0.0084"
+            "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
+            "symbol": "{symbol}",
+            "exchange": "NASDAQ",
+            "asset_class": "us_equity",
+            "avg_entry_price": "100.0",
+            "qty": "5",
+            "side": "long",
+            "market_value": "600.0",
+            "cost_basis": "500.0",
+            "unrealized_pl": "100.0",
+            "unrealized_plpc": "0.20",
+            "unrealized_intraday_pl": "10.0",
+            "unrealized_intraday_plpc": "0.0084",
+            "current_price": "120.0",
+            "lastday_price": "119.0",
+            "change_today": "0.0084",
+            "usd": {{
+                "avg_entry_price": "100.0",
+                "market_value": "600.0",
+                "cost_basis": "500.0",
+                "unrealized_pl": "100.0",
+                "unrealized_plpc": "0.20",
+                "unrealized_intraday_pl": "10.0",
+                "unrealized_intraday_plpc": "0.0084",
+                "current_price": "120.0",
+                "lastday_price": "119.0",
+                "change_today": "0.0084"
+            }}
         }}
         """,
     )
@@ -116,7 +151,6 @@ def test_get_open_position_with_symbol(reqmock, trading_client: TradingClient):
 
 
 def test_close_all_positions(reqmock, trading_client: TradingClient):
-
     reqmock.delete(
         f"{BaseURL.TRADING_PAPER}/v2/positions",
         text="""

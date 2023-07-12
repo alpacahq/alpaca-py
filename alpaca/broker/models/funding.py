@@ -93,9 +93,9 @@ class Transfer(BaseModel):
         status (TransferStatus): The status of the transfer.
         direction (TransferDirection): The direction of the transfer.
         reason (Optional[str]): Reasoning associated with the current status.
-        requested_amount (str): Amount entered upon creation of a transfer entity.
-        fee (str): Dollar amount of any applicable fees.
-        fee_payment_method (FeePaymentMethod): Denotes how any applicable fees will be paid.
+        requested_amount (Optional[str]): Amount entered upon creation of a transfer entity.
+        fee (Optional[str]): Dollar amount of any applicable fees.
+        fee_payment_method (Optional[FeePaymentMethod]): Denotes how any applicable fees will be paid.
         additional_information (Optional[str]): Additional information provided with wire transfers.
     """
 
@@ -110,7 +110,7 @@ class Transfer(BaseModel):
     status: TransferStatus
     direction: TransferDirection
     reason: Optional[str]
-    requested_amount: str
-    fee: str
-    fee_payment_method: FeePaymentMethod
+    requested_amount: Optional[str]
+    fee: Optional[str]
+    fee_payment_method: Optional[FeePaymentMethod]
     additional_information: Optional[str]

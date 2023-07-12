@@ -45,6 +45,7 @@ class Asset(BaseModel):
         shortable (bool): Whether the asset can be shorted.
         easy_to_borrow (bool): When shorting, whether the asset is easy to borrow
         fractionable (bool): Whether fractional shares are available
+        attributes (bool): One of ptp_no_exception or ptp_with_exception. It will include unique characteristics of the asset here.
     """
 
     id: UUID
@@ -64,6 +65,7 @@ class Asset(BaseModel):
     min_trade_increment: Optional[float] = None
     price_increment: Optional[float] = None
     maintenance_margin_requirement: Optional[float] = None
+    attributes: Optional[list] = None
 
 
 class USDPositionValues(BaseModel):
@@ -539,6 +541,7 @@ class AccountConfiguration(BaseModel):
         pdt_check (PDTCheck): Controls Pattern Day Trader (PDT) checks.
         suspend_trade (bool): If true Account becomes unable to submit new orders
         trade_confirm_email (TradeConfirmationEmail): Controls whether Trade confirmation emails are sent.
+        ptp_no_exception_entry (bool): If set to true then Alpaca will accept orders for PTP symbols with no exception. Default is false.
     """
 
     dtbp_check: DTBPCheck
@@ -548,6 +551,7 @@ class AccountConfiguration(BaseModel):
     pdt_check: PDTCheck
     suspend_trade: bool
     trade_confirm_email: TradeConfirmationEmail
+    ptp_no_exception_entry: bool
 
 
 class CorporateActionAnnouncement(BaseModel):

@@ -340,6 +340,7 @@ class StockAuctionRequest(NonEmptyRequest):
     asof: Optional[date]
     feed: Optional[DataFeed]
 
+
 # ############################## Screener #################################### #
 
 
@@ -376,4 +377,3 @@ class MarketMoversRequest(ScreenerRequest):
     """
 
     market_type: MarketType = MarketType.STOCKS
-

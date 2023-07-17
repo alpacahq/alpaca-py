@@ -372,7 +372,9 @@ def test_update_account(reqmock, client: BrokerClient):
 
     identity.family_name = family_name
 
-    update_data = UpdateAccountRequest(identity=identity)
+    update_data = UpdateAccountRequest(
+        identity=UpdatableIdentity(**identity.model_dump())
+    )
 
     reqmock.patch(
         f"https://broker-api.sandbox.alpaca.markets/v1/accounts/{account_id}",
@@ -527,7 +529,7 @@ def test_delete_account_validates_account_id(reqmock, client: BrokerClient):
 
 def test_list_accounts_no_params(reqmock, client: BrokerClient):
     reqmock.get(
-        BaseURL.BROKER_SANDBOX + "/v1/accounts",
+        BaseURL.BROKER_SANDBOX.value + "/v1/accounts",
         text="""
         [
           {
@@ -591,7 +593,7 @@ def test_list_accounts_no_params(reqmock, client: BrokerClient):
 
 def test_list_accounts_parses_entities_if_present(reqmock, client: BrokerClient):
     reqmock.get(
-        BaseURL.BROKER_SANDBOX + "/v1/accounts",
+        BaseURL.BROKER_SANDBOX.value + "/v1/accounts",
         text="""
         [
           {
@@ -713,7 +715,7 @@ def test_get_trade_account_by_id(reqmock, client: BrokerClient):
     account_id = "5fc0795e-1f16-40cc-aa90-ede67c39d7a9"
 
     reqmock.get(
-        BaseURL.BROKER_SANDBOX + f"/v1/trading/accounts/{account_id}/account",
+        BaseURL.BROKER_SANDBOX.value + f"/v1/trading/accounts/{account_id}/account",
         text="""
         {
           "id": "5fc0795e-1f16-40cc-aa90-ede67c39d7a9",
@@ -789,7 +791,7 @@ def test_get_trade_configuration_for_account(reqmock, client: BrokerClient):
     account_id = "5fc0795e-1f16-40cc-aa90-ede67c39d7a9"
 
     reqmock.get(
-        BaseURL.BROKER_SANDBOX
+        BaseURL.BROKER_SANDBOX.value
         + f"/v1/trading/accounts/{account_id}/account/configurations",
         text="""
         {
@@ -830,7 +832,7 @@ def test_update_trade_configuration_for_account(reqmock, client: BrokerClient):
     config = factory.create_dummy_trade_account_configuration()
 
     reqmock.patch(
-        f"{BaseURL.BROKER_SANDBOX}/v1/trading/accounts/{account_id}/account/configurations",
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/trading/accounts/{account_id}/account/configurations",
         text="""
         {
           "dtbp_check": "both",

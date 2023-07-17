@@ -105,7 +105,7 @@ def setup_reqmock_for_paginated_account_activities_response(reqmock: Mocker):
     """
 
     reqmock.get(
-        BaseURL.BROKER_SANDBOX + "/v1/accounts/activities",
+        BaseURL.BROKER_SANDBOX.value + "/v1/accounts/activities",
         [{"text": resp_one}, {"text": resp_two}, {"text": """[]"""}],
     )
 
@@ -157,7 +157,7 @@ def test_get_activities_for_account_max_items_and_single_request_date(
     # Note we purposly have this returning more than requested, the api currently respects paging even in this state
     # but we should still be able to handle the case where it doesn't, so we don't go over max items
     reqmock.get(
-        BaseURL.BROKER_SANDBOX + "/v1/accounts/activities",
+        BaseURL.BROKER_SANDBOX.value + "/v1/accounts/activities",
         text="""
         [
           {

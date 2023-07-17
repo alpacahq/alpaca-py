@@ -210,33 +210,33 @@ class Order(BaseModel):
     created_at: datetime
     updated_at: datetime
     submitted_at: datetime
-    filled_at: Optional[datetime]
-    expired_at: Optional[datetime]
-    canceled_at: Optional[datetime]
-    failed_at: Optional[datetime]
-    replaced_at: Optional[datetime]
-    replaced_by: Optional[UUID]
-    replaces: Optional[UUID]
+    filled_at: Optional[datetime] = None
+    expired_at: Optional[datetime] = None
+    canceled_at: Optional[datetime] = None
+    failed_at: Optional[datetime] = None
+    replaced_at: Optional[datetime] = None
+    replaced_by: Optional[UUID] = None
+    replaces: Optional[UUID] = None
     asset_id: UUID
     symbol: str
     asset_class: AssetClass
-    notional: Optional[str]
-    qty: Optional[str]
-    filled_qty: Optional[str]
-    filled_avg_price: Optional[str]
+    notional: Optional[str] = None
+    qty: Optional[Union[str, float]] = None
+    filled_qty: Optional[Union[str, float]] = None
+    filled_avg_price: Optional[Union[str, float]] = None
     order_class: OrderClass
     order_type: OrderType
     type: OrderType
     side: OrderSide
     time_in_force: TimeInForce
-    limit_price: Optional[str]
-    stop_price: Optional[str]
+    limit_price: Optional[Union[str, float]] = None
+    stop_price: Optional[Union[str, float]] = None
     status: OrderStatus
     extended_hours: bool
-    legs: Optional[List["Order"]]
-    trail_percent: Optional[str]
-    trail_price: Optional[str]
-    hwm: Optional[str]
+    legs: Optional[List["Order"]] = None
+    trail_percent: Optional[str] = None
+    trail_price: Optional[str] = None
+    hwm: Optional[str] = None
 
     def __init__(self, **data: Any) -> None:
         if "order_class" not in data or data["order_class"] == "":
@@ -274,9 +274,9 @@ class ClosePositionResponse(BaseModel):
         body (Optional[dict]): Information relating to the successful or unsuccessful closing of the position.
     """
 
-    order_id: Optional[UUID]
-    status: Optional[int]
-    symbol: Optional[str]
+    order_id: Optional[UUID] = None
+    status: Optional[int] = None
+    symbol: Optional[str] = None
     body: Union[FailedClosePositionDetails, Order]
 
 
@@ -320,7 +320,7 @@ class Watchlist(BaseModel):
     name: str
     created_at: datetime
     updated_at: datetime
-    assets: Optional[List[Asset]]
+    assets: Optional[List[Asset]] = None
 
 
 class Clock(BaseModel):
@@ -499,34 +499,34 @@ class TradeAccount(BaseModel):
     id: UUID
     account_number: str
     status: AccountStatus
-    crypto_status: Optional[AccountStatus]
-    currency: Optional[str]
-    buying_power: Optional[str]
-    regt_buying_power: Optional[str]
-    daytrading_buying_power: Optional[str]
-    non_marginable_buying_power: Optional[str]
-    cash: Optional[str]
-    accrued_fees: Optional[str]
-    pending_transfer_out: Optional[str]
-    pending_transfer_in: Optional[str]
-    portfolio_value: Optional[str]
-    pattern_day_trader: Optional[bool]
-    trading_blocked: Optional[bool]
-    transfers_blocked: Optional[bool]
-    account_blocked: Optional[bool]
-    created_at: Optional[datetime]
-    trade_suspended_by_user: Optional[bool]
-    multiplier: Optional[str]
-    shorting_enabled: Optional[bool]
-    equity: Optional[str]
-    last_equity: Optional[str]
-    long_market_value: Optional[str]
-    short_market_value: Optional[str]
-    initial_margin: Optional[str]
-    maintenance_margin: Optional[str]
-    last_maintenance_margin: Optional[str]
-    sma: Optional[str]
-    daytrade_count: Optional[int]
+    crypto_status: Optional[AccountStatus] = None
+    currency: Optional[str] = None
+    buying_power: Optional[str] = None
+    regt_buying_power: Optional[str] = None
+    daytrading_buying_power: Optional[str] = None
+    non_marginable_buying_power: Optional[str] = None
+    cash: Optional[str] = None
+    accrued_fees: Optional[str] = None
+    pending_transfer_out: Optional[str] = None
+    pending_transfer_in: Optional[str] = None
+    portfolio_value: Optional[str] = None
+    pattern_day_trader: Optional[bool] = None
+    trading_blocked: Optional[bool] = None
+    transfers_blocked: Optional[bool] = None
+    account_blocked: Optional[bool] = None
+    created_at: Optional[datetime] = None
+    trade_suspended_by_user: Optional[bool] = None
+    multiplier: Optional[str] = None
+    shorting_enabled: Optional[bool] = None
+    equity: Optional[str] = None
+    last_equity: Optional[str] = None
+    long_market_value: Optional[str] = None
+    short_market_value: Optional[str] = None
+    initial_margin: Optional[str] = None
+    maintenance_margin: Optional[str] = None
+    last_maintenance_margin: Optional[str] = None
+    sma: Optional[str] = None
+    daytrade_count: Optional[int] = None
 
 
 class AccountConfiguration(BaseModel):

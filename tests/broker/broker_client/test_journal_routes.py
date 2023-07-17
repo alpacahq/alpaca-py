@@ -27,7 +27,7 @@ from ..factories import (
 
 def test_create_journal(reqmock, client: BrokerClient):
     reqmock.post(
-        f"{BaseURL.BROKER_SANDBOX}/v1/journals",
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/journals",
         text="""
                {
               "id": "a7a50677-2983-4c68-96dc-aff62fe3b8cf",
@@ -59,7 +59,7 @@ def test_create_journal(reqmock, client: BrokerClient):
 
 def test_create_lct_journal(reqmock, client: BrokerClient):
     reqmock.post(
-        f"{BaseURL.BROKER_SANDBOX}/v1/journals",
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/journals",
         text="""
                {
               "id": "a7a50677-2983-4c68-96dc-aff62fe3b8cf",
@@ -95,7 +95,7 @@ def test_create_lct_journal(reqmock, client: BrokerClient):
 
 def test_batch_journal(reqmock, client: BrokerClient):
     reqmock.post(
-        f"{BaseURL.BROKER_SANDBOX}/v1/journals/batch",
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/journals/batch",
         text="""
         [
           {
@@ -149,7 +149,7 @@ def test_batch_journal(reqmock, client: BrokerClient):
 
 def test_reverse_batch_journal(reqmock, client: BrokerClient):
     reqmock.post(
-        f"{BaseURL.BROKER_SANDBOX}/v1/journals/reverse_batch",
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/journals/reverse_batch",
         text="""
             [
               {
@@ -204,7 +204,7 @@ def test_reverse_batch_journal(reqmock, client: BrokerClient):
 def test_get_journals(reqmock, client: BrokerClient):
 
     reqmock.get(
-        f"{BaseURL.BROKER_SANDBOX}/v1/journals",
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/journals",
         text="""
             [
               {
@@ -253,7 +253,7 @@ def test_get_journal_by_id(reqmock, client: BrokerClient):
     journal_id = "0a9152c4-d232-4b00-9102-5fa19aca40cb"
 
     reqmock.get(
-        f"{BaseURL.BROKER_SANDBOX}/v1/journals/{journal_id}",
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/journals/{journal_id}",
         text="""
               {
                 "id": "0a9152c4-d232-4b00-9102-5fa19aca40cb",
@@ -284,7 +284,7 @@ def test_get_journal_by_id(reqmock, client: BrokerClient):
     journal_id = "0a9152c4-d232-4b00-9102-5fa19aca40cb"
 
     reqmock.delete(
-        f"{BaseURL.BROKER_SANDBOX}/v1/journals/{journal_id}", status_code=204
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/journals/{journal_id}", status_code=204
     )
 
     client.cancel_journal_by_id(journal_id=journal_id)

@@ -12,7 +12,7 @@ from alpaca.trading.models import Asset
 
 def test_get_all_assets(reqmock, trading_client: TradingClient):
     reqmock.get(
-        f"{BaseURL.TRADING_PAPER}/v2/assets",
+        f"{BaseURL.TRADING_PAPER.value}/v2/assets",
         text="""
         [
             {
@@ -46,7 +46,7 @@ def test_get_asset(reqmock, trading_client: TradingClient):
     symbol = "AAPL"
 
     reqmock.get(
-        f"{BaseURL.TRADING_PAPER}/v2/assets/{symbol}",
+        f"{BaseURL.TRADING_PAPER.value}/v2/assets/{symbol}",
         text="""
             {
               "id": "904837e3-3b76-47ec-b432-046db621571b",

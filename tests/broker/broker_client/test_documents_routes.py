@@ -21,7 +21,7 @@ def test_get_trade_documents_for_account(reqmock, client: BrokerClient):
     account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
 
     reqmock.get(
-        BaseURL.BROKER_SANDBOX + f"/v1/accounts/{account_id}/documents",
+        BaseURL.BROKER_SANDBOX.value + f"/v1/accounts/{account_id}/documents",
         text="""
         [
           {
@@ -76,7 +76,7 @@ def test_get_trade_documents_for_account_validates_account_id(
 def test_upload_documents_to_account(reqmock, client: BrokerClient):
     account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
     reqmock.post(
-        BaseURL.BROKER_SANDBOX + f"/v1/accounts/{account_id}/documents/upload",
+        BaseURL.BROKER_SANDBOX.value + f"/v1/accounts/{account_id}/documents/upload",
         json={},
         status_code=202,
     )
@@ -149,7 +149,8 @@ def test_get_trade_document_for_account_by_id(reqmock, client: BrokerClient):
     document_id = "2a87c089-ffb6-472b-a4a3-cd9305c8605d"
 
     reqmock.get(
-        BaseURL.BROKER_SANDBOX + f"/v1/accounts/{account_id}/documents/{document_id}",
+        BaseURL.BROKER_SANDBOX.value
+        + f"/v1/accounts/{account_id}/documents/{document_id}",
         text="""
         {
           "id": "1b560b0f-9efd-44b4-8004-dfd520c7cdc0",
@@ -194,7 +195,7 @@ def test_download_trade_document_for_account_by_id(reqmock, client: BrokerClient
     """
 
     reqmock.get(
-        BaseURL.BROKER_SANDBOX
+        BaseURL.BROKER_SANDBOX.value
         + f"/v1/accounts/{account_id}/documents/{document_id}/download",
         status_code=301,
         headers={"Location": fake_dl_url},

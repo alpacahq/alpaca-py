@@ -55,6 +55,6 @@ class NonEmptyRequest(BaseModel):
         # so we do a simple list comprehension to filter out None and {}
         return {
             key: map_values(val)
-            for key, val in self.dict(exclude_none=True).items()
+            for key, val in self.model_dump(exclude_none=True).items()
             if val and len(str(val)) > 0
         }

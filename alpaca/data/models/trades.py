@@ -24,12 +24,12 @@ class Trade(BaseModel):
 
     symbol: str
     timestamp: datetime
-    exchange: Optional[Union[Exchange, str]]
+    exchange: Optional[Union[Exchange, str]] = None
     price: float
     size: float
     id: int
-    conditions: Optional[List[str]]
-    tape: Optional[str]
+    conditions: Optional[List[str]] = None
+    tape: Optional[str] = None
 
     def __init__(self, symbol: str, raw_data: RawData) -> None:
         """Instantiates a Trade history object

@@ -16,7 +16,7 @@ def test_get_watchlists_for_account(reqmock, client: BrokerClient):
     account_id = "0d969814-40d6-4b2b-99ac-2e37427f1ad2"
 
     reqmock.get(
-        f"{BaseURL.BROKER_SANDBOX}/v1/trading/accounts/{account_id}/watchlists",
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/trading/accounts/{account_id}/watchlists",
         text="""
         [
           {
@@ -49,7 +49,7 @@ def test_get_watchlist_for_account_by_id(reqmock, client: BrokerClient):
     watchlist_id = "7c3ac77f-894c-4c08-987f-18a2e43e8e2a"
 
     reqmock.get(
-        f"{BaseURL.BROKER_SANDBOX}/v1/trading/accounts/{account_id}/watchlists/{watchlist_id}",
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/trading/accounts/{account_id}/watchlists/{watchlist_id}",
         text="""
 {
   "id": "7c3ac77f-894c-4c08-987f-18a2e43e8e2a",
@@ -110,7 +110,7 @@ def test_create_watchlist_for_account(reqmock, client: BrokerClient):
     account_id = "0d969814-40d6-4b2b-99ac-2e37427f1ad2"
 
     reqmock.post(
-        f"{BaseURL.BROKER_SANDBOX}/v1/trading/accounts/{account_id}/watchlists",
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/trading/accounts/{account_id}/watchlists",
         text="""
 {
   "id": "7c3ac77f-894c-4c08-987f-18a2e43e8e2a",
@@ -167,7 +167,7 @@ def test_update_watchlist_for_account_by_id(reqmock, client: BrokerClient):
     watchlist_id = "7c3ac77f-894c-4c08-987f-18a2e43e8e2a"
 
     reqmock.put(
-        f"{BaseURL.BROKER_SANDBOX}/v1/trading/accounts/{account_id}/watchlists/{watchlist_id}",
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/trading/accounts/{account_id}/watchlists/{watchlist_id}",
         text="""
 {
   "id": "7c3ac77f-894c-4c08-987f-18a2e43e8e2a",
@@ -238,7 +238,7 @@ def test_add_asset_to_watchlist(reqmock, client: BrokerClient):
     symbol = "AAPL"
 
     reqmock.post(
-        f"{BaseURL.BROKER_SANDBOX}/v1/trading/accounts/{account_id}/watchlists/{watchlist_id}",
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/trading/accounts/{account_id}/watchlists/{watchlist_id}",
         text="""
     {
       "id": "7c3ac77f-894c-4c08-987f-18a2e43e8e2a",
@@ -281,7 +281,7 @@ def test_remove_asset_to_watchlist_for_account(reqmock, client: BrokerClient):
     symbol = "AAPL"
 
     reqmock.delete(
-        f"{BaseURL.BROKER_SANDBOX}/v1/trading/accounts/{account_id}/watchlists/{watchlist_id}/{symbol}",
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/trading/accounts/{account_id}/watchlists/{watchlist_id}/{symbol}",
         text="""
     {
       "id": "7c3ac77f-894c-4c08-987f-18a2e43e8e2a",
@@ -310,7 +310,7 @@ def test_remove_asset_from_watchlist_for_account(reqmock, client: BrokerClient):
     symbol = "AAPL"
 
     reqmock.delete(
-        f"{BaseURL.BROKER_SANDBOX}/v1/trading/accounts/{account_id}/watchlists/{watchlist_id}/{symbol}",
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/trading/accounts/{account_id}/watchlists/{watchlist_id}/{symbol}",
         text="""
     {
       "id": "7c3ac77f-894c-4c08-987f-18a2e43e8e2a",
@@ -338,7 +338,7 @@ def test_delete_watchlist_for_account(reqmock, client: BrokerClient):
     watchlist_id = "7c3ac77f-894c-4c08-987f-18a2e43e8e2a"
 
     reqmock.delete(
-        f"{BaseURL.BROKER_SANDBOX}/v1/trading/accounts/{account_id}/watchlists/{watchlist_id}",
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/trading/accounts/{account_id}/watchlists/{watchlist_id}",
     )
 
     client.delete_watchlist_from_account_by_id(account_id, watchlist_id)

@@ -19,7 +19,7 @@ def test_get_all_accounts_positions(reqmock, client: BrokerClient):
     account_id = "02c64fbb-35f0-4403-9015-e5eac4b7ef70"
 
     reqmock.get(
-        f"{BaseURL.BROKER_SANDBOX}/v1/accounts/positions",
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/accounts/positions",
         text="""
         {
             "as_of": "2023-03-29T16:00:00-04:00",
@@ -78,7 +78,7 @@ def test_get_all_positions_for_account(reqmock, client: BrokerClient):
     account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
 
     reqmock.get(
-        f"{BaseURL.BROKER_SANDBOX}/v1/trading/accounts/{account_id}/positions",
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/trading/accounts/{account_id}/positions",
         text="""
         [
             {
@@ -127,7 +127,7 @@ def test_get_open_position_for_account_with_asset_id(reqmock, client: BrokerClie
     asset_id = UUID("904837e3-3b76-47ec-b432-046db621571b")
 
     reqmock.get(
-        f"{BaseURL.BROKER_SANDBOX}/v1/trading/accounts/{account_id}/positions/{asset_id}",
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/trading/accounts/{account_id}/positions/{asset_id}",
         text=f"""
         {{
             "asset_id": "{asset_id}",
@@ -174,7 +174,7 @@ def test_get_open_position_for_account_with_symbol(reqmock, client: BrokerClient
     symbol = "AAPL"
 
     reqmock.get(
-        f"{BaseURL.BROKER_SANDBOX}/v1/trading/accounts/{account_id}/positions/{symbol}",
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/trading/accounts/{account_id}/positions/{symbol}",
         text=f"""
         {{
             "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
@@ -220,7 +220,7 @@ def test_close_all_positions_for_account(reqmock, client: BrokerClient):
     account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
 
     reqmock.delete(
-        f"{BaseURL.BROKER_SANDBOX}/v1/trading/accounts/{account_id}/positions",
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/trading/accounts/{account_id}/positions",
         text="""
         [
             {
@@ -292,7 +292,7 @@ def test_close_position_for_account_with_id(reqmock, client: BrokerClient):
     asset_id = UUID("904837e3-3b76-47ec-b432-046db621571b")
 
     reqmock.delete(
-        f"{BaseURL.BROKER_SANDBOX}/v1/trading/accounts/{account_id}/positions/{asset_id}",
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/trading/accounts/{account_id}/positions/{asset_id}",
         text=f"""
             {{
               "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
@@ -345,7 +345,7 @@ def test_close_position_for_account_with_symbol(reqmock, client: BrokerClient):
     symbol = "AAPL"
 
     reqmock.delete(
-        f"{BaseURL.BROKER_SANDBOX}/v1/trading/accounts/{account_id}/positions/{symbol}",
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/trading/accounts/{account_id}/positions/{symbol}",
         text=f"""
             {{
               "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
@@ -398,7 +398,7 @@ def test_close_position_for_account_with_qty(reqmock, client: BrokerClient):
     asset_id = UUID("904837e3-3b76-47ec-b432-046db621571b")
 
     reqmock.delete(
-        f"{BaseURL.BROKER_SANDBOX}/v1/trading/accounts/{account_id}/positions/{asset_id}",
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/trading/accounts/{account_id}/positions/{asset_id}",
         text="""
         {
           "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
@@ -451,7 +451,7 @@ def test_close_position_for_account_with_percentage(reqmock, client: BrokerClien
     asset_id = UUID("904837e3-3b76-47ec-b432-046db621571b")
 
     reqmock.delete(
-        f"{BaseURL.BROKER_SANDBOX}/v1/trading/accounts/{account_id}/positions/{asset_id}",
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/trading/accounts/{account_id}/positions/{asset_id}",
         text="""
         {
           "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
@@ -503,7 +503,7 @@ def test_get_portfolio_history(reqmock, client: BrokerClient):
     account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
 
     reqmock.get(
-        f"{BaseURL.BROKER_SANDBOX}/v1/trading/accounts/{account_id}/account/portfolio/history",
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/trading/accounts/{account_id}/account/portfolio/history",
         text="""
         {
           "timestamp": [1580826600000, 1580827500000, 1580828400000],
@@ -529,7 +529,7 @@ def test_get_portfolio_history_with_filter(reqmock, client: BrokerClient):
     account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
 
     reqmock.get(
-        f"{BaseURL.BROKER_SANDBOX}/v1/trading/accounts/{account_id}/account/portfolio/history",
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/trading/accounts/{account_id}/account/portfolio/history",
         text="""
         {
           "timestamp": [1580826600000, 1580827500000, 1580828400000],

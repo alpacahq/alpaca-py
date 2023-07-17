@@ -3,7 +3,7 @@ from ipaddress import IPv4Address, IPv6Address
 from typing import Any, Optional, Union
 from uuid import UUID
 
-from pydantic import root_validator
+from pydantic import model_validator
 
 from alpaca.broker.enums import DocumentType, TradeDocumentSubType, TradeDocumentType
 from alpaca.common.models import ValidateBaseModel as BaseModel
@@ -140,7 +140,7 @@ class W8BenDocument(BaseModel):
     residency: Optional[str] = None
     tax_id_ssn: Optional[str] = None
 
-    @root_validator()
+    @model_validator(mode="before")
     def root_validator(cls, values: dict) -> dict:
         foreign_tax_set = (
             "foreign_tax_id" in values and values["foreign_tax_id"] is not None

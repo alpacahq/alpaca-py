@@ -1,5 +1,5 @@
 from uuid import UUID
-from pydantic import parse_obj_as
+from pydantic import TypeAdapter
 import json
 
 from alpaca.common import RawData
@@ -118,7 +118,7 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return parse_obj_as(List[Order], response)
+        return TypeAdapter(List[Order]).validate_python(response)
 
     def get_order_by_id(
         self, order_id: Union[UUID, str], filter: Optional[GetOrderByIdRequest] = None
@@ -203,7 +203,7 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return parse_obj_as(List[CancelOrderResponse], response)
+        return TypeAdapter(List[CancelOrderResponse]).validate_python(response)
 
     def cancel_order_by_id(self, order_id: Union[UUID, str]) -> None:
         """
@@ -237,7 +237,7 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return parse_obj_as(List[Position], response)
+        return TypeAdapter(List[Position]).validate_python(response)
 
     def get_open_position(
         self, symbol_or_asset_id: Union[UUID, str]
@@ -282,7 +282,7 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return parse_obj_as(List[ClosePositionResponse], response)
+        return TypeAdapter(List[ClosePositionResponse]).validate_python(response)
 
     def close_position(
         self,
@@ -337,7 +337,7 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return parse_obj_as(List[Asset], response)
+        return TypeAdapter(List[Asset]).validate_python(response)
 
     def get_asset(self, symbol_or_asset_id: Union[UUID, str]) -> Union[Asset, RawData]:
         """
@@ -401,7 +401,7 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return result
 
-        return parse_obj_as(List[Calendar], result)
+        return TypeAdapter(List[Calendar]).validate_python(result)
 
     # ############################## ACCOUNT ################################# #
 
@@ -447,7 +447,7 @@ class TradingClient(RESTClient):
             alpaca.broker.models.TradeAccountConfiguration: The account configuration details
         """
         response = self.patch(
-            "/account/configurations", data=account_configurations.dict()
+            "/account/configurations", data=account_configurations.model_dump()
         )
 
         if self._use_raw_data:
@@ -472,7 +472,7 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return result
 
-        return parse_obj_as(List[Watchlist], result)
+        return TypeAdapter(List[Watchlist]).validate_python(result)
 
     def get_watchlist_by_id(
         self,
@@ -637,7 +637,7 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return parse_obj_as(List[CorporateActionAnnouncement], response)
+        return TypeAdapter(List[CorporateActionAnnouncement]).validate_python(response)
 
     def get_corporate_announcement_by_id(
         self, corporate_announcment_id: Union[UUID, str]

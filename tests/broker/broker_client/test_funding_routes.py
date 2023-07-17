@@ -28,7 +28,7 @@ def test_create_ach_relationship_for_account(reqmock, client: BrokerClient):
     account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
 
     reqmock.post(
-        f"{BaseURL.BROKER_SANDBOX}/v1/accounts/{account_id}/ach_relationships",
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/accounts/{account_id}/ach_relationships",
         text="""
         {
             "id": "15ef9978-cb1e-4872-9565-bd0a720b8b76",
@@ -61,7 +61,7 @@ def test_get_ach_relationships_for_account(reqmock, client: BrokerClient):
     account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
 
     reqmock.get(
-        f"{BaseURL.BROKER_SANDBOX}/v1/accounts/{account_id}/ach_relationships",
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/accounts/{account_id}/ach_relationships",
         text="""
         [
             {
@@ -90,7 +90,7 @@ def test_get_ach_relationships_for_account_with_statuses(reqmock, client: Broker
     account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
 
     reqmock.get(
-        f"{BaseURL.BROKER_SANDBOX}/v1/accounts/{account_id}/ach_relationships",
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/accounts/{account_id}/ach_relationships",
         text="""
         [
             {
@@ -127,7 +127,7 @@ def test_delete_ach_relationship_for_account(reqmock, client: BrokerClient):
     relationship_id = "15ef9978-cb1e-4872-9565-bd0a720b8b76"
 
     reqmock.delete(
-        f"{BaseURL.BROKER_SANDBOX}/v1/accounts/{account_id}/ach_relationships/{relationship_id}",
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/accounts/{account_id}/ach_relationships/{relationship_id}",
         status_code=204,
     )
 
@@ -141,7 +141,7 @@ def test_create_bank_for_account(reqmock, client: BrokerClient):
     account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
 
     reqmock.post(
-        f"{BaseURL.BROKER_SANDBOX}/v1/accounts/{account_id}/recipient_banks",
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/accounts/{account_id}/recipient_banks",
         text="""
         {
           "id": "9a7fb9b5-1f4d-420f-b6d4-0fd32008cec8",
@@ -180,7 +180,7 @@ def test_get_banks_for_account(reqmock, client: BrokerClient):
     account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
 
     reqmock.get(
-        f"{BaseURL.BROKER_SANDBOX}/v1/accounts/{account_id}/recipient_banks",
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/accounts/{account_id}/recipient_banks",
         text="""
         [
             {
@@ -215,7 +215,7 @@ def test_delete_bank_for_account(reqmock, client: BrokerClient):
     bank_id = "15ef9978-cb1e-4872-9565-bd0a720b8b76"
 
     reqmock.delete(
-        f"{BaseURL.BROKER_SANDBOX}/v1/accounts/{account_id}/recipient_banks/{bank_id}",
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/accounts/{account_id}/recipient_banks/{bank_id}",
         status_code=204,
     )
 
@@ -227,7 +227,7 @@ def test_create_transfer_for_account(reqmock, client: BrokerClient):
     account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
 
     reqmock.post(
-        f"{BaseURL.BROKER_SANDBOX}/v1/accounts/{account_id}/transfers",
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/accounts/{account_id}/transfers",
         text="""
         {
           "id": "be3c368a-4c7c-4384-808e-f02c9f5a8afe",
@@ -370,7 +370,7 @@ def setup_reqmock_for_paginated_transfers_response(account_id, reqmock):
     """
 
     reqmock.get(
-        f"{BaseURL.BROKER_SANDBOX}/v1/accounts/{account_id}/transfers",
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/accounts/{account_id}/transfers",
         [{"text": resp_one}, {"text": resp_two}, {"text": """[]"""}],
     )
 
@@ -492,7 +492,7 @@ def test_cancel_transfer_for_account(reqmock, client: BrokerClient):
     transfer_id = "be3c368a-4c7c-4384-808e-f02c9f5a8afe"
 
     reqmock.delete(
-        f"{BaseURL.BROKER_SANDBOX}/v1/accounts/{account_id}/transfers/{transfer_id}",
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/accounts/{account_id}/transfers/{transfer_id}",
         status_code=204,
     )
 

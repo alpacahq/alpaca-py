@@ -141,4 +141,5 @@ def create_dummy_trade_account_configuration() -> TradeAccountConfiguration:
         pdt_check=PDTCheck.ENTRY,
         suspend_trade=False,
         trade_confirm_email="all",
+        ptp_no_exception_entry=False,
     )

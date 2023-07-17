@@ -32,7 +32,7 @@ class AccountDocument(BaseModel):
     id: Optional[UUID]
     document_type: Optional[DocumentType]
     document_sub_type: Optional[str] = None
-    content: str
+    content: Optional[str]
     mime_type: Optional[str] = None
 
     def __init__(self, **data: Any) -> None:

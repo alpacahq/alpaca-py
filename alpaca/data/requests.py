@@ -21,9 +21,9 @@ class BaseTimeseriesDataRequest(NonEmptyRequest):
     """
 
     symbol_or_symbols: Union[str, List[str]]
-    start: Optional[datetime]
-    end: Optional[datetime]
-    limit: Optional[int]
+    start: Optional[datetime] = None
+    end: Optional[datetime] = None
+    limit: Optional[int] = None
     currency: Optional[SupportedCurrencies] = None  # None = USD
 
     def __init__(self, **data: Any) -> None:
@@ -86,8 +86,8 @@ class StockBarsRequest(BaseBarsRequest):
         feed (Optional[DataFeed]): The stock data feed to retrieve from.
     """
 
-    adjustment: Optional[Adjustment]
-    feed: Optional[DataFeed]
+    adjustment: Optional[Adjustment] = None
+    feed: Optional[DataFeed] = None
 
 
 class CryptoBarsRequest(BaseBarsRequest):
@@ -123,7 +123,7 @@ class StockQuotesRequest(BaseTimeseriesDataRequest):
         feed (Optional[DataFeed]): The stock data feed to retrieve from.
     """
 
-    feed: Optional[DataFeed]
+    feed: Optional[DataFeed] = None
 
 
 # ############################## Trades ################################# #
@@ -143,7 +143,7 @@ class StockTradesRequest(BaseTimeseriesDataRequest):
         feed (Optional[DataFeed]): The stock data feed to retrieve from.
     """
 
-    feed: Optional[DataFeed]
+    feed: Optional[DataFeed] = None
 
 
 class CryptoTradesRequest(BaseTimeseriesDataRequest):
@@ -177,7 +177,7 @@ class BaseStockLatestDataRequest(NonEmptyRequest):
     """
 
     symbol_or_symbols: Union[str, List[str]]
-    feed: Optional[DataFeed]
+    feed: Optional[DataFeed] = None
     currency: Optional[SupportedCurrencies] = None  # None = USD
 
 
@@ -288,7 +288,7 @@ class StockSnapshotRequest(NonEmptyRequest):
     """
 
     symbol_or_symbols: Union[str, List[str]]
-    feed: Optional[DataFeed]
+    feed: Optional[DataFeed] = None
     currency: Optional[SupportedCurrencies] = None  # None = USD
 
 
@@ -340,7 +340,7 @@ class MostActivesRequest(ScreenerRequest):
         top (int): Number of top most active stocks to fetch per day.
     """
 
-    by: MostActivesBy = MostActivesBy.VOLUME
+    by: MostActivesBy = MostActivesBy.VOLUME.value
 
 
 class MarketMoversRequest(ScreenerRequest):
@@ -352,4 +352,4 @@ class MarketMoversRequest(ScreenerRequest):
         top (int): Number of top most active stocks to fetch per day.
     """
 
-    market_type: MarketType = MarketType.STOCKS
+    market_type: MarketType = MarketType.STOCKS.value

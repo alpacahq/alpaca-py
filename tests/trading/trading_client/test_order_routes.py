@@ -18,7 +18,7 @@ import pytest
 def test_market_order(reqmock, trading_client):
 
     reqmock.post(
-        f"{BaseURL.TRADING_PAPER}/v2/orders",
+        f"{BaseURL.TRADING_PAPER.value}/v2/orders",
         text="""
         {
           "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
@@ -74,7 +74,7 @@ def test_market_order(reqmock, trading_client):
 def test_get_orders(reqmock, trading_client: TradingClient):
 
     reqmock.get(
-        f"{BaseURL.TRADING_PAPER}/v2/orders",
+        f"{BaseURL.TRADING_PAPER.value}/v2/orders",
         text="""
         [
             {
@@ -127,7 +127,7 @@ def test_get_order_by_id(reqmock, trading_client: TradingClient):
     order_id = "61e69015-8549-4bfd-b9c3-01e75843f47d"
 
     reqmock.get(
-        f"{BaseURL.TRADING_PAPER}/v2/orders/{order_id}",
+        f"{BaseURL.TRADING_PAPER.value}/v2/orders/{order_id}",
         text="""
     {
         "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
@@ -179,7 +179,7 @@ def test_get_order_by_client_id(reqmock, trading_client: TradingClient):
     client_id = "eb9e2aaa-f71a-4f51-b5b4-52a6c565dad4"
 
     reqmock.get(
-        f"{BaseURL.TRADING_PAPER}/v2/orders:by_client_order_id?client_order_id={client_id}",
+        f"{BaseURL.TRADING_PAPER.value}/v2/orders:by_client_order_id?client_order_id={client_id}",
         text="""
     {
         "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
@@ -229,7 +229,7 @@ def test_replace_order(reqmock, trading_client: TradingClient):
     order_id = "61e69015-8549-4bfd-b9c3-01e75843f47d"
 
     reqmock.patch(
-        f"{BaseURL.TRADING_PAPER}/v2/orders/{order_id}",
+        f"{BaseURL.TRADING_PAPER.value}/v2/orders/{order_id}",
         text="""
     {
         "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
@@ -281,7 +281,7 @@ def test_cancel_order_by_id(reqmock, trading_client: TradingClient):
     status_code = 204
 
     reqmock.delete(
-        f"{BaseURL.TRADING_PAPER}/v2/orders/{order_id}",
+        f"{BaseURL.TRADING_PAPER.value}/v2/orders/{order_id}",
         status_code=status_code,
     )
 
@@ -295,7 +295,7 @@ def test_cancel_order_throws_uncancelable_error(reqmock, trading_client: Trading
     status_code = 422
 
     reqmock.delete(
-        f"{BaseURL.TRADING_PAPER}/v2/orders/{order_id}",
+        f"{BaseURL.TRADING_PAPER.value}/v2/orders/{order_id}",
         status_code=status_code,
     )
 
@@ -310,7 +310,7 @@ def test_cancel_order_throws_not_found_error(reqmock, trading_client: TradingCli
     status_code = 404
 
     reqmock.delete(
-        f"{BaseURL.TRADING_PAPER}/v2/orders/{order_id}",
+        f"{BaseURL.TRADING_PAPER.value}/v2/orders/{order_id}",
         status_code=status_code,
     )
 
@@ -325,7 +325,7 @@ def test_cancel_orders(reqmock, trading_client: TradingClient):
     status_code = 207
 
     reqmock.delete(
-        f"{BaseURL.TRADING_PAPER}/v2/orders",
+        f"{BaseURL.TRADING_PAPER.value}/v2/orders",
         status_code=status_code,
         text="""
         [
@@ -346,7 +346,7 @@ def test_cancel_orders(reqmock, trading_client: TradingClient):
 
 def test_limit_order(reqmock, trading_client):
     reqmock.post(
-        f"{BaseURL.TRADING_PAPER}/v2/orders",
+        f"{BaseURL.TRADING_PAPER.value}/v2/orders",
         text="""
         {
           "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",

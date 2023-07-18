@@ -9,4 +9,4 @@ class ValidateBaseModel(BaseModel, validate_assignment=True):
     """
 
     def __repr__(self):
-        return pprint.pformat(self.dict(), indent=4)
+        return pprint.pformat(self.model_dump(), indent=4)

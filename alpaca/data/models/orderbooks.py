@@ -3,7 +3,7 @@ from typing import Dict, List
 
 from alpaca.common.types import RawData
 from alpaca.common.models import ValidateBaseModel as BaseModel
-from pydantic import parse_obj_as, Field
+from pydantic import TypeAdapter, Field
 from alpaca.data.mappings import ORDERBOOK_MAPPING
 
 
@@ -44,7 +44,11 @@ class Orderbook(BaseModel):
             if key in ORDERBOOK_MAPPING
         }
 
-        mapped_book["bids"] = parse_obj_as(List[OrderbookQuote], mapped_book["bids"])
-        mapped_book["asks"] = parse_obj_as(List[OrderbookQuote], mapped_book["asks"])
+        mapped_book["bids"] = TypeAdapter(List[OrderbookQuote]).validate_python(
+            mapped_book["bids"]
+        )
+        mapped_book["asks"] = TypeAdapter(List[OrderbookQuote]).validate_python(
+            mapped_book["asks"]
+        )
 
         super().__init__(symbol=symbol, **mapped_book)

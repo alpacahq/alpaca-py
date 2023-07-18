@@ -2,7 +2,8 @@ from datetime import date, datetime, timedelta
 from typing import Optional, Any, List
 from uuid import UUID
 
-from pydantic import root_validator
+import pandas as pd
+from pydantic import model_validator
 
 from alpaca.common.requests import NonEmptyRequest
 from alpaca.common.enums import Sort
@@ -15,7 +16,6 @@ from alpaca.trading.enums import (
     TimeInForce,
     OrderSide,
     OrderClass,
-    OrderStatus,
     CorporateActionType,
     CorporateActionDateType,
     QueryOrderStatus,
@@ -29,20 +29,19 @@ class ClosePositionRequest(NonEmptyRequest):
         percentage (str): The percentage of shares to liquidate.
     """
 
-    qty: Optional[str]
-    percentage: Optional[str]
+    qty: Optional[str] = None
+    percentage: Optional[str] = None
 
-    @root_validator()
+    @model_validator(mode="before")
     def root_validator(cls, values: dict) -> dict:
-        if "qty" not in values or "percentage" not in values:
-            return values
-
-        if values["qty"] is None and values["percentage"] is None:
+        qty = values.get("qty", None)
+        percentage = values.get("percentage", None)
+        if qty is None and percentage is None:
             raise ValueError(
                 "qty or percentage must be given to the ClosePositionRequest, got None for both."
             )
 
-        if values["qty"] is not None and values["percentage"] is not None:
+        if qty is not None and percentage is not None:
             raise ValueError(
                 "Only one of qty or percentage must be given to the ClosePositionRequest, got both."
             )
@@ -100,10 +99,10 @@ class UpdateWatchlistRequest(NonEmptyRequest):
         symbols(Optional[List[str]]): Symbols of Assets to watch
     """
 
-    name: Optional[str]
-    symbols: Optional[List[str]]
+    name: Optional[str] = None
+    symbols: Optional[List[str]] = None
 
-    @root_validator()
+    @model_validator(mode="before")
     def root_validator(cls, values: dict) -> dict:
         if ("name" not in values or values["name"] is None) and (
             "symbols" not in values or values["symbols"] is None
@@ -124,10 +123,9 @@ class GetAssetsRequest(NonEmptyRequest):
         attributes (Optional[str]): Comma separated values to query for more than one attribute.
     """
 
-    status: Optional[AssetStatus]
-    asset_class: Optional[AssetClass]
-    exchange: Optional[AssetExchange]
-    attributes: Optional[str]
+    status: Optional[AssetStatus] = None
+    asset_class: Optional[AssetClass] = None
+    exchange: Optional[AssetExchange] = None
 
 
 class TakeProfitRequest(NonEmptyRequest):
@@ -169,14 +167,14 @@ class GetOrdersRequest(NonEmptyRequest):
         symbols (Optional[List[str]]): List of symbols to filter by.
     """
 
-    status: Optional[QueryOrderStatus]
-    limit: Optional[int]  # not pagination
-    after: Optional[datetime]
-    until: Optional[datetime]
-    direction: Optional[Sort]
-    nested: Optional[bool]
-    side: Optional[OrderSide]
-    symbols: Optional[List[str]]
+    status: Optional[QueryOrderStatus] = None
+    limit: Optional[int] = None  # not pagination = None
+    after: Optional[datetime] = None
+    until: Optional[datetime] = None
+    direction: Optional[Sort] = None
+    nested: Optional[bool] = None
+    side: Optional[OrderSide] = None
+    symbols: Optional[List[str]] = None
 
 
 class GetOrderByIdRequest(NonEmptyRequest):
@@ -201,12 +199,12 @@ class ReplaceOrderRequest(NonEmptyRequest):
         client_order_id (Optional[str]): A unique identifier for the order.
     """
 
-    qty: Optional[int]
-    time_in_force: Optional[TimeInForce]
-    limit_price: Optional[float]
-    stop_price: Optional[float]
-    trail: Optional[float]
-    client_order_id: Optional[str]
+    qty: Optional[int] = None
+    time_in_force: Optional[TimeInForce] = None
+    limit_price: Optional[float] = None
+    stop_price: Optional[float] = None
+    trail: Optional[float] = None
+    client_order_id: Optional[str] = None
 
 
 class CancelOrderResponse(BaseModel):
@@ -242,18 +240,18 @@ class OrderRequest(NonEmptyRequest):
     """
 
     symbol: str
-    qty: Optional[float]
-    notional: Optional[float]
+    qty: Optional[float] = None
+    notional: Optional[float] = None
     side: OrderSide
     type: OrderType
     time_in_force: TimeInForce
-    order_class: Optional[OrderClass]
-    extended_hours: Optional[bool]
-    client_order_id: Optional[str]
-    take_profit: Optional[TakeProfitRequest]
-    stop_loss: Optional[StopLossRequest]
+    order_class: Optional[OrderClass] = None
+    extended_hours: Optional[bool] = None
+    client_order_id: Optional[str] = None
+    take_profit: Optional[TakeProfitRequest] = None
+    stop_loss: Optional[StopLossRequest] = None
 
-    @root_validator()
+    @model_validator(mode="before")
     def root_validator(cls, values: dict) -> dict:
 
         qty_set = "qty" in values and values["qty"] is not None
@@ -406,8 +404,8 @@ class TrailingStopOrderRequest(OrderRequest):
         trail_percent (Optional[float]): The percent price difference by which the trailing stop will trail.
     """
 
-    trail_price: Optional[float]
-    trail_percent: Optional[float]
+    trail_price: Optional[float] = None
+    trail_percent: Optional[float] = None
 
     def __init__(self, **data: Any) -> None:
 
@@ -415,7 +413,7 @@ class TrailingStopOrderRequest(OrderRequest):
 
         super().__init__(**data)
 
-    @root_validator()
+    @model_validator(mode="before")
     def root_validator(cls, values: dict) -> dict:
 
         trail_percent_set = (
@@ -450,15 +448,15 @@ class GetCorporateAnnouncementsRequest(NonEmptyRequest):
     ca_types: List[CorporateActionType]
     since: date
     until: date
-    symbol: Optional[str]
-    cusip: Optional[str]
-    date_type: Optional[CorporateActionDateType]
+    symbol: Optional[str] = None
+    cusip: Optional[str] = None
+    date_type: Optional[CorporateActionDateType] = None
 
-    @root_validator()
+    @model_validator(mode="before")
     def root_validator(cls, values: dict) -> dict:
 
-        since = values.get("since")
-        until = values.get("until")
+        since = pd.Timestamp(values.get("since")).date()
+        until = pd.Timestamp(values.get("until")).date()
 
         if (
             since is not None

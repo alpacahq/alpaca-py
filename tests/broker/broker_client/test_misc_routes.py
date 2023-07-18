@@ -8,7 +8,7 @@ from alpaca.trading.requests import GetCalendarRequest
 
 def test_get_calendar(reqmock, client: BrokerClient):
     reqmock.get(
-        f"{BaseURL.BROKER_SANDBOX}/v1/calendar",
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/calendar",
         text="""
         [
           {
@@ -49,7 +49,7 @@ def test_get_calendar(reqmock, client: BrokerClient):
 
 def test_get_clock(reqmock, client: BrokerClient):
     reqmock.get(
-        f"{BaseURL.BROKER_SANDBOX}/v1/clock",
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/clock",
         text="""
         {
           "timestamp": "2022-05-16T16:32:24.14373588-04:00",

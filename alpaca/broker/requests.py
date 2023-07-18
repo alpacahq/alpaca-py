@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Dict, Any
 from uuid import UUID
 
 from pydantic import root_validator, validator
@@ -666,17 +666,24 @@ class OrderRequest(BaseOrderRequest):
     commission: Optional[float]
     currency: Optional[SupportedCurrencies] = None  # None = USD
 
-    @validator("type")
-    def order_type_must_be_market_for_lct(cls, value: OrderType) -> OrderType:
+    @root_validator(pre=True)
+    def order_type_must_be_market_for_lct(
+        cls, values: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Order type must always be market if currency is not USD.
         See https://alpaca.markets/docs/broker/integration/lct/#submit-stock-trade
         """
-        if cls.currency and value != OrderType.MARKET:
+        if (
+            values.get("type") != OrderType.MARKET
+            and "currency" in values
+            and values.get("currency", SupportedCurrencies.USD)
+            != SupportedCurrencies.USD
+        ):
             raise ValueError(
                 "Order type must be OrderType.MARKET if the order is in a local currency."
             )
-        return value
+        return values
 
 
 class MarketOrderRequest(BaseMarketOrderRequest):

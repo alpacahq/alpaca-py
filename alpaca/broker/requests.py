@@ -666,7 +666,7 @@ class OrderRequest(BaseOrderRequest):
     commission: Optional[float] = None
     currency: Optional[SupportedCurrencies] = None  # None = USD
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
     def order_type_must_be_market_for_lct(
         cls, values: Dict[str, Any]
     ) -> Dict[str, Any]:

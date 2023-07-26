@@ -22,6 +22,7 @@ pandas = ">=1.5.3"
 msgpack = "^1.0.3"
 websockets = "^11.0.3"
 sseclient-py = "^1.7.2"
+websocket = "^0.2.1"
 
 
 [tool.poetry.dev-dependencies]

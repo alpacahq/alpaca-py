@@ -83,6 +83,7 @@ from ..common import RawData
 from ..common.rest import HTTPResult, RESTClient
 from alpaca.common.utils import validate_uuid_id_param, validate_symbol_or_asset_id
 
+
 __all__ = ["BrokerClient"]
 
 

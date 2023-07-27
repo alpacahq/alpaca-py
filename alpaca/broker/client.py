@@ -81,7 +81,12 @@ from alpaca.trading.enums import (
 )
 from ..common import RawData
 from ..common.rest import HTTPResult, RESTClient
-from alpaca.common.utils import validate_uuid_id_param, validate_symbol_or_asset_id
+from alpaca.common.utils import (
+    validate_uuid_id_param,
+    validate_symbol_or_asset_id,
+)
+
+__all__ = ["BrokerClient"]
 
 
 class BrokerClient(RESTClient):
@@ -145,7 +150,9 @@ class BrokerClient(RESTClient):
         auth_string = f"{self._api_key}:{self._secret_key}"
         auth_string_encoded = base64.b64encode(str.encode(auth_string))
 
-        return {"Authorization": "Basic " + auth_string_encoded.decode("utf-8")}
+        return {
+            "Authorization": "Basic " + auth_string_encoded.decode("utf-8")
+        }
 
     # ############################## ACCOUNTS/TRADING ACCOUNTS ################################# #
 
@@ -215,7 +222,9 @@ class BrokerClient(RESTClient):
         params = update_data.to_request_fields()
 
         if len(params) < 1:
-            raise ValueError("update_data must contain at least 1 field to change")
+            raise ValueError(
+                "update_data must contain at least 1 field to change"
+            )
 
         response = self.patch(f"/accounts/{account_id}", params)
 
@@ -260,7 +269,9 @@ class BrokerClient(RESTClient):
             List[Account]: The filtered list of Accounts
         """
 
-        params = search_parameters.to_request_fields() if search_parameters else {}
+        params = (
+            search_parameters.to_request_fields() if search_parameters else {}
+        )
 
         # API expects comma separated for entities not multiple params
         if "entities" in params and params["entities"] is not None:
@@ -353,7 +364,9 @@ class BrokerClient(RESTClient):
 
         account_id = validate_uuid_id_param(account_id, "account_id")
 
-        resp = self.get(f"/trading/accounts/{account_id}/account/configurations")
+        resp = self.get(
+            f"/trading/accounts/{account_id}/account/configurations"
+        )
 
         if self._use_raw_data:
             return resp
@@ -378,7 +391,8 @@ class BrokerClient(RESTClient):
         account_id = validate_uuid_id_param(account_id, "account_id")
 
         result = self.patch(
-            f"/trading/accounts/{account_id}/account/configurations", config.json()
+            f"/trading/accounts/{account_id}/account/configurations",
+            config.json(),
         )
 
         if self._use_raw_data:
@@ -454,7 +468,9 @@ class BrokerClient(RESTClient):
             ],
         )
 
-        return BrokerClient._return_paginated_result(iterator, handle_pagination)
+        return BrokerClient._return_paginated_result(
+            iterator, handle_pagination
+        )
 
     def _get_account_activities_iterator(
         self,
@@ -683,7 +699,9 @@ class BrokerClient(RESTClient):
     def create_ach_relationship_for_account(
         self,
         account_id: Union[UUID, str],
-        ach_data: Union[CreateACHRelationshipRequest, CreatePlaidRelationshipRequest],
+        ach_data: Union[
+            CreateACHRelationshipRequest, CreatePlaidRelationshipRequest
+        ],
     ) -> Union[ACHRelationship, RawData]:
         """
         Creates a single ACH relationship for the given account.
@@ -699,7 +717,8 @@ class BrokerClient(RESTClient):
         account_id = validate_uuid_id_param(account_id)
 
         if not isinstance(
-            ach_data, (CreateACHRelationshipRequest, CreatePlaidRelationshipRequest)
+            ach_data,
+            (CreateACHRelationshipRequest, CreatePlaidRelationshipRequest),
         ):
             raise ValueError(
                 f"Request data must either be a CreateACHRelationshipRequest instance, or a "
@@ -707,7 +726,8 @@ class BrokerClient(RESTClient):
             )
 
         response = self.post(
-            f"/accounts/{account_id}/ach_relationships", ach_data.to_request_fields()
+            f"/accounts/{account_id}/ach_relationships",
+            ach_data.to_request_fields(),
         )
 
         if self._use_raw_data:
@@ -736,7 +756,9 @@ class BrokerClient(RESTClient):
         if statuses is not None and len(statuses) != 0:
             params["statuses"] = ",".join(statuses)
 
-        response = self.get(f"/accounts/{account_id}/ach_relationships", params)
+        response = self.get(
+            f"/accounts/{account_id}/ach_relationships", params
+        )
 
         if self._use_raw_data:
             return response
@@ -762,7 +784,9 @@ class BrokerClient(RESTClient):
         ach_relationship_id = validate_uuid_id_param(
             ach_relationship_id, "ach_relationship_id"
         )
-        self.delete(f"/accounts/{account_id}/ach_relationships/{ach_relationship_id}")
+        self.delete(
+            f"/accounts/{account_id}/ach_relationships/{ach_relationship_id}"
+        )
 
     def create_bank_for_account(
         self,
@@ -781,7 +805,8 @@ class BrokerClient(RESTClient):
         """
         account_id = validate_uuid_id_param(account_id)
         response = self.post(
-            f"/accounts/{account_id}/recipient_banks", bank_data.to_request_fields()
+            f"/accounts/{account_id}/recipient_banks",
+            bank_data.to_request_fields(),
         )
 
         if self._use_raw_data:
@@ -832,7 +857,9 @@ class BrokerClient(RESTClient):
     def create_transfer_for_account(
         self,
         account_id: Union[UUID, str],
-        transfer_data: Union[CreateACHTransferRequest, CreateBankTransferRequest],
+        transfer_data: Union[
+            CreateACHTransferRequest, CreateBankTransferRequest
+        ],
     ) -> Union[Transfer, RawData]:
         """
         Creates a single Transfer for the given account.
@@ -847,7 +874,8 @@ class BrokerClient(RESTClient):
         """
         account_id = validate_uuid_id_param(account_id)
         response = self.post(
-            f"/accounts/{account_id}/transfers", transfer_data.to_request_fields()
+            f"/accounts/{account_id}/transfers",
+            transfer_data.to_request_fields(),
         )
 
         if self._use_raw_data:
@@ -890,7 +918,9 @@ class BrokerClient(RESTClient):
             max_items_limit=max_items_limit,
         )
 
-        return BrokerClient._return_paginated_result(iterator, handle_pagination)
+        return BrokerClient._return_paginated_result(
+            iterator, handle_pagination
+        )
 
     def _get_transfers_iterator(
         self,
@@ -907,7 +937,9 @@ class BrokerClient(RESTClient):
 
         while True:
             request_fields["offset"] = total_items
-            result = self.get(f"/accounts/{account_id}/transfers", request_fields)
+            result = self.get(
+                f"/accounts/{account_id}/transfers", request_fields
+            )
 
             # The api returns [] when it's done.
             if not isinstance(result, List) or len(result) == 0:
@@ -988,7 +1020,9 @@ class BrokerClient(RESTClient):
         return AllAccountsPositions(**response)
 
     def get_open_position_for_account(
-        self, account_id: Union[UUID, str], symbol_or_asset_id: Union[UUID, str]
+        self,
+        account_id: Union[UUID, str],
+        symbol_or_asset_id: Union[UUID, str],
     ) -> Union[Position, RawData]:
         """
         Gets the open position for an account for a single asset. Throws an APIError if the position does not exist.
@@ -1133,7 +1167,8 @@ class BrokerClient(RESTClient):
         """
 
         result = self.get(
-            "/calendar", filters.to_request_fields() if filters is not None else {}
+            "/calendar",
+            filters.to_request_fields() if filters is not None else {},
         )
 
         if self._use_raw_data:
@@ -1183,7 +1218,9 @@ class BrokerClient(RESTClient):
         account_id = validate_uuid_id_param(account_id, "account_id")
         watchlist_id = validate_uuid_id_param(watchlist_id, "watchlist_id")
 
-        result = self.get(f"/trading/accounts/{account_id}/watchlists/{watchlist_id}")
+        result = self.get(
+            f"/trading/accounts/{account_id}/watchlists/{watchlist_id}"
+        )
 
         if self._use_raw_data:
             return result
@@ -1297,7 +1334,9 @@ class BrokerClient(RESTClient):
         account_id = validate_uuid_id_param(account_id, "account_id")
         watchlist_id = validate_uuid_id_param(watchlist_id, "watchlist_id")
 
-        self.delete(f"/trading/accounts/{account_id}/watchlists/{watchlist_id}")
+        self.delete(
+            f"/trading/accounts/{account_id}/watchlists/{watchlist_id}"
+        )
 
     def remove_asset_from_watchlist_for_account_by_id(
         self,
@@ -1393,7 +1432,11 @@ class BrokerClient(RESTClient):
         Returns:
             BatchJournalResponse: The submitted reverse batch journals.
         """
-        params = reverse_batch_data.to_request_fields() if reverse_batch_data else {}
+        params = (
+            reverse_batch_data.to_request_fields()
+            if reverse_batch_data
+            else {}
+        )
 
         response = self.post("/journals/reverse_batch", params)
 
@@ -1486,7 +1529,9 @@ class BrokerClient(RESTClient):
 
         return parse_obj_as(List[Asset], response)
 
-    def get_asset(self, symbol_or_asset_id: Union[UUID, str]) -> Union[Asset, RawData]:
+    def get_asset(
+        self, symbol_or_asset_id: Union[UUID, str]
+    ) -> Union[Asset, RawData]:
         """
         Returns a specific asset by its symbol or asset id. If the specified asset does not exist
         a 404 error will be thrown.
@@ -1534,7 +1579,9 @@ class BrokerClient(RESTClient):
         return Order(**response)
 
     def get_orders_for_account(
-        self, account_id: Union[UUID, str], filter: Optional[GetOrdersRequest] = None
+        self,
+        account_id: Union[UUID, str],
+        filter: Optional[GetOrdersRequest] = None,
     ) -> Union[List[Order], RawData]:
         """
         Returns all orders for an account. Orders can be filtered by parameters.
@@ -1584,7 +1631,9 @@ class BrokerClient(RESTClient):
         # checking to see if we specified at least one param
         params = filter.to_request_fields() if filter is not None else {}
 
-        response = self.get(f"/trading/accounts/{account_id}/orders/{order_id}", params)
+        response = self.get(
+            f"/trading/accounts/{account_id}/orders/{order_id}", params
+        )
 
         if self._use_raw_data:
             return response
@@ -1638,7 +1687,9 @@ class BrokerClient(RESTClient):
         order_id = validate_uuid_id_param(order_id, "order_id")
 
         # checking to see if we specified at least one param
-        params = order_data.to_request_fields() if order_data is not None else {}
+        params = (
+            order_data.to_request_fields() if order_data is not None else {}
+        )
 
         response = self.patch(
             f"/trading/accounts/{account_id}/orders/{order_id}", params
@@ -1755,7 +1806,12 @@ class BrokerClient(RESTClient):
         if filter:
             params = filter.to_request_fields()
 
-        url = self._base_url + "/" + self._api_version + "/events/accounts/status"
+        url = (
+            self._base_url
+            + "/"
+            + self._api_version
+            + "/events/accounts/status"
+        )
 
         response = self._session.get(
             url=url,
@@ -1769,7 +1825,9 @@ class BrokerClient(RESTClient):
         for event in client.events():
             yield event.data
 
-    def get_trade_events(self, filter: Optional[GetEventsRequest] = None) -> Iterator:
+    def get_trade_events(
+        self, filter: Optional[GetEventsRequest] = None
+    ) -> Iterator:
         """
         Subscribes to SSE stream for trade events.
 
@@ -1798,7 +1856,9 @@ class BrokerClient(RESTClient):
         for event in client.events():
             yield event.data
 
-    def get_journal_events(self, filter: Optional[GetEventsRequest] = None) -> Iterator:
+    def get_journal_events(
+        self, filter: Optional[GetEventsRequest] = None
+    ) -> Iterator:
         """
         Subscribes to SSE stream for journal status events.
 
@@ -1813,7 +1873,12 @@ class BrokerClient(RESTClient):
         if filter:
             params = filter.to_request_fields()
 
-        url = self._base_url + "/" + self._api_version + "/events/journals/status"
+        url = (
+            self._base_url
+            + "/"
+            + self._api_version
+            + "/events/journals/status"
+        )
 
         response = self._session.get(
             url=url,
@@ -1844,7 +1909,12 @@ class BrokerClient(RESTClient):
         if filter:
             params = filter.to_request_fields()
 
-        url = self._base_url + "/" + self._api_version + "/events/transfers/status"
+        url = (
+            self._base_url
+            + "/"
+            + self._api_version
+            + "/events/transfers/status"
+        )
 
         response = self._session.get(
             url=url,

@@ -5,6 +5,9 @@ from alpaca.common.websocket import BaseStream
 from alpaca.data.enums import DataFeed
 
 
+__all__ = ["StockDataStream"]
+
+
 class StockDataStream(BaseStream):
     """
     A WebSocket client for streaming live stock data via IEX or SIP depending on your market data

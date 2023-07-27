@@ -4,6 +4,9 @@ from alpaca.common.enums import BaseURL
 from alpaca.data.enums import CryptoFeed
 
 
+__all__ = ["CryptoDataStream"]
+
+
 class CryptoDataStream(BaseStream):
     """
     A WebSocket client for streaming live crypto data.
@@ -35,7 +38,8 @@ class CryptoDataStream(BaseStream):
             endpoint=(
                 url_override
                 if url_override is not None
-                else BaseURL.MARKET_DATA_STREAM.value + f"/v1beta3/crypto/{feed}"
+                else BaseURL.MARKET_DATA_STREAM.value
+                + f"/v1beta3/crypto/{feed}"
             ),
             api_key=api_key,
             secret_key=secret_key,

@@ -12,7 +12,14 @@ from alpaca.data.historical.utils import (
     format_latest_data_response,
     format_dataset_response,
 )
-from alpaca.data.models import BarSet, QuoteSet, TradeSet, Orderbook, Trade, Quote
+from alpaca.data.models import (
+    BarSet,
+    QuoteSet,
+    TradeSet,
+    Orderbook,
+    Trade,
+    Quote,
+)
 from alpaca.data.historical.stock import DataExtensionType
 from alpaca.data.requests import (
     CryptoBarsRequest,
@@ -24,6 +31,9 @@ from alpaca.data.requests import (
     CryptoLatestBarRequest,
 )
 from alpaca.data.enums import CryptoFeed
+
+
+__all__ = ["CryptoHistoricalDataClient"]
 
 
 class CryptoHistoricalDataClient(RESTClient):
@@ -64,13 +74,17 @@ class CryptoHistoricalDataClient(RESTClient):
             secret_key=secret_key,
             oauth_token=oauth_token,
             api_version="v1beta3",
-            base_url=url_override if url_override is not None else BaseURL.DATA,
+            base_url=url_override
+            if url_override is not None
+            else BaseURL.DATA,
             sandbox=False,
             raw_data=raw_data,
         )
 
     def get_crypto_bars(
-        self, request_params: CryptoBarsRequest, feed: CryptoFeed = CryptoFeed.US
+        self,
+        request_params: CryptoBarsRequest,
+        feed: CryptoFeed = CryptoFeed.US,
     ) -> Union[BarSet, RawData]:
         """Gets bar/candle data for a cryptocurrency or list of cryptocurrencies.
 
@@ -99,7 +113,9 @@ class CryptoHistoricalDataClient(RESTClient):
         return BarSet(raw_bars)
 
     def get_crypto_trades(
-        self, request_params: CryptoTradesRequest, feed: CryptoFeed = CryptoFeed.US
+        self,
+        request_params: CryptoTradesRequest,
+        feed: CryptoFeed = CryptoFeed.US,
     ) -> Union[TradeSet, RawData]:
         """Returns the price and sales history over a given time period for a cryptocurrency
         or list of cryptocurrencies.
@@ -129,7 +145,9 @@ class CryptoHistoricalDataClient(RESTClient):
         return TradeSet(raw_trades)
 
     def get_crypto_latest_trade(
-        self, request_params: CryptoLatestTradeRequest, feed: CryptoFeed = CryptoFeed.US
+        self,
+        request_params: CryptoLatestTradeRequest,
+        feed: CryptoFeed = CryptoFeed.US,
     ) -> Union[Dict[str, Trade], RawData]:
         """Returns the latest trade for a coin.
 
@@ -158,7 +176,9 @@ class CryptoHistoricalDataClient(RESTClient):
         return parse_obj_as_symbol_dict(Trade, raw_trades)
 
     def get_crypto_latest_quote(
-        self, request_params: CryptoLatestQuoteRequest, feed: CryptoFeed = CryptoFeed.US
+        self,
+        request_params: CryptoLatestQuoteRequest,
+        feed: CryptoFeed = CryptoFeed.US,
     ) -> Union[Dict[str, Quote], RawData]:
         """Returns the latest quote for a coin.
 
@@ -187,7 +207,9 @@ class CryptoHistoricalDataClient(RESTClient):
         return parse_obj_as_symbol_dict(Quote, raw_quotes)
 
     def get_crypto_latest_bar(
-        self, request_params: CryptoLatestBarRequest, feed: CryptoFeed = CryptoFeed.US
+        self,
+        request_params: CryptoLatestBarRequest,
+        feed: CryptoFeed = CryptoFeed.US,
     ) -> Union[Dict[str, Bar], RawData]:
         """Returns the latest minute bar for a coin.
 
@@ -248,7 +270,9 @@ class CryptoHistoricalDataClient(RESTClient):
         return parse_obj_as_symbol_dict(Orderbook, raw_orderbooks)
 
     def get_crypto_snapshot(
-        self, request_params: CryptoSnapshotRequest, feed: CryptoFeed = CryptoFeed.US
+        self,
+        request_params: CryptoSnapshotRequest,
+        feed: CryptoFeed = CryptoFeed.US,
     ) -> Union[Snapshot, RawData]:
         """Returns snapshots of queried crypto symbols. Snapshots contain latest trade, latest quote, latest minute bar,
         latest daily bar and previous daily bar data for the queried symbols.
@@ -342,7 +366,6 @@ class CryptoHistoricalDataClient(RESTClient):
         page_token = None
 
         while True:
-
             actual_limit = None
 
             # adjusts the limit parameter value if it is over the page_limit
@@ -355,7 +378,9 @@ class CryptoHistoricalDataClient(RESTClient):
             params["limit"] = actual_limit
             params["page_token"] = page_token
 
-            response = self.get(path=path, data=params, api_version=api_version)
+            response = self.get(
+                path=path, data=params, api_version=api_version
+            )
 
             # TODO: Merge parsing if possible
             if (

@@ -71,9 +71,7 @@ class StockHistoricalDataClient(RESTClient):
             oauth_token=oauth_token,
             use_basic_auth=use_basic_auth,
             api_version="v2",
-            base_url=url_override
-            if url_override is not None
-            else BaseURL.DATA,
+            base_url=url_override if url_override is not None else BaseURL.DATA,
             sandbox=False,
             raw_data=raw_data,
         )
@@ -328,6 +326,7 @@ class StockHistoricalDataClient(RESTClient):
         page_token = None
 
         while True:
+
             actual_limit = None
 
             # adjusts the limit parameter value if it is over the page_limit
@@ -340,9 +339,7 @@ class StockHistoricalDataClient(RESTClient):
             params["limit"] = actual_limit
             params["page_token"] = page_token
 
-            response = self.get(
-                path=path, data=params, api_version=api_version
-            )
+            response = self.get(path=path, data=params, api_version=api_version)
 
             # TODO: Merge parsing if possible
             if extension == DataExtensionType.SNAPSHOT:

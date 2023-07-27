@@ -1,2 +1,2 @@
-from .stock import StockHistoricalDataClient
-from .crypto import CryptoHistoricalDataClient
+from .stock import *
+from .crypto import *

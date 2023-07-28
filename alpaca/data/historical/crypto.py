@@ -1,3 +1,6 @@
+__all__ = ["CryptoHistoricalDataClient"]
+
+
 from collections import defaultdict
 from typing import Union, Optional, List, Dict
 
@@ -24,9 +27,6 @@ from alpaca.data.requests import (
     CryptoLatestBarRequest,
 )
 from alpaca.data.enums import CryptoFeed
-
-
-__all__ = ["CryptoHistoricalDataClient"]
 
 
 class CryptoHistoricalDataClient(RESTClient):

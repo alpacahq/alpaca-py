@@ -1,11 +1,11 @@
+__all__ = ["StockDataStream"]
+
+
 from typing import Optional, Dict
 
 from alpaca.common.enums import BaseURL
 from alpaca.common.websocket import BaseStream
 from alpaca.data.enums import DataFeed
-
-
-__all__ = ["StockDataStream"]
 
 
 class StockDataStream(BaseStream):

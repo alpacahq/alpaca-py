@@ -1,3 +1,6 @@
+__all__ = ["BrokerClient"]
+
+
 import base64
 from typing import Callable, Iterator, List, Optional, Union, Dict
 from uuid import UUID
@@ -82,9 +85,6 @@ from alpaca.trading.enums import (
 from ..common import RawData
 from ..common.rest import HTTPResult, RESTClient
 from alpaca.common.utils import validate_uuid_id_param, validate_symbol_or_asset_id
-
-
-__all__ = ["BrokerClient"]
 
 
 class BrokerClient(RESTClient):

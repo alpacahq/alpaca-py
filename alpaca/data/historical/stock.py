@@ -1,3 +1,6 @@
+__all__ = ["StockHistoricalDataClient"]
+
+
 from collections import defaultdict
 from enum import Enum
 from typing import List, Optional, Union, Type, Dict
@@ -24,9 +27,6 @@ from alpaca.data.requests import (
     StockLatestBarRequest,
 )
 from alpaca.common.constants import DATA_V2_MAX_LIMIT
-
-
-__all__ = ["StockHistoricalDataClient"]
 
 
 class DataExtensionType(Enum):

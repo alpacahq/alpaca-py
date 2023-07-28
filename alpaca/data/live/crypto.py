@@ -1,10 +1,10 @@
+__all__ = ["CryptoDataStream"]
+
+
 from alpaca.common.websocket import BaseStream
 from typing import Optional, Dict
 from alpaca.common.enums import BaseURL
 from alpaca.data.enums import CryptoFeed
-
-
-__all__ = ["CryptoDataStream"]
 
 
 class CryptoDataStream(BaseStream):

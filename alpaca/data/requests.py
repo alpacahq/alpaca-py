@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import Optional, Union, List, Any
+from pydantic import ConfigDict
 import pytz
 from alpaca.common.enums import SupportedCurrencies
 from alpaca.common.requests import NonEmptyRequest
@@ -67,8 +68,7 @@ class BaseBarsRequest(BaseTimeseriesDataRequest):
     timeframe: TimeFrame
 
     # Allows TimeFrame as a non-pydantic BaseModel field
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 class StockBarsRequest(BaseBarsRequest):

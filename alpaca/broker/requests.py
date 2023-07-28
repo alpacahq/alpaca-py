@@ -18,11 +18,9 @@ from alpaca.broker.enums import (
     AccountEntities,
     BankAccountType,
     DocumentType,
-    EmploymentStatus,
     FeePaymentMethod,
     FundingSource,
     IdentifierType,
-    TaxIdType,
     TradeDocumentType,
     TransferDirection,
     TransferTiming,
@@ -44,6 +42,7 @@ from alpaca.trading.requests import (
     StopLimitOrderRequest as BaseStopLimitOrderRequest,
     TrailingStopOrderRequest as BaseTrailingStopOrderRequest,
     CancelOrderResponse as BaseCancelOrderResponse,
+    GetAccountActivitiesRequest as BaseGetAccountActivitiesRequest,
 )
 
 
@@ -260,7 +259,7 @@ class ListAccountsRequest(NonEmptyRequest):
         super().__init__(*args, **kwargs)
 
 
-class GetAccountActivitiesRequest(NonEmptyRequest):
+class GetAccountActivitiesRequest(BaseGetAccountActivitiesRequest):
     """
     Represents the filtering values you can specify when getting AccountActivities for an Account
 
@@ -299,35 +298,12 @@ class GetAccountActivitiesRequest(NonEmptyRequest):
     """
 
     account_id: Optional[Union[UUID, str]] = None
-    activity_types: Optional[List[ActivityType]] = None
-    date: Optional[datetime] = None
-    until: Optional[datetime] = None
-    after: Optional[datetime] = None
-    direction: Optional[Sort] = None
-    page_size: Optional[int] = None
-    page_token: Optional[Union[UUID, str]] = None
 
     def __init__(self, *args, **kwargs):
         if "account_id" in kwargs and type(kwargs["account_id"]) == str:
             kwargs["account_id"] = UUID(kwargs["account_id"])
 
         super().__init__(*args, **kwargs)
-
-    @model_validator(mode="before")
-    def root_validator(cls, values: dict) -> dict:
-        """Verify that certain conflicting params aren't set"""
-
-        date_set = "date" in values and values["date"] is not None
-        after_set = "after" in values and values["after"] is not None
-        until_set = "until" in values and values["until"] is not None
-
-        if date_set and after_set:
-            raise ValueError("Cannot set date and after at the same time")
-
-        if date_set and until_set:
-            raise ValueError("Cannot set date and until at the same time")
-
-        return values
 
 
 # ############################## Documents ################################# #

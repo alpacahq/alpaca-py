@@ -5,8 +5,8 @@ import json
 from alpaca.common import RawData
 from alpaca.common.utils import validate_uuid_id_param, validate_symbol_or_asset_id
 from alpaca.common.rest import RESTClient
-from typing import Optional, List, Union
-from alpaca.common.enums import BaseURL
+from typing import Callable, Iterator, Optional, List, Union
+from alpaca.common.enums import BaseURL, PaginationType
 
 from alpaca.trading.requests import (
     GetCalendarRequest,
@@ -20,13 +20,17 @@ from alpaca.trading.requests import (
     CreateWatchlistRequest,
     UpdateWatchlistRequest,
     GetCorporateAnnouncementsRequest,
+    GetAccountActivitiesRequest,
 )
 
 from alpaca.trading.models import (
+    BaseActivity,
+    NonTradeActivity,
     Order,
     Position,
     ClosePositionResponse,
     Asset,
+    TradeActivity,
     Watchlist,
     Clock,
     Calendar,
@@ -34,6 +38,14 @@ from alpaca.trading.models import (
     CorporateActionAnnouncement,
     AccountConfiguration,
 )
+
+from alpaca.common.types import HTTPResult
+
+from alpaca.common.constants import ACCOUNT_ACTIVITIES_DEFAULT_PAGE_SIZE
+
+from alpaca.common.exceptions import APIError
+
+from alpaca.trading.enums import ActivityType
 
 
 class TradingClient(RESTClient):
@@ -454,6 +466,150 @@ class TradingClient(RESTClient):
             return response
 
         return AccountConfiguration(**json.loads(response))
+
+    # ############################## ACCOUNT ACTIVITIES ######################## #
+
+    def get_account_activities(
+        self,
+        activity_filter: GetAccountActivitiesRequest,
+        max_items_limit: Optional[int] = None,
+        handle_pagination: Optional[PaginationType] = None,
+    ) -> Union[List[BaseActivity], Iterator[List[BaseActivity]]]:
+        """
+        Gets a list of Account activities, with various filtering options. Please see the documentation for
+        GetAccountActivitiesRequest for more information as to what filters are available.
+
+        The return type of this function is List[BaseActivity] however the list will contain concrete instances of one
+        of the child classes of BaseActivity, either TradeActivity or NonTradeActivity. It can be a mixed list depending
+        on what filtering criteria you pass through `activity_filter`
+
+
+        Args:
+            activity_filter (GetAccountActivitiesRequest): The various filtering fields you can specify to restrict
+              results
+            max_items_limit (Optional[int]): A maximum number of items to return over all for when handle_pagination is
+              of type `PaginationType.FULL`. Ignored otherwise.
+            handle_pagination (Optional[PaginationType]): What kind of pagination you want. If None then defaults to
+              `PaginationType.FULL`
+
+        Returns:
+            Union[List[BaseActivity], Iterator[List[BaseActivity]]]: Either a list or an Iterator of lists of
+              BaseActivity child classes
+        """
+        handle_pagination = TradingClient._validate_pagination(
+            max_items_limit, handle_pagination
+        )
+
+        # otherwise, user wants pagination so we grab an interator
+        iterator = self._get_account_activities_iterator(
+            activity_filter=activity_filter,
+            max_items_limit=max_items_limit,
+            mapping=lambda raw_activities: [
+                TradingClient._parse_activity(activity) for activity in raw_activities
+            ],
+        )
+
+        return TradingClient._return_paginated_result(iterator, handle_pagination)
+
+    def _get_account_activities_iterator(
+        self,
+        activity_filter: GetAccountActivitiesRequest,
+        mapping: Callable[[HTTPResult], List[BaseActivity]],
+        max_items_limit: Optional[int] = None,
+    ) -> Iterator[List[BaseActivity]]:
+        """
+        Private method for handling the iterator parts of get_account_activities
+        """
+
+        # we need to track total items retrieved
+        total_items = 0
+        request_fields = activity_filter.to_request_fields()
+
+        while True:
+            """
+            we have a couple cases to handle here:
+              - max limit isn't set, so just handle normally
+              - max is set, and page_size isn't
+                - date isn't set. So we'll fall back to the default page size
+                - date is set, in this case the api is allowed to not page and return all results. Need to  make
+                  sure only take the we allow for making still a single request here but only taking the items we
+                  need, in case user wanted only 1 request to happen.
+              - max is set, and page_size is also set. Keep track of total_items and run a min check every page to
+                see if we need to take less than the page_size items
+            """
+
+            if max_items_limit is not None:
+                page_size = (
+                    activity_filter.page_size
+                    if activity_filter.page_size is not None
+                    else ACCOUNT_ACTIVITIES_DEFAULT_PAGE_SIZE
+                )
+
+                normalized_page_size = min(
+                    int(max_items_limit) - total_items, page_size
+                )
+
+                request_fields["page_size"] = normalized_page_size
+
+            result = self.get("/account/activities", request_fields)
+
+            # the api returns [] when it's done
+
+            if not isinstance(result, List) or len(result) == 0:
+                break
+
+            num_items_returned = len(result)
+
+            # need to handle the case where the api won't page and returns all results, ie `date` is set
+            if (
+                max_items_limit is not None
+                and num_items_returned + total_items > max_items_limit
+            ):
+                result = result[: (max_items_limit - total_items)]
+
+                total_items += max_items_limit - total_items
+            else:
+                total_items += num_items_returned
+
+            yield mapping(result)
+
+            if max_items_limit is not None and total_items >= max_items_limit:
+                break
+
+            # ok we made it to the end, we need to ask for the next page of results
+            last_result = result[-1]
+
+            if "id" not in last_result:
+                raise APIError(
+                    "AccountActivity didn't contain an `id` field to use for paginating results"
+                )
+
+            # set the pake token to the id of the last activity so we can get the next page
+            request_fields["page_token"] = last_result["id"]
+
+    @staticmethod
+    def _parse_activity(data: dict) -> Union[TradeActivity, NonTradeActivity]:
+        """
+        We cannot just use TypeAdapter for Activity types since we need to know what child instance to cast it into.
+
+        So this method does just that.
+
+        Args:
+            data (dict): a dict of raw data to attempt to convert into an Activity instance
+
+        Raises:
+            ValueError: Will raise a ValueError if `data` doesn't contain an `activity_type` field to compare
+        """
+
+        if "activity_type" not in data or data["activity_type"] is None:
+            raise ValueError(
+                "Failed parsing raw activity data, `activity_type` is not present in fields"
+            )
+
+        if ActivityType.is_str_trade_activity(data["activity_type"]):
+            return TypeAdapter(TradeActivity).validate_python(data)
+        else:
+            return TypeAdapter(NonTradeActivity).validate_python(data)
 
     # ############################## WATCHLIST ################################# #
 

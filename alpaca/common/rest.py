@@ -1,7 +1,7 @@
 import time
 import base64
 from abc import ABC
-from typing import Any, List, Optional, Type, Union, Tuple, Iterator
+from typing import List, Optional, Type, Union, Iterator
 
 from pydantic import BaseModel
 from requests import Session

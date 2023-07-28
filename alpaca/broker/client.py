@@ -1,5 +1,5 @@
 import base64
-from typing import Callable, Iterator, List, Optional, Union, Dict
+from typing import Callable, Iterator, List, Optional, Union
 from uuid import UUID
 
 import sseclient
@@ -7,18 +7,21 @@ import sseclient
 from pydantic import TypeAdapter
 from requests import HTTPError, Response
 
+
 from .enums import ACHRelationshipStatus
 from alpaca.broker.models import (
     ACHRelationship,
     Account,
     Bank,
-    CIPInfo,
     TradeAccount,
     TradeDocument,
     Transfer,
     Order,
     BatchJournalResponse,
     Journal,
+    BaseActivity,
+    NonTradeActivity,
+    TradeActivity,
 )
 from .requests import (
     CreateJournalRequest,
@@ -58,11 +61,6 @@ from alpaca.trading.models import (
     Clock,
     CorporateActionAnnouncement,
     AccountConfiguration as TradeAccountConfiguration,
-)
-from alpaca.trading.models import (
-    BaseActivity,
-    NonTradeActivity,
-    TradeActivity,
 )
 from alpaca.trading.requests import (
     GetPortfolioHistoryRequest,

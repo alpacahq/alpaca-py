@@ -377,7 +377,8 @@ class BrokerClient(RESTClient):
         account_id = validate_uuid_id_param(account_id, "account_id")
 
         result = self.patch(
-            f"/trading/accounts/{account_id}/account/configurations", config.json()
+            f"/trading/accounts/{account_id}/account/configurations",
+            config.model_dump_json(),
         )
 
         if self._use_raw_data:

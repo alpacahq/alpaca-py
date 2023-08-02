@@ -69,7 +69,7 @@ class ScreenerClient(RESTClient):
         """Return market movers."""
         response = self.get(
             path=f"/screener/{request_params.market_type}/movers",
-            data=request_params.dict(exclude={"market_type"}),
+            data=request_params.model_dump(exclude={"market_type"}),
         )
         if self._use_raw_data:
             return response

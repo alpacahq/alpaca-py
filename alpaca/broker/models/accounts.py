@@ -321,6 +321,7 @@ class TradeAccount(BaseTradeAccount):
     last_buying_power: Optional[str]
     clearing_broker: Optional[ClearingBroker]
 
+
 class OnfidoToken(BaseModel):
     """Contains the Onfido SDK token response.
     See https://alpaca.markets/docs/api-references/broker-api/accounts/accounts/#response-1
@@ -328,4 +329,5 @@ class OnfidoToken(BaseModel):
     Attributes:
         token (str): The Onfido SDK token to activate the Onfido SDK flow within your app.
     """
+
     token: str

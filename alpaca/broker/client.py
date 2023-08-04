@@ -561,7 +561,8 @@ class BrokerClient(RESTClient):
 
     # ############################## ONFIDO SDK ############################################# #
 
-    def get_onfido_sdk_token(self, 
+    def get_onfido_sdk_token(
+        self,
         account_id: Union[UUID, str],
         token_filter: Optional[GetOnfidoTokenRequest] = None,
     ) -> Union[OnfidoToken, RawData]:
@@ -578,15 +579,16 @@ class BrokerClient(RESTClient):
         """
         result = self.get(
             f"/accounts/{account_id}/onfido/sdk/tokens",
-             token_filter.to_request_fields() if token_filter else {},
+            token_filter.to_request_fields() if token_filter else {},
         )
 
         if self._use_raw_data:
             return result
 
         return TypeAdapter(OnfidoToken).validate_python(result)
-   
-    def update_onfido_sdk_outcome(self, 
+
+    def update_onfido_sdk_outcome(
+        self,
         account_id: Union[UUID, str],
         token_filter: UpdateOnfidoOutcomeRequest,
     ) -> Union[UpdateOnfidoOutcomeRequest, RawData]:
@@ -603,14 +605,13 @@ class BrokerClient(RESTClient):
         """
         result = self.patch(
             f"/accounts/{account_id}/onfido/sdk/tokens",
-             token_filter.to_request_fields() if token_filter else {},
+            token_filter.to_request_fields() if token_filter else {},
         )
 
         if self._use_raw_data:
             return result
 
         return TypeAdapter(UpdateOnfidoOutcomeRequest).validate_python(result)
-
 
     # ############################## TRADE ACCOUNT DOCUMENTS ################################# #
 

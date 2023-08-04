@@ -981,7 +981,9 @@ class GetEventsRequest(NonEmptyRequest):
     since_id: Optional[int] = None
     until_id: Optional[int] = None
 
+
 # ############################## Onfido ################################# #
+
 
 class GetOnfidoTokenRequest(NonEmptyRequest):
     """
@@ -991,6 +993,7 @@ class GetOnfidoTokenRequest(NonEmptyRequest):
         referrer (str): The referrer URL of your web app or the application ID of your mobile app. If not passed in, will default to the * wildcard
         platform (str): Required if referrer provided. Enum values are either mobile or web
     """
+
     referrer: Optional[str] = None
     platform: Optional[str] = None
 
@@ -998,11 +1001,12 @@ class GetOnfidoTokenRequest(NonEmptyRequest):
     def root_validator(cls, values: dict) -> dict:
         """Validate the platform required if referrer is provided."""
         if "referrer" in values and "platform" not in values:
-            raise ValueError("Platform is required if referrer provided.") 
+            raise ValueError("Platform is required if referrer provided.")
+
 
 class UpdateOnfidoOutcomeRequest(NonEmptyRequest):
     """
-    This request allows you to send Alpaca the result of the Onfido SDK flow in your app. 
+    This request allows you to send Alpaca the result of the Onfido SDK flow in your app.
     A notification of a successful outcome is required for Alpaca to continue the KYC process.
 
     Attributes:
@@ -1010,6 +1014,7 @@ class UpdateOnfidoOutcomeRequest(NonEmptyRequest):
         reason (str): Required if referrer provided. Enum values are either mobile or web
         token (str): Required if referrer provided. Enum values are either mobile or web
     """
+
     outcome: Optional[str] = None
     reason: Optional[str] = None
     token: str

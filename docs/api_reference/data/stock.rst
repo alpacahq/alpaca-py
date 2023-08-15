@@ -8,3 +8,4 @@ Stock Market Data
    stock/historical
    stock/live
    stock/requests
+   stock/screener

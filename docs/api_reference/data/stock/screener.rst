@@ -5,7 +5,7 @@ Screener API
 ScreenerClient
 --------------
 
-.. autoclass:: alpaca.data.historical.screener.client.ScreenerClient
+.. autoclass:: alpaca.data.historical.screener.ScreenerClient
    :members: __init__
 
 

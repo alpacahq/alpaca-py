@@ -51,3 +51,17 @@ ORDERBOOK_QUOTE_MAPPING: Dict[str, str] = {
     "p": "price",
     "s": "size",
 }
+
+AUCTION_MAPPING: Dict[str, str] = {
+    "t": "timestamp",
+    "x": "exchange",
+    "s": "size",
+    "p": "price",
+    "c": "conditions"
+}
+
+DAILY_AUCTION_MAPPING: Dict[str, str] = {
+    "d": "date",
+    "o": "opening_auctions",
+    "c": "closing_auctions"
+}

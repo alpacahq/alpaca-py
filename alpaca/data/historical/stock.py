@@ -13,7 +13,7 @@ from alpaca.data.historical.utils import (
     format_snapshot_data,
 )
 
-from alpaca.data.models import BarSet, QuoteSet, TradeSet
+from alpaca.data.models import BarSet, QuoteSet, TradeSet, DailyAuction
 from alpaca.data.requests import (
     StockBarsRequest,
     StockQuotesRequest,
@@ -22,6 +22,7 @@ from alpaca.data.requests import (
     StockLatestQuoteRequest,
     StockSnapshotRequest,
     StockLatestBarRequest,
+    StockAuctionRequest,
 )
 from alpaca.common.constants import DATA_V2_MAX_LIMIT
 
@@ -259,6 +260,29 @@ class StockHistoricalDataClient(RESTClient):
             return raw_snapshots
 
         return parse_obj_as_symbol_dict(Snapshot, raw_snapshots)
+
+    def get_stock_auctions(self, request_params: StockAuctionRequest) -> Union[Dict[str, DailyAuction], RawData]:
+
+        """The historical auctions endpoint provides auction prices for the stock symbol between the specified dates.
+        Args:
+            request_params (StockAuctionRequest): The request object for retrieving auction data.
+        Returns:
+            Union[Dict[str, DailyAuction], RawData]: The auction data either in raw or wrapped form
+        """
+
+        params = request_params.to_request_fields()
+
+        raw_auctions = self._data_get(
+            endpoint_asset_class="stocks",
+            endpoint_data_type="auctions",
+            api_version="v2",
+            **params,
+        )
+
+        if self._use_raw_data:
+            return raw_auctions
+
+        return parse_obj_as_symbol_dict(DailyAuction, raw_auctions)
 
     # TODO: Remove duplication
     def _data_get(

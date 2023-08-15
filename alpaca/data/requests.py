@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 from typing import Optional, Union, List, Any
 from pydantic import ConfigDict
 import pytz
@@ -353,3 +353,25 @@ class MarketMoversRequest(ScreenerRequest):
     """
 
     market_type: MarketType = MarketType.STOCKS.value
+
+
+# ############################## Auctions ################################# #
+
+
+class StockAuctionRequest(NonEmptyRequest):
+    """
+    A request object for retrieving historical auction data.
+    Attributes:
+        symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
+        start (Optional[datetime]): The beginning of the time interval for desired data. Timezone naive inputs assumed to be in UTC.
+        end (Optional[datetime]): The end of the time interval for desired data. Timezone naive inputs assumed to be in UTC.
+        limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
+        feed (Optional[DataFeed]): The stock data feed to retrieve from.
+        asof (Optional[date]): The asof date of the queried stock symbol in YYYY-MM-DD format. Default is the current day.
+    """
+    symbol_or_symbols: Union[str, List[str]]
+    start: Optional[datetime] = None
+    end: Optional[datetime] = None
+    limit: Optional[int] = None
+    asof: Optional[date] = None
+    feed: Optional[DataFeed] = None

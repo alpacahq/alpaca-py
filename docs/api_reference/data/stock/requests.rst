@@ -37,3 +37,15 @@ StockSnapshotRequest
 --------------------
 
 .. autoclass:: alpaca.data.requests.StockSnapshotRequest
+
+
+MostActivesRequest
+------------------
+
+.. autoclass:: alpaca.data.requests.MostActivesRequest
+
+
+MarketMoversRequest
+-------------------
+
+.. autoclass:: alpaca.data.requests.MarketMoversRequest

@@ -353,3 +353,30 @@ class MarketMoversRequest(ScreenerRequest):
     """
 
     market_type: MarketType = MarketType.STOCKS
+
+
+class NewsRequest(NonEmptyRequest):
+    """
+    This request class is used to submit a request for most actives screener endpoint.
+
+    Attributes:
+    start (Optional[datetime]): The inclusive start of the interval. Format: RFC-3339 or YYYY-MM-DD.
+        If missing, the default value is the beginning of the current day.
+    end (Optional[datetime])): The inclusive end of the interval. Format: RFC-3339 or YYYY-MM-DD.
+        If missing, the default value is the current time.
+    sort (Optional[str]): Sort articles by updated date.
+    symbols (Optional[str]): The comma-separated list of symbols to query news for.
+    limit (Optional[int]): Limit of news items to be returned for given page.
+    include_content (Optional[bool]): Boolean indicator to include content for news articles (if available)
+    exclude_contentless (Optional[bool]): Boolean indicator to exclude news articles that do not contain content
+    page_token (Optional[str]): Pagination token to continue from. The value to pass here is returned in specific requests
+        when more data is available than the request limit allows.
+    """
+    start: Optional[datetime] = None
+    end: Optional[datetime] = None
+    sort: Optional[str] = None
+    symbols: Optional[x] = None
+    limit: Optional[int] = None
+    include_content: Optional[bool] = None
+    exclude_contentless: Optional[bool] = None
+    page_token: Optional[str] = None

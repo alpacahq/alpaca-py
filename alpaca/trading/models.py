@@ -111,15 +111,15 @@ class Position(BaseModel):
         avg_entry_price (str): The average entry price of the position.
         qty (str): The number of shares of the position.
         side (PositionSide): "long" or "short" representing the side of the position.
-        market_value (str): Total dollar amount of the position.
+        market_value (Optional[str]): Total dollar amount of the position.
         cost_basis (str): Total cost basis in dollars.
-        unrealized_pl (str): Unrealized profit/loss in dollars.
-        unrealized_plpc (str): Unrealized profit/loss percent.
-        unrealized_intraday_pl (str): Unrealized profit/loss in dollars for the day.
-        unrealized_intraday_plpc (str): Unrealized profit/loss percent for the day.
-        current_price (str): Current asset price per share.
-        lastday_price (str): Last day’s asset price per share based on the closing value of the last trading day.
-        change_today (str): Percent change from last day's price.
+        unrealized_pl (Optional[str]): Unrealized profit/loss in dollars.
+        unrealized_plpc (Optional[str]): Unrealized profit/loss percent.
+        unrealized_intraday_pl (Optional[str]): Unrealized profit/loss in dollars for the day.
+        unrealized_intraday_plpc (Optional[str]): Unrealized profit/loss percent for the day.
+        current_price (Optional[str]): Current asset price per share.
+        lastday_price (Optional[str]): Last day’s asset price per share based on the closing value of the last trading day.
+        change_today (Optional[str]): Percent change from last day's price.
         swap_rate (Optional[str]): Swap rate is the exchange rate (without mark-up) used to convert the price into local currency or crypto asset.
         avg_entry_swap_rate (Optional[str]): The average exchange rate the price was converted into the local currency at.
         usd (USDPositionValues): Represents the position in USD values.

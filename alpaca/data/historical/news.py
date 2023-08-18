@@ -50,9 +50,7 @@ class NewsClient(RESTClient):
             raw_data=raw_data,
         )
 
-    def get_news(
-        self, request_params: NewsRequest
-    ) -> Union[RawData, NewsSet]:
+    def get_news(self, request_params: NewsRequest) -> Union[RawData, NewsSet]:
         """Returns news data
 
         Args:

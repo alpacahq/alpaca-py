@@ -13,8 +13,11 @@ class NewsImage(BaseModel):
         size (NewsImageSize): Possible values for size are thumb, small and large.
         url (str): url to image from news article.
     """
+
     size: NewsImageSize
     url: str
+
+
 class News(BaseModel):
     """
     images (URLs) related to given article
@@ -54,7 +57,6 @@ class NewsSet(BaseModel):
         news (List[News]): Array of news objects
         next_page_token (Optional[str]): Pagination token for next page
     """
+
     news: List[News]
     next_page_token: Optional[str]
-
-

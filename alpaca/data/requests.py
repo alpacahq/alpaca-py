@@ -372,6 +372,7 @@ class NewsRequest(NonEmptyRequest):
     page_token (Optional[str]): Pagination token to continue from. The value to pass here is returned in specific requests
         when more data is available than the request limit allows.
     """
+
     start: Optional[datetime] = None
     end: Optional[datetime] = None
     sort: Optional[str] = None

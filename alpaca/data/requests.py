@@ -376,7 +376,7 @@ class NewsRequest(NonEmptyRequest):
     start: Optional[datetime] = None
     end: Optional[datetime] = None
     sort: Optional[str] = None
-    symbols: Optional[x] = None
+    symbols: Optional[str] = None
     limit: Optional[int] = None
     include_content: Optional[bool] = None
     exclude_contentless: Optional[bool] = None

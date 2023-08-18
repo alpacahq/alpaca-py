@@ -131,21 +131,21 @@ class Position(BaseModel):
     symbol: str
     exchange: AssetExchange
     asset_class: AssetClass
-    asset_marginable: Optional[bool]
+    asset_marginable: Optional[bool] = None
     avg_entry_price: str
     qty: str
     side: PositionSide
-    market_value: str
+    market_value: Optional[str] = None
     cost_basis: str
-    unrealized_pl: str
-    unrealized_plpc: str
-    unrealized_intraday_pl: str
-    unrealized_intraday_plpc: str
-    current_price: str
-    lastday_price: str
-    change_today: str
-    swap_rate: Optional[str]
-    avg_entry_swap_rate: Optional[str]
+    unrealized_pl: Optional[str] = None
+    unrealized_plpc: Optional[str] = None
+    unrealized_intraday_pl: Optional[str] = None
+    unrealized_intraday_plpc: Optional[str] = None
+    current_price: Optional[str] = None
+    lastday_price: Optional[str] = None
+    change_today: Optional[str] = None
+    swap_rate: Optional[str] = None
+    avg_entry_swap_rate: Optional[str] = None
     usd: Optional[USDPositionValues]
     qty_available: Optional[str]
 

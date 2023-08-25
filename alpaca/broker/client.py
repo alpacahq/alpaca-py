@@ -590,28 +590,23 @@ class BrokerClient(RESTClient):
     def update_onfido_sdk_outcome(
         self,
         account_id: Union[UUID, str],
-        token_filter: UpdateOnfidoOutcomeRequest,
-    ) -> Union[UpdateOnfidoOutcomeRequest, RawData]:
+        onfido_outcome: UpdateOnfidoOutcomeRequest,
+    ) -> None:
         """Gets the Onfido SDK token.
         See https://alpaca.markets/docs/api-references/broker-api/accounts/accounts/#retrieving-an-onfido-sdk-token
 
         Args:
             account_id (Union[UUID, str]): The id of the Account you wish to retrieve the token for. str values will
               attempt to be upcast into UUID instances.
-            token_filter: (Optional[GetOnfidoTokenRequest]): The optional set of query parameters.
+            onfido_outcome: (Optional[UpdateOnfidoOutcomeRequest]): The result of the Onfido SK flow in your app.
 
         Returns:
             OnfidoToken: the Onfido SDK token.
         """
-        result = self.patch(
-            f"/accounts/{account_id}/onfido/sdk/tokens",
-            token_filter.to_request_fields() if token_filter else {},
+        self.patch(
+            f"/accounts/{account_id}/onfido/sdk/",
+            onfido_outcome.to_request_fields() if onfido_outcome else {},
         )
-
-        if self._use_raw_data:
-            return result
-
-        return TypeAdapter(UpdateOnfidoOutcomeRequest).validate_python(result)
 
     # ############################## TRADE ACCOUNT DOCUMENTS ################################# #
 

@@ -146,8 +146,8 @@ class Position(BaseModel):
     change_today: Optional[str] = None
     swap_rate: Optional[str] = None
     avg_entry_swap_rate: Optional[str] = None
-    usd: Optional[USDPositionValues]
-    qty_available: Optional[str]
+    usd: Optional[USDPositionValues] = None
+    qty_available: Optional[str] = None
 
 
 class AllAccountsPositions(BaseModel):

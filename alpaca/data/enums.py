@@ -120,3 +120,10 @@ class MarketType(str, Enum):
 
     STOCKS = "stocks"
     CRYPTO = "crypto"
+
+
+class NewsImageSize(str, Enum):
+
+    THUMB = "thumb"
+    SMALL = "small"
+    LARGE = "large"

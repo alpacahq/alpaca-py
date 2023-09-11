@@ -62,3 +62,29 @@ OrderbookQuote
 --------------
 
 .. autoclass:: alpaca.data.models.orderbooks.OrderbookQuote
+
+-----
+
+ActiveStock
+-----------
+
+.. autoclass:: alpaca.data.models.screener.ActiveStock
+
+
+MostActives
+-----------
+
+.. autoclass:: alpaca.data.models.screener.MostActives
+
+
+Mover
+-----
+
+.. autoclass:: alpaca.data.models.screener.Mover
+
+
+Movers
+------
+
+.. autoclass:: alpaca.data.models.screener.Movers
+

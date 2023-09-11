@@ -19,9 +19,9 @@ def create_dummy_batch_journal_entries() -> List[BatchJournalRequestEntry]:
     return entries
 
 
-def create_dummy_reverse_batch_journal_entries() -> List[
-    ReverseBatchJournalRequestEntry
-]:
+def create_dummy_reverse_batch_journal_entries() -> (
+    List[ReverseBatchJournalRequestEntry]
+):
     entries = [
         ReverseBatchJournalRequestEntry(
             from_account="d7017fd9-60dd-425b-a09a-63ff59368b62", amount="10"

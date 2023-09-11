@@ -401,7 +401,8 @@ class BaseStream:
         """Unsubscribe from minute bar data for symbol inputs
 
         Args:
-            *symbols: Variable string arguments for ticker identifiers to be unsubscribed from."""
+            *symbols: Variable string arguments for ticker identifiers to be unsubscribed from.
+        """
         if self._running:
             asyncio.run_coroutine_threadsafe(
                 self._unsubscribe(bars=symbols), self._loop
@@ -413,7 +414,8 @@ class BaseStream:
         """Unsubscribe from updated bar data for symbol inputs
 
         Args:
-            *symbols: Variable string arguments for ticker identifiers to be unsubscribed from."""
+            *symbols: Variable string arguments for ticker identifiers to be unsubscribed from.
+        """
         if self._running:
             asyncio.get_event_loop().run_until_complete(
                 self._unsubscribe(updated_bars=symbols)
@@ -425,7 +427,8 @@ class BaseStream:
         """Unsubscribe from daily bar data for symbol inputs
 
         Args:
-            *symbols: Variable string arguments for ticker identifiers to be unsubscribed from."""
+            *symbols: Variable string arguments for ticker identifiers to be unsubscribed from.
+        """
         if self._running:
             asyncio.run_coroutine_threadsafe(
                 self._unsubscribe(daily_bars=symbols), self._loop

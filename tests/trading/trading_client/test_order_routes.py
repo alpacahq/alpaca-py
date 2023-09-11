@@ -16,7 +16,6 @@ import pytest
 
 
 def test_market_order(reqmock, trading_client):
-
     reqmock.post(
         f"{BaseURL.TRADING_PAPER}/v2/orders",
         text="""
@@ -72,7 +71,6 @@ def test_market_order(reqmock, trading_client):
 
 
 def test_get_orders(reqmock, trading_client: TradingClient):
-
     reqmock.get(
         f"{BaseURL.TRADING_PAPER}/v2/orders",
         text="""
@@ -123,7 +121,6 @@ def test_get_orders(reqmock, trading_client: TradingClient):
 
 
 def test_get_order_by_id(reqmock, trading_client: TradingClient):
-
     order_id = "61e69015-8549-4bfd-b9c3-01e75843f47d"
 
     reqmock.get(
@@ -175,7 +172,6 @@ def test_get_order_by_id(reqmock, trading_client: TradingClient):
 
 
 def test_get_order_by_client_id(reqmock, trading_client: TradingClient):
-
     client_id = "eb9e2aaa-f71a-4f51-b5b4-52a6c565dad4"
 
     reqmock.get(
@@ -225,7 +221,6 @@ def test_get_order_by_client_id(reqmock, trading_client: TradingClient):
 
 
 def test_replace_order(reqmock, trading_client: TradingClient):
-
     order_id = "61e69015-8549-4bfd-b9c3-01e75843f47d"
 
     reqmock.patch(
@@ -321,7 +316,6 @@ def test_cancel_order_throws_not_found_error(reqmock, trading_client: TradingCli
 
 
 def test_cancel_orders(reqmock, trading_client: TradingClient):
-
     status_code = 207
 
     reqmock.delete(

@@ -68,7 +68,7 @@ class ScreenerClient(RESTClient):
     ) -> Union[RawData, Movers]:
         """Return market movers."""
         response = self.get(
-            path=f"/screener/{request_params.market_type}/movers",
+            path=f"/screener/{request_params.market_type.lower()}/movers",
             data=request_params.model_dump(exclude={"market_type"}),
         )
         if self._use_raw_data:

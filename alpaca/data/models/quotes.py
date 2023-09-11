@@ -59,8 +59,6 @@ class QuoteSet(BaseDataSet, TimeSeriesMixin):
         data (Dict[str, List[Quote]]): The collection of Quotes keyed by symbol.
     """
 
-    data: Dict[str, List[Quote]]
-
     def __init__(self, raw_data: RawData) -> None:
         """Instantiates a QuoteSet.
 

@@ -55,8 +55,6 @@ class TradeSet(BaseDataSet, TimeSeriesMixin):
         data (Dict[str, List[Trade]]]): The collection of Trades keyed by symbol.
     """
 
-    data: Dict[str, List[Trade]]
-
     def __init__(self, raw_data: RawData) -> None:
         """Instantiates a TradeSet - a collection of Trades.
 

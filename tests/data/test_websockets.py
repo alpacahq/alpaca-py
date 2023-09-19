@@ -28,7 +28,6 @@ def timestamp():
 
 
 def test_cast(ws_client, raw_ws_client, timestamp):
-
     # Bar
     bar_msg_type = "b"
     bar_msg_dict = {

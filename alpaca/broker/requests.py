@@ -34,7 +34,7 @@ from alpaca.broker.enums import (
     JournalStatus,
 )
 from alpaca.common.enums import Sort, SupportedCurrencies
-from alpaca.trading.enums import ActivityType, AccountStatus, OrderType
+from alpaca.trading.enums import ActivityType, AccountStatus, OrderType, AssetClass
 from alpaca.common.requests import NonEmptyRequest
 from alpaca.trading.requests import (
     OrderRequest as BaseOrderRequest,
@@ -69,6 +69,7 @@ class CreateAccountRequest(NonEmptyRequest):
     documents: Optional[List[AccountDocument]] = None
     trusted_contact: Optional[TrustedContact] = None
     currency: Optional[SupportedCurrencies] = None  # None = USD
+    enabled_assets: Optional[List[AssetClass]] = None  # None = Default to server
 
     @root_validator
     def validate_parameters_only_optional_in_response(cls, values: dict) -> dict:
@@ -851,7 +852,6 @@ class CreateJournalRequest(NonEmptyRequest):
 
     @root_validator()
     def root_validator(cls, values: dict) -> dict:
-
         entry_type = values.get("entry_type")
         symbol = values.get("symbol")
         qty = values.get("qty")
@@ -867,7 +867,6 @@ class CreateJournalRequest(NonEmptyRequest):
                 raise ValueError("Cash journals must contain an amount to transfer.")
 
         if entry_type is not None and entry_type == JournalEntryType.SECURITY:
-
             if amount:
                 raise ValueError("Amount is reserved for cash journals.")
 
@@ -967,7 +966,6 @@ class GetJournalsRequest(NonEmptyRequest):
 
 
 class GetEventsRequest(NonEmptyRequest):
-
     id: Optional[str]
     since: Optional[Union[date, str]]
     until: Optional[Union[date, str]]

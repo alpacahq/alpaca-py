@@ -423,7 +423,6 @@ def test_bank_transfer_with_ach_transfer_type():
 
 
 def test_journal_with_amount_and_qty():
-
     with pytest.raises(ValueError) as e:
         CreateJournalRequest(
             from_account="c94bu7rn-4483-4199-840f-6c5fe0b7ca24",

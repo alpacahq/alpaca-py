@@ -255,7 +255,6 @@ class OrderRequest(NonEmptyRequest):
 
     @root_validator()
     def root_validator(cls, values: dict) -> dict:
-
         qty_set = "qty" in values and values["qty"] is not None
         notional_set = "notional" in values and values["notional"] is not None
 
@@ -288,7 +287,6 @@ class MarketOrderRequest(OrderRequest):
     """
 
     def __init__(self, **data: Any) -> None:
-
         data["type"] = OrderType.MARKET
 
         super().__init__(**data)
@@ -318,7 +316,6 @@ class StopOrderRequest(OrderRequest):
     stop_price: float
 
     def __init__(self, **data: Any) -> None:
-
         data["type"] = OrderType.STOP
 
         super().__init__(**data)
@@ -347,7 +344,6 @@ class LimitOrderRequest(OrderRequest):
     limit_price: float
 
     def __init__(self, **data: Any) -> None:
-
         data["type"] = OrderType.LIMIT
 
         super().__init__(**data)
@@ -379,7 +375,6 @@ class StopLimitOrderRequest(OrderRequest):
     limit_price: float
 
     def __init__(self, **data: Any) -> None:
-
         data["type"] = OrderType.STOP_LIMIT
 
         super().__init__(**data)
@@ -410,14 +405,12 @@ class TrailingStopOrderRequest(OrderRequest):
     trail_percent: Optional[float]
 
     def __init__(self, **data: Any) -> None:
-
         data["type"] = OrderType.TRAILING_STOP
 
         super().__init__(**data)
 
     @root_validator()
     def root_validator(cls, values: dict) -> dict:
-
         trail_percent_set = (
             "trail_percent" in values and values["trail_percent"] is not None
         )
@@ -456,7 +449,6 @@ class GetCorporateAnnouncementsRequest(NonEmptyRequest):
 
     @root_validator()
     def root_validator(cls, values: dict) -> dict:
-
         since = values.get("since")
         until = values.get("until")
 

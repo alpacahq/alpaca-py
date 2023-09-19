@@ -264,7 +264,6 @@ class AccountStatus(str, Enum):
 
 
 class CorporateActionDateType(str, Enum):
-
     DECLARATION_DATE = "declaration_date"
     EX_DATE = "ex_date"
     RECORD_DATE = "record_date"
@@ -272,7 +271,6 @@ class CorporateActionDateType(str, Enum):
 
 
 class TradeEvent(str, Enum):
-
     FILL = "fill"
     CANCELED = "canceled"
     NEW = "new"
@@ -280,7 +278,6 @@ class TradeEvent(str, Enum):
 
 
 class QueryOrderStatus(str, Enum):
-
     OPEN = "open"
     CLOSED = "closed"
     ALL = "all"

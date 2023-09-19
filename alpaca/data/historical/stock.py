@@ -323,7 +323,6 @@ class StockHistoricalDataClient(RESTClient):
         page_token = None
 
         while True:
-
             actual_limit = None
 
             # adjusts the limit parameter value if it is over the page_limit

@@ -658,10 +658,9 @@ class BrokerClient(RESTClient):
             except HTTPError as http_error:
                 if response.status_code in self._retry_codes:
                     continue
-                if "code" in response.text:
-                    error = response.json()
-                    if "code" in error:
-                        raise APIError(error, http_error)
+                error = response.text
+                if "code" in error:
+                    raise APIError(error, http_error)
                 else:
                     raise http_error
 

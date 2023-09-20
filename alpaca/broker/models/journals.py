@@ -46,18 +46,18 @@ class Journal(BaseModel):
     from_account: UUID
     entry_type: JournalEntryType
     status: JournalStatus
-    net_amount: Optional[float]
-    symbol: Optional[str]
-    qty: Optional[float]
-    price: Optional[float]
-    description: Optional[str]
-    settle_date: Optional[date]
-    system_date: Optional[date]
-    transmitter_name: Optional[str]
-    transmitter_account_number: Optional[str]
-    transmitter_address: Optional[str]
-    transmitter_financial_institution: Optional[str]
-    transmitter_timestamp: Optional[str]
+    net_amount: Optional[float] = None
+    symbol: Optional[str] = None
+    qty: Optional[float] = None
+    price: Optional[float] = None
+    description: Optional[str] = None
+    settle_date: Optional[date] = None
+    system_date: Optional[date] = None
+    transmitter_name: Optional[str] = None
+    transmitter_account_number: Optional[str] = None
+    transmitter_address: Optional[str] = None
+    transmitter_financial_institution: Optional[str] = None
+    transmitter_timestamp: Optional[str] = None
     currency: SupportedCurrencies
 
 
@@ -69,4 +69,4 @@ class BatchJournalResponse(Journal):
         error_message (Optional[str]): An message that contains error details for failed journals.
     """
 
-    error_message: Optional[str]
+    error_message: Optional[str] = None

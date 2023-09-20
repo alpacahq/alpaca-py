@@ -4,7 +4,7 @@ from uuid import UUID
 
 import sseclient
 
-from pydantic import parse_obj_as
+from pydantic import TypeAdapter
 from requests import HTTPError, Response
 
 from .enums import ACHRelationshipStatus
@@ -126,7 +126,7 @@ class BrokerClient(RESTClient):
         base_url = (
             url_override
             if url_override is not None
-            else BaseURL.BROKER_SANDBOX
+            else BaseURL.BROKER_SANDBOX.value
             if sandbox
             else BaseURL.BROKER_PRODUCTION
         )
@@ -273,8 +273,7 @@ class BrokerClient(RESTClient):
 
         if self._use_raw_data:
             return response
-
-        return parse_obj_as(List[Account], response)
+        return TypeAdapter(List[Account]).validate_python(response)
 
     def get_trade_account_by_id(
         self,
@@ -378,7 +377,8 @@ class BrokerClient(RESTClient):
         account_id = validate_uuid_id_param(account_id, "account_id")
 
         result = self.patch(
-            f"/trading/accounts/{account_id}/account/configurations", config.json()
+            f"/trading/accounts/{account_id}/account/configurations",
+            config.model_dump_json(),
         )
 
         if self._use_raw_data:
@@ -459,8 +459,8 @@ class BrokerClient(RESTClient):
     def _get_account_activities_iterator(
         self,
         activity_filter: GetAccountActivitiesRequest,
-        max_items_limit: Optional[int],
         mapping: Callable[[HTTPResult], List[BaseActivity]],
+        max_items_limit: Optional[int] = None,
     ) -> Iterator[List[BaseActivity]]:
         """
         Private method for handling the iterator parts of get_account_activities
@@ -535,7 +535,7 @@ class BrokerClient(RESTClient):
     @staticmethod
     def _parse_activity(data: dict) -> Union[TradeActivity, NonTradeActivity]:
         """
-        We cannot just use parse_obj_as for Activity types since we need to know what child instance to cast it into.
+        We cannot just use TypeAdapter for Activity types since we need to know what child instance to cast it into.
 
         So this method does just that.
 
@@ -552,9 +552,9 @@ class BrokerClient(RESTClient):
             )
 
         if ActivityType.is_str_trade_activity(data["activity_type"]):
-            return parse_obj_as(TradeActivity, data)
+            return TypeAdapter(TradeActivity).validate_python(data)
         else:
-            return parse_obj_as(NonTradeActivity, data)
+            return TypeAdapter(NonTradeActivity).validate_python(data)
 
     # ############################## TRADE ACCOUNT DOCUMENTS ################################# #
 
@@ -585,7 +585,7 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return result
 
-        return parse_obj_as(List[TradeDocument], result)
+        return TypeAdapter(List[TradeDocument]).validate_python(result)
 
     def get_trade_document_for_account_by_id(
         self,
@@ -614,7 +614,7 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return parse_obj_as(TradeDocument, response)
+        return TypeAdapter(TradeDocument).validate_python(response)
 
     def download_trade_document_for_account_by_id(
         self,
@@ -741,7 +741,7 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return parse_obj_as(List[ACHRelationship], response)
+        return TypeAdapter(List[ACHRelationship]).validate_python(response)
 
     def delete_ach_relationship_for_account(
         self,
@@ -808,7 +808,7 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return parse_obj_as(List[Bank], response)
+        return TypeAdapter(List[Bank]).validate_python(response)
 
     def delete_bank_for_account(
         self,
@@ -924,7 +924,7 @@ class BrokerClient(RESTClient):
             else:
                 total_items += num_items_returned
 
-            yield parse_obj_as(List[Transfer], result)
+            yield TypeAdapter(List[Transfer]).validate_python(result)
 
             if max_items_limit is not None and total_items >= max_items_limit:
                 break
@@ -968,8 +968,7 @@ class BrokerClient(RESTClient):
 
         if self._use_raw_data:
             return response
-
-        return parse_obj_as(List[Position], response)
+        return TypeAdapter(List[Position]).validate_python(response)
 
     def get_all_accounts_positions(
         self,
@@ -1035,8 +1034,7 @@ class BrokerClient(RESTClient):
 
         if self._use_raw_data:
             return response
-
-        return parse_obj_as(List[ClosePositionResponse], response)
+        return TypeAdapter(List[ClosePositionResponse]).validate_python(response)
 
     def close_position_for_account(
         self,
@@ -1139,7 +1137,7 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return result
 
-        return parse_obj_as(List[Calendar], result)
+        return TypeAdapter(List[Calendar]).validate_python(result)
 
     # ############################## WATCHLISTS ################################# #
 
@@ -1163,7 +1161,7 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return result
 
-        return parse_obj_as(List[Watchlist], result)
+        return TypeAdapter(List[Watchlist]).validate_python(result)
 
     def get_watchlist_for_account_by_id(
         self,
@@ -1376,7 +1374,7 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return parse_obj_as(List[BatchJournalResponse], response)
+        return TypeAdapter(List[BatchJournalResponse]).validate_python(response)
 
     def create_reverse_batch_journal(
         self,
@@ -1400,7 +1398,7 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return parse_obj_as(List[BatchJournalResponse], response)
+        return TypeAdapter(List[BatchJournalResponse]).validate_python(response)
 
     def get_journals(
         self, journal_filter: Optional[GetJournalsRequest] = None
@@ -1421,7 +1419,7 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return parse_obj_as(List[Journal], response)
+        return TypeAdapter(List[Journal]).validate_python(response)
 
     def get_journal_by_id(
         self, journal_id: Union[UUID, str] = None
@@ -1484,7 +1482,9 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return parse_obj_as(List[Asset], response)
+        return TypeAdapter(
+            List[Asset],
+        ).validate_python(response)
 
     def get_asset(self, symbol_or_asset_id: Union[UUID, str]) -> Union[Asset, RawData]:
         """
@@ -1559,7 +1559,9 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return parse_obj_as(List[Order], response)
+        return TypeAdapter(
+            List[Order],
+        ).validate_python(response)
 
     def get_order_for_account_by_id(
         self,
@@ -1668,7 +1670,9 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return parse_obj_as(List[CancelOrderResponse], response)
+        return TypeAdapter(
+            List[CancelOrderResponse],
+        ).validate_python(response)
 
     def cancel_order_for_account_by_id(
         self, account_id: Union[UUID, str], order_id: Union[UUID, str]
@@ -1710,7 +1714,9 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return parse_obj_as(List[CorporateActionAnnouncement], response)
+        return TypeAdapter(
+            List[CorporateActionAnnouncement],
+        ).validate_python(response)
 
     def get_corporate_announcement_by_id(
         self, corporate_announcment_id: Union[UUID, str]

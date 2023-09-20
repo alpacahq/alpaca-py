@@ -7,7 +7,7 @@ from requests_mock import Mocker
 
 def test_get_account(reqmock: Mocker, trading_client: TradingClient):
     reqmock.get(
-        f"{BaseURL.TRADING_PAPER}/v2/account",
+        f"{BaseURL.TRADING_PAPER.value}/v2/account",
         text="""
         {
           "account_blocked": false,
@@ -50,7 +50,7 @@ def test_get_account(reqmock: Mocker, trading_client: TradingClient):
 
 def test_get_account_configurations(reqmock: Mocker, trading_client: TradingClient):
     reqmock.get(
-        f"{BaseURL.TRADING_PAPER}/v2/account/configurations",
+        f"{BaseURL.TRADING_PAPER.value}/v2/account/configurations",
         text="""
         {
           "dtbp_check": "entry",
@@ -84,8 +84,8 @@ def test_set_account_configurations(reqmock: Mocker, trading_client: TradingClie
         }
     )
     reqmock.patch(
-        f"{BaseURL.TRADING_PAPER}/v2/account/configurations",
-        json=json.dumps(new_account_configurations.dict()),
+        f"{BaseURL.TRADING_PAPER.value}/v2/account/configurations",
+        json=json.dumps(new_account_configurations.model_dump()),
     )
 
     account_configurations = trading_client.set_account_configurations(

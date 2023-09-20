@@ -1,8 +1,8 @@
 from datetime import date, datetime
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Dict, Any
 from uuid import UUID
 
-from pydantic import root_validator, validator
+from pydantic import model_validator, field_validator
 
 from alpaca.broker.models.accounts import (
     AccountDocument,
@@ -71,7 +71,7 @@ class CreateAccountRequest(NonEmptyRequest):
     currency: Optional[SupportedCurrencies] = None  # None = USD
     enabled_assets: Optional[List[AssetClass]] = None  # None = Default to server
 
-    @root_validator
+    @model_validator(mode="before")
     def validate_parameters_only_optional_in_response(cls, values: dict) -> dict:
         """
         Validate parameters that are optional in the response but not in the request.
@@ -201,8 +201,8 @@ class UpdatableTrustedContact(TrustedContact):
     given_name: Optional[str] = None
     family_name: Optional[str] = None
 
-    # override the parent and set a new root validator that just allows all
-    @root_validator()
+    # override the parent and set a new root field_validator that just allows all
+    @model_validator(mode="before")
     def root_validator(cls, values: dict) -> dict:
         """Override parent method to allow null contact info"""
         return values
@@ -314,7 +314,7 @@ class GetAccountActivitiesRequest(NonEmptyRequest):
 
         super().__init__(*args, **kwargs)
 
-    @root_validator()
+    @model_validator(mode="before")
     def root_validator(cls, values: dict) -> dict:
         """Verify that certain conflicting params aren't set"""
 
@@ -359,7 +359,7 @@ class GetTradeDocumentsRequest(NonEmptyRequest):
 
         super().__init__(**data)
 
-    @root_validator()
+    @model_validator(mode="before")
     def root_validator(cls, values: dict) -> dict:
         if (
             "start" in values
@@ -388,14 +388,14 @@ class UploadDocumentRequest(NonEmptyRequest):
     content: str
     mime_type: UploadDocumentMimeType
 
-    @root_validator()
+    @model_validator(mode="before")
     def root_validator(cls, values: dict) -> dict:
         if values["document_type"] == DocumentType.W8BEN:
             raise ValueError(
                 "Error please use the UploadW8BenDocument class for uploading W8BEN documents"
             )
 
-        if values["document_sub_type"] == UploadDocumentSubType.FORM_W8_BEN:
+        if values.get("document_sub_type", None) == UploadDocumentSubType.FORM_W8_BEN:
             raise ValueError(
                 "Error please use the UploadW8BenDocument class for uploading W8BEN documents"
             )
@@ -437,10 +437,10 @@ class UploadW8BenDocumentRequest(NonEmptyRequest):
 
         super().__init__(**data)
 
-    @root_validator()
+    @model_validator(mode="before")
     def root_validator(cls, values: dict) -> dict:
-        content_is_none = values["content"] is None
-        content_data_is_none = values["content_data"] is None
+        content_is_none = values.get("content", None) is None
+        content_data_is_none = values.get("content_data", None) is None
 
         if content_is_none and content_data_is_none:
             raise ValueError(
@@ -485,7 +485,7 @@ class CreateACHRelationshipRequest(NonEmptyRequest):
     bank_account_type: BankAccountType
     bank_account_number: str  # TODO: Validate bank account number format.
     bank_routing_number: str  # TODO: Validate bank routing number format.
-    nickname: Optional[str]
+    nickname: Optional[str] = None
 
 
 class CreatePlaidRelationshipRequest(NonEmptyRequest):
@@ -526,13 +526,13 @@ class CreateBankRequest(NonEmptyRequest):
     bank_code_type: IdentifierType
     bank_code: str
     account_number: str
-    country: Optional[str]
-    state_province: Optional[str]
-    postal_code: Optional[str]
-    city: Optional[str]
-    street_address: Optional[str]
+    country: Optional[str] = None
+    state_province: Optional[str] = None
+    postal_code: Optional[str] = None
+    city: Optional[str] = None
+    street_address: Optional[str] = None
 
-    @root_validator()
+    @model_validator(mode="before")
     def root_validator(cls, values: dict) -> dict:
         if "bank_code_type" not in values:
             # Bank code type was not valid, so a ValueError will be thrown regardless.
@@ -582,9 +582,9 @@ class _CreateTransferRequest(NonEmptyRequest):
     amount: str
     direction: TransferDirection
     timing: TransferTiming
-    fee_payment_method: Optional[FeePaymentMethod]
+    fee_payment_method: Optional[FeePaymentMethod] = None
 
-    @validator("amount")
+    @field_validator("amount")
     def amount_must_be_positive(cls, value: str) -> str:
         if float(value) <= 0:
             raise ValueError("You must provide an amount > 0.")
@@ -601,7 +601,7 @@ class CreateACHTransferRequest(_CreateTransferRequest):
     relationship_id: UUID
     transfer_type: TransferType = TransferType.ACH
 
-    @validator("transfer_type")
+    @field_validator("transfer_type")
     def transfer_type_must_be_ach(cls, value: TransferType) -> TransferType:
         if value != TransferType.ACH:
             raise ValueError(
@@ -619,9 +619,9 @@ class CreateBankTransferRequest(_CreateTransferRequest):
 
     bank_id: UUID
     transfer_type: TransferType = TransferType.WIRE
-    additional_information: Optional[str]
+    additional_information: Optional[str] = None
 
-    @validator("transfer_type")
+    @field_validator("transfer_type")
     def transfer_type_must_be_wire(cls, value: TransferType) -> TransferType:
         if value != TransferType.WIRE:
             raise ValueError(
@@ -636,9 +636,9 @@ class GetTransfersRequest(NonEmptyRequest):
         direction: Optionally filter for transfers of only a single TransferDirection.
     """
 
-    direction: Optional[TransferDirection]
-    limit: Optional[int]
-    offset: Optional[int]
+    direction: Optional[TransferDirection] = None
+    limit: Optional[int] = None
+    offset: Optional[int] = None
 
 
 # ############################## Orders ################################# #
@@ -664,20 +664,27 @@ class OrderRequest(BaseOrderRequest):
         commission (Optional[float]): The dollar value commission you want to charge the end user.
     """
 
-    commission: Optional[float]
+    commission: Optional[float] = None
     currency: Optional[SupportedCurrencies] = None  # None = USD
 
-    @validator("type")
-    def order_type_must_be_market_for_lct(cls, value: OrderType) -> OrderType:
+    @model_validator(mode="before")
+    def order_type_must_be_market_for_lct(
+        cls, values: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Order type must always be market if currency is not USD.
         See https://alpaca.markets/docs/broker/integration/lct/#submit-stock-trade
         """
-        if cls.currency and value != OrderType.MARKET:
+        if (
+            values.get("type") != OrderType.MARKET
+            and "currency" in values
+            and values.get("currency", SupportedCurrencies.USD)
+            != SupportedCurrencies.USD
+        ):
             raise ValueError(
                 "Order type must be OrderType.MARKET if the order is in a local currency."
             )
-        return value
+        return values
 
 
 class MarketOrderRequest(BaseMarketOrderRequest):
@@ -700,7 +707,7 @@ class MarketOrderRequest(BaseMarketOrderRequest):
         commission (Optional[float]): The dollar value commission you want to charge the end user.
     """
 
-    commission: Optional[float]
+    commission: Optional[float] = None
 
 
 class LimitOrderRequest(BaseLimitOrderRequest):
@@ -724,7 +731,7 @@ class LimitOrderRequest(BaseLimitOrderRequest):
         commission (Optional[float]): The dollar value commission you want to charge the end user.
     """
 
-    commission: Optional[float]
+    commission: Optional[float] = None
 
 
 class StopOrderRequest(BaseStopOrderRequest):
@@ -749,7 +756,7 @@ class StopOrderRequest(BaseStopOrderRequest):
         commission (Optional[float]): The dollar value commission you want to charge the end user.
     """
 
-    commission: Optional[float]
+    commission: Optional[float] = None
 
 
 class StopLimitOrderRequest(BaseStopLimitOrderRequest):
@@ -775,7 +782,7 @@ class StopLimitOrderRequest(BaseStopLimitOrderRequest):
         commission (Optional[float]): The dollar value commission you want to charge the end user
     """
 
-    commission: Optional[float]
+    commission: Optional[float] = None
 
 
 class TrailingStopOrderRequest(BaseTrailingStopOrderRequest):
@@ -800,7 +807,7 @@ class TrailingStopOrderRequest(BaseTrailingStopOrderRequest):
         commission (Optional[float]): The dollar value commission you want to charge the end user.
     """
 
-    commission: Optional[float]
+    commission: Optional[float] = None
 
 
 class CancelOrderResponse(BaseCancelOrderResponse):
@@ -839,18 +846,18 @@ class CreateJournalRequest(NonEmptyRequest):
     from_account: UUID
     entry_type: JournalEntryType
     to_account: UUID
-    amount: Optional[float]
-    symbol: Optional[str]
-    qty: Optional[float]
-    description: Optional[str]
-    transmitter_name: Optional[str]
-    transmitter_account_number: Optional[str]
-    transmitter_address: Optional[str]
-    transmitter_financial_institution: Optional[str]
-    transmitter_timestamp: Optional[str]
+    amount: Optional[float] = None
+    symbol: Optional[str] = None
+    qty: Optional[float] = None
+    description: Optional[str] = None
+    transmitter_name: Optional[str] = None
+    transmitter_account_number: Optional[str] = None
+    transmitter_address: Optional[str] = None
+    transmitter_financial_institution: Optional[str] = None
+    transmitter_timestamp: Optional[str] = None
     currency: Optional[SupportedCurrencies] = None  # None = USD
 
-    @root_validator()
+    @model_validator(mode="before")
     def root_validator(cls, values: dict) -> dict:
         entry_type = values.get("entry_type")
         symbol = values.get("symbol")
@@ -920,7 +927,7 @@ class CreateBatchJournalRequest(NonEmptyRequest):
 
     entry_type: JournalEntryType
     from_account: UUID
-    description: Optional[str]
+    description: Optional[str] = None
     entries: List[BatchJournalRequestEntry]
 
 
@@ -940,7 +947,7 @@ class CreateReverseBatchJournalRequest(NonEmptyRequest):
 
     entry_type: JournalEntryType
     to_account: UUID
-    description: Optional[str]
+    description: Optional[str] = None
     entries: List[ReverseBatchJournalRequestEntry]
 
 
@@ -957,17 +964,18 @@ class GetJournalsRequest(NonEmptyRequest):
         from_account (Optional[UUID]): Only journals from this account.
     """
 
-    after: Optional[date]
-    before: Optional[date]
-    status: Optional[JournalStatus]
-    entry_type: Optional[JournalEntryType]
-    to_account: Optional[UUID]
-    from_account: Optional[UUID]
+    after: Optional[date] = None
+    before: Optional[date] = None
+    status: Optional[JournalStatus] = None
+    entry_type: Optional[JournalEntryType] = None
+    to_account: Optional[UUID] = None
+    from_account: Optional[UUID] = None
 
 
 class GetEventsRequest(NonEmptyRequest):
-    id: Optional[str]
-    since: Optional[Union[date, str]]
-    until: Optional[Union[date, str]]
-    since_id: Optional[int]
-    until_id: Optional[int]
+
+    id: Optional[str] = None
+    since: Optional[Union[date, str]] = None
+    until: Optional[Union[date, str]] = None
+    since_id: Optional[int] = None
+    until_id: Optional[int] = None

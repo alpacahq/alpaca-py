@@ -14,7 +14,7 @@ from alpaca.trading.client import TradingClient
 
 def test_get_all_positions(reqmock, trading_client: TradingClient):
     reqmock.get(
-        f"{BaseURL.TRADING_PAPER}/v2/positions",
+        f"{BaseURL.TRADING_PAPER.value}/v2/positions",
         text="""
         [
             {
@@ -62,7 +62,7 @@ def test_get_open_position_with_asset_id(reqmock, trading_client: TradingClient)
     asset_id = UUID("904837e3-3b76-47ec-b432-046db621571b")
 
     reqmock.get(
-        f"{BaseURL.TRADING_PAPER}/v2/positions/{asset_id}",
+        f"{BaseURL.TRADING_PAPER.value}/v2/positions/{asset_id}",
         text=f"""
         {{
             "asset_id": "{asset_id}",
@@ -108,7 +108,7 @@ def test_get_open_position_with_symbol(reqmock, trading_client: TradingClient):
     symbol = "AAPL"
 
     reqmock.get(
-        f"{BaseURL.TRADING_PAPER}/v2/positions/{symbol}",
+        f"{BaseURL.TRADING_PAPER.value}/v2/positions/{symbol}",
         text=f"""
         {{
             "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
@@ -152,7 +152,7 @@ def test_get_open_position_with_symbol(reqmock, trading_client: TradingClient):
 
 def test_close_all_positions(reqmock, trading_client: TradingClient):
     reqmock.delete(
-        f"{BaseURL.TRADING_PAPER}/v2/positions",
+        f"{BaseURL.TRADING_PAPER.value}/v2/positions",
         text="""
     [
         {
@@ -223,7 +223,7 @@ def test_close_position_with_id(reqmock, trading_client: TradingClient):
     asset_id = UUID("904837e3-3b76-47ec-b432-046db621571b")
 
     reqmock.delete(
-        f"{BaseURL.TRADING_PAPER}/v2/positions/{asset_id}",
+        f"{BaseURL.TRADING_PAPER.value}/v2/positions/{asset_id}",
         text=f"""
             {{
               "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
@@ -275,7 +275,7 @@ def test_close_position_with_symbol(reqmock, trading_client: TradingClient):
     symbol = "AAPL"
 
     reqmock.delete(
-        f"{BaseURL.TRADING_PAPER}/v2/positions/{symbol}",
+        f"{BaseURL.TRADING_PAPER.value}/v2/positions/{symbol}",
         text=f"""
             {{
               "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
@@ -327,7 +327,7 @@ def test_close_position_with_qty(reqmock, trading_client: TradingClient):
     asset_id = UUID("904837e3-3b76-47ec-b432-046db621571b")
 
     reqmock.delete(
-        f"{BaseURL.TRADING_PAPER}/v2/positions/{asset_id}",
+        f"{BaseURL.TRADING_PAPER.value}/v2/positions/{asset_id}",
         text="""
         {
           "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
@@ -379,7 +379,7 @@ def test_close_position_with_percentage(reqmock, trading_client: TradingClient):
     asset_id = UUID("904837e3-3b76-47ec-b432-046db621571b")
 
     reqmock.delete(
-        f"{BaseURL.TRADING_PAPER}/v2/positions/{asset_id}",
+        f"{BaseURL.TRADING_PAPER.value}/v2/positions/{asset_id}",
         text="""
         {
           "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",

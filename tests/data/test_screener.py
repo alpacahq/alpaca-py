@@ -10,7 +10,7 @@ from alpaca.common.enums import BaseURL
 def test_get_market_movers(reqmock, screener_client: ScreenerClient):
     num_movers = 10
     reqmock.get(
-        f"{BaseURL.DATA}/v1beta1/screener/stocks/movers?top={num_movers}",
+        f"{BaseURL.DATA.value}/v1beta1/screener/stocks/movers?top={num_movers}",
         text="""
         {
     "gainers": [
@@ -151,7 +151,7 @@ def test_get_market_movers(reqmock, screener_client: ScreenerClient):
 def test_get_most_actives(reqmock, screener_client: ScreenerClient):
     num_movers = 10
     reqmock.get(
-        f"{BaseURL.DATA}/v1beta1/screener/stocks/most-actives?by=volume&top={num_movers}",
+        f"{BaseURL.DATA.value}/v1beta1/screener/stocks/most-actives?by=volume&top={num_movers}",
         text="""
         {
     "last_updated": "2023-06-23T14:19:00.182582147Z",

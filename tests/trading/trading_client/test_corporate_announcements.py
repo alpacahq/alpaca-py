@@ -10,8 +10,11 @@ from alpaca.trading.client import TradingClient
 
 
 def test_get_announcements(reqmock, trading_client: TradingClient):
+    since = "2021-01-01"
+    until = "2021-02-01"
+    ca_types = CorporateActionType.DIVIDEND.value
     reqmock.get(
-        f"{BaseURL.TRADING_PAPER}/v2/corporate_actions/announcements",
+        f"{BaseURL.TRADING_PAPER.value}/v2/corporate_actions/announcements?ca_types={ca_types}&since={since}&until={until}",
         text="""
         [
           {
@@ -54,7 +57,7 @@ def test_get_announcements(reqmock, trading_client: TradingClient):
     )
 
     ca_filter = GetCorporateAnnouncementsRequest(
-        ca_types=[CorporateActionType.DIVIDEND], since="2021-01-01", until="2021-02-01"
+        ca_types=[ca_types], since=since, until=until
     )
 
     response = trading_client.get_corporate_announcements(ca_filter)

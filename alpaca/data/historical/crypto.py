@@ -312,7 +312,7 @@ class CryptoHistoricalDataClient(RESTClient):
         # stocks, crypto, etc
         path = f"/{endpoint_asset_class}"
 
-        path += f"/{feed}"
+        path += f"/{feed.value}"
 
         if isinstance(symbol_or_symbols, str):
             symbol_or_symbols = [symbol_or_symbols]

@@ -24,12 +24,12 @@ class Trade(BaseModel):
 
     symbol: str
     timestamp: datetime
-    exchange: Optional[Union[Exchange, str]]
+    exchange: Optional[Union[Exchange, str]] = None
     price: float
     size: float
     id: int
-    conditions: Optional[List[str]]
-    tape: Optional[str]
+    conditions: Optional[List[str]] = None
+    tape: Optional[str] = None
 
     def __init__(self, symbol: str, raw_data: RawData) -> None:
         """Instantiates a Trade history object
@@ -54,8 +54,6 @@ class TradeSet(BaseDataSet, TimeSeriesMixin):
     Attributes:
         data (Dict[str, List[Trade]]]): The collection of Trades keyed by symbol.
     """
-
-    data: Dict[str, List[Trade]]
 
     def __init__(self, raw_data: RawData) -> None:
         """Instantiates a TradeSet - a collection of Trades.

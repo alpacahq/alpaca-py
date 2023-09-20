@@ -1,6 +1,6 @@
 import itertools
 import pprint
-from typing import Any
+from typing import Any, Dict, List
 
 import pandas as pd
 from pandas import DataFrame
@@ -32,6 +32,12 @@ class TimeSeriesMixin:
 
 
 class BaseDataSet(BaseModel):
+    """
+    Base class to process data models for trades, bars and quotes.
+    """
+
+    data: Dict[str, List[BaseModel]]
+
     def __getitem__(self, symbol: str) -> Any:
         """Gives dictionary-like access to multi-symbol data
 
@@ -58,6 +64,6 @@ class BaseDataSet(BaseModel):
         """
         # converts each data (Bar, Quote, etc) in the symbol specific lists to its dictionary format
         return {
-            symbol: list(map(lambda d: d.dict(), data_list))
+            symbol: list(map(lambda d: d.model_dump(), data_list))
             for symbol, data_list in self.data.items()
         }

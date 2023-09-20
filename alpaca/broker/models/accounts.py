@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
 
-from pydantic import parse_obj_as, root_validator, validator
+from pydantic import TypeAdapter, model_validator, field_validator, ValidationInfo
 
 from alpaca.broker.models.documents import AccountDocument
 from ..enums import (
@@ -45,8 +45,8 @@ class Contact(BaseModel):
     postal_code: Optional[str] = None
     country: Optional[str] = None
 
-    @validator("state")
-    def usa_state_has_value(cls, v: str, values: dict, **kwargs) -> str:
+    @field_validator("state")
+    def usa_state_has_value(cls, v: str, validation: ValidationInfo, **kwargs) -> str:
         """Validates that the state has a value if the country is USA
 
         Args:
@@ -59,6 +59,7 @@ class Contact(BaseModel):
         Returns:
             str: The value of the state field
         """
+        values: dict = validation.data
         if "country" in values and values["country"] == "USA" and v is None:
             raise ValueError("State is required for country USA.")
         return v
@@ -184,7 +185,7 @@ class TrustedContact(BaseModel):
     postal_code: Optional[str] = None
     country: Optional[str] = None
 
-    @root_validator()
+    @model_validator(mode="before")
     def root_validator(cls, values: dict) -> dict:
         has_phone_number = (
             "phone_number" in values and values["phone_number"] is not None
@@ -253,32 +254,34 @@ class Account(BaseModel):
             last_equity=(response["last_equity"]),
             created_at=(response["created_at"]),
             contact=(
-                parse_obj_as(Contact, response["contact"])
+                TypeAdapter(Contact).validate_python(response["contact"])
                 if "contact" in response
                 else None
             ),
             identity=(
-                parse_obj_as(Identity, response["identity"])
+                TypeAdapter(Identity).validate_python(response["identity"])
                 if "identity" in response
                 else None
             ),
             disclosures=(
-                parse_obj_as(Disclosures, response["disclosures"])
+                TypeAdapter(Disclosures).validate_python(response["disclosures"])
                 if "disclosures" in response
                 else None
             ),
             agreements=(
-                parse_obj_as(List[Agreement], response["agreements"])
+                TypeAdapter(List[Agreement]).validate_python(response["agreements"])
                 if "agreements" in response
                 else None
             ),
             documents=(
-                parse_obj_as(List[AccountDocument], response["documents"])
+                TypeAdapter(List[AccountDocument]).validate_python(
+                    response["documents"]
+                )
                 if "documents" in response
                 else None
             ),
             trusted_contact=(
-                parse_obj_as(TrustedContact, response["trusted_contact"])
+                TypeAdapter(TrustedContact).validate_python(response["trusted_contact"])
                 if "trusted_contact" in response
                 else None
             ),

@@ -26,14 +26,14 @@ class Quote(BaseModel):
 
     symbol: str
     timestamp: datetime
-    ask_exchange: Optional[Union[str, Exchange]]
+    ask_exchange: Optional[Union[str, Exchange]] = None
     ask_price: float
     ask_size: float
-    bid_exchange: Optional[Union[str, Exchange]]
+    bid_exchange: Optional[Union[str, Exchange]] = None
     bid_price: float
     bid_size: float
-    conditions: Optional[List[str]]
-    tape: Optional[str]
+    conditions: Optional[List[str]] = None
+    tape: Optional[str] = None
 
     def __init__(self, symbol: str, raw_data: RawData) -> None:
         """Instantiates a Quote
@@ -58,8 +58,6 @@ class QuoteSet(BaseDataSet, TimeSeriesMixin):
     Attributes:
         data (Dict[str, List[Quote]]): The collection of Quotes keyed by symbol.
     """
-
-    data: Dict[str, List[Quote]]
 
     def __init__(self, raw_data: RawData) -> None:
         """Instantiates a QuoteSet.

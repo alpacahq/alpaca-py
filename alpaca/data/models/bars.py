@@ -53,8 +53,6 @@ class BarSet(BaseDataSet, TimeSeriesMixin):
         data (Dict[str, List[Bar]]): The collection of Bars keyed by symbol.
     """
 
-    data: Dict[str, List[Bar]]
-
     def __init__(
         self,
         raw_data: RawData,

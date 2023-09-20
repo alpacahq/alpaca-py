@@ -202,7 +202,6 @@ def test_reverse_batch_journal(reqmock, client: BrokerClient):
 
 
 def test_get_journals(reqmock, client: BrokerClient):
-
     reqmock.get(
         f"{BaseURL.BROKER_SANDBOX.value}/v1/journals",
         text="""
@@ -249,7 +248,6 @@ def test_get_journals(reqmock, client: BrokerClient):
 
 
 def test_get_journal_by_id(reqmock, client: BrokerClient):
-
     journal_id = "0a9152c4-d232-4b00-9102-5fa19aca40cb"
 
     reqmock.get(
@@ -280,7 +278,6 @@ def test_get_journal_by_id(reqmock, client: BrokerClient):
 
 
 def test_get_journal_by_id(reqmock, client: BrokerClient):
-
     journal_id = "0a9152c4-d232-4b00-9102-5fa19aca40cb"
 
     reqmock.delete(

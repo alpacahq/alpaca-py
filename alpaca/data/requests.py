@@ -28,7 +28,6 @@ class BaseTimeseriesDataRequest(NonEmptyRequest):
     currency: Optional[SupportedCurrencies] = None  # None = USD
 
     def __init__(self, **data: Any) -> None:
-
         # convert timezone aware datetime to timezone naive UTC datetime
         if (
             "start" in data

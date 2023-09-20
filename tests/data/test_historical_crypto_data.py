@@ -20,7 +20,6 @@ from alpaca.data.models import (
 
 
 def test_get_crypto_bars(reqmock, crypto_client: CryptoHistoricalDataClient):
-
     # test multisymbol request
     symbols = ["BTC/USD", "ETH/USD"]
     start = datetime(2022, 3, 9)
@@ -61,7 +60,7 @@ def test_get_crypto_bars(reqmock, crypto_client: CryptoHistoricalDataClient):
             ]
         },
         "next_page_token": null
-    }   
+    }
         """,
     )
     request = CryptoBarsRequest(
@@ -79,7 +78,6 @@ def test_get_crypto_bars(reqmock, crypto_client: CryptoHistoricalDataClient):
 
 
 def test_get_trades(reqmock, crypto_client: CryptoHistoricalDataClient):
-
     # test multisymbol request
     symbols = ["BTC/USD", "ETH/USD"]
     start = datetime(2022, 3, 9)
@@ -112,7 +110,7 @@ def test_get_trades(reqmock, crypto_client: CryptoHistoricalDataClient):
             ]
         },
         "next_page_token": null
-    }   
+    }
         """,
     )
 
@@ -130,7 +128,6 @@ def test_get_trades(reqmock, crypto_client: CryptoHistoricalDataClient):
 
 
 def test_get_crypto_latest_trade(reqmock, crypto_client: CryptoHistoricalDataClient):
-
     # Test single symbol request
     symbol = "BTC/USD"
 
@@ -146,7 +143,7 @@ def test_get_crypto_latest_trade(reqmock, crypto_client: CryptoHistoricalDataCli
             "tks": "B",
             "i": 26932440
         }
-    } 
+    }
         """,
     )
 
@@ -167,7 +164,6 @@ def test_get_crypto_latest_trade(reqmock, crypto_client: CryptoHistoricalDataCli
 
 
 def test_get_crypto_latest_quote(reqmock, crypto_client: CryptoHistoricalDataClient):
-
     # Test single symbol request
     symbol = "BTC/USD"
 
@@ -204,7 +200,6 @@ def test_get_crypto_latest_quote(reqmock, crypto_client: CryptoHistoricalDataCli
 
 
 def test_crypto_get_snapshot(reqmock, crypto_client: CryptoHistoricalDataClient):
-
     # test multisymbol request
     symbols = ["BTC/USD", "ETH/USD"]
 
@@ -308,7 +303,7 @@ def test_crypto_get_snapshot(reqmock, crypto_client: CryptoHistoricalDataClient)
                 }
             }
         }
-    }  
+    }
         """,
     )
 
@@ -331,14 +326,13 @@ def test_crypto_get_snapshot(reqmock, crypto_client: CryptoHistoricalDataClient)
 
 
 def test_crypto_latest_bar(reqmock, crypto_client: CryptoHistoricalDataClient):
-
     symbol = "BTC/USD"
     reqmock.get(
         f"https://data.alpaca.markets/v1beta3/crypto/us/latest/bars?symbols={symbol}",
         text="""
            {
             "bars": {
-                "BTC/USD": 
+                "BTC/USD":
                     {
                         "t": "2022-05-27T10:18:00Z",
                         "o": 28999,
@@ -349,7 +343,7 @@ def test_crypto_latest_bar(reqmock, crypto_client: CryptoHistoricalDataClient):
                         "n": 4,
                         "vw": 29001
                     }
-                
+
             },
             "next_page_token": null
         }

@@ -448,8 +448,8 @@ class GetCorporateAnnouncementsRequest(NonEmptyRequest):
     @model_validator(mode="before")
     def root_validator(cls, values: dict) -> dict:
       
-        since = values.get("since")
-        until = values.get("until")
+        since = pd.Timestamp(values.get("since")).date()
+        until = pd.Timestamp(values.get("until")).date()
 
         if (
             since is not None

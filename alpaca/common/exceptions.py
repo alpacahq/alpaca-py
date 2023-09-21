@@ -1,9 +1,8 @@
 import json
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Union
 from pydantic import BaseModel, TypeAdapter, ValidationError
 from requests.exceptions import HTTPError
 from requests import Request, Response
-from enum import Enum
 
 
 class ErrorBody(BaseModel):
@@ -18,17 +17,6 @@ class ErrorBody(BaseModel):
 class PDTErrorBody(ErrorBody):
     """
     Represent the body of the API error in case of PDT.
-
-    Example:
-    {
-        "code":40310000,
-        "day_trading_buying_power":"43251.29",
-        "max_dtbp_used":"43370.52",
-        "max_dtbp_used_so_far":"12805.28",
-        "message":"day trading margin call protection",
-        "open_orders":"283",
-        "symbol":"AAPL"
-    }
     """
 
     day_trading_buying_power: float
@@ -41,14 +29,6 @@ class PDTErrorBody(ErrorBody):
 class BuyingPowerErrorBody(ErrorBody):
     """
     Represent the body of the API error in case of insufficient buying power.
-
-    Example:
-    {
-        "buying_power": "0",
-        "code": 40310000,
-        "cost_basis": "1",
-        "message": "insufficient buying power"
-    }
     """
 
     buying_power: float

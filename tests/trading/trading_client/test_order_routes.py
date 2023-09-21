@@ -1,4 +1,4 @@
-from alpaca.common.exceptions import APIError
+from alpaca.common.exceptions import APIError, BuyingPowerErrorBody
 from alpaca.trading.requests import (
     GetOrderByIdRequest,
     GetOrdersRequest,
@@ -15,7 +15,7 @@ from alpaca.common.enums import BaseURL
 import pytest
 
 
-def test_market_order(reqmock, trading_client):
+def test_market_order(reqmock, trading_client: TradingClient):
     reqmock.post(
         f"{BaseURL.TRADING_PAPER.value}/v2/orders",
         text="""
@@ -292,6 +292,12 @@ def test_cancel_order_throws_uncancelable_error(reqmock, trading_client: Trading
     reqmock.delete(
         f"{BaseURL.TRADING_PAPER.value}/v2/orders/{order_id}",
         status_code=status_code,
+        text="""
+        {
+            "code": 40410000,
+            "message": "order not found"
+        }
+        """
     )
 
     with pytest.raises(APIError):
@@ -307,12 +313,19 @@ def test_cancel_order_throws_not_found_error(reqmock, trading_client: TradingCli
     reqmock.delete(
         f"{BaseURL.TRADING_PAPER.value}/v2/orders/{order_id}",
         status_code=status_code,
+        text="""
+        {
+            "code": 40410000,
+            "message": "order not found"
+        }
+        """
     )
 
-    with pytest.raises(APIError):
+    with pytest.raises(APIError) as error:
         trading_client.cancel_order_by_id(order_id)
 
     assert reqmock.called_once
+    assert error.value.body.message == "order not found"
 
 
 def test_cancel_orders(reqmock, trading_client: TradingClient):
@@ -338,7 +351,7 @@ def test_cancel_orders(reqmock, trading_client: TradingClient):
     assert response[0].status == 200
 
 
-def test_limit_order(reqmock, trading_client):
+def test_limit_order(reqmock, trading_client: TradingClient):
     reqmock.post(
         f"{BaseURL.TRADING_PAPER.value}/v2/orders",
         text="""
@@ -391,3 +404,70 @@ def test_limit_order(reqmock, trading_client):
     lo_response = trading_client.submit_order(lo)
 
     assert lo_response.status == OrderStatus.ACCEPTED
+
+
+def test_insufficient_buying_power(reqmock, trading_client: TradingClient):
+    status_code = 403
+    reqmock.post(
+        f"{BaseURL.TRADING_PAPER.value}/v2/orders",
+        status_code=status_code,
+        text="""
+        {
+            "buying_power": "0",
+            "code": 40310000,
+            "cost_basis": "1",
+            "message": "insufficient buying power"
+        }
+        """,
+    )
+
+    # Market Order
+    mo = MarketOrderRequest(
+        symbol="SPY",
+        side=OrderSide.BUY,
+        time_in_force=TimeInForce.DAY,
+        notional=1,
+    )
+
+    with pytest.raises(APIError) as error:
+        trading_client.submit_order(mo)
+
+    api_error = error.value
+    assert isinstance(api_error, APIError)
+    assert api_error.code == 40310000
+    assert api_error.status_code == status_code
+    assert isinstance(api_error.body, BuyingPowerErrorBody)
+
+
+def test_insufficient_buying_power_pydantic_error(
+    reqmock, trading_client: TradingClient
+):
+    status_code = 403
+    reqmock.post(
+        f"{BaseURL.TRADING_PAPER.value}/v2/orders",
+        status_code=status_code,
+        text="""
+        {
+            "buying_power": "0",
+            "code": 40310000,
+            "cost_basis": "1"
+        }
+        """,
+    )
+
+    # Market Order
+    mo = MarketOrderRequest(
+        symbol="SPY",
+        side=OrderSide.BUY,
+        time_in_force=TimeInForce.DAY,
+        notional=1,
+    )
+
+    with pytest.raises(APIError) as error:
+        trading_client.submit_order(mo)
+
+    api_error = error.value
+    assert isinstance(api_error, APIError)
+    assert api_error.code == 40310000
+    assert api_error.status_code == status_code
+    assert isinstance(api_error.body, dict)

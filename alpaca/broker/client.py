@@ -524,10 +524,9 @@ class BrokerClient(RESTClient):
             # ok we made it to the end, we need to ask for the next page of results
             last_result = result[-1]
 
-            if "id" not in last_result:
-                raise APIError(
-                    "AccountActivity didn't contain an `id` field to use for paginating results"
-                )
+            assert (
+                "id" in last_result
+            ), "AccountActivity didn't contain an `id` field to use for paginating results"
 
             # set the pake token to the id of the last activity so we can get the next page
             request_fields["page_token"] = last_result["id"]
@@ -658,18 +657,15 @@ class BrokerClient(RESTClient):
             except HTTPError as http_error:
                 if response.status_code in self._retry_codes:
                     continue
-                error = response.text
-                if "code" in error:
-                    raise APIError(error, http_error)
-                else:
-                    raise http_error
+                raise APIError(http_error) from http_error
 
             # if we got here there were no issues', so response is now a value
             break
 
-        if response is None:
-            # we got here either by error or someone has mis-configured us, so we didn't even try
-            raise Exception("Somehow we never made a request for download!")
+        # we got here either by error or someone has mis-configured us, so we didn't even try
+        assert isinstance(
+            response, Response
+        ), "Somehow we never made a request for download!"
 
         with open(file_path, "wb") as f:
             # we specify chunk_size none which is okay since we set stream to true above, so chunks will be as we

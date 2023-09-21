@@ -1,20 +1,36 @@
 import json
-from typing import Optional
-from pydantic import BaseModel, TypeAdapter
+from typing import Any, Dict, List, Optional, Union
+from pydantic import BaseModel, TypeAdapter, ValidationError
 from requests.exceptions import HTTPError
 from requests import Request, Response
+from enum import Enum
+
 
 class ErrorBody(BaseModel):
     """
-    Represent the body of an API error response.    
+    Represent the body of an API error response.
     """
+
     code: int
     message: str
 
+
 class PDTErrorBody(ErrorBody):
     """
-    Represent the body of the API error in case of PDT.    
+    Represent the body of the API error in case of PDT.
+
+    Example:
+    {
+        "code":40310000,
+        "day_trading_buying_power":"43251.29",
+        "max_dtbp_used":"43370.52",
+        "max_dtbp_used_so_far":"12805.28",
+        "message":"day trading margin call protection",
+        "open_orders":"283",
+        "symbol":"AAPL"
+    }
     """
+
     day_trading_buying_power: float
     max_dtbp_used: float
     max_dtbp_used_so_far: float
@@ -22,49 +38,81 @@ class PDTErrorBody(ErrorBody):
     symbol: str
 
 
+class BuyingPowerErrorBody(ErrorBody):
+    """
+    Represent the body of the API error in case of insufficient buying power.
+
+    Example:
+    {
+        "buying_power": "0",
+        "code": 40310000,
+        "cost_basis": "1",
+        "message": "insufficient buying power"
+    }
+    """
+
+    buying_power: float
+    cost_basis: float
+
+
 class APIError(Exception):
     """
-    Represent API related error.
-    error.status_code will have http status code.
+    Represent API related error coming from an HTTP request to one of Alpaca's APIs.
+
+    Attributes:
+        request (Request): will be the HTTP request.
+        response (Response): will be the HTTP response.
+        status_code (int): will be the HTTP status_code.
+        body (Union[ErrorBody, Dict[str, Any]]): will have the body of the response,
+            it will be a base model or the raw data if the pydantic validation fails.
+        code (int): will be the Alpaca error code from the response body.
     """
 
     def __init__(
         self,
-        error: str,
-        http_error: Optional[HTTPError] = None,
-    ):
-        super().__init__(error)
-        self._error = error
+        http_error: HTTPError,
+    ) -> None:
+        super().__init__(http_error)
         self._http_error = http_error
 
     @property
-    def code(self) -> str:
-        error = json.loads(self._error)
-        return error["code"]
+    def request(self) -> Request:
+        assert isinstance(self._http_error.request, Request)
+        return self._http_error.request
+
+    @property
+    def response(self) -> Response:
+        assert isinstance(self._http_error.response, Response)
+        return self._http_error.response
 
     @property
     def status_code(self) -> int:
-        http_error = self._http_error
-        if http_error is not None and hasattr(http_error, "response"):
-            return http_error.response.status_code
+        return self.response.status_code
 
     @property
-    def request(self) -> Optional[Request]:
-        if self._http_error is not None:
-            return self._http_error.request
+    def body(self) -> Union[ErrorBody, Dict[str, Any]]:
+        _body: Dict[str, Any] = json.loads(self.response.content)
+        _models: List[ErrorBody] = [
+            ErrorBody,
+            BuyingPowerErrorBody,
+            PDTErrorBody,
+        ]
+        for base_model in _models:
+            if set(base_model.model_fields.keys()) == set(_body.keys()):
+                try:
+                    return TypeAdapter(base_model).validate_python(_body)
+                except ValidationError:
+                    return _body
+        return _body
 
     @property
-    def response(self)  -> Optional[Response]:
-        if self._http_error is not None:
-            return self._http_error.response
-
-    @property
-    def body(self)  -> Optional[ErrorBody]:
-        error = json.loads(self._error)
-        try:
-            return TypeAdapter(PDTErrorBody).validate_python(error)
-        except Exception:
-            return None
+    def code(self) -> int:
+        if isinstance(self.body, ErrorBody):
+            return self.body.code
+        elif isinstance(self.body, dict):
+            return int(self.body.get("code"))
+        else:
+            return int(json.loads(self.response.content)["code"])
 
 
 class RetryException(Exception):

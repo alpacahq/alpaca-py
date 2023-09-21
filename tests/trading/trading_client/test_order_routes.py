@@ -297,7 +297,7 @@ def test_cancel_order_throws_uncancelable_error(reqmock, trading_client: Trading
             "code": 40410000,
             "message": "order not found"
         }
-        """
+        """,
     )
 
     with pytest.raises(APIError):
@@ -318,7 +318,7 @@ def test_cancel_order_throws_not_found_error(reqmock, trading_client: TradingCli
             "code": 40410000,
             "message": "order not found"
         }
-        """
+        """,
     )
 
     with pytest.raises(APIError) as error:

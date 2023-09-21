@@ -5,17 +5,10 @@ description = "A configurable sidebar-enabled Sphinx theme"
 category = "dev"
 optional = false
 python-versions = ">=3.6"
-
-[[package]]
-name = "annotated-types"
-version = "0.5.0"
-description = "Reusable constraint types to use with typing.Annotated"
-category = "main"
-optional = false
-python-versions = ">=3.7"
-
-[package.dependencies]
-typing-extensions = {version = ">=4.0.0", markers = "python_version < \"3.9\""}
+files = [
+    {file = "alabaster-0.7.13-py3-none-any.whl", hash = "sha256:1ee19aca801bbabb5ba3f5f258e4422dfa86f82f3e9cefb0859b283cdd7f62a3"},
+    {file = "alabaster-0.7.13.tar.gz", hash = "sha256:a27a4a084d5e690e16e01e03ad2b2e552c61a65469419b907243193de1a84ae2"},
+]
 
 [[package]]
 name = "apeye"

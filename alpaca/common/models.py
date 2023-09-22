@@ -8,8 +8,6 @@ class ValidateBaseModel(BaseModel, validate_assignment=True):
     it or forget to specify it in our models where we want assignment validation
     """
 
-    # ignoring the ('model_',) protected namespace may temporarly fix the docs build
-    model_config = ConfigDict(protected_namespaces=tuple())
 
     def __repr__(self):
         return pprint.pformat(self.model_dump(), indent=4)

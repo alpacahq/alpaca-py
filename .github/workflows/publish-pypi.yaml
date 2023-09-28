@@ -1,6 +1,8 @@
-name: Python package
+name: Publish python package
 on:
   push:
+    branches:
+      - master
     tags:
       - "v*.*.*"
 
@@ -9,7 +11,22 @@ jobs:
   tests-ci:
     strategy:
       fail-fast: false
-
+      matrix:
+        python-version: [ 3.8 ] #we'll want to add other versions down the road
+        poetry-version: [ 1.1.13 ]
+        os: [ ubuntu-latest ] #in the future we should add windows here
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: setup poetry
+        run: pip install poetry==1.4.2
+      - name: Poetry install
+        run: poetry install
+      - name: run tests
+        run: poetry run pytest
 
   build-and-publish:
     runs-on: ubuntu-latest

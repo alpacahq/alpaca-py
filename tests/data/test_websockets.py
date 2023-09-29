@@ -60,7 +60,8 @@ def test_cast(ws_client, raw_ws_client, timestamp):
         "s": 90,
         "c": ["@", "I"],
         "z": "C",
-        "t": timestamp,
+        # test if we receive a string from the socket
+        "t": "2023-09-29T11:17:21.214347466Z",
     }
 
     trade_cast_msg = ws_client._cast(trade_msg_type, trade__msg_dict)

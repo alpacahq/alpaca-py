@@ -5,7 +5,7 @@ from collections import defaultdict
 from typing import Callable, Dict, Optional, Union, Tuple
 
 import msgpack
-from pandas import Timestamp 
+from pandas import Timestamp
 import websockets
 from pydantic import BaseModel
 from alpaca import __version__
@@ -167,13 +167,15 @@ class BaseStream:
             # convert msgpack timestamp to nanoseconds
             if "t" in msg:
                 msg_t = msg["t"]
-                if isinstance(msg_t, msgpack.ext.Timestamp):    
+                if isinstance(msg_t, msgpack.ext.Timestamp):
                     msg["t"] = msg_t.to_datetime()
                 else:
                     if isinstance(msg_t, str):
                         # if it's a string let's try to parse it using pandas
                         msg["t"] = Timestamp(msg_t)
-                    raise ValueError(f"timestamp received with type: {type(msg_t)}, expected `msgpack.ext.Timestamp`")
+                    raise ValueError(
+                        f"timestamp received with type: {type(msg_t)}, expected `msgpack.ext.Timestamp`"
+                    )
 
             if "S" not in msg:
                 return msg

@@ -116,6 +116,7 @@ def test_cast(ws_client: BaseStream, raw_ws_client: BaseStream, timestamp: Times
     assert raw_trade_cast_msg["p"] == 177.79
     assert raw_trade_cast_msg["x"] == "V"
 
+
 def test_cast_value_error(ws_client: BaseStream, raw_ws_client: BaseStream):
     """Test the value error in case there's a different timestamp type."""
     bar_msg_type = "b"

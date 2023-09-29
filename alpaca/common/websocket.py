@@ -167,10 +167,13 @@ class BaseStream:
             # convert msgpack timestamp to nanoseconds
             if "t" in msg:
                 msg_t = msg["t"]
-                if isinstance(msg_t, str):
-                    msg["t"] = Timestamp(msg_t)
+                if isinstance(msg_t, msgpack.ext.Timestamp):    
+                    msg["t"] = msg_t.to_datetime()
                 else:
-                    msg["t"] = msg_t.seconds * int(1e9) + msg_t.nanoseconds
+                    if isinstance(msg_t, str):
+                        # if it's a string let's try to parse it using pandas
+                        msg["t"] = Timestamp(msg_t)
+                    raise ValueError(f"timestamp received with type: {type(msg_t)}, expected `msgpack.ext.Timestamp`")
 
             if "S" not in msg:
                 return msg

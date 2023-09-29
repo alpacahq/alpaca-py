@@ -75,6 +75,7 @@ docs/_build/
 target/
 
 # Jupyter Notebook
+*.ipynb
 .ipynb_checkpoints
 
 # IPython
@@ -130,3 +131,6 @@ dmypy.json
 
 #IDE configs
 .idea
+
+# Cloudflare stuff
+Cloudflare_CA.pem

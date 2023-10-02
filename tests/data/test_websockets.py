@@ -1,3 +1,4 @@
+from datetime import datetime
 import pandas as pd
 import pytest
 from msgpack.ext import Timestamp
@@ -20,9 +21,9 @@ def raw_ws_client() -> BaseStream:
 
 
 @pytest.fixture
-def timestamp() -> Timestamp:
+def timestamp() -> datetime:
     """Msgpack mock timestamp."""
-    return Timestamp(seconds=100, nanoseconds=0)
+    return datetime(year=2023, month=1, day=10, hour=10, second=10)
 
 
 def test_cast(ws_client: BaseStream, raw_ws_client: BaseStream, timestamp: Timestamp):
@@ -115,21 +116,3 @@ def test_cast(ws_client: BaseStream, raw_ws_client: BaseStream, timestamp: Times
     assert raw_trade_cast_msg["S"] == "AAPL"
     assert raw_trade_cast_msg["p"] == 177.79
     assert raw_trade_cast_msg["x"] == "V"
-
-
-def test_cast_value_error(ws_client: BaseStream, raw_ws_client: BaseStream):
-    """Test the value error in case there's a different timestamp type."""
-    bar_msg_type = "b"
-    bar_msg_dict = {
-        "S": "AAPL",
-        "o": 177.94,
-        "c": 178.005,
-        "h": 178.005,
-        "l": 177.94,
-        "v": 8547,
-        "t": pd.Timestamp("2012-12-01"),
-        "n": 66,
-        "vw": 177.987562,
-    }
-    with pytest.raises(ValueError):
-        ws_client._cast(bar_msg_type, bar_msg_dict)

@@ -143,7 +143,7 @@ class BaseStream:
             else:
                 try:
                     r = await asyncio.wait_for(self._ws.recv(), 5)
-                    msgs = msgpack.unpackb(r)
+                    msgs = msgpack.unpackb(r, timestamp=3)
                     for msg in msgs:
                         await self._dispatch(msg)
                 except asyncio.TimeoutError:
@@ -165,19 +165,6 @@ class BaseStream:
         """
         result = msg
         if not self._raw_data:
-            # convert msgpack timestamp to nanoseconds
-            if "t" in msg:
-                msg_t = msg["t"]
-                if isinstance(msg_t, msgpack.ext.Timestamp):
-                    msg["t"] = msg_t.to_datetime()
-                else:
-                    if isinstance(msg_t, str):
-                        # if it's a string let's try to parse it using pandas
-                        msg["t"] = Timestamp(msg_t)
-                    else:
-                        raise ValueError(
-                            f"timestamp received with type: {type(msg_t)}, expected `msgpack.ext.Timestamp`"
-                        )
 
             if "S" not in msg:
                 return msg

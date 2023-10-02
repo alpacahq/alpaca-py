@@ -112,5 +112,5 @@ class Transfer(BaseModel):
     reason: Optional[str] = None
     requested_amount: Optional[str] = None
     fee: Optional[str] = None
-    fee_payment_method: Optional[FeePaymentMethod]
+    fee_payment_method: Optional[FeePaymentMethod] = None
     additional_information: Optional[str] = None

@@ -35,7 +35,7 @@ class Bar(BaseModel):
     trade_count: Optional[float]
     vwap: Optional[float]
 
-    model_config = ConfigDict(protected_namespaces=())
+    model_config = ConfigDict(protected_namespaces=tuple())
 
     def __init__(self, symbol: str, raw_data: RawData) -> None:
         """Instantiates a bar
@@ -44,7 +44,9 @@ class Bar(BaseModel):
             raw_data (RawData): Raw unparsed bar data from API, contains ohlc and other fields.
         """
         mapped_bar = {
-            BAR_MAPPING[key]: val for key, val in raw_data.items() if key in BAR_MAPPING
+            BAR_MAPPING[key]: val
+            for key, val in raw_data.items()
+            if key in BAR_MAPPING
         }
 
         super().__init__(symbol=symbol, **mapped_bar)

@@ -38,7 +38,7 @@ class BaseDataSet(BaseModel):
     """
 
     data: Dict[str, List[BaseModel]]
-    model_config = ConfigDict(protected_namespaces=())
+    model_config = ConfigDict(protected_namespaces=tuple())
 
     def __getitem__(self, symbol: str) -> Any:
         """Gives dictionary-like access to multi-symbol data

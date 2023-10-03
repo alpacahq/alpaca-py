@@ -14,7 +14,7 @@ class OrderbookQuote(BaseModel):
     price: float = Field(alias="p")
     size: float = Field(alias="s")
 
-    model_config = ConfigDict(protected_namespaces=())
+    model_config = ConfigDict(protected_namespaces=tuple())
 
 
 class Orderbook(BaseModel):
@@ -32,7 +32,7 @@ class Orderbook(BaseModel):
     bids: List[OrderbookQuote]
     asks: List[OrderbookQuote]
 
-    model_config = ConfigDict(protected_namespaces=())
+    model_config = ConfigDict(protected_namespaces=tuple())
 
     def __init__(self, symbol: str, raw_data: RawData) -> None:
         """Instantiates an Orderbook.

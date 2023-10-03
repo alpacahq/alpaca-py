@@ -33,7 +33,7 @@ class Trade(BaseModel):
     conditions: Optional[List[str]] = None
     tape: Optional[str] = None
 
-    model_config = ConfigDict(protected_namespaces=())
+    model_config = ConfigDict(protected_namespaces=tuple())
 
     def __init__(self, symbol: str, raw_data: RawData) -> None:
         """Instantiates a Trade history object

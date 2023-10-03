@@ -3,7 +3,7 @@ from typing import Dict, List
 
 from alpaca.common.types import RawData
 from alpaca.common.models import ValidateBaseModel as BaseModel
-from pydantic import TypeAdapter, Field
+from pydantic import ConfigDict, TypeAdapter, Field
 from alpaca.data.mappings import ORDERBOOK_MAPPING
 
 
@@ -13,6 +13,8 @@ class OrderbookQuote(BaseModel):
     # using field aliases for easy parsing
     price: float = Field(alias="p")
     size: float = Field(alias="s")
+
+    model_config = ConfigDict(protected_namespaces=tuple())
 
 
 class Orderbook(BaseModel):
@@ -29,6 +31,8 @@ class Orderbook(BaseModel):
     timestamp: datetime
     bids: List[OrderbookQuote]
     asks: List[OrderbookQuote]
+
+    model_config = ConfigDict(protected_namespaces=tuple())
 
     def __init__(self, symbol: str, raw_data: RawData) -> None:
         """Instantiates an Orderbook.

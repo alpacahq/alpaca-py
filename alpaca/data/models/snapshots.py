@@ -1,5 +1,7 @@
 from typing import Dict
 
+from pydantic import ConfigDict
+
 from alpaca.common.types import RawData
 from alpaca.common.models import ValidateBaseModel as BaseModel
 from alpaca.data.models import Trade, Quote, Bar
@@ -25,6 +27,8 @@ class Snapshot(BaseModel):
     minute_bar: Bar
     daily_bar: Bar
     previous_daily_bar: Bar
+
+    model_config = ConfigDict(protected_namespaces=tuple())
 
     def __init__(self, symbol: str, raw_data: Dict[str, RawData]) -> None:
         """Instantiates a Snapshot.

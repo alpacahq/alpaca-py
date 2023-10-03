@@ -1,6 +1,8 @@
 from datetime import datetime
 from typing import Optional, Dict, List, Union
 
+from pydantic import ConfigDict
+
 from alpaca.common.types import RawData
 from alpaca.common.models import ValidateBaseModel as BaseModel
 from alpaca.data.enums import Exchange
@@ -34,6 +36,8 @@ class Quote(BaseModel):
     bid_size: float
     conditions: Optional[List[str]] = None
     tape: Optional[str] = None
+
+    model_config = ConfigDict(protected_namespaces=tuple())
 
     def __init__(self, symbol: str, raw_data: RawData) -> None:
         """Instantiates a Quote

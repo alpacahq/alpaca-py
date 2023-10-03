@@ -4,6 +4,7 @@ from typing import Any, Dict, List
 
 import pandas as pd
 from pandas import DataFrame
+from pydantic import ConfigDict
 
 from alpaca.common.models import ValidateBaseModel as BaseModel
 
@@ -37,6 +38,7 @@ class BaseDataSet(BaseModel):
     """
 
     data: Dict[str, List[BaseModel]]
+    model_config = ConfigDict(protected_namespaces=tuple())
 
     def __getitem__(self, symbol: str) -> Any:
         """Gives dictionary-like access to multi-symbol data

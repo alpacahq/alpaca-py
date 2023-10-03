@@ -42,9 +42,17 @@ class Orderbook(BaseModel):
             raw_data (RawData): The orderbook data as received by API
         """
 
-        mapped_book = {ORDERBOOK_MAPPING.get(key): val for key, val in raw_data.items() if key in ORDERBOOK_MAPPING}
+        mapped_book = {
+            ORDERBOOK_MAPPING.get(key): val
+            for key, val in raw_data.items()
+            if key in ORDERBOOK_MAPPING
+        }
 
-        mapped_book["bids"] = TypeAdapter(List[OrderbookQuote]).validate_python(mapped_book["bids"])
-        mapped_book["asks"] = TypeAdapter(List[OrderbookQuote]).validate_python(mapped_book["asks"])
+        mapped_book["bids"] = TypeAdapter(List[OrderbookQuote]).validate_python(
+            mapped_book["bids"]
+        )
+        mapped_book["asks"] = TypeAdapter(List[OrderbookQuote]).validate_python(
+            mapped_book["asks"]
+        )
 
         super().__init__(symbol=symbol, **mapped_book)

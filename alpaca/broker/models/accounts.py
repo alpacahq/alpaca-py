@@ -187,9 +187,15 @@ class TrustedContact(BaseModel):
 
     @model_validator(mode="before")
     def root_validator(cls, values: dict) -> dict:
-        has_phone_number = "phone_number" in values and values["phone_number"] is not None
-        has_street_address = "street_address" in values and values["street_address"] is not None
-        has_email_address = "email_address" in values and values["email_address"] is not None
+        has_phone_number = (
+            "phone_number" in values and values["phone_number"] is not None
+        )
+        has_street_address = (
+            "street_address" in values and values["street_address"] is not None
+        )
+        has_email_address = (
+            "email_address" in values and values["email_address"] is not None
+        )
 
         if has_phone_number or has_street_address or has_email_address:
             return values
@@ -241,14 +247,26 @@ class Account(BaseModel):
             id=(UUID(response["id"])),
             account_number=(response["account_number"]),
             status=(response["status"]),
-            crypto_status=(response["crypto_status"] if "crypto_status" in response else None),
+            crypto_status=(
+                response["crypto_status"] if "crypto_status" in response else None
+            ),
             currency=(response["currency"]),
             last_equity=(response["last_equity"]),
             created_at=(response["created_at"]),
-            contact=(TypeAdapter(Contact).validate_python(response["contact"]) if "contact" in response else None),
-            identity=(TypeAdapter(Identity).validate_python(response["identity"]) if "identity" in response else None),
+            contact=(
+                TypeAdapter(Contact).validate_python(response["contact"])
+                if "contact" in response
+                else None
+            ),
+            identity=(
+                TypeAdapter(Identity).validate_python(response["identity"])
+                if "identity" in response
+                else None
+            ),
             disclosures=(
-                TypeAdapter(Disclosures).validate_python(response["disclosures"]) if "disclosures" in response else None
+                TypeAdapter(Disclosures).validate_python(response["disclosures"])
+                if "disclosures" in response
+                else None
             ),
             agreements=(
                 TypeAdapter(List[Agreement]).validate_python(response["agreements"])
@@ -256,7 +274,9 @@ class Account(BaseModel):
                 else None
             ),
             documents=(
-                TypeAdapter(List[AccountDocument]).validate_python(response["documents"])
+                TypeAdapter(List[AccountDocument]).validate_python(
+                    response["documents"]
+                )
                 if "documents" in response
                 else None
             ),

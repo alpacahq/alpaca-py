@@ -47,7 +47,11 @@ class Quote(BaseModel):
             raw_data (RawData): The quote data as received by API
         """
 
-        mapped_quote = {QUOTE_MAPPING.get(key): val for key, val in raw_data.items() if key in QUOTE_MAPPING}
+        mapped_quote = {
+            QUOTE_MAPPING.get(key): val
+            for key, val in raw_data.items()
+            if key in QUOTE_MAPPING
+        }
 
         super().__init__(symbol=symbol, **mapped_quote)
 

@@ -65,4 +65,7 @@ class BaseDataSet(BaseModel):
             dict: The data in dictionary form.
         """
         # converts each data (Bar, Quote, etc) in the symbol specific lists to its dictionary format
-        return {symbol: list(map(lambda d: d.model_dump(), data_list)) for symbol, data_list in self.data.items()}
+        return {
+            symbol: list(map(lambda d: d.model_dump(), data_list))
+            for symbol, data_list in self.data.items()
+        }

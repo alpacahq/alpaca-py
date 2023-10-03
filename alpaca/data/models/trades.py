@@ -43,7 +43,11 @@ class Trade(BaseModel):
             raw_data (RawData): The trade data as received by API.
         """
 
-        mapped_trade = {TRADE_MAPPING.get(key): val for key, val in raw_data.items() if key in TRADE_MAPPING}
+        mapped_trade = {
+            TRADE_MAPPING.get(key): val
+            for key, val in raw_data.items()
+            if key in TRADE_MAPPING
+        }
 
         super().__init__(symbol=symbol, **mapped_trade)
 

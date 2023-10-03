@@ -4,6 +4,7 @@ from typing import Any, Dict, List
 
 import pandas as pd
 from pandas import DataFrame
+from pydantic import ConfigDict
 
 from alpaca.common.models import ValidateBaseModel as BaseModel
 
@@ -37,6 +38,7 @@ class BaseDataSet(BaseModel):
     """
 
     data: Dict[str, List[BaseModel]]
+    model_config = ConfigDict(protected_namespaces=())
 
     def __getitem__(self, symbol: str) -> Any:
         """Gives dictionary-like access to multi-symbol data
@@ -63,7 +65,4 @@ class BaseDataSet(BaseModel):
             dict: The data in dictionary form.
         """
         # converts each data (Bar, Quote, etc) in the symbol specific lists to its dictionary format
-        return {
-            symbol: list(map(lambda d: d.model_dump(), data_list))
-            for symbol, data_list in self.data.items()
-        }
+        return {symbol: list(map(lambda d: d.model_dump(), data_list)) for symbol, data_list in self.data.items()}

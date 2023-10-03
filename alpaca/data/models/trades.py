@@ -1,6 +1,8 @@
 from datetime import datetime
 from typing import Optional, Dict, List, Union
 
+from pydantic import ConfigDict
+
 from alpaca.common.types import RawData
 from alpaca.common.models import ValidateBaseModel as BaseModel
 from alpaca.data.enums import Exchange
@@ -31,6 +33,8 @@ class Trade(BaseModel):
     conditions: Optional[List[str]] = None
     tape: Optional[str] = None
 
+    model_config = ConfigDict(protected_namespaces=())
+
     def __init__(self, symbol: str, raw_data: RawData) -> None:
         """Instantiates a Trade history object
 
@@ -39,11 +43,7 @@ class Trade(BaseModel):
             raw_data (RawData): The trade data as received by API.
         """
 
-        mapped_trade = {
-            TRADE_MAPPING.get(key): val
-            for key, val in raw_data.items()
-            if key in TRADE_MAPPING
-        }
+        mapped_trade = {TRADE_MAPPING.get(key): val for key, val in raw_data.items() if key in TRADE_MAPPING}
 
         super().__init__(symbol=symbol, **mapped_trade)
 

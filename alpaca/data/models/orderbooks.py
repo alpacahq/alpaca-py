@@ -3,7 +3,7 @@ from typing import Dict, List
 
 from alpaca.common.types import RawData
 from alpaca.common.models import ValidateBaseModel as BaseModel
-from pydantic import TypeAdapter, Field
+from pydantic import ConfigDict, TypeAdapter, Field
 from alpaca.data.mappings import ORDERBOOK_MAPPING
 
 
@@ -13,6 +13,8 @@ class OrderbookQuote(BaseModel):
     # using field aliases for easy parsing
     price: float = Field(alias="p")
     size: float = Field(alias="s")
+
+    model_config = ConfigDict(protected_namespaces=())
 
 
 class Orderbook(BaseModel):
@@ -30,6 +32,8 @@ class Orderbook(BaseModel):
     bids: List[OrderbookQuote]
     asks: List[OrderbookQuote]
 
+    model_config = ConfigDict(protected_namespaces=())
+
     def __init__(self, symbol: str, raw_data: RawData) -> None:
         """Instantiates an Orderbook.
 
@@ -38,17 +42,9 @@ class Orderbook(BaseModel):
             raw_data (RawData): The orderbook data as received by API
         """
 
-        mapped_book = {
-            ORDERBOOK_MAPPING.get(key): val
-            for key, val in raw_data.items()
-            if key in ORDERBOOK_MAPPING
-        }
+        mapped_book = {ORDERBOOK_MAPPING.get(key): val for key, val in raw_data.items() if key in ORDERBOOK_MAPPING}
 
-        mapped_book["bids"] = TypeAdapter(List[OrderbookQuote]).validate_python(
-            mapped_book["bids"]
-        )
-        mapped_book["asks"] = TypeAdapter(List[OrderbookQuote]).validate_python(
-            mapped_book["asks"]
-        )
+        mapped_book["bids"] = TypeAdapter(List[OrderbookQuote]).validate_python(mapped_book["bids"])
+        mapped_book["asks"] = TypeAdapter(List[OrderbookQuote]).validate_python(mapped_book["asks"])
 
         super().__init__(symbol=symbol, **mapped_book)

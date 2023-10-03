@@ -1,6 +1,8 @@
 from datetime import datetime
 from typing import Optional, Dict, List
 
+from pydantic import ConfigDict
+
 from alpaca.common.types import RawData
 from alpaca.common.models import ValidateBaseModel as BaseModel
 from alpaca.data.models.base import TimeSeriesMixin, BaseDataSet
@@ -33,15 +35,15 @@ class Bar(BaseModel):
     trade_count: Optional[float]
     vwap: Optional[float]
 
+    model_config = ConfigDict(protected_namespaces=())
+
     def __init__(self, symbol: str, raw_data: RawData) -> None:
         """Instantiates a bar
 
         Args:
             raw_data (RawData): Raw unparsed bar data from API, contains ohlc and other fields.
         """
-        mapped_bar = {
-            BAR_MAPPING[key]: val for key, val in raw_data.items() if key in BAR_MAPPING
-        }
+        mapped_bar = {BAR_MAPPING[key]: val for key, val in raw_data.items() if key in BAR_MAPPING}
 
         super().__init__(symbol=symbol, **mapped_bar)
 

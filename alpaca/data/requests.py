@@ -27,6 +27,8 @@ class BaseTimeseriesDataRequest(NonEmptyRequest):
     limit: Optional[int] = None
     currency: Optional[SupportedCurrencies] = None  # None = USD
 
+    model_config = ConfigDict(protected_namespaces=())
+
     def __init__(self, **data: Any) -> None:
         # convert timezone aware datetime to timezone naive UTC datetime
         if (
@@ -179,6 +181,8 @@ class BaseStockLatestDataRequest(NonEmptyRequest):
     feed: Optional[DataFeed] = None
     currency: Optional[SupportedCurrencies] = None  # None = USD
 
+    model_config = ConfigDict(protected_namespaces=())
+
 
 class StockLatestTradeRequest(BaseStockLatestDataRequest):
     """
@@ -232,6 +236,8 @@ class BaseCryptoLatestDataRequest(NonEmptyRequest):
     """
 
     symbol_or_symbols: Union[str, List[str]]
+
+    model_config = ConfigDict(protected_namespaces=())
 
 
 class CryptoLatestTradeRequest(BaseCryptoLatestDataRequest):
@@ -290,6 +296,8 @@ class StockSnapshotRequest(NonEmptyRequest):
     feed: Optional[DataFeed] = None
     currency: Optional[SupportedCurrencies] = None  # None = USD
 
+    model_config = ConfigDict(protected_namespaces=())
+
 
 class CryptoSnapshotRequest(NonEmptyRequest):
     """
@@ -300,6 +308,8 @@ class CryptoSnapshotRequest(NonEmptyRequest):
     """
 
     symbol_or_symbols: Union[str, List[str]]
+
+    model_config = ConfigDict(protected_namespaces=())
 
 
 # ############################## Orderbooks ################################# #
@@ -315,6 +325,8 @@ class CryptoLatestOrderbookRequest(NonEmptyRequest):
 
     symbol_or_symbols: Union[str, List[str]]
 
+    model_config = ConfigDict(protected_namespaces=())
+
 
 # ############################## Screener #################################### #
 
@@ -328,6 +340,8 @@ class ScreenerRequest(NonEmptyRequest):
     """
 
     top: int = 10
+
+    model_config = ConfigDict(protected_namespaces=())
 
 
 class MostActivesRequest(ScreenerRequest):
@@ -380,3 +394,5 @@ class NewsRequest(NonEmptyRequest):
     include_content: Optional[bool] = None
     exclude_contentless: Optional[bool] = None
     page_token: Optional[str] = None
+
+    model_config = ConfigDict(protected_namespaces=())

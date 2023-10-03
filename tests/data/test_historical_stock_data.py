@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import Dict
+from alpaca.common.enums import Sort
 
 from alpaca.data import Trade, Snapshot, Quote, Bar
 from alpaca.data.historical import StockHistoricalDataClient
@@ -69,6 +70,74 @@ def test_get_bars(reqmock, stock_client: StockHistoricalDataClient):
     assert barset.df.index.nlevels == 2
 
     assert reqmock.called_once
+
+
+def test_get_bars_desc(reqmock, stock_client: StockHistoricalDataClient):
+    symbol = "TSLA"
+    timeframe = TimeFrame.Day
+    start = datetime(2023, 9, 1)
+    end = datetime(2023, 9, 27, 12)
+    limit = 3
+    _start_in_url = start.isoformat("T") + "Z"
+    _end_in_url = end.isoformat("T") + "Z"
+    reqmock.get(
+        f"https://data.alpaca.markets/v2/stocks/{symbol}/bars?start={_start_in_url}&end={_end_in_url}&timeframe={timeframe}&limit={limit}&sort=desc",
+        text="""
+    {
+        "bars": [
+            {
+                "c": 240.5,
+                "h": 245.33,
+                "l": 234.58,
+                "n": 1393690,
+                "o": 244.262,
+                "t": "2023-09-27T04:00:00Z",
+                "v": 136616287,
+                "vw": 240.479286
+            },
+            {
+                "c": 244.12,
+                "h": 249.55,
+                "l": 241.6601,
+                "n": 1118004,
+                "o": 242.98,
+                "t": "2023-09-26T04:00:00Z",
+                "v": 102033779,
+                "vw": 245.559325
+            },
+            {
+                "c": 246.99,
+                "h": 247.1,
+                "l": 238.31,
+                "n": 1196613,
+                "o": 243.38,
+                "t": "2023-09-25T04:00:00Z",
+                "v": 104668716,
+                "vw": 244.197325
+            }
+        ],
+        "next_page_token": "VFNMQXxEfDc1Mjc3NTc2MzYwMDAwMDAwMDA=",
+        "symbol": "TSLA"
+    }
+        """,
+    )
+    request = StockBarsRequest(
+        symbol_or_symbols=symbol,
+        timeframe=timeframe,
+        start=start,
+        end=end,
+        limit=limit,
+        sort=Sort.DESC,
+    )
+    barset = stock_client.get_stock_bars(request_params=request)
+
+    assert isinstance(barset, BarSet)
+    assert reqmock.called_once
+
+    assert barset[symbol][0].open == 244.262
+    assert barset[symbol][0].close == 240.5
+    assert barset[symbol][-1].high == 247.1
+    assert barset[symbol][-1].volume == 104668716
 
 
 def test_multisymbol_get_bars(reqmock, stock_client: StockHistoricalDataClient):

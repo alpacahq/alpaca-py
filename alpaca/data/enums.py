@@ -123,7 +123,6 @@ class MarketType(str, Enum):
 
 
 class NewsImageSize(str, Enum):
-
     THUMB = "thumb"
     SMALL = "small"
     LARGE = "large"

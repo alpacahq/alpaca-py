@@ -44,9 +44,7 @@ class Bar(BaseModel):
             raw_data (RawData): Raw unparsed bar data from API, contains ohlc and other fields.
         """
         mapped_bar = {
-            BAR_MAPPING[key]: val
-            for key, val in raw_data.items()
-            if key in BAR_MAPPING
+            BAR_MAPPING[key]: val for key, val in raw_data.items() if key in BAR_MAPPING
         }
 
         super().__init__(symbol=symbol, **mapped_bar)

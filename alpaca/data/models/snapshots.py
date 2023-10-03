@@ -44,15 +44,9 @@ class Snapshot(BaseModel):
         }
 
         # Parse each data type
-        mapped_snapshot["latest_trade"] = Trade(
-            symbol, mapped_snapshot["latest_trade"]
-        )
-        mapped_snapshot["latest_quote"] = Quote(
-            symbol, mapped_snapshot["latest_quote"]
-        )
-        mapped_snapshot["minute_bar"] = Bar(
-            symbol, mapped_snapshot["minute_bar"]
-        )
+        mapped_snapshot["latest_trade"] = Trade(symbol, mapped_snapshot["latest_trade"])
+        mapped_snapshot["latest_quote"] = Quote(symbol, mapped_snapshot["latest_quote"])
+        mapped_snapshot["minute_bar"] = Bar(symbol, mapped_snapshot["minute_bar"])
         mapped_snapshot["daily_bar"] = Bar(symbol, mapped_snapshot["daily_bar"])
         mapped_snapshot["previous_daily_bar"] = Bar(
             symbol, mapped_snapshot["previous_daily_bar"]

@@ -37,9 +37,7 @@ class BaseTimeseriesDataRequest(NonEmptyRequest):
             and isinstance(data["start"], datetime)
             and data["start"].tzinfo is not None
         ):
-            data["start"] = (
-                data["start"].astimezone(pytz.utc).replace(tzinfo=None)
-            )
+            data["start"] = data["start"].astimezone(pytz.utc).replace(tzinfo=None)
 
         if (
             "end" in data

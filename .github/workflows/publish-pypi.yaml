@@ -15,21 +15,22 @@ jobs:
         os: [ ubuntu-latest ] #in the future we should add windows here
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v4
+      # install poetry first for cache
+      - name: setup poetry
+        run: pipx install poetry
+      - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-      - name: setup poetry
-        run: pip install poetry==1.4.2
+          cache: "poetry"
       - name: Poetry install
         run: poetry install
       - name: run tests
         run: poetry run pytest
-
   build-and-publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Build and publish to pypi
         uses: JRubics/poetry-publish@v1.16
         with:

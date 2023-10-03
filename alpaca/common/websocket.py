@@ -2,10 +2,9 @@ import asyncio
 import logging
 import queue
 from collections import defaultdict
-from typing import Callable, Dict, Union, Tuple
+from typing import Callable, Dict, Optional, Union, Tuple
 
 import msgpack
-from pandas import Timestamp
 import websockets
 from alpaca.common.models import BaseModel
 from alpaca import __version__
@@ -14,14 +13,6 @@ from alpaca.common.types import RawData
 from alpaca.data.models import Bar, Quote, Trade
 
 log = logging.getLogger(__name__)
-
-
-class WebsocketParams(BaseModel):
-    """Websocket parameters."""
-
-    ping_interval: int = 10
-    ping_timeout: int = 180
-    max_queue: int = 1024
 
 
 class BaseStream:
@@ -35,7 +26,7 @@ class BaseStream:
         api_key: str,
         secret_key: str,
         raw_data: bool = False,
-        websocket_params: WebsocketParams = WebsocketParams(),
+        websocket_params: Optional[Dict] = None,
     ) -> None:
         """_summary_
 
@@ -65,7 +56,14 @@ class BaseStream:
         self._should_run = True
         self._max_frame_size = 32768
 
-        self._websocket_params = websocket_params
+        self._websocket_params = {
+            "ping_interval": 10,
+            "ping_timeout": 180,
+            "max_queue": 1024,
+        }
+
+        if websocket_params:
+            self._websocket_params = websocket_params
 
     async def _connect(self) -> None:
         """Attempts to connect to the websocket endpoint.

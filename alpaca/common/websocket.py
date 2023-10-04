@@ -163,9 +163,9 @@ class BaseStream:
         """
         result = msg
         if not self._raw_data:
-            # convert msgpack timestamp to nanoseconds
+
             if "t" in msg:
-                msg["t"] = msg["t"].seconds * int(1e9) + msg["t"].nanoseconds
+                msg["t"] = msg["t"].to_datetime()
 
             if "S" not in msg:
                 return msg
@@ -443,6 +443,8 @@ class BaseStream:
         except KeyboardInterrupt:
             print("keyboard interrupt, bye")
             pass
+        finally:
+            self.stop()
 
     def stop(self) -> None:
         """Stops the websocket connection."""

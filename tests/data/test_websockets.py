@@ -1,4 +1,5 @@
 import pytest
+from msgpack.ext import Timestamp
 
 from alpaca.common.websocket import BaseStream
 from alpaca.data.enums import Exchange
@@ -6,28 +7,25 @@ from alpaca.data.models import Bar, Trade
 
 
 @pytest.fixture
-def ws_client():
-    client = BaseStream("endpoint", "key-id", "secret-key")
-    return client
+def ws_client() -> BaseStream:
+    """Socket client fixture with pydantic models as output."""
+    return BaseStream("endpoint", "key-id", "secret-key")
 
 
 @pytest.fixture
-def raw_ws_client():
-    raw_client = BaseStream("endpoint", "key-id", "secret-key", raw_data=True)
-    return raw_client
+def raw_ws_client() -> BaseStream:
+    """Socket client fixture with raw data output."""
+    return BaseStream("endpoint", "key-id", "secret-key", raw_data=True)
 
 
 @pytest.fixture
-def timestamp():
-    class MockTimestamp:
-        def __init__(self, _seconds, _nanoseconds):
-            self.seconds = _seconds
-            self.nanoseconds = _nanoseconds
-
-    return MockTimestamp(0, 0)
+def timestamp() -> Timestamp:
+    """Msgpack mock timestamp."""
+    return Timestamp(seconds=10, nanoseconds=10)
 
 
-def test_cast(ws_client, raw_ws_client, timestamp):
+def test_cast(ws_client: BaseStream, raw_ws_client: BaseStream, timestamp: Timestamp):
+    """Test the value error in case there's a different timestamp type."""
     # Bar
     bar_msg_type = "b"
     bar_msg_dict = {

@@ -1,5 +1,3 @@
-from datetime import datetime
-import pandas as pd
 import pytest
 from msgpack.ext import Timestamp
 
@@ -60,7 +58,6 @@ def test_cast(ws_client: BaseStream, raw_ws_client: BaseStream, timestamp: Times
         "s": 90,
         "c": ["@", "I"],
         "z": "C",
-        # test if we receive a string from the socket
         "t": timestamp,
     }
 

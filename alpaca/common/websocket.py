@@ -6,7 +6,7 @@ from typing import Callable, Dict, Optional, Union, Tuple
 
 import msgpack
 import websockets
-from alpaca.common.models import BaseModel
+from pydantic import BaseModel
 from alpaca import __version__
 
 from alpaca.common.types import RawData
@@ -81,7 +81,7 @@ class BaseStream:
         self._ws = await websockets.connect(
             self._endpoint,
             extra_headers=extra_headers,
-            **self._websocket_params.model_dump(),
+            **self._websocket_params,
         )
         r = await self._ws.recv()
         msg = msgpack.unpackb(r)
@@ -141,7 +141,7 @@ class BaseStream:
             else:
                 try:
                     r = await asyncio.wait_for(self._ws.recv(), 5)
-                    msgs = msgpack.unpackb(r, timestamp=3)
+                    msgs = msgpack.unpackb(r)
                     for msg in msgs:
                         await self._dispatch(msg)
                 except asyncio.TimeoutError:
@@ -163,6 +163,9 @@ class BaseStream:
         """
         result = msg
         if not self._raw_data:
+
+            if "t" in msg:
+                msg["t"] = msg["t"].to_datetime()
 
             if "S" not in msg:
                 return msg

@@ -21,9 +21,9 @@ def raw_ws_client() -> BaseStream:
 
 
 @pytest.fixture
-def timestamp() -> datetime:
+def timestamp() -> Timestamp:
     """Msgpack mock timestamp."""
-    return datetime(year=2023, month=1, day=10, hour=10, second=10)
+    return Timestamp(seconds=10, nanoseconds=10)
 
 
 def test_cast(ws_client: BaseStream, raw_ws_client: BaseStream, timestamp: Timestamp):

@@ -38,7 +38,7 @@ class Sort(str, Enum):
 
 class SupportedCurrencies(str, Enum):
     """
-    The various currecies that can be supported for LCT.
+    The various currencies that can be supported for LCT.
 
     see https://alpaca.markets/support/local-currency-trading-faq
     """

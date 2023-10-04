@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional, Union, List, Any
 from pydantic import ConfigDict
 import pytz
-from alpaca.common.enums import SupportedCurrencies
+from alpaca.common.enums import Sort, SupportedCurrencies
 from alpaca.common.requests import NonEmptyRequest
 from alpaca.data.enums import Adjustment, DataFeed, MarketType, MostActivesBy
 from alpaca.data.timeframe import TimeFrame
@@ -19,6 +19,7 @@ class BaseTimeseriesDataRequest(NonEmptyRequest):
         end (Optional[datetime]): The end of the time interval for desired data. Timezone naive inputs assumed to be in UTC.
         limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
         currency (Optional[SupportedCurrencies]): The currency the data should be returned in. Default to USD.
+        sort: (Optional[Sort]): The chronological order of response based on the timestamp. Defaults to ASC.
     """
 
     symbol_or_symbols: Union[str, List[str]]
@@ -26,6 +27,7 @@ class BaseTimeseriesDataRequest(NonEmptyRequest):
     end: Optional[datetime] = None
     limit: Optional[int] = None
     currency: Optional[SupportedCurrencies] = None  # None = USD
+    sort: Optional[Sort] = None  # None = asc
 
     model_config = ConfigDict(protected_namespaces=tuple())
 

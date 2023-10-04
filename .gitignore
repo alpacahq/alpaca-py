@@ -130,6 +130,7 @@ dmypy.json
 
 #IDE configs
 .idea
+.vscode/
 
 # Cloudflare stuff
 Cloudflare_CA.pem

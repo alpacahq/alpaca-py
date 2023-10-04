@@ -62,10 +62,10 @@ class GetPortfolioHistoryRequest(NonEmptyRequest):
           timeframe less than 1D.
     """
 
-    period: Optional[str]
-    timeframe: Optional[str]
-    date_end: Optional[date]
-    extended_hours: Optional[bool]
+    period: Optional[str] = None
+    timeframe: Optional[str] = None
+    date_end: Optional[date] = None
+    extended_hours: Optional[bool] = None
 
 
 class GetCalendarRequest(NonEmptyRequest):

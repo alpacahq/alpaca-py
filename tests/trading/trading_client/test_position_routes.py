@@ -206,6 +206,14 @@ def test_close_all_positions(reqmock, trading_client: TradingClient):
                 "message": "insufficient qty available for order (requested: 1000, available: 0)",
                 "symbol": "SQQQ"
             }
+        },
+        {
+            "symbol": "NYC",
+            "status": 403,
+            "body": {
+                "code": 40310000,
+                "message": "account is not allowed to short"
+            }
         }
     ]
         """,

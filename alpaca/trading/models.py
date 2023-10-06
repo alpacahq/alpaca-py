@@ -257,12 +257,12 @@ class FailedClosePositionDetails(BaseModel):
         symbol (str): The symbol for the request.
     """
 
-    available: float
     code: int
-    existing_qty: float
-    held_for_orders: float
     message: str
-    symbol: str
+    available: Optional[float] = None
+    existing_qty: Optional[float] = None
+    held_for_orders: Optional[float] = None
+    symbol: Optional[str] = None
 
 
 class ClosePositionResponse(BaseModel):

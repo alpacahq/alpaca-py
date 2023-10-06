@@ -7,6 +7,17 @@ optional = false
 python-versions = ">=3.6"
 
 [[package]]
+name = "annotated-types"
+version = "0.5.0"
+description = "Reusable constraint types to use with typing.Annotated"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+typing-extensions = {version = ">=4.0.0", markers = "python_version < \"3.9\""}
+
+[[package]]
 name = "apeye"
 version = "1.4.1"
 description = "Handy tools for working with URLs and APIs."

@@ -1011,7 +1011,9 @@ class BrokerClient(RESTClient):
         return Position(**response)
 
     def close_all_positions_for_account(
-        self, account_id: Union[UUID, str], cancel_orders: bool
+        self,
+        account_id: Union[UUID, str],
+        cancel_orders: Optional[bool] = None,
     ) -> Union[List[ClosePositionResponse], RawData]:
         """
         Liquidates all positions for an account.
@@ -1020,7 +1022,7 @@ class BrokerClient(RESTClient):
 
         Args:
             account_id (Union[UUID, str]): The ID of the Account to close the positions for.
-            cancel_orders (bool): If true is specified, cancel all open orders before liquidating all positions.
+            cancel_orders (Optional[bool]): If true is specified, cancel all open orders before liquidating all positions.
 
         Returns:
             List[ClosePositionResponse]: A list of responses from each closed position containing the status code and
@@ -1029,7 +1031,7 @@ class BrokerClient(RESTClient):
         account_id = validate_uuid_id_param(account_id)
         response = self.delete(
             f"/trading/accounts/{account_id}/positions",
-            {"cancel_orders": cancel_orders},
+            {"cancel_orders": cancel_orders} if cancel_orders else None,
         )
 
         if self._use_raw_data:

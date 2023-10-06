@@ -260,7 +260,7 @@ class TradingClient(RESTClient):
         return Position(**response)
 
     def close_all_positions(
-        self, cancel_orders: bool
+        self, cancel_orders: Optional[bool] = None
     ) -> Union[List[ClosePositionResponse], RawData]:
         """
         Liquidates all positions for an account.
@@ -268,7 +268,7 @@ class TradingClient(RESTClient):
         Places an order for each open position to liquidate.
 
         Args:
-            cancel_orders (bool): If true is specified, cancel all open orders before liquidating all positions.
+            cancel_orders (Optional[bool]): If true is specified, cancel all open orders before liquidating all positions.
 
         Returns:
             List[ClosePositionResponse]: A list of responses from each closed position containing the status code and
@@ -276,7 +276,7 @@ class TradingClient(RESTClient):
         """
         response = self.delete(
             "/positions",
-            {"cancel_orders": cancel_orders},
+            {"cancel_orders": cancel_orders} if cancel_orders else None,
         )
 
         if self._use_raw_data:

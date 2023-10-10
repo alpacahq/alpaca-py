@@ -229,6 +229,8 @@ class TradeDocumentType(str, Enum):
 
     TAX_STATEMENT = "tax_statement"
 
+    ACCOUNT_APPLICATION = "account_application"
+
     # Legacy Values
     TAX_1099_B_DETAILS = "tax_1099_b_details"
     TAX_1099_B_FORM = "tax_1099_b_form"

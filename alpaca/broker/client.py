@@ -524,9 +524,10 @@ class BrokerClient(RESTClient):
             # ok we made it to the end, we need to ask for the next page of results
             last_result = result[-1]
 
-            assert (
-                "id" in last_result
-            ), "AccountActivity didn't contain an `id` field to use for paginating results"
+            if "id" not in last_result:
+                raise AssertionError(
+                    "AccountActivity didn't contain an `id` field to use for paginating results"
+                )
 
             # set the pake token to the id of the last activity so we can get the next page
             request_fields["page_token"] = last_result["id"]

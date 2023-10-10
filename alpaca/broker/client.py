@@ -525,7 +525,7 @@ class BrokerClient(RESTClient):
             last_result = result[-1]
 
             if "id" not in last_result:
-                raise AssertionError(
+                raise AttributeError(
                     "AccountActivity didn't contain an `id` field to use for paginating results"
                 )
 
@@ -664,9 +664,8 @@ class BrokerClient(RESTClient):
             break
 
         # we got here either by error or someone has mis-configured us, so we didn't even try
-        assert isinstance(
-            response, Response
-        ), "Somehow we never made a request for download!"
+        if not isinstance(response, Response):
+            raise TypeError("Somehow we never made a request for download!")
 
         with open(file_path, "wb") as f:
             # we specify chunk_size none which is okay since we set stream to true above, so chunks will be as we

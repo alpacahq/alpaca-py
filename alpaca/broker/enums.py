@@ -423,3 +423,49 @@ class JournalStatus(str, Enum):
     CANCELED = "canceled"
     REFUSED = "refused"
     DELETED = "deleted"
+
+
+class WeightsType(str, Enum):
+    """
+    The possible values of the Weights type.
+
+    See https://alpaca.markets/docs/api-references/broker-api/rebalancing/#weights-model
+    """
+
+    CASH = "cash"
+    ASSET = "asset"
+
+
+class RebalancingConditionsType(str, Enum):
+    """
+    The possible values of the Rebalancing Conditions type.
+
+    See https://alpaca.markets/docs/api-references/broker-api/rebalancing/#rebalancing-conditions-model
+    """
+
+    DRIFT_BAND = "drift_band"
+    CALENDAR = "calendar"
+
+
+class DriftBandSubType(str, Enum):
+    """
+    The possible values of the Rebalancing Conditions subtype for drift_band.
+
+    See https://alpaca.markets/docs/api-references/broker-api/rebalancing/#rebalancing-conditions-model
+    """
+
+    ABSOLUTE = "absolute"
+    RELATIVE = "relative"
+
+
+class CalendarSubType(str, Enum):
+    """
+    The possible values of the Rebalancing Conditions subtype for drift_band.
+
+    See https://alpaca.markets/docs/api-references/broker-api/rebalancing/#rebalancing-conditions-model
+    """
+
+    WEEKLY = "weekly"
+    MONTHLY = "monthly"
+    QUARTERLY = "quarterly"
+    ANNUALLY = "annually"

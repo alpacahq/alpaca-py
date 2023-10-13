@@ -7,6 +7,8 @@ import sseclient
 from pydantic import TypeAdapter
 from requests import HTTPError, Response
 
+from alpaca.broker.models.rebalancing import Portfolio
+
 from .enums import ACHRelationshipStatus
 from alpaca.broker.models import (
     ACHRelationship,
@@ -23,6 +25,7 @@ from alpaca.broker.models import (
 from .requests import (
     CreateJournalRequest,
     CreateBatchJournalRequest,
+    CreatePortfolioRequest,
     CreateReverseBatchJournalRequest,
     GetJournalsRequest,
     OrderRequest,
@@ -1906,3 +1909,19 @@ class BrokerClient(RESTClient):
         headers["Accept"] = "text/event-stream"
 
         return headers
+
+    # ############################## REBALANCING ################################# #
+
+    def create_portfolio(self, portfolio_request: CreatePortfolioRequest) -> Portfolio:
+        """
+        Create a new portfolio.
+        """
+
+        response = self.post(
+            "/rebalancing/portfolios", data=portfolio_request.to_request_fields()
+        )
+
+        if self._use_raw_data:
+            return response
+
+        return Portfolio(**response)

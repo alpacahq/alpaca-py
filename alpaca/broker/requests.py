@@ -17,12 +17,13 @@ from alpaca.broker.models.trading import Order
 from alpaca.broker.enums import (
     AccountEntities,
     BankAccountType,
+    CalendarSubType,
     DocumentType,
-    EmploymentStatus,
+    DriftBandSubType,
     FeePaymentMethod,
     FundingSource,
     IdentifierType,
-    TaxIdType,
+    RebalancingConditionsType,
     TradeDocumentType,
     TransferDirection,
     TransferTiming,
@@ -32,7 +33,9 @@ from alpaca.broker.enums import (
     VisaType,
     JournalEntryType,
     JournalStatus,
+    WeightsType,
 )
+from alpaca.common.models import BaseModel
 from alpaca.common.enums import Sort, SupportedCurrencies
 from alpaca.trading.enums import ActivityType, AccountStatus, OrderType, AssetClass
 from alpaca.common.requests import NonEmptyRequest
@@ -979,3 +982,62 @@ class GetEventsRequest(NonEmptyRequest):
     until: Optional[Union[date, str]] = None
     since_id: Optional[int] = None
     until_id: Optional[int] = None
+
+
+# ############################## Rebalancing ################################# #
+
+
+class Weights(BaseModel):
+    """
+    Weights model.
+
+    https://alpaca.markets/docs/api-references/broker-api/rebalancing/#weights-model
+    """
+
+    type: WeightsType
+    symbol: Optional[str] = None
+    percent: float
+
+    @field_validator("percent")
+    def percent_must_be_positive(cls, value: float) -> float:
+        """Validate and round the percent field to 2 decimal places."""
+        if value <= 0:
+            raise ValueError("You must provide an amount > 0.")
+        return round(value, 2)
+
+    @model_validator(mode="before")
+    def validator(cls, values: dict) -> dict:
+        """Verify that the symbol is provided when the weights type is asset."""
+        if (
+            values["type"] == WeightsType.ASSET.value
+            and values.get("symbol", None) is None
+        ):
+            raise ValueError
+        return values
+
+
+class RebalancingConditions(BaseModel):
+    """
+    Rebalancing conditions model.
+
+    https://alpaca.markets/docs/api-references/broker-api/rebalancing/#rebalancing-conditions-model
+    """
+
+    type: RebalancingConditionsType
+    sub_type: Union[DriftBandSubType, CalendarSubType]
+    percent: float
+    day: Optional[str] = None
+
+
+class CreatePortfolioRequest(NonEmptyRequest):
+    """
+    Portfolio request model.
+
+    https://alpaca.markets/docs/api-references/broker-api/rebalancing/#portfolio-model
+    """
+
+    name: str
+    description: str
+    weights: List[Weights]
+    cooldown_days: int
+    rebalance_conditions: List[RebalancingConditions]

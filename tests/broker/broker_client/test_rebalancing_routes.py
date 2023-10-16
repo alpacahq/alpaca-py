@@ -1,11 +1,13 @@
 from uuid import UUID
 from requests_mock import Mocker
 from alpaca.broker.client import BrokerClient
+from alpaca.broker.enums import WeightsType
 from alpaca.broker.models import Portfolio, Subscription
 from alpaca.broker.requests import (
     CreatePortfolioRequest,
     CreateSubscriptionRequest,
     GetPortfoliosRequest,
+    UpdatePortfolioRequest,
 )
 from alpaca.common.enums import BaseURL
 
@@ -269,6 +271,69 @@ def test_get_portfolio_by_id(reqmock: Mocker, client: BrokerClient) -> None:
     assert reqmock.called_once
     assert isinstance(response, Portfolio)
     assert response.id == ptf_id
+
+
+def test_update_portfolio_by_id(reqmock: Mocker, client: BrokerClient) -> None:
+    """Test the update_portfolio_by_id method."""
+    ptf_id = UUID("57d4ec79-9658-4916-9eb1-7c672be97e3e")
+    reqmock.patch(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/rebalancing/portfolios/{ptf_id}",
+        text="""
+            {
+                "id": "57d4ec79-9658-4916-9eb1-7c672be97e3e",
+                "name": "My Portfolio",
+                "description": "Some description",
+                "status": "active",
+                "cooldown_days": 2,
+                "created_at": "2022-07-28T20:33:59.665962Z",
+                "updated_at": "2022-07-28T20:33:59.786528Z",
+                "weights": [
+                    {
+                        "type": "cash",
+                        "percent": "10"
+                    },
+                    {
+                        "type": "asset",
+                        "symbol": "GOOG",
+                        "percent": "90"
+                    }
+                ],
+                "rebalance_conditions": [
+                    {
+                        "type": "drift_band",
+                        "sub_type": "absolute",
+                        "percent": "5",
+                        "day": null
+                    },
+                    {
+                        "type": "drift_band",
+                        "sub_type": "relative",
+                        "percent": "20",
+                        "day": null
+                    }
+                ]
+            }
+    """,
+    )
+    response = client.update_portfolio_by_id(
+        portfolio_id=ptf_id,
+        update_request=UpdatePortfolioRequest(
+            **{
+                "weights": [
+                    {"type": "cash", "percent": "10"},
+                    {"type": "asset", "symbol": "GOOG", "percent": "90"},
+                ]
+            }
+        ),
+    )
+
+    assert reqmock.called_once
+    assert isinstance(response, Portfolio)
+    assert response.id == ptf_id
+    assert response.weights[0].type == WeightsType.CASH
+    assert response.weights[0].percent == 10
+    assert response.weights[1].type == WeightsType.ASSET
+    assert response.weights[1].percent == 90
 
 
 def test_create_subscription(reqmock: Mocker, client: BrokerClient) -> None:

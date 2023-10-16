@@ -1043,6 +1043,20 @@ class CreatePortfolioRequest(NonEmptyRequest):
     rebalance_conditions: List[RebalancingConditions]
 
 
+class UpdatePortfolioRequest(NonEmptyRequest):
+    """
+    Portfolio request update model.
+
+    https://alpaca.markets/docs/api-references/broker-api/rebalancing/#sample-request-1
+    """
+
+    name: Optional[str] = None
+    description: Optional[str] = None
+    weights: Optional[List[Weights]] = None
+    cooldown_days: Optional[int] = None
+    rebalance_conditions: Optional[List[RebalancingConditions]] = None
+
+
 class GetPortfoliosRequest(NonEmptyRequest):
     """
     Get portfolio request query parameters.

@@ -31,6 +31,7 @@ from .requests import (
     GetPortfoliosRequest,
     OrderRequest,
     CancelOrderResponse,
+    UpdatePortfolioRequest,
     UploadDocumentRequest,
     CreateACHRelationshipRequest,
     CreateACHTransferRequest,
@@ -1948,6 +1949,25 @@ class BrokerClient(RESTClient):
         """
 
         response = self.get(f"/rebalancing/portfolios/{portfolio_id}")
+
+        if self._use_raw_data:
+            return response
+
+        return Portfolio(**response)
+
+    def update_portfolio_by_id(
+        self, portfolio_id: Union[UUID, str], update_request: UpdatePortfolioRequest
+    ) -> Portfolio:
+        """
+        Updates a portfolio by ID.
+        If weights or conditions are changed, all subscribed accounts will be evaluated for rebalancing at the next opportunity (normal market hours).
+        If a cooldown is active on the portfolio, the rebalancing will occur after the cooldown expired.
+        """
+
+        response = self.patch(
+            f"/rebalancing/portfolios/{portfolio_id}",
+            data=update_request.to_request_fields(),
+        )
 
         if self._use_raw_data:
             return response

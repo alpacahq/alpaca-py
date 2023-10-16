@@ -1974,6 +1974,17 @@ class BrokerClient(RESTClient):
 
         return Portfolio(**response)
 
+    def inactivate_portfolio_by_id(self, portfolio_id: Union[UUID, str]) -> None:
+        """
+        Sets a portfolio to “inactive”, so it can be filtered out of the list request.
+        Only permitted if there are no active subscriptions to this portfolio and this portfolio is not a listed in the weights of any active portfolios.
+        Inactive portfolios cannot be linked in new subscriptions or added as weights to new portfolios.
+        """
+
+        self.delete(
+            f"/rebalancing/portfolios/{portfolio_id}",
+        )
+
     def create_subscription(
         self, subscription_request: CreateSubscriptionRequest
     ) -> Subscription:

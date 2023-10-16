@@ -336,6 +336,16 @@ def test_update_portfolio_by_id(reqmock: Mocker, client: BrokerClient) -> None:
     assert response.weights[1].percent == 90
 
 
+def test_inactivate_portfolio_by_id(reqmock: Mocker, client: BrokerClient) -> None:
+    """Test the inactivate_portfolio_by_id method."""
+    ptf_id = UUID("57d4ec79-9658-4916-9eb1-7c672be97e3e")
+    reqmock.delete(f"{BaseURL.BROKER_SANDBOX.value}/v1/rebalancing/portfolios/{ptf_id}")
+    client.inactivate_portfolio_by_id(
+        portfolio_id=ptf_id,
+    )
+    assert reqmock.called_once
+
+
 def test_create_subscription(reqmock: Mocker, client: BrokerClient) -> None:
     """Test to create a portfolio subscription."""
     reqmock.post(

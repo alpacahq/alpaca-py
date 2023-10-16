@@ -3,11 +3,11 @@ from typing import Optional
 from uuid import UUID
 
 from alpaca.broker.enums import JournalEntryType, JournalStatus
+from alpaca.common.models import ModelWithID
 from alpaca.common.enums import SupportedCurrencies
-from alpaca.common.models import ValidateBaseModel as BaseModel
 
 
-class Journal(BaseModel):
+class Journal(ModelWithID):
     """
     Represents a transfer of cash or securities from one account to another.
 
@@ -41,7 +41,6 @@ class Journal(BaseModel):
         transmitter_timestamp (Optional[str]): For cash journals, travel rule related timestamp info.
     """
 
-    id: UUID
     to_account: UUID
     from_account: UUID
     entry_type: JournalEntryType

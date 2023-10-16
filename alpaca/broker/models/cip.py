@@ -1,13 +1,13 @@
 from datetime import datetime
-from typing import List, Optional, Union
+from typing import List, Optional
 from uuid import UUID
 
-from ...common.models import ValidateBaseModel as BaseModel
+from alpaca.common.models import ModelWithID, ValidateBaseModel as BaseModel
 
-from ..enums import CIPApprovalStatus, CIPProvider, CIPResult, CIPStatus
+from alpaca.broker.enums import CIPApprovalStatus, CIPProvider, CIPResult, CIPStatus
 
 
-class CIPKYCInfo(BaseModel):
+class CIPKYCInfo(ModelWithID):
     """
     Represents Know Your Customer (KYC) info for a CIPInfo
 
@@ -96,7 +96,6 @@ class CIPDocument(BaseModel):
 
     """
 
-    id: str
     result: Optional[CIPResult] = None
     status: Optional[CIPStatus] = None
     created_at: Optional[datetime] = None
@@ -225,7 +224,7 @@ class CIPWatchlist(BaseModel):
     monitored_lists: Optional[CIPResult] = None
 
 
-class CIPInfo(BaseModel):
+class CIPInfo(ModelWithID):
     """
     The Customer Identification Program (CIP) API allows you to submit the CIP results received from your KYC provider.
 
@@ -244,7 +243,6 @@ class CIPInfo(BaseModel):
         watchlist (Optional[CIPWatchlist]): Any CIP watchlist information
     """
 
-    id: UUID
     account_id: UUID
     provider_name: List[CIPProvider]
     created_at: datetime

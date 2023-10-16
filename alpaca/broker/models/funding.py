@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from ..enums import (
+from alpaca.broker.enums import (
     ACHRelationshipStatus,
     BankAccountType,
     BankStatus,
@@ -12,10 +12,10 @@ from ..enums import (
     TransferDirection,
     FeePaymentMethod,
 )
-from alpaca.common.models import ValidateBaseModel as BaseModel
+from alpaca.common.models import ModelWithID
 
 
-class ACHRelationship(BaseModel):
+class ACHRelationship(ModelWithID):
     """
     Attributes:
         id (UUID): ID of Relationship
@@ -31,7 +31,6 @@ class ACHRelationship(BaseModel):
         processor_token (Optional[str]): If you are using Plaid, then this is a Plaid processor token.
     """
 
-    id: UUID
     account_id: UUID
     created_at: datetime
     updated_at: datetime
@@ -44,7 +43,7 @@ class ACHRelationship(BaseModel):
     processor_token: Optional[str] = None
 
 
-class Bank(BaseModel):
+class Bank(ModelWithID):
     """
     Attributes:
         id (UUID): ID of Bank.
@@ -63,7 +62,6 @@ class Bank(BaseModel):
         bank_code_type (IdentifierType): The bank identifier.
     """
 
-    id: UUID
     account_id: UUID
     created_at: datetime
     updated_at: datetime
@@ -79,7 +77,7 @@ class Bank(BaseModel):
     bank_code_type: IdentifierType
 
 
-class Transfer(BaseModel):
+class Transfer(ModelWithID):
     """
     Attributes:
         id (UUID): ID of Transfer.
@@ -99,7 +97,6 @@ class Transfer(BaseModel):
         additional_information (Optional[str]): Additional information provided with wire transfers.
     """
 
-    id: UUID
     account_id: UUID
     created_at: datetime
     updated_at: datetime

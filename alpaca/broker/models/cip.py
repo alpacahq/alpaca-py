@@ -7,7 +7,7 @@ from alpaca.common.models import ModelWithID, ValidateBaseModel as BaseModel
 from alpaca.broker.enums import CIPApprovalStatus, CIPProvider, CIPResult, CIPStatus
 
 
-class CIPKYCInfo(ModelWithID):
+class CIPKYCInfo(BaseModel):
     """
     Represents Know Your Customer (KYC) info for a CIPInfo
 

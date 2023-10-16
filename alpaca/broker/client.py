@@ -1,5 +1,5 @@
 import base64
-from typing import Callable, Iterator, List, Optional, Union, Dict
+from typing import Callable, Iterator, List, Optional, Union
 from uuid import UUID
 
 import sseclient
@@ -7,27 +7,28 @@ import sseclient
 from pydantic import TypeAdapter
 from requests import HTTPError, Response
 
-from alpaca.broker.models.rebalancing import Portfolio
-
 from .enums import ACHRelationshipStatus
 from alpaca.broker.models import (
     ACHRelationship,
     Account,
     Bank,
-    CIPInfo,
     TradeAccount,
     TradeDocument,
     Transfer,
     Order,
     BatchJournalResponse,
     Journal,
+    Portfolio,
+    Subscription,
 )
 from .requests import (
     CreateJournalRequest,
     CreateBatchJournalRequest,
     CreatePortfolioRequest,
     CreateReverseBatchJournalRequest,
+    CreateSubscriptionRequest,
     GetJournalsRequest,
+    GetPortfoliosRequest,
     OrderRequest,
     CancelOrderResponse,
     UploadDocumentRequest,
@@ -1925,3 +1926,34 @@ class BrokerClient(RESTClient):
             return response
 
         return Portfolio(**response)
+
+    def get_all_portfolios(self, filter: GetPortfoliosRequest) -> List[Portfolio]:
+        """
+        Create a new portfolio.
+        """
+        params = filter.to_request_fields() if filter else {}
+
+        response = self.get("/rebalancing/portfolios", params)
+
+        if self._use_raw_data:
+            return response
+
+        return TypeAdapter(
+            List[Portfolio],
+        ).validate_python(response)
+
+    def create_subscription(
+        self, subscription_request: CreateSubscriptionRequest
+    ) -> Subscription:
+        """
+        Create a new subscription.
+        """
+
+        response = self.post(
+            "/rebalancing/subscriptions", data=subscription_request.to_request_fields()
+        )
+
+        if self._use_raw_data:
+            return response
+
+        return Subscription(**response)

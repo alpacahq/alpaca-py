@@ -1041,3 +1041,28 @@ class CreatePortfolioRequest(NonEmptyRequest):
     weights: List[Weights]
     cooldown_days: int
     rebalance_conditions: List[RebalancingConditions]
+
+
+class GetPortfoliosRequest(NonEmptyRequest):
+    """
+    Get portfolio request query parameters.
+
+    https://alpaca.markets/docs/api-references/broker-api/rebalancing/#query-parameters
+    """
+
+    name: Optional[str] = None
+    description: Optional[str] = None
+    symbol: Optional[str] = None
+    portfolio_id: Optional[UUID] = None
+    status: Optional[str] = None
+
+
+class CreateSubscriptionRequest(NonEmptyRequest):
+    """
+    Subscription request model.
+
+    https://alpaca.markets/docs/api-references/broker-api/rebalancing/#subscription-model
+    """
+
+    account_id: UUID
+    portfolio_id: UUID

@@ -1,3 +1,4 @@
+from uuid import UUID
 from requests_mock import Mocker
 from alpaca.broker.client import BrokerClient
 from alpaca.broker.models import Portfolio, Subscription
@@ -213,6 +214,61 @@ def test_get_all_portfolios(reqmock: Mocker, client: BrokerClient) -> None:
     assert reqmock.called_once
     assert len(response) > 0
     assert isinstance(response[0], Portfolio)
+
+
+def test_get_portfolio_by_id(reqmock: Mocker, client: BrokerClient) -> None:
+    """Test the get_portfolio_by_id method."""
+    ptf_id = UUID("57d4ec79-9658-4916-9eb1-7c672be97e3e")
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/rebalancing/portfolios/{ptf_id}",
+        text="""
+            {
+                "id": "57d4ec79-9658-4916-9eb1-7c672be97e3e",
+                "name": "My Portfolio",
+                "description": "Some description",
+                "status": "active",
+                "cooldown_days": 2,
+                "created_at": "2022-07-28T20:33:59.665962Z",
+                "updated_at": "2022-07-28T20:33:59.786528Z",
+                "weights": [
+                    {
+                        "type": "asset",
+                        "symbol": "AAPL",
+                        "percent": "35"
+                    },
+                    {
+                        "type": "asset",
+                        "symbol": "TSLA",
+                        "percent": "20"
+                    },
+                    {
+                        "type": "asset",
+                        "symbol": "SPY",
+                        "percent": "45"
+                    }
+                ],
+                "rebalance_conditions": [
+                    {
+                        "type": "drift_band",
+                        "sub_type": "absolute",
+                        "percent": "5",
+                        "day": null
+                    },
+                    {
+                        "type": "drift_band",
+                        "sub_type": "relative",
+                        "percent": "20",
+                        "day": null
+                    }
+                ]
+            }
+    """,
+    )
+    response = client.get_portfolio_by_id(portfolio_id=ptf_id)
+
+    assert reqmock.called_once
+    assert isinstance(response, Portfolio)
+    assert response.id == ptf_id
 
 
 def test_create_subscription(reqmock: Mocker, client: BrokerClient) -> None:

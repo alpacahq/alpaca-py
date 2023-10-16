@@ -1929,7 +1929,7 @@ class BrokerClient(RESTClient):
 
     def get_all_portfolios(self, filter: GetPortfoliosRequest) -> List[Portfolio]:
         """
-        Create a new portfolio.
+        Get all portfolios.
         """
         params = filter.to_request_fields() if filter else {}
 
@@ -1941,6 +1941,18 @@ class BrokerClient(RESTClient):
         return TypeAdapter(
             List[Portfolio],
         ).validate_python(response)
+
+    def get_portfolio_by_id(self, portfolio_id: Union[UUID, str]) -> Portfolio:
+        """
+        Get a portfolio by its ID.
+        """
+
+        response = self.get(f"/rebalancing/portfolios/{portfolio_id}")
+
+        if self._use_raw_data:
+            return response
+
+        return Portfolio(**response)
 
     def create_subscription(
         self, subscription_request: CreateSubscriptionRequest

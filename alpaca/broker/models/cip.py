@@ -96,6 +96,7 @@ class CIPDocument(BaseModel):
 
     """
 
+    id: str
     result: Optional[CIPResult] = None
     status: Optional[CIPStatus] = None
     created_at: Optional[datetime] = None
@@ -243,7 +244,6 @@ class CIPInfo(ModelWithID):
         watchlist (Optional[CIPWatchlist]): Any CIP watchlist information
     """
 
-    id: str
     account_id: UUID
     provider_name: List[CIPProvider]
     created_at: datetime

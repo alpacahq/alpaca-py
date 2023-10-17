@@ -8,6 +8,7 @@ from alpaca.broker.requests import (
     CreateSubscriptionRequest,
     GetPortfoliosRequest,
     UpdatePortfolioRequest,
+    GetSubscriptionsRequest,
 )
 from alpaca.common.enums import BaseURL
 
@@ -370,3 +371,30 @@ def test_create_subscription(reqmock: Mocker, client: BrokerClient) -> None:
 
     assert reqmock.called_once
     assert isinstance(subscription, Subscription)
+
+
+def test_get_all_subscriptions(reqmock: Mocker, client: BrokerClient) -> None:
+    """Test the get_all_subscriptions method."""
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/rebalancing/subscriptions",
+        text="""
+        {
+    "subscriptions": [
+        {
+            "id": "9341be15-8786-4d23-ba1a-fc10ef4f90f4",
+            "account_id": "bf2b0f93-f296-4276-a9cf-288586cf4fb7",
+            "portfolio_id": "57d4ec79-9658-4916-9eb1-7c672be97e3e",
+            "last_rebalanced_at": null,
+            "created_at": "2022-08-07T23:52:05.942964Z"
+        }
+    ],
+    "next_page_token": null
+}
+        """,
+    )
+    response = client.get_all_subscriptions(filter=GetSubscriptionsRequest())
+
+    assert reqmock.called_once
+    assert not response.next_page_token
+    assert len(response.subscriptions) > 0
+    assert isinstance(response.subscriptions[0], Subscription)

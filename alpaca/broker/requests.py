@@ -1059,7 +1059,7 @@ class UpdatePortfolioRequest(NonEmptyRequest):
 
 class GetPortfoliosRequest(NonEmptyRequest):
     """
-    Get portfolio request query parameters.
+    Get portfolios request query parameters.
 
     https://alpaca.markets/docs/api-references/broker-api/rebalancing/#query-parameters
     """
@@ -1080,3 +1080,16 @@ class CreateSubscriptionRequest(NonEmptyRequest):
 
     account_id: UUID
     portfolio_id: UUID
+
+
+class GetSubscriptionsRequest(NonEmptyRequest):
+    """
+    Get subscriptions request query parameters.
+
+    https://alpaca.markets/docs/api-references/broker-api/rebalancing/#request-6
+    """
+
+    account_id: Optional[UUID] = None
+    portfolio_id: Optional[UUID] = None
+    page_token: Optional[str] = None
+    limit: Optional[int] = None

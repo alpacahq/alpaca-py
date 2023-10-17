@@ -1,8 +1,9 @@
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 from uuid import UUID
 
 from alpaca.broker.requests import CreatePortfolioRequest, CreateSubscriptionRequest
+from alpaca.common.models import ValidateBaseModel as BaseModel
 
 
 class Portfolio(CreatePortfolioRequest):
@@ -29,3 +30,14 @@ class Subscription(CreateSubscriptionRequest):
     created_at: datetime
     updated_at: Optional[datetime] = None
     last_rebalanced_at: Optional[datetime] = None
+
+
+class ListSubscriptions(BaseModel):
+    """
+    Subscriptions response model.
+
+    https://alpaca.markets/docs/api-references/broker-api/rebalancing/#sample-response
+    """
+
+    subscriptions: List[Subscription]
+    next_page_token: Optional[str] = None

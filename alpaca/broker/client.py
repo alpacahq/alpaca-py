@@ -2019,3 +2019,15 @@ class BrokerClient(RESTClient):
         return TypeAdapter(
             ListSubscriptions,
         ).validate_python(response)
+
+    def get_subscription_by_id(self, subscription_id: Union[UUID, str]) -> Subscription:
+        """
+        Get a subscription by its ID.
+        """
+
+        response = self.get(f"/rebalancing/subscriptions/{subscription_id}")
+
+        if self._use_raw_data:
+            return response
+
+        return Subscription(**response)

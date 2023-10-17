@@ -1092,7 +1092,6 @@ class GetSubscriptionsRequest(NonEmptyRequest):
 
     account_id: Optional[UUID] = None
     portfolio_id: Optional[UUID] = None
-    page_token: Optional[str] = None
     limit: Optional[int] = None
 
 
@@ -1106,3 +1105,15 @@ class CreateRunRequest(NonEmptyRequest):
     account_id: UUID
     type: RunType
     weights: List[Weight]
+
+
+class GetRunsRequest(NonEmptyRequest):
+    """
+    Get runs request query parameters.
+
+    https://alpaca.markets/docs/api-references/broker-api/rebalancing/#query-parameters-2
+    """
+
+    account_id: Optional[UUID] = None
+    type: Optional[RunType] = None
+    limit: Optional[int] = None

@@ -1,5 +1,5 @@
 import base64
-from typing import Callable, Iterator, List, Optional, Union
+from typing import Any, Callable, Dict, Iterator, List, Optional, Union
 from uuid import UUID
 
 import sseclient
@@ -17,7 +17,6 @@ from alpaca.broker.models import (
     Transfer,
     Order,
     BatchJournalResponse,
-    ListSubscriptions,
     Journal,
     Portfolio,
     Subscription,
@@ -32,6 +31,7 @@ from alpaca.broker.requests import (
     CreateSubscriptionRequest,
     GetJournalsRequest,
     GetPortfoliosRequest,
+    GetRunsRequest,
     GetSubscriptionsRequest,
     OrderRequest,
     CancelOrderResponse,
@@ -155,6 +155,24 @@ class BrokerClient(RESTClient):
         auth_string_encoded = base64.b64encode(str.encode(auth_string))
 
         return {"Authorization": "Basic " + auth_string_encoded.decode("utf-8")}
+
+    def _iterate_over_pages(
+        self, endpoint: str, params: Dict[str, Any], response_field: str
+    ) -> List[RawData]:
+        """
+        Internal method to iterate over the result pages.
+        """
+        _results = []
+        while True:
+            response = self.get(endpoint, params)
+            _results.extend(response[response_field])
+
+            page_token = response.get("next_page_token", None)
+
+            if page_token is None:
+                break
+
+        return _results
 
     # ############################## ACCOUNTS/TRADING ACCOUNTS ################################# #
 
@@ -1918,7 +1936,9 @@ class BrokerClient(RESTClient):
 
     # ############################## REBALANCING ################################# #
 
-    def create_portfolio(self, portfolio_request: CreatePortfolioRequest) -> Portfolio:
+    def create_portfolio(
+        self, portfolio_request: CreatePortfolioRequest
+    ) -> Union[Portfolio, RawData]:
         """
         Create a new portfolio.
         """
@@ -1932,7 +1952,9 @@ class BrokerClient(RESTClient):
 
         return Portfolio(**response)
 
-    def get_all_portfolios(self, filter: GetPortfoliosRequest) -> List[Portfolio]:
+    def get_all_portfolios(
+        self, filter: GetPortfoliosRequest
+    ) -> Union[List[Portfolio], List[RawData]]:
         """
         Get all portfolios.
         """
@@ -1947,7 +1969,9 @@ class BrokerClient(RESTClient):
             List[Portfolio],
         ).validate_python(response)
 
-    def get_portfolio_by_id(self, portfolio_id: Union[UUID, str]) -> Portfolio:
+    def get_portfolio_by_id(
+        self, portfolio_id: Union[UUID, str]
+    ) -> Union[Portfolio, RawData]:
         """
         Get a portfolio by its ID.
         """
@@ -1961,7 +1985,7 @@ class BrokerClient(RESTClient):
 
     def update_portfolio_by_id(
         self, portfolio_id: Union[UUID, str], update_request: UpdatePortfolioRequest
-    ) -> Portfolio:
+    ) -> Union[Portfolio, RawData]:
         """
         Updates a portfolio by ID.
         If weights or conditions are changed, all subscribed accounts will be evaluated for rebalancing at the next opportunity (normal market hours).
@@ -1991,7 +2015,7 @@ class BrokerClient(RESTClient):
 
     def create_subscription(
         self, subscription_request: CreateSubscriptionRequest
-    ) -> Subscription:
+    ) -> Union[Subscription, RawData]:
         """
         Create a new subscription.
         """
@@ -2007,22 +2031,27 @@ class BrokerClient(RESTClient):
 
     def get_all_subscriptions(
         self, filter: GetSubscriptionsRequest
-    ) -> ListSubscriptions:
+    ) -> Union[List[Subscription], List[RawData]]:
         """
         Get all subscriptions.
         """
-        params = filter.to_request_fields() if filter else {}
 
-        response = self.get("/rebalancing/subscriptions", params)
+        _subscriptions = self._iterate_over_pages(
+            endpoint="/rebalancing/subscriptions",
+            params=filter.to_request_fields() if filter else {},
+            response_field="subscriptions",
+        )
 
         if self._use_raw_data:
-            return response
+            return _subscriptions
 
         return TypeAdapter(
-            ListSubscriptions,
-        ).validate_python(response)
+            List[Subscription],
+        ).validate_python(_subscriptions)
 
-    def get_subscription_by_id(self, subscription_id: Union[UUID, str]) -> Subscription:
+    def get_subscription_by_id(
+        self, subscription_id: Union[UUID, str]
+    ) -> Union[Subscription, RawData]:
         """
         Get a subscription by its ID.
         """
@@ -2045,7 +2074,7 @@ class BrokerClient(RESTClient):
 
     def create_manual_run(
         self, rebalancing_run_request: CreateRunRequest
-    ) -> RebalancingRun:
+    ) -> Union[RebalancingRun, RawData]:
         """
         Create a new manual rebalancing run.
 
@@ -2060,3 +2089,23 @@ class BrokerClient(RESTClient):
             return response
 
         return RebalancingRun(**response)
+
+    def get_all_runs(
+        self, filter: GetRunsRequest
+    ) -> Union[List[RebalancingRun], List[RawData]]:
+        """
+        Get all runs.
+        """
+
+        _runs = self._iterate_over_pages(
+            endpoint="/rebalancing/runs",
+            params=filter.to_request_fields() if filter else {},
+            response_field="runs",
+        )
+
+        if self._use_raw_data:
+            return _runs
+
+        return TypeAdapter(
+            List[RebalancingRun],
+        ).validate_python(_runs)

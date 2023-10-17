@@ -8,6 +8,7 @@ from alpaca.broker.requests import (
     CreateRunRequest,
     CreateSubscriptionRequest,
     GetPortfoliosRequest,
+    GetRunsRequest,
     UpdatePortfolioRequest,
     GetSubscriptionsRequest,
 )
@@ -396,9 +397,8 @@ def test_get_all_subscriptions(reqmock: Mocker, client: BrokerClient) -> None:
     response = client.get_all_subscriptions(filter=GetSubscriptionsRequest())
 
     assert reqmock.called_once
-    assert not response.next_page_token
-    assert len(response.subscriptions) > 0
-    assert isinstance(response.subscriptions[0], Subscription)
+    assert len(response) > 0
+    assert isinstance(response[0], Subscription)
 
 
 def test_get_subscription_by_id(reqmock: Mocker, client: BrokerClient) -> None:
@@ -489,3 +489,99 @@ def test_create_manual_run(reqmock: Mocker, client: BrokerClient) -> None:
 
     assert reqmock.called_once
     assert isinstance(run_resp, RebalancingRun)
+
+
+def test_get_all_runs(reqmock: Mocker, client: BrokerClient) -> None:
+    """Test the get_all_runs method."""
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/rebalancing/runs",
+        response_list=[
+            {
+                "text": """
+                        {
+                "runs": [
+                    {
+                        "id": "2ad28f83-796c-4c4d-895e-d360aeb95297",
+                        "type": "full_rebalance",
+                        "amount": null,
+                        "initiated_from": "system",
+                        "status": "CANCELED",
+                        "reason": "create OMS order: create closed order exceeded max retries: order not a filled state",
+                        "account_id": "cf175fbc-ca19-4741-88ed-70d6c133f8d7",
+                        "portfolio_id": "ac89fa84-e3bb-48ff-9b81-d5f313e77463",
+                        "weights": [
+                            {
+                                "type": "cash",
+                                "symbol": null,
+                                "percent": "5"
+                            },
+                            {
+                                "type": "asset",
+                                "symbol": "SPY",
+                                "percent": "60"
+                            },
+                            {
+                                "type": "asset",
+                                "symbol": "TLT",
+                                "percent": "35"
+                            }
+                        ],
+                        "orders": [],
+                        "completed_at": null,
+                        "canceled_at": null,
+                        "created_at": "2022-04-14T10:46:08.045817Z",
+                        "updated_at": "2022-04-14T13:11:07.84719Z"
+                    }
+                ],
+                "next_page_token": 1
+            }
+            """
+            },
+            {
+                "text": """
+                        {
+                "runs": [
+                    {
+                        "id": "2ad28f83-796c-4c4d-895e-d360aeb95297",
+                        "type": "full_rebalance",
+                        "amount": null,
+                        "initiated_from": "system",
+                        "status": "CANCELED",
+                        "reason": "create OMS order: create closed order exceeded max retries: order not a filled state",
+                        "account_id": "cf175fbc-ca19-4741-88ed-70d6c133f8d7",
+                        "portfolio_id": "ac89fa84-e3bb-48ff-9b81-d5f313e77463",
+                        "weights": [
+                            {
+                                "type": "cash",
+                                "symbol": null,
+                                "percent": "5"
+                            },
+                            {
+                                "type": "asset",
+                                "symbol": "SPY",
+                                "percent": "60"
+                            },
+                            {
+                                "type": "asset",
+                                "symbol": "TLT",
+                                "percent": "35"
+                            }
+                        ],
+                        "orders": [],
+                        "completed_at": null,
+                        "canceled_at": null,
+                        "created_at": "2022-04-14T10:46:08.045817Z",
+                        "updated_at": "2022-04-14T13:11:07.84719Z"
+                    }
+                ],
+                "next_page_token": null
+            }
+            """
+            },
+        ],
+    )
+    response = client.get_all_runs(filter=GetRunsRequest())
+
+    assert reqmock.call_count == 2
+    assert len(response) == 2
+    assert isinstance(response[0], RebalancingRun)

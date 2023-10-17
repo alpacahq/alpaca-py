@@ -38,17 +38,6 @@ class Subscription(CreateSubscriptionRequest):
     last_rebalanced_at: Optional[datetime] = None
 
 
-class ListSubscriptions(BaseModel):
-    """
-    Subscriptions response model.
-
-    https://alpaca.markets/docs/api-references/broker-api/rebalancing/#sample-response
-    """
-
-    subscriptions: List[Subscription]
-    next_page_token: Optional[str] = None
-
-
 class RebalancingRun(CreateRunRequest):
     """
     Rebalancing run response model.

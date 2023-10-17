@@ -2031,3 +2031,12 @@ class BrokerClient(RESTClient):
             return response
 
         return Subscription(**response)
+
+    def unsubscribe_account(self, subscription_id: Union[UUID, str]) -> None:
+        """
+        Deletes the subscription which stops the rebalancing of an account.
+        """
+
+        self.delete(
+            f"/rebalancing/subscriptions/{subscription_id}",
+        )

@@ -420,3 +420,15 @@ def test_get_subscription_by_id(reqmock: Mocker, client: BrokerClient) -> None:
     assert reqmock.called_once
     assert isinstance(response, Subscription)
     assert response.id == sub_id
+
+
+def test_unsubscribe_account(reqmock: Mocker, client: BrokerClient) -> None:
+    """Test the unsubscribe_account method."""
+    sub_id = UUID("9341be15-8786-4d23-ba1a-fc10ef4f90f4")
+    reqmock.delete(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/rebalancing/subscriptions/{sub_id}"
+    )
+    client.unsubscribe_account(
+        subscription_id=sub_id,
+    )
+    assert reqmock.called_once

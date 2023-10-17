@@ -2109,3 +2109,25 @@ class BrokerClient(RESTClient):
         return TypeAdapter(
             List[RebalancingRun],
         ).validate_python(_runs)
+
+    def get_run_by_id(self, run_id: Union[UUID, str]) -> Union[RebalancingRun, RawData]:
+        """
+        Get a run by its ID.
+        """
+
+        response = self.get(f"/rebalancing/subscriptions/{run_id}")
+
+        if self._use_raw_data:
+            return response
+
+        return RebalancingRun(**response)
+
+    def cancel_run_by_id(self, run_id: Union[UUID, str]) -> None:
+        """
+        Cancels a run.
+
+        Only runs within certain statuses (QUEUED, CANCELED, SELLS_IN_PROGRESS, BUYS_IN_PROGRESS) are cancelable.
+        If this endpoint is called after orders have been submitted, we’ll attempt to cancel the orders.
+        """
+
+        self.delete(f"/rebalancing/runs/{run_id}")

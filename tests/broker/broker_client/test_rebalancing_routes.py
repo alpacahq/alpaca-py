@@ -585,3 +585,58 @@ def test_get_all_runs(reqmock: Mocker, client: BrokerClient) -> None:
     assert reqmock.call_count == 2
     assert len(response) == 2
     assert isinstance(response[0], RebalancingRun)
+
+
+def test_get_run_by_id(reqmock: Mocker, client: BrokerClient) -> None:
+    """Test the get_run_by_id method."""
+    run_id = UUID("2ad28f83-796c-4c4d-895e-d360aeb95297")
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/rebalancing/subscriptions/{run_id}",
+        text="""
+        {
+                        "id": "2ad28f83-796c-4c4d-895e-d360aeb95297",
+                        "type": "full_rebalance",
+                        "amount": null,
+                        "initiated_from": "system",
+                        "status": "CANCELED",
+                        "reason": "create OMS order: create closed order exceeded max retries: order not a filled state",
+                        "account_id": "cf175fbc-ca19-4741-88ed-70d6c133f8d7",
+                        "portfolio_id": "ac89fa84-e3bb-48ff-9b81-d5f313e77463",
+                        "weights": [
+                            {
+                                "type": "cash",
+                                "symbol": null,
+                                "percent": "5"
+                            },
+                            {
+                                "type": "asset",
+                                "symbol": "SPY",
+                                "percent": "60"
+                            },
+                            {
+                                "type": "asset",
+                                "symbol": "TLT",
+                                "percent": "35"
+                            }
+                        ],
+                        "orders": [],
+                        "completed_at": null,
+                        "canceled_at": null,
+                        "created_at": "2022-04-14T10:46:08.045817Z",
+                        "updated_at": "2022-04-14T13:11:07.84719Z"
+                    }
+        """,
+    )
+    response = client.get_run_by_id(run_id=run_id)
+
+    assert reqmock.called_once
+    assert isinstance(response, RebalancingRun)
+    assert response.id == run_id
+
+
+def test_cancel_run_by_id(reqmock: Mocker, client: BrokerClient) -> None:
+    """Test the cancel_run_by_id method."""
+    run_id = UUID("9341be15-8786-4d23-ba1a-fc10ef4f90f4")
+    reqmock.delete(f"{BaseURL.BROKER_SANDBOX.value}/v1/rebalancing/runs/{run_id}")
+    client.cancel_run_by_id(run_id=run_id)
+    assert reqmock.called_once

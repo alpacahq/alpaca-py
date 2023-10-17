@@ -24,6 +24,7 @@ from alpaca.broker.enums import (
     FundingSource,
     IdentifierType,
     RebalancingConditionsType,
+    RunType,
     TradeDocumentType,
     TransferDirection,
     TransferTiming,
@@ -33,7 +34,7 @@ from alpaca.broker.enums import (
     VisaType,
     JournalEntryType,
     JournalStatus,
-    WeightsType,
+    WeightType,
 )
 from alpaca.common.models import BaseModel
 from alpaca.common.enums import Sort, SupportedCurrencies
@@ -987,14 +988,14 @@ class GetEventsRequest(NonEmptyRequest):
 # ############################## Rebalancing ################################# #
 
 
-class Weights(BaseModel):
+class Weight(BaseModel):
     """
-    Weights model.
+    Weight model.
 
     https://alpaca.markets/docs/api-references/broker-api/rebalancing/#weights-model
     """
 
-    type: WeightsType
+    type: WeightType
     symbol: Optional[str] = None
     percent: float
 
@@ -1009,7 +1010,7 @@ class Weights(BaseModel):
     def validator(cls, values: dict) -> dict:
         """Verify that the symbol is provided when the weights type is asset."""
         if (
-            values["type"] == WeightsType.ASSET.value
+            values["type"] == WeightType.ASSET.value
             and values.get("symbol", None) is None
         ):
             raise ValueError
@@ -1038,7 +1039,7 @@ class CreatePortfolioRequest(NonEmptyRequest):
 
     name: str
     description: str
-    weights: List[Weights]
+    weights: List[Weight]
     cooldown_days: int
     rebalance_conditions: List[RebalancingConditions]
 
@@ -1052,7 +1053,7 @@ class UpdatePortfolioRequest(NonEmptyRequest):
 
     name: Optional[str] = None
     description: Optional[str] = None
-    weights: Optional[List[Weights]] = None
+    weights: Optional[List[Weight]] = None
     cooldown_days: Optional[int] = None
     rebalance_conditions: Optional[List[RebalancingConditions]] = None
 
@@ -1093,3 +1094,15 @@ class GetSubscriptionsRequest(NonEmptyRequest):
     portfolio_id: Optional[UUID] = None
     page_token: Optional[str] = None
     limit: Optional[int] = None
+
+
+class CreateRunRequest(NonEmptyRequest):
+    """
+    Manually creates a rebalancing run.
+
+    https://alpaca.markets/docs/api-references/broker-api/rebalancing/#create-run-manual-rebalancing-event
+    """
+
+    account_id: UUID
+    type: RunType
+    weights: List[Weight]

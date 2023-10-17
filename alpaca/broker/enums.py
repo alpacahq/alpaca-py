@@ -425,9 +425,9 @@ class JournalStatus(str, Enum):
     DELETED = "deleted"
 
 
-class WeightsType(str, Enum):
+class WeightType(str, Enum):
     """
-    The possible values of the Weights type.
+    The possible values of the Weight type.
 
     See https://alpaca.markets/docs/api-references/broker-api/rebalancing/#weights-model
     """
@@ -469,3 +469,42 @@ class CalendarSubType(str, Enum):
     MONTHLY = "monthly"
     QUARTERLY = "quarterly"
     ANNUALLY = "annually"
+
+
+class RunType(str, Enum):
+    """
+    The possible values of the Run type.
+
+    See https://alpaca.markets/docs/api-references/broker-api/rebalancing/#run-model
+    """
+
+    FULL_REBALANCE = "full_rebalance"
+    INVEST_CASH = "invest_cash"
+
+
+class RunInitiatedBy(str, Enum):
+    """
+    The possible values of the initiated_by field.
+
+    See https://alpaca.markets/docs/api-references/broker-api/rebalancing/#run-model
+    """
+
+    SYSTEM = "system"
+    API = "api"
+
+
+class RunStatus(str, Enum):
+    """
+    The possible values of the Run status.
+
+    See https://alpaca.markets/docs/api-references/broker-api/rebalancing/#run-model
+    """
+
+    QUEUED = "QUEUED"
+    IN_PROGRESS = "IN_PROGRESS"
+    CANCELED = "CANCELED"
+    CANCELED_MID_RUN = "CANCELED_MID_RUN"
+    ERROR = "ERROR"
+    TIMEOUT = "TIMEOUT"
+    COMPLETED_SUCCESS = "COMPLETED_SUCCESS"
+    COMPLETED_ADJUSTED = "COMPLETED_ADJUSTED"

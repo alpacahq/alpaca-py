@@ -21,12 +21,14 @@ from alpaca.broker.models import (
     Journal,
     Portfolio,
     Subscription,
+    RebalancingRun,
 )
 from alpaca.broker.requests import (
     CreateJournalRequest,
     CreateBatchJournalRequest,
     CreatePortfolioRequest,
     CreateReverseBatchJournalRequest,
+    CreateRunRequest,
     CreateSubscriptionRequest,
     GetJournalsRequest,
     GetPortfoliosRequest,
@@ -2040,3 +2042,21 @@ class BrokerClient(RESTClient):
         self.delete(
             f"/rebalancing/subscriptions/{subscription_id}",
         )
+
+    def create_manual_run(
+        self, rebalancing_run_request: CreateRunRequest
+    ) -> RebalancingRun:
+        """
+        Create a new manual rebalancing run.
+
+        https://alpaca.markets/docs/api-references/broker-api/rebalancing/#create-run-manual-rebalancing-event
+        """
+
+        response = self.post(
+            "/rebalancing/runs", data=rebalancing_run_request.to_request_fields()
+        )
+
+        if self._use_raw_data:
+            return response
+
+        return RebalancingRun(**response)

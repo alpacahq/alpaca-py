@@ -1,10 +1,11 @@
 from uuid import UUID
 from requests_mock import Mocker
 from alpaca.broker.client import BrokerClient
-from alpaca.broker.enums import WeightsType
-from alpaca.broker.models import Portfolio, Subscription
+from alpaca.broker.enums import WeightType
+from alpaca.broker.models import Portfolio, Subscription, RebalancingRun
 from alpaca.broker.requests import (
     CreatePortfolioRequest,
+    CreateRunRequest,
     CreateSubscriptionRequest,
     GetPortfoliosRequest,
     UpdatePortfolioRequest,
@@ -331,9 +332,9 @@ def test_update_portfolio_by_id(reqmock: Mocker, client: BrokerClient) -> None:
     assert reqmock.called_once
     assert isinstance(response, Portfolio)
     assert response.id == ptf_id
-    assert response.weights[0].type == WeightsType.CASH
+    assert response.weights[0].type == WeightType.CASH
     assert response.weights[0].percent == 10
-    assert response.weights[1].type == WeightsType.ASSET
+    assert response.weights[1].type == WeightType.ASSET
     assert response.weights[1].percent == 90
 
 
@@ -432,3 +433,59 @@ def test_unsubscribe_account(reqmock: Mocker, client: BrokerClient) -> None:
         subscription_id=sub_id,
     )
     assert reqmock.called_once
+
+
+def test_create_manual_run(reqmock: Mocker, client: BrokerClient) -> None:
+    """Test to create a portfolio subscription."""
+    reqmock.post(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/rebalancing/runs",
+        text="""
+            {
+                "id": "b4f32f6f-f8b3-4f8e-9b36-30b560000bfa",
+                "type": "full_rebalance",
+                "amount": null,
+                "initiated_from": "api",
+                "status": "QUEUED",
+                "reason": null,
+                "account_id": "bf2b0f93-f296-4276-a9cf-288586cf4fb7",
+                "portfolio_id": "448ba7b3-2fda-4d8e-ac9f-61ff2aa36c60",
+                "weights": [
+                    {
+                        "type": "asset",
+                        "symbol": "AAPL",
+                        "percent": "35"
+                    },
+                    {
+                        "type": "asset",
+                        "symbol": "TSLA",
+                        "percent": "20"
+                    },
+                    {
+                        "type": "asset",
+                        "symbol": "SPY",
+                        "percent": "45"
+                    }
+                ],
+                "orders": [],
+                "completed_at": null,
+                "canceled_at": null,
+                "created_at": "2023-10-17T10:16:55.582507Z",
+                "updated_at": "2023-10-17T10:16:55.582507Z"
+            }
+        """,
+    )
+    run_req = CreateRunRequest(
+        **{
+            "account_id": "bf2b0f93-f296-4276-a9cf-288586cf4fb7",
+            "type": "full_rebalance",
+            "weights": [
+                {"type": "asset", "symbol": "AAPL", "percent": "35"},
+                {"type": "asset", "symbol": "TSLA", "percent": "20"},
+                {"type": "asset", "symbol": "SPY", "percent": "45"},
+            ],
+        }
+    )
+    run_resp = client.create_manual_run(run_req)
+
+    assert reqmock.called_once
+    assert isinstance(run_resp, RebalancingRun)

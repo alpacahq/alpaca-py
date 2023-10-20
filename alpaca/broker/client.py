@@ -1,5 +1,5 @@
 import base64
-from typing import Any, Callable, Dict, Iterator, List, Optional, Union
+from typing import Any, Callable, Dict, Iterator, List, Optional, Type, Union
 from uuid import UUID
 
 import sseclient
@@ -21,6 +21,7 @@ from alpaca.broker.models import (
     Portfolio,
     Subscription,
     RebalancingRun,
+    BaseModel,
 )
 from alpaca.broker.requests import (
     CreateJournalRequest,
@@ -157,22 +158,31 @@ class BrokerClient(RESTClient):
         return {"Authorization": "Basic " + auth_string_encoded.decode("utf-8")}
 
     def _iterate_over_pages(
-        self, endpoint: str, params: Dict[str, Any], response_field: str
-    ) -> List[RawData]:
+        self,
+        endpoint: str,
+        params: Dict[str, Any],
+        response_field: str,
+        base_model_type: Type[BaseModel],
+    ) -> Iterator[Union[RawData, BaseModel]]:
         """
         Internal method to iterate over the result pages.
         """
-        _results = []
+
         while True:
             response = self.get(endpoint, params)
-            _results.extend(response[response_field])
+            result = response[response_field]
+
+            if self._use_raw_data:
+                yield result
+
+            yield TypeAdapter(
+                List[base_model_type],
+            ).validate_python(result)
 
             page_token = response.get("next_page_token", None)
 
             if page_token is None:
                 break
-
-        return _results
 
     # ############################## ACCOUNTS/TRADING ACCOUNTS ################################# #
 
@@ -1991,6 +2001,7 @@ class BrokerClient(RESTClient):
         If weights or conditions are changed, all subscribed accounts will be evaluated for rebalancing at the next opportunity (normal market hours).
         If a cooldown is active on the portfolio, the rebalancing will occur after the cooldown expired.
         """
+        portfolio_id = validate_uuid_id_param(portfolio_id)
 
         response = self.patch(
             f"/rebalancing/portfolios/{portfolio_id}",
@@ -2008,6 +2019,7 @@ class BrokerClient(RESTClient):
         Only permitted if there are no active subscriptions to this portfolio and this portfolio is not a listed in the weights of any active portfolios.
         Inactive portfolios cannot be linked in new subscriptions or added as weights to new portfolios.
         """
+        portfolio_id = validate_uuid_id_param(portfolio_id)
 
         self.delete(
             f"/rebalancing/portfolios/{portfolio_id}",
@@ -2030,24 +2042,28 @@ class BrokerClient(RESTClient):
         return Subscription(**response)
 
     def get_all_subscriptions(
-        self, filter: GetSubscriptionsRequest
+        self,
+        filter: GetSubscriptionsRequest,
+        max_items_limit: Optional[int] = None,
+        handle_pagination: Optional[PaginationType] = None,
     ) -> Union[List[Subscription], List[RawData]]:
         """
         Get all subscriptions.
         """
+        handle_pagination = BrokerClient._validate_pagination(
+            max_items_limit, handle_pagination
+        )
 
-        _subscriptions = self._iterate_over_pages(
+        subscriptions_iterator = self._iterate_over_pages(
             endpoint="/rebalancing/subscriptions",
             params=filter.to_request_fields() if filter else {},
             response_field="subscriptions",
+            base_model_type=Subscription,
         )
 
-        if self._use_raw_data:
-            return _subscriptions
-
-        return TypeAdapter(
-            List[Subscription],
-        ).validate_python(_subscriptions)
+        return BrokerClient._return_paginated_result(
+            subscriptions_iterator, handle_pagination
+        )
 
     def get_subscription_by_id(
         self, subscription_id: Union[UUID, str]
@@ -2055,6 +2071,7 @@ class BrokerClient(RESTClient):
         """
         Get a subscription by its ID.
         """
+        subscription_id = validate_uuid_id_param(subscription_id)
 
         response = self.get(f"/rebalancing/subscriptions/{subscription_id}")
 
@@ -2067,6 +2084,7 @@ class BrokerClient(RESTClient):
         """
         Deletes the subscription which stops the rebalancing of an account.
         """
+        subscription_id = validate_uuid_id_param(subscription_id)
 
         self.delete(
             f"/rebalancing/subscriptions/{subscription_id}",
@@ -2091,29 +2109,32 @@ class BrokerClient(RESTClient):
         return RebalancingRun(**response)
 
     def get_all_runs(
-        self, filter: GetRunsRequest
+        self,
+        filter: GetRunsRequest,
+        max_items_limit: Optional[int] = None,
+        handle_pagination: Optional[PaginationType] = None,
     ) -> Union[List[RebalancingRun], List[RawData]]:
         """
         Get all runs.
         """
+        handle_pagination = BrokerClient._validate_pagination(
+            max_items_limit, handle_pagination
+        )
 
-        _runs = self._iterate_over_pages(
+        runs_iterator = self._iterate_over_pages(
             endpoint="/rebalancing/runs",
             params=filter.to_request_fields() if filter else {},
             response_field="runs",
+            base_model_type=RebalancingRun,
         )
 
-        if self._use_raw_data:
-            return _runs
-
-        return TypeAdapter(
-            List[RebalancingRun],
-        ).validate_python(_runs)
+        return BrokerClient._return_paginated_result(runs_iterator, handle_pagination)
 
     def get_run_by_id(self, run_id: Union[UUID, str]) -> Union[RebalancingRun, RawData]:
         """
         Get a run by its ID.
         """
+        run_id = validate_uuid_id_param(run_id)
 
         response = self.get(f"/rebalancing/subscriptions/{run_id}")
 
@@ -2129,5 +2150,6 @@ class BrokerClient(RESTClient):
         Only runs within certain statuses (QUEUED, CANCELED, SELLS_IN_PROGRESS, BUYS_IN_PROGRESS) are cancelable.
         If this endpoint is called after orders have been submitted, we’ll attempt to cancel the orders.
         """
+        run_id = validate_uuid_id_param(run_id)
 
         self.delete(f"/rebalancing/runs/{run_id}")

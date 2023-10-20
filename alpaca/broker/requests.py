@@ -1093,6 +1093,7 @@ class GetSubscriptionsRequest(NonEmptyRequest):
     account_id: Optional[UUID] = None
     portfolio_id: Optional[UUID] = None
     limit: Optional[int] = None
+    page_token: Optional[str] = None
 
 
 class CreateRunRequest(NonEmptyRequest):

@@ -237,7 +237,7 @@ bars.df
 
 **Querying News Data**
 
-You can query news data via the NewsClient. In this example, we query news data for “AAPL” since July 1st 2022. You can convert the response to a pandas dataframe using the `.df` property.
+You can query news data via the NewsClient. In this example, we query news data for “TSLA” since July 1st 2022. You can convert the response to a pandas dataframe using the `.df` property.
 
 ```python
 from alpaca.data.news import NewsClient
@@ -248,7 +248,7 @@ from datetime import datetime
 client = NewsClient()
 
 request_params = NewsRequest(
-                        symbol="AAPL",
+                        symbol="TSLA",
                         start=datetime.strptime("2022-07-01", '%Y-%m-%d')
                         )
 

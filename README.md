@@ -6,25 +6,24 @@
 [![PyPI](https://img.shields.io/pypi/v/alpaca-py?color=blue)](https://pypi.org/project/alpaca-py/)
 
 ## Table of Contents
-
-- [About](#about)
-- [Documentation](#documentation)
-- [Installation](#installation)
-- [Update](#update)
-- [What's New?](#whats-new)
-  1.  [Broker API](#broker-api-new)
-  2.  [OOP Design](#oop-design)
-  3.  [Data Validation](#data-validation)
-  4.  [Many Clients](#many-clients)
-- [API Keys](#api-keys)
-  1.  [Trading and Market Data API Keys](#trading-api-keys)
-  2.  [Broker API Keys](#trading-api-keys)
-- [Usage](#usage)
-  1.  [Broker API Example](#broker-api-example)
-  2.  [Trading API Example](#trading-api-example)
-  3.  [Market Data API Example](#data-api-example)
-- [Contributing](https://github.com/alpacahq/alpaca-py/blob/master/CONTRIBUTING.md)
-- [License](https://github.com/alpacahq/alpaca-py/blob/master/LICENSE)
+* [About](#about)
+* [Documentation](#documentation)
+* [Installation](#installation)
+* [Update](#update)
+* [What's New?](#whats-new)
+   1. [Broker API](#broker-api-new)
+   2. [OOP Design](#oop-design)
+   3. [Data Validation](#data-validation)
+   4. [Many Clients](#many-clients)
+* [API Keys](#api-keys)
+   1. [Trading and Market Data API Keys](#trading-api-keys)
+   2. [Broker API Keys](#trading-api-keys)
+* [Usage](#usage)
+   1. [Broker API Example](#broker-api-example)
+   2. [Trading API Example](#trading-api-example)
+   3. [Market Data API Example](#data-api-example)
+* [Contributing](https://github.com/alpacahq/alpaca-py/blob/master/CONTRIBUTING.md)
+* [License](https://github.com/alpacahq/alpaca-py/blob/master/LICENSE)
 
 ## About <a name="about"></a>
 
@@ -41,7 +40,7 @@ You can find the documentation site here: https://alpaca.markets/docs/python-sdk
 
 ## Installation <a name="installation"></a>
 
-Alpaca-py is supported on Python 3.7+. You can install Alpaca-py using pip.
+Alpaca-py is supported on Python 3.7+.  You can install Alpaca-py using pip.
 
 Run the following command in your terminal.
 
@@ -60,25 +59,22 @@ Run the following command in your terminal:
 ```
 
 ## What’s New? <a name="whats-new"></a>
-
 If you’ve used the previous python SDK alpaca-trade-api, there are a few key differences to be aware of.
 
 ### Broker API <a name="broker-api-new"></a>
-
 Alpaca-py lets you use Broker API to start building your investment apps! Learn more at the [Broker](https://alpaca.markets/docs/python-sdk/broker.html) page.
 
 ### OOP Design <a name="oop-design"></a>
-
 Alpaca-py uses a more OOP approach to submitting requests compared to the previous SDK. To submit a request, you will most likely need to create a request object containing the desired request data. Generally, there is a unique request model for each method.
 
 Some examples of request models corresponding to methods:
 
-- `GetOrdersRequest` for `TradingClient.get_orders()`
-- `CryptoLatestOrderbookRequest` for `CryptoHistoricalDataClient.get_crypto_latest_orderbook()`
+* ``GetOrdersRequest`` for ``TradingClient.get_orders()``
+* ``CryptoLatestOrderbookRequest`` for ``CryptoHistoricalDataClient.get_crypto_latest_orderbook()``
 
 **Request Models Usage Example**
 
-To get historical bar data for crypto, you will need to provide a `CryptoBarsRequest` object.
+To get historical bar data for crypto, you will need to provide a ``CryptoBarsRequest`` object.
 
 ```python
 from alpaca.data.historical import CryptoHistoricalDataClient
@@ -99,8 +95,7 @@ bars = client.get_crypto_bars(request_params)
 ```
 
 ### Data Validation <a name="data-validation"></a>
-
-Alpaca-py uses _pydantic_ to validate data models at run-time. This means if you are receiving request data via JSON from a client. You can handle parsing and validation through Alpaca’s request models. All request models can be instantiated by passing in data in dictionary format.
+Alpaca-py uses *pydantic* to validate data models at run-time. This means if you are receiving request data via JSON from a client. You can handle parsing and validation through Alpaca’s request models. All request models can be instantiated by passing in data in dictionary format.
 
 Here is a rough example of what is possible.
 
@@ -119,36 +114,32 @@ Here is a rough example of what is possible.
 ```
 
 ### Many Clients <a name="many-clients"></a>
+Alpaca-py has a lot of client classes. There is a client for each API and even asset class specific clients (``StockHistoricalDataClient``, ``CryptoDataStream``). This requires you to pick and choose clients based on your needs.
 
-Alpaca-py has a lot of client classes. There is a client for each API and even asset class specific clients (`StockHistoricalDataClient`, `CryptoDataStream`). This requires you to pick and choose clients based on your needs.
+**Broker API:** ``BrokerClient``
 
-**Broker API:** `BrokerClient`
+**Trading API:** ``TradingClient``
 
-**Trading API:** `TradingClient`
+**Market Data API:**  ``StockHistoricalDataClient``, ``CryptoHistoricalDataClient``, ``CryptoDataStream``, ``StockDataStream``
 
-**Market Data API:** `StockHistoricalDataClient`, `CryptoHistoricalDataClient`, `CryptoDataStream`, `StockDataStream`
-
-**News API:** `NewsClient`, `NewsDataStream`
+**News API:** ``NewsClient``, ``NewsDataStream``
 
 ## API Keys <a name="api-keys"></a>
 
 ### Trading and Market Data API <a name="trading-api-keys"></a>
-
-In order to use Alpaca’s services you’ll need to sign up for an Alpaca account and retrieve your API keys. Signing up is completely free and takes only a few minutes. Sandbox environments are available to test out the API. To use the sandbox environment, you will need to provide sandbox/paper keys. API keys are passed into Alpaca-py through either `TradingClient`, `StockHistoricalDataClient`, `CryptoHistoricalDataClient`, `StockDataStream`, `CryptoDataStream`, `NewsClient`, or `NewsDataStream`.
+In order to use Alpaca’s services you’ll need to sign up for an Alpaca account and retrieve your API keys. Signing up is completely free and takes only a few minutes. Sandbox environments are available to test out the API. To use the sandbox environment, you will need to provide sandbox/paper keys. API keys are passed into Alpaca-py through either ``TradingClient``, ``StockHistoricalDataClient``, ``CryptoHistoricalDataClient``, ``StockDataStream``, ``CryptoDataStream``, ``NewsClient``, or ``NewsDataStream``.
 
 ### Broker API <a name="broker-api-keys"></a>
-
-To use the Broker API, you will need to sign up for a broker account and retrieve your Broker API keys. The API keys can be found on the dashboard once you’ve logged in. Alpaca also provides a sandbox environment to test out Broker API. To use the sandbox mode, provide your sandbox keys. Once you have your keys, you can pass them into `BrokerClient` to get started.
+To use the Broker API, you will need to sign up for a broker account and retrieve your Broker API keys. The API keys can be found on the dashboard once you’ve logged in. Alpaca also provides a sandbox environment to test out Broker API. To use the sandbox mode, provide your sandbox keys. Once you have your keys, you can pass them into ``BrokerClient`` to get started.
 
 ## Usage <a name="usage"></a>
-
 Alpaca’s APIs allow you to do everything from building algorithmic trading strategies to building a full brokerage experience for your own end users. Here are some things you can do with Alpaca-py.
 
 To view full descriptions and examples view the [documentation page](https://alpaca.markets/docs/python-sdk/index.html).
 
 **Market Data API**: Access live and historical market data for 5000+ stocks and 20+ crypto.
 
-**News API**: Access live and historical news data for 5000+ stocks.
+**News API**: Access live and historical news data for stocks and crypto.
 
 **Trading API**: Trade stock and crypto with lightning fast execution speeds.
 
@@ -158,7 +149,7 @@ To view full descriptions and examples view the [documentation page](https://alp
 
 **Listing All Accounts**
 
-The `BrokerClient.list_accounts` method allows you to list all the brokerage accounts under your management. The method takes an optional parameter `search_parameters` which requires a `ListAccountsRequest` object. This parameter allows you to filter the list of accounts returned.
+The ``BrokerClient.list_accounts`` method allows you to list all the brokerage accounts under your management. The method takes an optional parameter ``search_parameters`` which requires a ``ListAccountsRequest`` object. This parameter allows you to filter the list of accounts returned.
 
 ```python
 from alpaca.broker.client import BrokerClient
@@ -181,7 +172,8 @@ accounts = broker_client.list_accounts(search_parameters=filter)
 
 **Submitting an Order**
 
-To create an order on Alpaca-py you must use an `OrderRequest` object. There are different `OrderRequest` objects based on the type of order you want to make. For market orders, there is `MarketOrderRequest`, limit orders have `LimitOrderRequest`, stop orders `StopOrderRequest`, and trailing stop orders have `TrailingStopOrderRequest`. Each order type have their own required parameters for a successful order.
+To create an order on Alpaca-py you must use an ``OrderRequest`` object. There are different ``OrderRequest`` objects based on the type of order you want to make. For market orders, there is ``MarketOrderRequest``, limit orders have ``LimitOrderRequest``, stop orders ``StopOrderRequest``, and trailing stop orders have ``TrailingStopOrderRequest``. Each order type have their own required parameters for a successful order.
+
 
 ```python
 from alpaca.trading.client import TradingClient
@@ -205,11 +197,11 @@ market_order = trading_client.submit_order(
                 )
 ```
 
-### Market Data API Example <a name="data-api-example"></a>
 
+### Market Data API Example <a name="data-api-example"></a>
 **Querying Historical Bar Data**
 
-You can request bar data via the HistoricalDataClients. In this example, we query daily bar data for “BTC/USD” and “ETH/USD” since July 1st 2022. You can convert the response to a multi-index pandas dataframe using the `.df` property.
+You can request bar data via the HistoricalDataClients. In this example, we query daily bar data for “BTC/USD” and “ETH/USD” since July 1st 2022. You can convert the response to a multi-index pandas dataframe using the ``.df`` property.
 
 ```python
 from alpaca.data.historical import CryptoHistoricalDataClient
@@ -234,10 +226,9 @@ bars.df
 ```
 
 ### News API Example <a name="news-api-example"></a>
-
 **Querying News Data**
 
-You can query news data via the NewsClient. In this example, we query news data for “TSLA” since July 1st 2022. You can convert the response to a pandas dataframe using the `.df` property.
+You can query news data via the NewsClient. In this example, we query news data for “TSLA” since July 1st 2022. You can convert the response to a pandas dataframe using the ``.df`` property.
 
 ```python
 from alpaca.data.news import NewsClient

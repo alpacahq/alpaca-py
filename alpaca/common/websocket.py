@@ -51,6 +51,7 @@ class BaseStream:
             "bars": {},
             "updatedBars": {},
             "dailyBars": {},
+            "news": {},
         }
         self._name = "data"
         self._should_run = True
@@ -219,6 +220,12 @@ class BaseStream:
             )
             if handler:
                 await handler(self._cast(msg_type, msg))
+        elif msg_type == "n":
+            handler = self._handlers["news"].get(
+                symbol, self._handlers["news"].get("*", None)
+            )
+            if handler:
+                await handler(self._cast(msg_type, msg))
         elif msg_type == "subscription":
             sub = [f"{k}: {msg.get(k, [])}" for k in self._handlers]
             log.info(f'subscribed to {", ".join(sub)}')
@@ -239,7 +246,8 @@ class BaseStream:
         for symbol in symbols:
             handlers[symbol] = handler
         if self._running:
-            asyncio.run_coroutine_threadsafe(self._subscribe_all(), self._loop).result()
+            asyncio.run_coroutine_threadsafe(
+                self._subscribe_all(), self._loop).result()
 
     async def _subscribe_all(self) -> None:
         """Subscribes to live data"""
@@ -251,13 +259,13 @@ class BaseStream:
         msg["action"] = "subscribe"
         bs = msgpack.packb(msg)
         frames = (
-            bs[i : i + self._max_frame_size]
+            bs[i: i + self._max_frame_size]
             for i in range(0, len(bs), self._max_frame_size)
         )
         await self._ws.send(frames)
 
     async def _unsubscribe(
-        self, trades=(), quotes=(), bars=(), updated_bars=(), daily_bars=()
+        self, trades=(), quotes=(), bars=(), updated_bars=(), daily_bars=(), news=()
     ) -> None:
         """Unsubscribes from data for symbols specified by the data type
         we want to subscribe from.
@@ -268,8 +276,9 @@ class BaseStream:
             bars (tuple, optional): All symbols to unsubscribe minute bar data for. Defaults to ().
             updated_bars (tuple, optional): All symbols to unsubscribe updated bar data for. Defaults to ().
             daily_bars (tuple, optional): All symbols to unsubscribe daily bar data for. Defaults to ().
+            news (tuple, optional): All symbols to unsubscribe news data for. Defaults to ().
         """
-        if trades or quotes or bars or updated_bars or daily_bars:
+        if trades or quotes or bars or updated_bars or daily_bars or news:
             await self._ws.send(
                 msgpack.packb(
                     {
@@ -279,6 +288,7 @@ class BaseStream:
                         "bars": bars,
                         "updatedBars": updated_bars,
                         "dailyBars": daily_bars,
+                        "news": news,
                     }
                 )
             )
@@ -310,7 +320,8 @@ class BaseStream:
                     log.info("{} stream stopped".format(self._name))
                     return
                 if not self._running:
-                    log.info("starting {} websocket connection".format(self._name))
+                    log.info(
+                        "starting {} websocket connection".format(self._name))
                     await self._start_ws()
                     await self._subscribe_all()
                     self._running = True
@@ -318,10 +329,12 @@ class BaseStream:
             except websockets.WebSocketException as wse:
                 await self.close()
                 self._running = False
-                log.warning("data websocket error, restarting connection: " + str(wse))
+                log.warning(
+                    "data websocket error, restarting connection: " + str(wse))
             except Exception as e:
                 log.exception(
-                    "error during websocket " "communication: {}".format(str(e))
+                    "error during websocket " "communication: {}".format(
+                        str(e))
                 )
             finally:
                 await asyncio.sleep(0)
@@ -370,6 +383,15 @@ class BaseStream:
             *symbols: Variable string arguments for ticker identifiers to be subscribed to.
         """
         self._subscribe(handler, symbols, self._handlers["dailyBars"])
+
+    def subscribe_news(self, handler: Callable, *symbols) -> None:
+        """Subscribe to news data for symbol inputs
+
+        Args:
+            handler (Callable): The coroutine callback function to handle live news data
+            *symbols: Variable string arguments for ticker identifiers to be subscribed to.
+        """
+        self._subscribe(handler, symbols, self._handlers["news"])
 
     def unsubscribe_trades(self, *symbols) -> None:
         """Unsubscribe from trade data for symbol inputs
@@ -436,6 +458,19 @@ class BaseStream:
         for symbol in symbols:
             del self._handlers["dailyBars"][symbol]
 
+    def unsubscribe_news(self, *symbols) -> None:
+        """Unsubscribe from news data for symbol inputs
+
+        Args:
+            *symbols: Variable string arguments for ticker identifiers to be unsubscribed from.
+        """
+        if self._running:
+            asyncio.run_coroutine_threadsafe(
+                self._unsubscribe(news=symbols), self._loop
+            ).result()
+        for symbol in symbols:
+            del self._handlers["news"][symbol]
+
     def run(self) -> None:
         """Starts up the websocket connection's event loop"""
         try:
@@ -449,7 +484,8 @@ class BaseStream:
     def stop(self) -> None:
         """Stops the websocket connection."""
         if self._loop.is_running():
-            asyncio.run_coroutine_threadsafe(self.stop_ws(), self._loop).result()
+            asyncio.run_coroutine_threadsafe(
+                self.stop_ws(), self._loop).result()
 
     def _ensure_coroutine(self, handler: Callable) -> None:
         """Checks if a method is an asyncio coroutine method

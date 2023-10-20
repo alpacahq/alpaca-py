@@ -10,6 +10,7 @@ class BaseURL(str, Enum):
     TRADING_LIVE = "https://api.alpaca.markets"
     DATA = "https://data.alpaca.markets"
     MARKET_DATA_STREAM = "wss://stream.data.alpaca.markets"
+    NEWS_DATA_STREAM = "wss://stream.data.alpaca.markets"
     TRADING_STREAM_PAPER = "wss://paper-api.alpaca.markets/stream"
     TRADING_STREAM_LIVE = "wss://api.alpaca.markets/stream"
 

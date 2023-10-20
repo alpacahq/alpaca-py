@@ -5,7 +5,7 @@ from uuid import UUID
 from pydantic import TypeAdapter, model_validator, field_validator, ValidationInfo
 
 from alpaca.broker.models.documents import AccountDocument
-from ..enums import (
+from alpaca.broker.enums import (
     AgreementType,
     ClearingBroker,
     EmploymentStatus,
@@ -15,6 +15,7 @@ from ..enums import (
 )
 from alpaca.trading.enums import AccountStatus
 from alpaca.common.models import (
+    ModelWithID,
     ValidateBaseModel as BaseModel,
 )
 from alpaca.trading.models import TradeAccount as BaseTradeAccount
@@ -203,7 +204,7 @@ class TrustedContact(BaseModel):
         raise ValueError("At least one method of contact required for trusted contact")
 
 
-class Account(BaseModel):
+class Account(ModelWithID):
     """Contains information pertaining to a specific brokerage account
 
     see https://alpaca.markets/docs/broker/api-references/accounts/accounts/#the-account-model
@@ -228,7 +229,6 @@ class Account(BaseModel):
         trusted_contact (Optional[TrustedContact]): The account holder's trusted contact details
     """
 
-    id: UUID
     account_number: str
     status: AccountStatus
     crypto_status: Optional[AccountStatus] = None

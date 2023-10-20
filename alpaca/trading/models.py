@@ -1,4 +1,4 @@
-from alpaca.common.models import ValidateBaseModel as BaseModel
+from alpaca.common.models import ModelWithID, ValidateBaseModel as BaseModel
 from uuid import UUID
 from datetime import datetime, date
 from typing import Any, Optional, List, Union, Dict
@@ -26,7 +26,7 @@ from alpaca.trading.enums import (
 from pydantic import Field
 
 
-class Asset(BaseModel):
+class Asset(ModelWithID):
     """
     Represents a security. Some Assets are not tradable with Alpaca. These Assets are
     marked with the flag `tradable=false`.
@@ -48,7 +48,6 @@ class Asset(BaseModel):
         attributes (bool): One of ptp_no_exception or ptp_with_exception. It will include unique characteristics of the asset here.
     """
 
-    id: UUID
     asset_class: AssetClass = Field(
         alias="class"
     )  # using a pydantic alias to allow parsing data with the `class` keyword field
@@ -163,7 +162,7 @@ class AllAccountsPositions(BaseModel):
     positions: Dict[str, List[Position]]
 
 
-class Order(BaseModel):
+class Order(ModelWithID):
     """
     Represents a request for the sale or purchase of an asset.
 
@@ -205,7 +204,6 @@ class Order(BaseModel):
         hwm (Optional[str]): The highest (lowest) market price seen since the trailing stop order was submitted.
     """
 
-    id: UUID
     client_order_id: str
     created_at: datetime
     updated_at: datetime
@@ -301,7 +299,7 @@ class PortfolioHistory(BaseModel):
     timeframe: str
 
 
-class Watchlist(BaseModel):
+class Watchlist(ModelWithID):
     """
     A watchlist is an ordered list of assets. An account can have multiple watchlists.
     Learn more about watchlists in the documentation. https://alpaca.markets/docs/api-references/trading-api/watchlist/
@@ -316,7 +314,6 @@ class Watchlist(BaseModel):
     """
 
     account_id: UUID
-    id: UUID
     name: str
     created_at: datetime
     updated_at: datetime
@@ -452,7 +449,7 @@ class TradeActivity(BaseActivity):
     order_status: OrderStatus
 
 
-class TradeAccount(BaseModel):
+class TradeAccount(ModelWithID):
     """
     Represents trading account information for an Account.
 
@@ -496,7 +493,6 @@ class TradeAccount(BaseModel):
           (inclusive of today)
     """
 
-    id: UUID
     account_number: str
     status: AccountStatus
     crypto_status: Optional[AccountStatus] = None
@@ -554,7 +550,7 @@ class AccountConfiguration(BaseModel):
     ptp_no_exception_entry: bool
 
 
-class CorporateActionAnnouncement(BaseModel):
+class CorporateActionAnnouncement(ModelWithID):
     """
     An announcement of a corporate action. Corporate actions are events like dividend payouts, mergers and stock splits.
 
@@ -578,7 +574,6 @@ class CorporateActionAnnouncement(BaseModel):
         new_rate (float): The numerator to determine any quantity change ratios in positions.
     """
 
-    id: UUID
     corporate_action_id: str
     ca_type: CorporateActionType
     ca_sub_type: CorporateActionSubType

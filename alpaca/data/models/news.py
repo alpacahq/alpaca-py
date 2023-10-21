@@ -1,7 +1,10 @@
 from datetime import datetime
 from typing import Optional, List
+from alpaca.data.mappings import NEWS_MAPPING
+from pydantic import ConfigDict
 
 from alpaca.common.models import ValidateBaseModel as BaseModel
+from alpaca.common.types import RawData
 from alpaca.data import NewsImageSize
 
 
@@ -20,7 +23,7 @@ class NewsImage(BaseModel):
 
 class News(BaseModel):
     """
-    images (URLs) related to given article
+    News article object
 
     Attributes:
         id (str): News article ID
@@ -32,26 +35,43 @@ class News(BaseModel):
         content (str): Content of the news article (might contain HTML)
         url (Optional[str]): URL of article (if applicable)
         images (List[NewsImage]): List of images (URLs) related to given article (may be empty)
-        symbols (str): List of related or mentioned symbols
+        symbols (List[str]): List of related or mentioned symbols
         source (str): Source where the news originated from (e.g. Benzinga)
     """
 
     id: float
     headline: str
-    author: str
+    source: str
+    url: Optional[str]
+    summary: str
     created_at: datetime
     updated_at: datetime
-    summary: str
-    content: str
-    url: Optional[str]
-    images: List[NewsImage]
     symbols: List[str]
-    source: str
+    author: str
+    content: str
+    images: Optional[List[NewsImage]] = None # Not in WS response
+
+    model_config = ConfigDict(protected_namespaces=tuple())
+
+    def __init__(self, symbols: List[str], raw_data: RawData) -> None:
+        """Instantiates a news article
+
+        Args:
+            symbols (List[str]): List of related or mentioned symbols
+            raw_data (RawData): Raw unparsed news data from API.
+        """
+        mapped_news = {
+            NEWS_MAPPING[key]: val
+            for key, val in raw_data.items()
+            if key in NEWS_MAPPING
+        }
+
+        super().__init__(symbol=symbols[0], **mapped_news)
 
 
 class NewsSet(BaseModel):
     """
-    images (URLs) related to given article
+    A collection of News articles.
 
     Attributes:
         news (List[News]): Array of news objects

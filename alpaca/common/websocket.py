@@ -10,7 +10,7 @@ from pydantic import BaseModel
 from alpaca import __version__
 
 from alpaca.common.types import RawData
-from alpaca.data.models import Bar, Quote, Trade
+from alpaca.data.models import Bar, Quote, Trade, News
 
 log = logging.getLogger(__name__)
 
@@ -164,21 +164,34 @@ class BaseStream:
         """
         result = msg
         if not self._raw_data:
-
             if "t" in msg:
                 msg["t"] = msg["t"].to_datetime()
 
-            if "S" not in msg:
+            # check if the dict has "S" key, which is the symbol key or "symbols" key
+            if "S" in msg:
+                symbol = msg["S"]
+            elif "symbols" in msg:
+                symbol = msg["symbols"]
+            else:
                 return msg
 
             if msg_type == "t":
-                result = Trade(msg["S"], msg)
+                print("trade", msg)
+                print("symbol", symbol)
+                print("type(Trade)", type(Trade))
+                result = Trade(symbol, msg)
 
             elif msg_type == "q":
-                result = Quote(msg["S"], msg)
+                result = Quote(symbol, msg)
 
             elif msg_type in ("b", "u", "d"):
-                result = Bar(msg["S"], msg)
+                result = Bar(symbol, msg)
+
+            elif msg_type == "n":
+                print("news", msg)
+                print("symbols", msg["symbols"])
+                print("type(news)", type(News))
+                result = News(symbol, msg)
 
         return result
 
@@ -189,7 +202,10 @@ class BaseStream:
             msg (Dict): The message from the websocket connection
         """
         msg_type = msg.get("T")
-        symbol = msg.get("S")
+        symbol = msg.get(
+            "S"
+        )  # this is a symbol used by trade, quote, and bar, etc. schema
+        symbols = msg.get("symbols")  # this is a list of symbols used by news schema
         if msg_type == "t":
             handler = self._handlers["trades"].get(
                 symbol, self._handlers["trades"].get("*", None)
@@ -222,8 +238,9 @@ class BaseStream:
                 await handler(self._cast(msg_type, msg))
         elif msg_type == "n":
             handler = self._handlers["news"].get(
-                symbol, self._handlers["news"].get("*", None)
+                symbols, self._handlers["news"].get("*", None)
             )
+            print("handler", handler)
             if handler:
                 await handler(self._cast(msg_type, msg))
         elif msg_type == "subscription":

@@ -69,6 +69,33 @@ def test_cast(ws_client: BaseStream, raw_ws_client: BaseStream, timestamp: Times
     assert trade_cast_msg.price == 177.79
     assert trade_cast_msg.exchange == Exchange.V
 
+    # News
+    news_msg_type = "n"
+    news_msg_dict = {
+        "T": "n",
+        "id": 24919710,
+        "headline": "Granite Wins $90M Construction Manager/General Contractor Project In Northern California",
+        "summary": "Granite (NYSE:GVA) announced today that it has been selected by the California Department of Transportation (Caltrans) as the Construction Manager/General Contractor (CM/GC) for the approximately $90 million State Route",
+        "author": "Benzinga Newsdesk",
+        "created_at": "2022-01-05T22:30:29Z",
+        "updated_at": "2022-01-05T22:30:30Z",
+        "url": "https://www.benzinga.com/news/22/01/24919710/granite-wins-90m-construction-managergeneral-contractor-project-in-northern-california",
+        "content": "content",
+        "symbols": ["GVA"],
+        "source": "benzinga",
+    }
+
+    news_cast_msg = ws_client._cast(news_msg_type, news_msg_dict)
+    print(news_cast_msg)
+    assert type(news_cast_msg) == dict
+
+    assert "GVA" in raw_news_cast_msg.symbols
+    assert news_cast_msg.source == "benzinga"
+    assert (
+        news_cast_msg.headline
+        == "Granite Wins $90M Construction Manager/General Contractor Project In Northern California"
+    )
+
     # Raw Client
 
     # Bar
@@ -94,7 +121,7 @@ def test_cast(ws_client: BaseStream, raw_ws_client: BaseStream, timestamp: Times
 
     # Trade
     raw_trade_msg_type = "t"
-    raw_trade__msg_dict = {
+    raw_trade_msg_dict = {
         "T": "t",
         "S": "AAPL",
         "i": 6142,
@@ -106,10 +133,37 @@ def test_cast(ws_client: BaseStream, raw_ws_client: BaseStream, timestamp: Times
         "t": timestamp,
     }
 
-    raw_trade_cast_msg = raw_ws_client._cast(raw_trade_msg_type, raw_trade__msg_dict)
+    raw_trade_cast_msg = raw_ws_client._cast(raw_trade_msg_type, raw_trade_msg_dict)
 
     assert type(raw_trade_cast_msg) == dict
 
     assert raw_trade_cast_msg["S"] == "AAPL"
     assert raw_trade_cast_msg["p"] == 177.79
     assert raw_trade_cast_msg["x"] == "V"
+
+    # News
+    raw_news_msg_type = "n"
+    raw_news_msg_dict = {
+        "T": "n",
+        "id": 24919710,
+        "headline": "Granite Wins $90M Construction Manager/General Contractor Project In Northern California",
+        "summary": "Granite (NYSE:GVA) announced today that it has been selected by the California Department of Transportation (Caltrans) as the Construction Manager/General Contractor (CM/GC) for the approximately $90 million State Route",
+        "author": "Benzinga Newsdesk",
+        "created_at": "2022-01-05T22:30:29Z",
+        "updated_at": "2022-01-05T22:30:30Z",
+        "url": "https://www.benzinga.com/news/22/01/24919710/granite-wins-90m-construction-managergeneral-contractor-project-in-northern-california",
+        "content": "content",
+        "symbols": ["GVA"],
+        "source": "benzinga",
+    }
+
+    raw_news_cast_msg = raw_ws_client._cast(raw_news_msg_type, raw_news_msg_dict)
+    print(raw_news_cast_msg)
+    assert type(raw_news_cast_msg) == dict
+
+    assert "GVA" in raw_news_cast_msg["symbols"]
+    assert raw_news_cast_msg["source"] == "benzinga"
+    assert (
+        raw_news_cast_msg["headline"]
+        == "Granite Wins $90M Construction Manager/General Contractor Project In Northern California"
+    )

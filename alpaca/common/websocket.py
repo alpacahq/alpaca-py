@@ -250,8 +250,7 @@ class BaseStream:
         for symbol in symbols:
             handlers[symbol] = handler
         if self._running:
-            asyncio.run_coroutine_threadsafe(
-                self._subscribe_all(), self._loop).result()
+            asyncio.run_coroutine_threadsafe(self._subscribe_all(), self._loop).result()
 
     async def _subscribe_all(self) -> None:
         """Subscribes to live data"""
@@ -263,7 +262,7 @@ class BaseStream:
         msg["action"] = "subscribe"
         bs = msgpack.packb(msg)
         frames = (
-            bs[i: i + self._max_frame_size]
+            bs[i : i + self._max_frame_size]
             for i in range(0, len(bs), self._max_frame_size)
         )
         await self._ws.send(frames)
@@ -324,8 +323,7 @@ class BaseStream:
                     log.info("{} stream stopped".format(self._name))
                     return
                 if not self._running:
-                    log.info(
-                        "starting {} websocket connection".format(self._name))
+                    log.info("starting {} websocket connection".format(self._name))
                     await self._start_ws()
                     await self._subscribe_all()
                     self._running = True
@@ -333,12 +331,10 @@ class BaseStream:
             except websockets.WebSocketException as wse:
                 await self.close()
                 self._running = False
-                log.warning(
-                    "data websocket error, restarting connection: " + str(wse))
+                log.warning("data websocket error, restarting connection: " + str(wse))
             except Exception as e:
                 log.exception(
-                    "error during websocket " "communication: {}".format(
-                        str(e))
+                    "error during websocket " "communication: {}".format(str(e))
                 )
             finally:
                 await asyncio.sleep(0)
@@ -488,8 +484,7 @@ class BaseStream:
     def stop(self) -> None:
         """Stops the websocket connection."""
         if self._loop.is_running():
-            asyncio.run_coroutine_threadsafe(
-                self.stop_ws(), self._loop).result()
+            asyncio.run_coroutine_threadsafe(self.stop_ws(), self._loop).result()
 
     def _ensure_coroutine(self, handler: Callable) -> None:
         """Checks if a method is an asyncio coroutine method

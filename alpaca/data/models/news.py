@@ -1,11 +1,11 @@
 from datetime import datetime
 from typing import Optional, List
-from alpaca.data.mappings import NEWS_MAPPING
 from pydantic import ConfigDict
 
 from alpaca.common.models import ValidateBaseModel as BaseModel
 from alpaca.common.types import RawData
 from alpaca.data import NewsImageSize
+from alpaca.data.mappings import NEWS_MAPPING
 
 
 class NewsImage(BaseModel):
@@ -28,15 +28,15 @@ class News(BaseModel):
     Attributes:
         id (str): News article ID
         headline (str): Headline or title of the article
-        author (str): Original author of news article
+        source (str): Source where the news originated from (e.g. Benzinga)
+        url (Optional[str]): URL of article (if applicable)
+        summary (str): Summary text for the article (may be first sentence of content)
         created_at (datetime): Date article was created (RFC 3339)
         updated_at (datetime): Date article was updated (RFC 3339)
-        summary (str): Summary text for the article (may be first sentence of content)
-        content (str): Content of the news article (might contain HTML)
-        url (Optional[str]): URL of article (if applicable)
-        images (List[NewsImage]): List of images (URLs) related to given article (may be empty)
         symbols (List[str]): List of related or mentioned symbols
-        source (str): Source where the news originated from (e.g. Benzinga)
+        content (str): Content of the news article (might contain HTML)
+        author (str): Original author of news article
+        images (List[NewsImage]): List of images (URLs) related to given article (may be empty)
     """
 
     id: float
@@ -49,7 +49,7 @@ class News(BaseModel):
     symbols: List[str]
     author: str
     content: str
-    images: Optional[List[NewsImage]] = None # Not in WS response
+    images: Optional[List[NewsImage]] = None  # Not in WS response
 
     model_config = ConfigDict(protected_namespaces=tuple())
 
@@ -66,7 +66,7 @@ class News(BaseModel):
             if key in NEWS_MAPPING
         }
 
-        super().__init__(symbol=symbols[0], **mapped_news)
+        super().__init__(symbol=symbols, **mapped_news)
 
 
 class NewsSet(BaseModel):

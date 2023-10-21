@@ -89,7 +89,7 @@ def test_cast(ws_client: BaseStream, raw_ws_client: BaseStream, timestamp: Times
 
     assert type(news_cast_msg) == News
 
-    assert "GVA" in raw_news_cast_msg.symbols
+    assert "GVA" in news_cast_msg.symbols
     assert news_cast_msg.source == "benzinga"
     assert (
         news_cast_msg.headline
@@ -133,8 +133,7 @@ def test_cast(ws_client: BaseStream, raw_ws_client: BaseStream, timestamp: Times
         "t": timestamp,
     }
 
-    raw_trade_cast_msg = raw_ws_client._cast(
-        raw_trade_msg_type, raw_trade_msg_dict)
+    raw_trade_cast_msg = raw_ws_client._cast(raw_trade_msg_type, raw_trade_msg_dict)
 
     assert type(raw_trade_cast_msg) == dict
 
@@ -158,8 +157,7 @@ def test_cast(ws_client: BaseStream, raw_ws_client: BaseStream, timestamp: Times
         "source": "benzinga",
     }
 
-    raw_news_cast_msg = raw_ws_client._cast(
-        raw_news_msg_type, raw_news_msg_dict)
+    raw_news_cast_msg = raw_ws_client._cast(raw_news_msg_type, raw_news_msg_dict)
 
     assert type(raw_news_cast_msg) == dict
 

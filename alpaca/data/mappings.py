@@ -63,5 +63,5 @@ NEWS_MAPPING: Dict[str, str] = {
     "symbols": "symbols",
     "author": "author",
     "content": "content",
-    # "images": "images", # Not in WS response
+    "images": "images",  # Not in WS response
 }

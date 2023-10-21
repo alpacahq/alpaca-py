@@ -167,12 +167,8 @@ class BaseStream:
             if "t" in msg:
                 msg["t"] = msg["t"].to_datetime()
 
-            # check if the dict has "S" key, which is the symbol key or "symbols" key
-            if "S" in msg:
-                symbol = msg["S"]
-            elif "symbols" in msg:
-                symbol = msg["symbols"]
-            else:
+            symbol = msg.get("S", msg.get("symbols", None))
+            if symbol is None:
                 return msg
 
             if msg_type == "t":
@@ -196,11 +192,8 @@ class BaseStream:
             msg (Dict): The message from the websocket connection
         """
         msg_type = msg.get("T")
-        symbol = msg.get(
-            "S"
-        )  # this is a symbol used by trade, quote, and bar, etc. schema
-        # this is a list of symbols used by news schema
-        symbols = msg.get("symbols")
+        symbol = msg.get("S", msg.get("symbols", "*"))
+        print("msg", msg)
         if msg_type == "t":
             handler = self._handlers["trades"].get(
                 symbol, self._handlers["trades"].get("*", None)
@@ -233,9 +226,8 @@ class BaseStream:
                 await handler(self._cast(msg_type, msg))
         elif msg_type == "n":
             handler = self._handlers["news"].get(
-                symbols, self._handlers["news"].get("*", None)
+                symbol, self._handlers["news"].get("*", None)
             )
-            print("handler", handler)
             if handler:
                 await handler(self._cast(msg_type, msg))
         elif msg_type == "subscription":

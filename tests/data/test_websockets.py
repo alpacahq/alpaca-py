@@ -3,7 +3,7 @@ from msgpack.ext import Timestamp
 
 from alpaca.common.websocket import BaseStream
 from alpaca.data.enums import Exchange
-from alpaca.data.models import Bar, Trade
+from alpaca.data.models import Bar, Trade, News
 
 
 @pytest.fixture
@@ -86,8 +86,8 @@ def test_cast(ws_client: BaseStream, raw_ws_client: BaseStream, timestamp: Times
     }
 
     news_cast_msg = ws_client._cast(news_msg_type, news_msg_dict)
-    print(news_cast_msg)
-    assert type(news_cast_msg) == dict
+
+    assert type(news_cast_msg) == News
 
     assert "GVA" in raw_news_cast_msg.symbols
     assert news_cast_msg.source == "benzinga"
@@ -133,7 +133,8 @@ def test_cast(ws_client: BaseStream, raw_ws_client: BaseStream, timestamp: Times
         "t": timestamp,
     }
 
-    raw_trade_cast_msg = raw_ws_client._cast(raw_trade_msg_type, raw_trade_msg_dict)
+    raw_trade_cast_msg = raw_ws_client._cast(
+        raw_trade_msg_type, raw_trade_msg_dict)
 
     assert type(raw_trade_cast_msg) == dict
 
@@ -157,8 +158,9 @@ def test_cast(ws_client: BaseStream, raw_ws_client: BaseStream, timestamp: Times
         "source": "benzinga",
     }
 
-    raw_news_cast_msg = raw_ws_client._cast(raw_news_msg_type, raw_news_msg_dict)
-    print(raw_news_cast_msg)
+    raw_news_cast_msg = raw_ws_client._cast(
+        raw_news_msg_type, raw_news_msg_dict)
+
     assert type(raw_news_cast_msg) == dict
 
     assert "GVA" in raw_news_cast_msg["symbols"]

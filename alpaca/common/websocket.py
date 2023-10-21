@@ -176,9 +176,6 @@ class BaseStream:
                 return msg
 
             if msg_type == "t":
-                print("trade", msg)
-                print("symbol", symbol)
-                print("type(Trade)", type(Trade))
                 result = Trade(symbol, msg)
 
             elif msg_type == "q":
@@ -188,9 +185,6 @@ class BaseStream:
                 result = Bar(symbol, msg)
 
             elif msg_type == "n":
-                print("news", msg)
-                print("symbols", msg["symbols"])
-                print("type(news)", type(News))
                 result = News(symbol, msg)
 
         return result
@@ -205,7 +199,8 @@ class BaseStream:
         symbol = msg.get(
             "S"
         )  # this is a symbol used by trade, quote, and bar, etc. schema
-        symbols = msg.get("symbols")  # this is a list of symbols used by news schema
+        # this is a list of symbols used by news schema
+        symbols = msg.get("symbols")
         if msg_type == "t":
             handler = self._handlers["trades"].get(
                 symbol, self._handlers["trades"].get("*", None)
@@ -263,7 +258,8 @@ class BaseStream:
         for symbol in symbols:
             handlers[symbol] = handler
         if self._running:
-            asyncio.run_coroutine_threadsafe(self._subscribe_all(), self._loop).result()
+            asyncio.run_coroutine_threadsafe(
+                self._subscribe_all(), self._loop).result()
 
     async def _subscribe_all(self) -> None:
         """Subscribes to live data"""
@@ -275,7 +271,7 @@ class BaseStream:
         msg["action"] = "subscribe"
         bs = msgpack.packb(msg)
         frames = (
-            bs[i : i + self._max_frame_size]
+            bs[i: i + self._max_frame_size]
             for i in range(0, len(bs), self._max_frame_size)
         )
         await self._ws.send(frames)
@@ -336,7 +332,8 @@ class BaseStream:
                     log.info("{} stream stopped".format(self._name))
                     return
                 if not self._running:
-                    log.info("starting {} websocket connection".format(self._name))
+                    log.info(
+                        "starting {} websocket connection".format(self._name))
                     await self._start_ws()
                     await self._subscribe_all()
                     self._running = True
@@ -344,10 +341,12 @@ class BaseStream:
             except websockets.WebSocketException as wse:
                 await self.close()
                 self._running = False
-                log.warning("data websocket error, restarting connection: " + str(wse))
+                log.warning(
+                    "data websocket error, restarting connection: " + str(wse))
             except Exception as e:
                 log.exception(
-                    "error during websocket " "communication: {}".format(str(e))
+                    "error during websocket " "communication: {}".format(
+                        str(e))
                 )
             finally:
                 await asyncio.sleep(0)
@@ -497,7 +496,8 @@ class BaseStream:
     def stop(self) -> None:
         """Stops the websocket connection."""
         if self._loop.is_running():
-            asyncio.run_coroutine_threadsafe(self.stop_ws(), self._loop).result()
+            asyncio.run_coroutine_threadsafe(
+                self.stop_ws(), self._loop).result()
 
     def _ensure_coroutine(self, handler: Callable) -> None:
         """Checks if a method is an asyncio coroutine method

@@ -6,7 +6,7 @@ from uuid import UUID
 from pydantic import model_validator
 
 from alpaca.broker.enums import DocumentType, TradeDocumentSubType, TradeDocumentType
-from alpaca.common.models import ValidateBaseModel as BaseModel
+from alpaca.common.models import ModelWithID, ValidateBaseModel as BaseModel
 
 IPAddress = Union[IPv4Address, IPv6Address]
 
@@ -44,7 +44,7 @@ class AccountDocument(BaseModel):
         super().__init__(**data)
 
 
-class TradeDocument(BaseModel):
+class TradeDocument(ModelWithID):
     """
     Similar to the AccountDocument model but this represents documents having to do with a TradeAccount not a regular
     Account.
@@ -60,7 +60,6 @@ class TradeDocument(BaseModel):
         date (date): Date on when this TradeDocument was generated
     """
 
-    id: UUID
     name: str
     type: TradeDocumentType
     sub_type: Optional[TradeDocumentSubType] = None

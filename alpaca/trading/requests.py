@@ -1,13 +1,12 @@
 from datetime import date, datetime, timedelta
 from typing import Optional, Any, List
-from uuid import UUID
 
 import pandas as pd
 from pydantic import model_validator
+from alpaca.common.models import ModelWithID
 
 from alpaca.common.requests import NonEmptyRequest
 from alpaca.common.enums import Sort
-from alpaca.common.models import ValidateBaseModel as BaseModel
 from alpaca.trading.enums import (
     OrderType,
     AssetStatus,
@@ -207,7 +206,7 @@ class ReplaceOrderRequest(NonEmptyRequest):
     client_order_id: Optional[str] = None
 
 
-class CancelOrderResponse(BaseModel):
+class CancelOrderResponse(ModelWithID):
     """
     Data returned after requesting to cancel an order. It contains the cancel status of an order.
 
@@ -216,7 +215,6 @@ class CancelOrderResponse(BaseModel):
         status (int): The HTTP status returned after attempting to cancel the order.
     """
 
-    id: UUID
     status: int
 
 

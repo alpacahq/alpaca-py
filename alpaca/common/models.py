@@ -1,3 +1,4 @@
+from uuid import UUID
 from pydantic import BaseModel
 import pprint
 
@@ -10,3 +11,11 @@ class ValidateBaseModel(BaseModel, validate_assignment=True):
 
     def __repr__(self):
         return pprint.pformat(self.model_dump(), indent=4)
+
+
+class ModelWithID(ValidateBaseModel):
+    """
+    This is the base model for response models with IDs that are UUIDs.
+    """
+
+    id: UUID

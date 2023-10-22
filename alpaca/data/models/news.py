@@ -1,9 +1,7 @@
 from datetime import datetime
 from typing import Optional, List
 
-from pydantic import ConfigDict, Field
-
-# from pydantic import ConfigDict
+from pydantic import ConfigDict
 
 from alpaca.common.models import ValidateBaseModel as BaseModel
 from alpaca.common.types import RawData

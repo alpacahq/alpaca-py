@@ -73,33 +73,27 @@ def test_cast(ws_client: BaseStream, raw_ws_client: BaseStream, timestamp: Times
     news_msg_type = "n"
     news_msg_dict = {
         "T": "n",
-        "id": 24919710,
-        "headline": "Granite Wins $90M Construction Manager/General Contractor Project In Northern California",
-        "summary": "Granite (NYSE:GVA) announced today that it has been selected by the California Department of Transportation (Caltrans) as the Construction Manager/General Contractor (CM/GC) for the approximately $90 million State Route",
+        "id": 24918784,
+        "headline": "Corsair Reports Purchase Of Majority Ownership In iDisplay, No Terms Disclosed",
+        "summary": "Corsair Gaming, Inc. (NASDAQ:CRSR) (“Corsair”), a leading global provider and innovator of high-performance gear for gamers and content creators, today announced that it acquired a 51% stake in iDisplay",
         "author": "Benzinga Newsdesk",
-        "created_at": "2022-01-05T22:30:29Z",
-        "updated_at": "2022-01-05T22:30:30Z",
-        "url": "https://www.benzinga.com/news/22/01/24919710/granite-wins-90m-construction-managergeneral-contractor-project-in-northern-california",
-        "content": "content",
-        "symbols": ["GVA"],
+        "created_at": "2022-01-05T22:00:37Z",
+        "updated_at": "2022-01-05T22:00:38Z",
+        "url": "https://www.benzinga.com/m-a/22/01/24918784/corsair-reports-purchase-of-majority-ownership-in-idisplay-no-terms-disclosed",
+        "content": '\u003cp\u003eCorsair Gaming, Inc. (NASDAQ:\u003ca class="ticker" href="https://www.benzinga.com/stock/CRSR#NASDAQ"\u003eCRSR\u003c/a\u003e) (\u0026ldquo;Corsair\u0026rdquo;), a leading global ...',
+        "symbols": ["CRSR"],
         "source": "benzinga",
-        "images": [
-            {
-                "size": "thumb",
-                "url": "https://cdn.benzinga.com/files/imagecache/250x187xUP/images/story/2012/mattkohrsonrumble.png",
-            }
-        ],
     }
 
     news_cast_msg = ws_client._cast(news_msg_type, news_msg_dict)
 
     assert type(news_cast_msg) == News
 
-    assert "GVA" in news_cast_msg.symbols
+    assert "CRSR" in news_cast_msg.symbols
     assert news_cast_msg.source == "benzinga"
     assert (
         news_cast_msg.headline
-        == "Granite Wins $90M Construction Manager/General Contractor Project In Northern California"
+        == "Corsair Reports Purchase Of Majority Ownership In iDisplay, No Terms Disclosed"
     )
 
     # Raw Client
@@ -151,31 +145,25 @@ def test_cast(ws_client: BaseStream, raw_ws_client: BaseStream, timestamp: Times
     raw_news_msg_type = "n"
     raw_news_msg_dict = {
         "T": "n",
-        "id": 24919710,
-        "headline": "Granite Wins $90M Construction Manager/General Contractor Project In Northern California",
-        "summary": "Granite (NYSE:GVA) announced today that it has been selected by the California Department of Transportation (Caltrans) as the Construction Manager/General Contractor (CM/GC) for the approximately $90 million State Route",
+        "id": 24918784,
+        "headline": "Corsair Reports Purchase Of Majority Ownership In iDisplay, No Terms Disclosed",
+        "summary": "Corsair Gaming, Inc. (NASDAQ:CRSR) (“Corsair”), a leading global provider and innovator of high-performance gear for gamers and content creators, today announced that it acquired a 51% stake in iDisplay",
         "author": "Benzinga Newsdesk",
-        "created_at": "2022-01-05T22:30:29Z",
-        "updated_at": "2022-01-05T22:30:30Z",
-        "url": "https://www.benzinga.com/news/22/01/24919710/granite-wins-90m-construction-managergeneral-contractor-project-in-northern-california",
-        "content": "content",
-        "symbols": ["GVA"],
+        "created_at": "2022-01-05T22:00:37Z",
+        "updated_at": "2022-01-05T22:00:38Z",
+        "url": "https://www.benzinga.com/m-a/22/01/24918784/corsair-reports-purchase-of-majority-ownership-in-idisplay-no-terms-disclosed",
+        "content": '\u003cp\u003eCorsair Gaming, Inc. (NASDAQ:\u003ca class="ticker" href="https://www.benzinga.com/stock/CRSR#NASDAQ"\u003eCRSR\u003c/a\u003e) (\u0026ldquo;Corsair\u0026rdquo;), a leading global ...',
+        "symbols": ["CRSR"],
         "source": "benzinga",
-        "images": [
-            {
-                "size": "thumb",
-                "url": "https://cdn.benzinga.com/files/imagecache/250x187xUP/images/story/2012/mattkohrsonrumble.png",
-            }
-        ],
     }
 
     raw_news_cast_msg = raw_ws_client._cast(raw_news_msg_type, raw_news_msg_dict)
 
     assert type(raw_news_cast_msg) == dict
 
-    assert "GVA" in raw_news_cast_msg["symbols"]
+    assert "CRSR" in raw_news_cast_msg["symbols"]
     assert raw_news_cast_msg["source"] == "benzinga"
     assert (
         raw_news_cast_msg["headline"]
-        == "Granite Wins $90M Construction Manager/General Contractor Project In Northern California"
+        == "Corsair Reports Purchase Of Majority Ownership In iDisplay, No Terms Disclosed"
     )

@@ -34,7 +34,7 @@ class TimeSeriesMixin:
 
 class BaseDataSet(BaseModel):
     """
-    Base class to process data models for trades, bars and quotes.
+    Base class to process data models for trades, bars quotes, and news.
     """
 
     data: Dict[str, List[BaseModel]]

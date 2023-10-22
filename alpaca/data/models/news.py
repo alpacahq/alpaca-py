@@ -42,7 +42,7 @@ class News(BaseModel):
         images (List[NewsImage]): List of images (URLs) related to given article (may be empty)
     """
 
-    id: float
+    id: int
     headline: str
     source: str
     url: Optional[str]
@@ -56,28 +56,23 @@ class News(BaseModel):
 
     model_config = ConfigDict(protected_namespaces=tuple())
 
-    def __init__(self, symbols: List[str], raw_data: RawData) -> None:
+    def __init__(self, raw_data: RawData) -> None:
         """Instantiates a news article
 
         Args:
-            symbols (List[str]): List of related or mentioned symbols
             raw_data (RawData): Raw unparsed news data from API.
         """
-        # Mapping not needed since all keys are the same
-        super().__init__(symbol=symbols, **raw_data)
+
+        super().__init__(**raw_data)
 
 
-class NewsSet(BaseDataSet, TimeSeriesMixin):
+class NewsSet(BaseDataSet):
     """
     A collection of News articles.
 
     Attributes:
-        news (List[News]): Array of news objects
-        next_page_token (Optional[str]): Pagination token for next page
+        data (Dict[str, List[News]]): The collection of News articles.
     """
-
-    news: List[News]
-    next_page_token: Optional[str]
 
     def __init__(self, raw_data: RawData) -> None:
         """A collection of News articles.
@@ -85,11 +80,12 @@ class NewsSet(BaseDataSet, TimeSeriesMixin):
         Args:
             raw_data (RawData): The collection of raw news data from API.
         """
-        parsed_news = []
+        parsed_news = {}
+        articles = []
 
-        raw_news = raw_data
+        for article in raw_data["news"]:
+            articles.append(News(raw_data=article))
 
-        for symbol, news in raw_news.items():
-            parsed_news[symbol] = [News(symbol, news) for news in news]
+        parsed_news["news"] = articles
 
-        super().__init__(**parsed_news)
+        super().__init__(data=parsed_news)

@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime
 import logging
 import queue
 from collections import defaultdict
@@ -181,7 +182,12 @@ class BaseStream:
                 result = Bar(symbol, msg)
 
             elif msg_type == "n":
-                result = News(symbol, msg)
+                # Convert Timestamp to datetime
+                msg["created_at"] = datetime.fromisoformat(msg["created_at"][:-1])
+                msg["updated_at"] = datetime.fromisoformat(msg["updated_at"][:-1])
+                # images is not in the websocket response
+                msg["images"] = None
+                result = News(msg)
 
         return result
 
@@ -225,9 +231,10 @@ class BaseStream:
             if handler:
                 await handler(self._cast(msg_type, msg))
         elif msg_type == "n":
-            handler = self._handlers["news"].get(
+            symbols = self._handlers["news"].get(
                 symbol, self._handlers["news"].get("*", None)
             )
+            handler = ",".join(symbols)
             if handler:
                 await handler(self._cast(msg_type, msg))
         elif msg_type == "subscription":

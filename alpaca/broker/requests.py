@@ -973,7 +973,6 @@ class GetJournalsRequest(NonEmptyRequest):
 
 
 class GetEventsRequest(NonEmptyRequest):
-
     id: Optional[str] = None
     since: Optional[Union[date, str]] = None
     until: Optional[Union[date, str]] = None

@@ -10,7 +10,7 @@ from pydantic import BaseModel
 from alpaca import __version__
 
 from alpaca.common.types import RawData
-from alpaca.data.models import Bar, Quote, Trade
+from alpaca.data.models import Bar, Quote, Trade, News
 
 log = logging.getLogger(__name__)
 
@@ -164,21 +164,24 @@ class BaseStream:
         """
         result = msg
         if not self._raw_data:
-
             if "t" in msg:
                 msg["t"] = msg["t"].to_datetime()
 
-            if "S" not in msg:
+            symbol = msg.get("S", msg.get("symbols", None))
+            if symbol is None:
                 return msg
 
             if msg_type == "t":
-                result = Trade(msg["S"], msg)
+                result = Trade(symbol, msg)
 
             elif msg_type == "q":
-                result = Quote(msg["S"], msg)
+                result = Quote(symbol, msg)
 
             elif msg_type in ("b", "u", "d"):
-                result = Bar(msg["S"], msg)
+                result = Bar(symbol, msg)
+
+            elif msg_type == "n":
+                result = News(symbol, msg)
 
         return result
 
@@ -189,7 +192,8 @@ class BaseStream:
             msg (Dict): The message from the websocket connection
         """
         msg_type = msg.get("T")
-        symbol = msg.get("S")
+        symbol = msg.get("S", msg.get("symbols", "*"))
+
         if msg_type == "t":
             handler = self._handlers["trades"].get(
                 symbol, self._handlers["trades"].get("*", None)

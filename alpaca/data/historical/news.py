@@ -6,7 +6,7 @@ from alpaca.common.enums import BaseURL
 
 from alpaca.data.requests import NewsRequest
 
-from alpaca.data.models.news import NewsSet
+from alpaca.data.models import NewsSet
 
 from alpaca.common.types import RawData
 

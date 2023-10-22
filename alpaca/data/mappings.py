@@ -51,17 +51,3 @@ ORDERBOOK_QUOTE_MAPPING: Dict[str, str] = {
     "p": "price",
     "s": "size",
 }
-
-NEWS_MAPPING: Dict[str, str] = {
-    "id": "id",
-    "headline": "headline",
-    "source": "source",
-    "url": "url",
-    "summary": "summary",
-    "created_at": "created_at",
-    "updated_at": "updated_at",
-    "symbols": "symbols",
-    "author": "author",
-    "content": "content",
-    "images": "images",  # Not in WS response
-}

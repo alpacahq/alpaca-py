@@ -1,11 +1,14 @@
 from datetime import datetime
 from typing import Optional, List
-from pydantic import ConfigDict
+
+from pydantic import ConfigDict, Field
+
+# from pydantic import ConfigDict
 
 from alpaca.common.models import ValidateBaseModel as BaseModel
 from alpaca.common.types import RawData
 from alpaca.data import NewsImageSize
-from alpaca.data.mappings import NEWS_MAPPING
+from alpaca.data.models.base import BaseDataSet, TimeSeriesMixin
 
 
 class NewsImage(BaseModel):
@@ -19,6 +22,8 @@ class NewsImage(BaseModel):
 
     size: NewsImageSize
     url: str
+
+    model_config = ConfigDict(protected_namespaces=tuple())
 
 
 class News(BaseModel):
@@ -49,7 +54,7 @@ class News(BaseModel):
     symbols: List[str]
     author: str
     content: str
-    images: Optional[List[NewsImage]] = None  # Not in WS response
+    images: Optional[List[NewsImage]]  # Not in WS response
 
     model_config = ConfigDict(protected_namespaces=tuple())
 
@@ -60,16 +65,11 @@ class News(BaseModel):
             symbols (List[str]): List of related or mentioned symbols
             raw_data (RawData): Raw unparsed news data from API.
         """
-        mapped_news = {
-            NEWS_MAPPING[key]: val
-            for key, val in raw_data.items()
-            if key in NEWS_MAPPING
-        }
-
-        super().__init__(symbol=symbols, **mapped_news)
+        # Mapping not needed since all keys are the same
+        super().__init__(symbol=symbols, **raw_data)
 
 
-class NewsSet(BaseModel):
+class NewsSet(BaseDataSet, TimeSeriesMixin):
     """
     A collection of News articles.
 
@@ -80,3 +80,18 @@ class NewsSet(BaseModel):
 
     news: List[News]
     next_page_token: Optional[str]
+
+    def __init__(self, raw_data: RawData) -> None:
+        """A collection of News articles.
+
+        Args:
+            raw_data (RawData): The collection of raw news data from API.
+        """
+        parsed_news = []
+
+        raw_news = raw_data
+
+        for symbol, news in raw_news.items():
+            parsed_news[symbol] = [News(symbol, news) for news in news]
+
+        super().__init__(**parsed_news)

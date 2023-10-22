@@ -83,6 +83,12 @@ def test_cast(ws_client: BaseStream, raw_ws_client: BaseStream, timestamp: Times
         "content": "content",
         "symbols": ["GVA"],
         "source": "benzinga",
+        "images": [
+            {
+                "size": "thumb",
+                "url": "https://cdn.benzinga.com/files/imagecache/250x187xUP/images/story/2012/mattkohrsonrumble.png",
+            }
+        ],
     }
 
     news_cast_msg = ws_client._cast(news_msg_type, news_msg_dict)
@@ -155,6 +161,12 @@ def test_cast(ws_client: BaseStream, raw_ws_client: BaseStream, timestamp: Times
         "content": "content",
         "symbols": ["GVA"],
         "source": "benzinga",
+        "images": [
+            {
+                "size": "thumb",
+                "url": "https://cdn.benzinga.com/files/imagecache/250x187xUP/images/story/2012/mattkohrsonrumble.png",
+            }
+        ],
     }
 
     raw_news_cast_msg = raw_ws_client._cast(raw_news_msg_type, raw_news_msg_dict)

@@ -14,7 +14,7 @@ from alpaca.data.models import NewsSet
 from alpaca.common.types import RawData
 
 
-class NewsHistoricalDataClient(RESTClient):
+class NewsClient(RESTClient):
     """
     The REST client for interacting with Alpaca News API endpoints.
 

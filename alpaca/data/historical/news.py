@@ -53,7 +53,7 @@ class NewsHistoricalDataClient(RESTClient):
             raw_data=raw_data,
         )
 
-    def get_news(self, request_params: NewsRequest) -> Union[RawData, NewsSet, Any]:
+    def get_news(self, request_params: NewsRequest) -> Union[RawData, NewsSet]:
         """Returns news data
 
         Args:

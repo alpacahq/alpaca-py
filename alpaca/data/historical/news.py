@@ -64,10 +64,9 @@ class NewsHistoricalDataClient(RESTClient):
         """
 
         params = request_params.to_request_fields()
-        symbols = request_params.symbols.split(",")
         # paginated get request for news data api
         raw_news = self._data_get(
-            symbol_or_symbols=symbols,
+            symbol_or_symbols=request_params.symbols,
             **params,
         )
 

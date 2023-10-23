@@ -5,6 +5,8 @@ import queue
 from collections import defaultdict
 from typing import Callable, Dict, Optional, Union, Tuple
 
+from pandas import Timestamp
+
 import msgpack
 import websockets
 from pydantic import BaseModel
@@ -182,11 +184,11 @@ class BaseStream:
                 result = Bar(symbol, msg)
 
             elif msg_type == "n":
-                # Convert Timestamp to datetime
+                # convert timestamp strings to datetime objects
                 msg["created_at"] = datetime.fromisoformat(msg["created_at"][:-1])
                 msg["updated_at"] = datetime.fromisoformat(msg["updated_at"][:-1])
                 # images is not in the websocket response
-                msg["images"] = None
+                msg["images"] = []
                 result = News(msg)
 
         return result
@@ -232,7 +234,7 @@ class BaseStream:
                 await handler(self._cast(msg_type, msg))
         elif msg_type == "n":
             handler = self._handlers["news"].get(
-                ",".join(symbol), self._handlers["news"].get("*", None)
+                symbol, self._handlers["news"].get("*", None)
             )
             if handler:
                 await handler(self._cast(msg_type, msg))
@@ -265,6 +267,7 @@ class BaseStream:
             if k not in ("cancelErrors", "corrections") and v:
                 for s in v.keys():
                     msg[k].append(s)
+
         msg["action"] = "subscribe"
         bs = msgpack.packb(msg)
         frames = (

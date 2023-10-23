@@ -1,3 +1,4 @@
+from datetime import datetime
 import pytest
 from msgpack.ext import Timestamp
 
@@ -95,6 +96,8 @@ def test_cast(ws_client: BaseStream, raw_ws_client: BaseStream, timestamp: Times
         news_cast_msg.headline
         == "Corsair Reports Purchase Of Majority Ownership In iDisplay, No Terms Disclosed"
     )
+    assert type(news_cast_msg.created_at) == datetime
+    assert type(news_cast_msg.updated_at) == datetime
 
     # Raw Client
 

@@ -184,11 +184,10 @@ class BaseStream:
                 result = Bar(symbol, msg)
 
             elif msg_type == "n":
-                # convert timestamp strings to datetime objects
-                msg["created_at"] = datetime.fromisoformat(msg["created_at"][:-1])
-                msg["updated_at"] = datetime.fromisoformat(msg["updated_at"][:-1])
+                msg["created_at"] = msg["created_at"].to_datetime()
+                msg["updated_at"] = msg["updated_at"].to_datetime()
                 # images is not in the websocket response
-                msg["images"] = []
+                msg["images"] = None
                 result = News(msg)
 
         return result
@@ -233,6 +232,7 @@ class BaseStream:
             if handler:
                 await handler(self._cast(msg_type, msg))
         elif msg_type == "n":
+            symbol = ",".join(symbol)
             handler = self._handlers["news"].get(
                 symbol, self._handlers["news"].get("*", None)
             )

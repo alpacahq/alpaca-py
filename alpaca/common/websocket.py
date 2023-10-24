@@ -186,8 +186,6 @@ class BaseStream:
             elif msg_type == "n":
                 msg["created_at"] = msg["created_at"].to_datetime()
                 msg["updated_at"] = msg["updated_at"].to_datetime()
-                # images is not in the websocket response
-                msg["images"] = None
                 result = News(msg)
 
         return result

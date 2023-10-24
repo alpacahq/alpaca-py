@@ -52,7 +52,7 @@ class News(BaseModel):
     symbols: List[str]
     author: str
     content: str
-    images: Optional[List[NewsImage]]  # Not in WS response
+    images: Optional[List[NewsImage]] = None  # Not in WS response
 
     model_config = ConfigDict(protected_namespaces=tuple())
 

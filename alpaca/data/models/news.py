@@ -66,7 +66,7 @@ class News(BaseModel):
         super().__init__(**raw_data)
 
 
-class NewsSet(BaseDataSet):
+class NewsSet(BaseDataSet, TimeSeriesMixin):
     """
     A collection of News articles.
 

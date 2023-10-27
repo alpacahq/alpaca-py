@@ -596,6 +596,7 @@ class TradeUpdate(BaseModel):
 
     ref. https://docs.alpaca.markets/docs/websocket-streaming#example
     """
+
     event: Union[TradeEvent, str]
     execution_id: Optional[UUID] = None
     order: Order

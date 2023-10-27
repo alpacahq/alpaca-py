@@ -591,10 +591,15 @@ class CorporateActionAnnouncement(ModelWithID):
 
 
 class TradeUpdate(BaseModel):
+    """
+    Represents a trade update.
+
+    ref. https://docs.alpaca.markets/docs/websocket-streaming#example
+    """
     event: Union[TradeEvent, str]
-    execution_id: Optional[UUID]
+    execution_id: Optional[UUID] = None
     order: Order
     timestamp: datetime
-    position_qty: Optional[float]
-    price: Optional[float]
-    qty: Optional[float]
+    position_qty: Optional[float] = None
+    price: Optional[float] = None
+    qty: Optional[float] = None

@@ -66,6 +66,7 @@ class BaseBarsRequest(BaseTimeseriesDataRequest):
         end (Optional[datetime]): The end of the time interval for desired data. Defaults to now. Timezone naive inputs assumed to be in UTC.
         limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
         timeframe (TimeFrame): The period over which the bars should be aggregated. (i.e. 5 Min bars, 1 Day bars)
+        sort (Optional[Sort]): The chronological order of response based on the timestamp. Defaults to ASC.
     """
 
     timeframe: TimeFrame
@@ -87,6 +88,7 @@ class StockBarsRequest(BaseBarsRequest):
         limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
         adjustment (Optional[Adjustment]): The type of corporate action data normalization.
         feed (Optional[DataFeed]): The stock data feed to retrieve from.
+        sort (Optional[Sort]): The chronological order of response based on the timestamp. Defaults to ASC.
     """
 
     adjustment: Optional[Adjustment] = None
@@ -104,6 +106,7 @@ class CryptoBarsRequest(BaseBarsRequest):
         start (Optional[datetime]): The beginning of the time interval for desired data. Timezone naive inputs assumed to be in UTC.
         end (Optional[datetime]): The end of the time interval for desired data. Defaults to now. Timezone naive inputs assumed to be in UTC.
         limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
+        sort (Optional[Sort]): The chronological order of response based on the timestamp. Defaults to ASC.
     """
 
     pass
@@ -124,6 +127,7 @@ class StockQuotesRequest(BaseTimeseriesDataRequest):
         end (Optional[datetime]): The end of the time interval for desired data. Defaults to now. Timezone naive inputs assumed to be in UTC.
         limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
         feed (Optional[DataFeed]): The stock data feed to retrieve from.
+        sort (Optional[Sort]): The chronological order of response based on the timestamp. Defaults to ASC.
     """
 
     feed: Optional[DataFeed] = None
@@ -144,6 +148,7 @@ class StockTradesRequest(BaseTimeseriesDataRequest):
         end (Optional[datetime]): The end of the time interval for desired data. Defaults to now. Timezone naive inputs assumed to be in UTC.
         limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
         feed (Optional[DataFeed]): The stock data feed to retrieve from.
+        sort (Optional[Sort]): The chronological order of response based on the timestamp. Defaults to ASC.
     """
 
     feed: Optional[DataFeed] = None
@@ -160,6 +165,7 @@ class CryptoTradesRequest(BaseTimeseriesDataRequest):
         start (Optional[datetime]): The beginning of the time interval for desired data. Timezone naive inputs assumed to be in UTC.
         end (Optional[datetime]): The end of the time interval for desired data. Defaults to now. Timezone naive inputs assumed to be in UTC.
         limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
+        sort (Optional[Sort]): The chronological order of response based on the timestamp. Defaults to ASC.
     """
 
     pass

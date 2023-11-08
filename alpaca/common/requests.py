@@ -46,6 +46,10 @@ class NonEmptyRequest(BaseModel):
 
             # RFC 3339
             if isinstance(val, datetime):
+                # if the datetime is naive, assume it's UTC
+                # https://docs.python.org/3/library/datetime.html#determining-if-an-object-is-aware-or-naive
+                if val.tzinfo is None or val.tzinfo.utcoffset(val) is None:
+                    val = val.replace(tzinfo=datetime.timezone.utc)
                 return val.isoformat()
 
             return val

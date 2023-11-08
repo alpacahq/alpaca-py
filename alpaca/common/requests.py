@@ -46,7 +46,7 @@ class NonEmptyRequest(BaseModel):
 
             # RFC 3339
             if isinstance(val, datetime):
-                return val.isoformat("T") + "Z"
+                return val.isoformat()
 
             return val
 

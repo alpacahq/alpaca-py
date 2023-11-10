@@ -79,7 +79,7 @@ class StockBarsRequest(BaseBarsRequest):
     """
     The request model for retrieving bar data for equities.
 
-    See BaseGetBarsRequest for more information on available parameters.
+    See BaseBarsRequest for more information on available parameters.
 
     Attributes:
         symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
@@ -99,7 +99,7 @@ class CryptoBarsRequest(BaseBarsRequest):
     """
     The request model for retrieving bar data for cryptocurrencies.
 
-    See BaseGetBarsRequest for more information on available parameters.
+    See BaseBarsRequest for more information on available parameters.
 
     Attributes:
         symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
@@ -196,7 +196,7 @@ class StockLatestTradeRequest(BaseStockLatestDataRequest):
     """
     This request class is used to submit a request for the latest stock trade data.
 
-    See BaseLatestStockDataRequest for more information on available parameters.
+    See BaseStockLatestDataRequest for more information on available parameters.
 
     Attributes:
         symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
@@ -210,7 +210,7 @@ class StockLatestQuoteRequest(BaseStockLatestDataRequest):
     """
     This request class is used to submit a request for the latest stock quote data.
 
-    See BaseLatestStockDataRequest for more information on available parameters.
+    See BaseStockLatestDataRequest for more information on available parameters.
 
     Attributes:
         symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
@@ -224,7 +224,7 @@ class StockLatestBarRequest(BaseStockLatestDataRequest):
     """
     This request class is used to submit a request for the latest stock bar data.
 
-    See BaseLatestStockDataRequest for more information on available parameters.
+    See BaseStockLatestDataRequest for more information on available parameters.
 
     Attributes:
         symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
@@ -252,7 +252,7 @@ class CryptoLatestTradeRequest(BaseCryptoLatestDataRequest):
     """
     This request class is used to submit a request for the latest crypto trade data.
 
-    See BaseLatestCryptoDataRequest for more information on available parameters.
+    See BaseCryptoLatestDataRequest for more information on available parameters.
 
     Attributes:
         symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
@@ -265,7 +265,7 @@ class CryptoLatestQuoteRequest(BaseCryptoLatestDataRequest):
     """
     This request class is used to submit a request for the latest crypto quote data.
 
-    See BaseLatestCryptoDataRequest for more information on available parameters.
+    See BaseCryptoLatestDataRequest for more information on available parameters.
 
     Attributes:
         symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
@@ -278,7 +278,7 @@ class CryptoLatestBarRequest(BaseCryptoLatestDataRequest):
     """
     This request class is used to submit a request for the latest crypto bar data.
 
-    See BaseLatestCryptoDataRequest for more information on available parameters.
+    See BaseCryptoLatestDataRequest for more information on available parameters.
 
     Attributes:
         symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.

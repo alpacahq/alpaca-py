@@ -239,7 +239,7 @@ from datetime import datetime
 client = NewsClient()
 
 request_params = NewsRequest(
-                        symbol="TSLA",
+                        symbols="TSLA",
                         start=datetime.strptime("2022-07-01", '%Y-%m-%d')
                         )
 

@@ -36,7 +36,7 @@ Learn more about the API products Alpaca offers at https://alpaca.markets.
 Alpaca-py has a supplementary documentation site which contains references for all clients, methods and models found in this codebase. The documentation
 also contains examples to get started with alpaca-py.
 
-You can find the documentation site here: https://alpaca.markets/docs/python-sdk
+You can find the documentation site here: https://docs.alpaca.markets/docs/getting-started-1
 
 ## Installation <a name="installation"></a>
 
@@ -62,7 +62,7 @@ Run the following command in your terminal:
 If you’ve used the previous python SDK alpaca-trade-api, there are a few key differences to be aware of.
 
 ### Broker API <a name="broker-api-new"></a>
-Alpaca-py lets you use Broker API to start building your investment apps! Learn more at the [Broker](https://alpaca.markets/docs/python-sdk/broker.html) page.
+Alpaca-py lets you use Broker API to start building your investment apps! Learn more at the [Broker](https://docs.alpaca.markets/docs/broker-api) page.
 
 ### OOP Design <a name="oop-design"></a>
 Alpaca-py uses a more OOP approach to submitting requests compared to the previous SDK. To submit a request, you will most likely need to create a request object containing the desired request data. Generally, there is a unique request model for each method. 
@@ -133,7 +133,7 @@ To use the Broker API, you will need to sign up for a broker account and retriev
 ## Usage <a name="usage"></a>
 Alpaca’s APIs allow you to do everything from building algorithmic trading strategies to building a full brokerage experience for your own end users. Here are some things you can do with Alpaca-py.
 
-To view full descriptions and examples view the [documentation page](https://alpaca.markets/docs/python-sdk/index.html).
+To view full descriptions and examples view the [documentation page](https://docs.alpaca.markets/docs/getting-started-1).
 
 **Market Data API**: Access live and historical market data for 5000+ stocks and 20+ crypto.
 

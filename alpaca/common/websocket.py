@@ -163,7 +163,6 @@ class BaseStream:
         """
         result = msg
         if not self._raw_data:
-
             if "t" in msg:
                 msg["t"] = msg["t"].to_datetime()
 

@@ -133,6 +133,7 @@ class DocumentType(str, Enum):
     W8BEN = "w8ben"
     SOCIAL_SECURITY_NUMBER_VERIFICATION = "social_security_number_verification"
     NULL = ""
+    CIP_RESULT = "cip_result"
 
 
 class AccountEntities(str, Enum):

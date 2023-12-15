@@ -47,7 +47,9 @@ class Bar(BaseModel):
 
         if raw_data is not None:
             mapped_bar = {
-                BAR_MAPPING[key]: val for key, val in raw_data.items() if key in BAR_MAPPING
+                BAR_MAPPING[key]: val
+                for key, val in raw_data.items()
+                if key in BAR_MAPPING
             }
 
         super().__init__(symbol=symbol, **mapped_bar)

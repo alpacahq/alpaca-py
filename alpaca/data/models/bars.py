@@ -76,7 +76,8 @@ class BarSet(BaseDataSet, TimeSeriesMixin):
 
         raw_bars = raw_data
 
-        for symbol, bars in raw_bars.items():
-            parsed_bars[symbol] = [Bar(symbol, bar) for bar in bars]
+        if raw_bars is not None:
+            for symbol, bars in raw_bars.items():
+                parsed_bars[symbol] = [Bar(symbol, bar) for bar in bars]
 
         super().__init__(data=parsed_bars)

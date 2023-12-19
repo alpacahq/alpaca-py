@@ -33,7 +33,7 @@ steps:
     - -c
     - |
       set -eu
-      if [ "$TAG_NAME" = "" ] && [ "$BRANCH_NAME" = "staging" ]; then
+      if [ "$TAG_NAME" = "" ] && [ "$BRANCH_NAME" = "master" ]; then
           docker tag gcr.io/$PROJECT_ID/alpaca-py:latest gcr.io/$PROJECT_ID/alpaca-py:${BRANCH_NAME}-latest
           docker push gcr.io/$PROJECT_ID/alpaca-py:${BRANCH_NAME}-latest
       fi
@@ -54,7 +54,7 @@ steps:
     - -c
     - |
       set -eu
-      if [ "$TAG_NAME" = "" ] && [ "$BRANCH_NAME" = "staging" ] ; then
+      if [ "$TAG_NAME" = "" ] && [ "$BRANCH_NAME" = "master" ] ; then
         SA_TOKEN="$$SA_TOKEN_STAGING"
       elif [ "$TAG_NAME" != "" ]; then
         SA_TOKEN="$$SA_TOKEN_MASTER"

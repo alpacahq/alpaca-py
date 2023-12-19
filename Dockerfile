@@ -15,7 +15,6 @@ COPY . .
 
 # for the config line below, see https://github.com/python-poetry/poetry/issues/7611#issuecomment-1747836233 (can be dropped with poetry >= 1.7.0)
 RUN poetry config installer.max-workers 1
-RUN poetry update
 RUN poetry install
 
 WORKDIR /app/docs

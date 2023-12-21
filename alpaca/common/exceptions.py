@@ -19,7 +19,8 @@ class APIError(Exception):
             if hasattr(http_error, "request"):
                 detailed_error["method"] = http_error.request.method
                 detailed_error["url"] = http_error.request.url
-            if detailed_error["status_code"] == 401:
+            # add tips for auth key error
+            if detailed_error["status_code"] in [401, 403]:
                 detailed_error["tips"] = "please check your API key and environment (paper/sandbox/live)"
 
         self._error = error

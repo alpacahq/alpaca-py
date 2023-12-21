@@ -9,7 +9,7 @@ class APIError(Exception):
 
     def __init__(self, error, http_error=None):
         detailed_error = {
-            "message": error,
+            "payload": error,
         }
 
         if http_error is not None:
@@ -19,6 +19,8 @@ class APIError(Exception):
             if hasattr(http_error, "request"):
                 detailed_error["method"] = http_error.request.method
                 detailed_error["url"] = http_error.request.url
+            if detailed_error["status_code"] == 401:
+                detailed_error["tips"] = "please check your API key and environment (paper/sandbox/live)"
 
         self._error = error
         self._http_error = http_error

@@ -202,7 +202,7 @@ class RESTClient(ABC):
             # raise API error for all other errors
             error = response.text
 
-            if response.status_code == "401":
+            if response.status_code == 401:
                 raise APIAuthError(error, http_error)
 
             raise APIError(error, http_error)

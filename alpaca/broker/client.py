@@ -41,7 +41,7 @@ from .requests import (
     UpdateAccountRequest,
     GetEventsRequest,
 )
-from alpaca.common.exceptions import APIError
+from alpaca.common.exceptions import APIError, APIAuthError
 from alpaca.common.constants import (
     ACCOUNT_ACTIVITIES_DEFAULT_PAGE_SIZE,
     BROKER_DOCUMENT_UPLOAD_LIMIT,
@@ -663,6 +663,8 @@ class BrokerClient(RESTClient):
                     continue
                 if "code" in response.text:
                     error = response.json()
+                    if response.status_code == 401:
+                        raise APIAuthError(error, http_error)
                     if "code" in error:
                         raise APIError(error, http_error)
                 else:

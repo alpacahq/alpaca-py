@@ -15,7 +15,7 @@ from alpaca.common.constants import (
 )
 
 from alpaca import __version__
-from alpaca.common.exceptions import APIError, RetryException
+from alpaca.common.exceptions import APIError, APIAuthError, RetryException
 from alpaca.common.types import RawData, HTTPResult, Credentials
 from .constants import PageItem
 from .enums import PaginationType, BaseURL
@@ -201,6 +201,9 @@ class RESTClient(ABC):
 
             # raise API error for all other errors
             error = response.text
+
+            if response.status_code == "401":
+                raise APIAuthError(error, http_error)
 
             raise APIError(error, http_error)
 

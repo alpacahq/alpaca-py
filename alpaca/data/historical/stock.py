@@ -98,7 +98,7 @@ class StockHistoricalDataClient(RESTClient):
 
         if self._use_raw_data:
             return raw_bars
-    
+
         if raw_bars is None:
             return None
 

@@ -37,7 +37,7 @@ class BaseDataSet(BaseModel):
     Base class to process data models for trades, bars and quotes.
     """
 
-    data: Dict[str, List[BaseModel]]
+    data: Dict[str, List[BaseModel]] = {}
     model_config = ConfigDict(protected_namespaces=tuple())
 
     def __getitem__(self, symbol: str) -> Any:

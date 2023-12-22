@@ -71,7 +71,8 @@ class QuoteSet(BaseDataSet, TimeSeriesMixin):
         """
         parsed_quotes = {}
 
-        for symbol, quotes in raw_data.items():
-            parsed_quotes[symbol] = [Quote(symbol, quote) for quote in quotes]
+        if raw_data is not None:
+            for symbol, quotes in raw_data.items():
+                parsed_quotes[symbol] = [Quote(symbol, quote) for quote in quotes]
 
         super().__init__(data=parsed_quotes)

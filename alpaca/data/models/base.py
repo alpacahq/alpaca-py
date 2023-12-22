@@ -21,10 +21,13 @@ class TimeSeriesMixin:
         # combine all lists of data into one list
         data_list = list(itertools.chain.from_iterable(self.dict().values()))
 
+        df = pd.DataFrame(data_list)
+
         # set multi-level index
         # level=0 - symbol
         # level=1 - timestamp
-        df = pd.DataFrame(data_list).set_index(["symbol", "timestamp"])
+        if set(["symbol", "timestamp"]).issubset(df.columns):
+            df = df.set_index(["symbol", "timestamp"])
 
         # drop null columns
         df.dropna(axis=1, how="all", inplace=True)

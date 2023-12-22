@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Optional
 
 from pydantic import ConfigDict
 
@@ -14,19 +14,19 @@ class Snapshot(BaseModel):
 
     Attributes:
         symbol (str): The identifier for the snapshot security.
-        latest_trade(Trade): The latest transaction on the price and sales tape
-        latest_quote (Quote): Level 1 ask/bid pair quote data.
-        minute_bar (Bar): The latest minute OHLC bar data
-        daily_bar (Bar): The latest daily OHLC bar data
-        previous_daily_bar (Bar): The 2nd to latest (2 trading days ago) daily OHLC bar data
+        latest_trade (Optional[Trade]): The latest transaction on the price and sales tape
+        latest_quote (Optional[Quote]): Level 1 ask/bid pair quote data.
+        minute_bar (Optional[Bar]): The latest minute OHLC bar data
+        daily_bar (Optional[Bar]): The latest daily OHLC bar data
+        previous_daily_bar (Optional[Bar]): The 2nd to latest (2 trading days ago) daily OHLC bar data
     """
 
     symbol: str
-    latest_trade: Trade
-    latest_quote: Quote
-    minute_bar: Bar
-    daily_bar: Bar
-    previous_daily_bar: Bar
+    latest_trade: Optional[Trade] = None
+    latest_quote: Optional[Quote] = None
+    minute_bar: Optional[Bar] = None
+    daily_bar: Optional[Bar] = None
+    previous_daily_bar: Optional[Bar] = None
 
     model_config = ConfigDict(protected_namespaces=tuple())
 

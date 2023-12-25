@@ -1,4 +1,5 @@
-from datetime import datetime
+import urllib.parse
+from datetime import datetime, timezone
 from typing import Dict
 
 from alpaca.data import Quote, Trade, Bar
@@ -27,8 +28,10 @@ def test_get_crypto_bars(reqmock, crypto_client: CryptoHistoricalDataClient):
     timeframe = TimeFrame.Day
     _symbols_in_url = "%2C".join(s for s in symbols)
 
-    _start_in_url = start.isoformat("T") + "Z"
-    _end_in_url = end.isoformat("T") + "Z"
+    _start_in_url = urllib.parse.quote_plus(
+        start.replace(tzinfo=timezone.utc).isoformat()
+    )
+    _end_in_url = urllib.parse.quote_plus(end.replace(tzinfo=timezone.utc).isoformat())
     reqmock.get(
         f"https://data.alpaca.markets/v1beta3/crypto/us/bars?timeframe={timeframe}&start={_start_in_url}&end={_end_in_url}&symbols={_symbols_in_url}",
         text="""
@@ -83,7 +86,9 @@ def test_get_trades(reqmock, crypto_client: CryptoHistoricalDataClient):
     start = datetime(2022, 3, 9)
     _symbols_in_url = "%2C".join(s for s in symbols)
 
-    _start_in_url = start.isoformat("T") + "Z"
+    _start_in_url = urllib.parse.quote_plus(
+        start.replace(tzinfo=timezone.utc).isoformat()
+    )
 
     reqmock.get(
         f"https://data.alpaca.markets/v1beta3/crypto/us/trades?start={_start_in_url}&symbols={_symbols_in_url}",

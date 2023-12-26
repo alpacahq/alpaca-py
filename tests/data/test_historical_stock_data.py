@@ -1,22 +1,20 @@
 import urllib.parse
 from datetime import datetime, timezone
 from typing import Dict
-from alpaca.common.enums import Sort
 
-from alpaca.data import Trade, Snapshot, Quote, Bar
+import pytest
+
+from alpaca.common.enums import Sort
+from alpaca.common.exceptions import APIError
+from alpaca.data import Bar, Quote, Snapshot, Trade
+from alpaca.data.enums import DataFeed, Exchange
 from alpaca.data.historical import StockHistoricalDataClient
-from alpaca.data.requests import (
-    StockBarsRequest,
-    StockQuotesRequest,
-    StockTradesRequest,
-    StockLatestTradeRequest,
-    StockLatestQuoteRequest,
-    StockSnapshotRequest,
-    StockLatestBarRequest,
-)
-from alpaca.data.timeframe import TimeFrame
-from alpaca.data.enums import Exchange, DataFeed
 from alpaca.data.models import BarSet, QuoteSet, TradeSet
+from alpaca.data.requests import (StockBarsRequest, StockLatestBarRequest,
+                                  StockLatestQuoteRequest,
+                                  StockLatestTradeRequest, StockQuotesRequest,
+                                  StockSnapshotRequest, StockTradesRequest)
+from alpaca.data.timeframe import TimeFrame
 
 
 def test_get_bars(reqmock, stock_client: StockHistoricalDataClient):
@@ -208,7 +206,9 @@ def test_multisymbol_get_bars(reqmock, stock_client: StockHistoricalDataClient):
     assert barset.df.index.nlevels == 2
 
 
-def test_get_bars_single_empty_response(reqmock, stock_client: StockHistoricalDataClient):
+def test_get_bars_single_empty_response(
+    reqmock, stock_client: StockHistoricalDataClient
+):
     symbol = "AAPL"
     timeframe = TimeFrame.Day
     start = datetime(2022, 2, 1)
@@ -240,7 +240,9 @@ def test_get_bars_single_empty_response(reqmock, stock_client: StockHistoricalDa
     assert reqmock.called_once
 
 
-def test_get_bars_multi_empty_response(reqmock, stock_client: StockHistoricalDataClient):
+def test_get_bars_multi_empty_response(
+    reqmock, stock_client: StockHistoricalDataClient
+):
     symbol = "AAPL"
     timeframe = TimeFrame.Day
     start = datetime(2022, 2, 1)
@@ -402,7 +404,9 @@ def test_multisymbol_quotes(reqmock, stock_client: StockHistoricalDataClient):
     assert reqmock.called_once
 
 
-def test_get_quotes_single_empty_response(reqmock, stock_client: StockHistoricalDataClient):
+def test_get_quotes_single_empty_response(
+    reqmock, stock_client: StockHistoricalDataClient
+):
     symbol = "AAPL"
     start = datetime(2022, 3, 9)
     limit = 2
@@ -434,7 +438,9 @@ def test_get_quotes_single_empty_response(reqmock, stock_client: StockHistorical
     assert reqmock.called_once
 
 
-def test_get_quotes_multi_empty_response(reqmock, stock_client: StockHistoricalDataClient):
+def test_get_quotes_multi_empty_response(
+    reqmock, stock_client: StockHistoricalDataClient
+):
     symbol = "AAPL"
     start = datetime(2022, 3, 9)
     limit = 2
@@ -597,7 +603,9 @@ def test_multisymbol_get_trades(reqmock, stock_client: StockHistoricalDataClient
     assert reqmock.called_once
 
 
-def test_get_trades_single_empty_response(reqmock, stock_client: StockHistoricalDataClient):
+def test_get_trades_single_empty_response(
+    reqmock, stock_client: StockHistoricalDataClient
+):
     symbol = "AAPL"
     start = datetime(2022, 3, 9)
     limit = 2
@@ -630,7 +638,9 @@ def test_get_trades_single_empty_response(reqmock, stock_client: StockHistorical
     assert reqmock.called_once
 
 
-def test_get_trades_multi_empty_response(reqmock, stock_client: StockHistoricalDataClient):
+def test_get_trades_multi_empty_response(
+    reqmock, stock_client: StockHistoricalDataClient
+):
     symbol = "AAPL"
     start = datetime(2022, 3, 9)
     limit = 2
@@ -704,7 +714,6 @@ def test_get_latest_trade(reqmock, stock_client: StockHistoricalDataClient):
 
 
 def test_get_multisymbol_latest_trade(reqmock, stock_client: StockHistoricalDataClient):
-    # Test single symbol request
     symbols = ["AAPL", "TSLA"]
     _symbols_in_url = "%2C".join(s for s in symbols)
     reqmock.get(
@@ -756,6 +765,52 @@ def test_get_multisymbol_latest_trade(reqmock, stock_client: StockHistoricalData
     assert reqmock.called_once
 
 
+def test_get_latest_trade_multi_not_found(
+    reqmock, stock_client: StockHistoricalDataClient
+):
+    symbol = "AAPL"
+
+    reqmock.get(
+        f"https://data.alpaca.markets/v2/stocks/{symbol}/trades/latest?&feed=IEX",
+        text="""
+    {
+        "message":"no trade found for AAPL"
+    }
+        """,
+        status_code=404,
+    )
+    request = StockLatestTradeRequest(symbol_or_symbols=symbol, feed=DataFeed.IEX)
+
+    with pytest.raises(APIError):
+        stock_client.get_stock_latest_trade(request_params=request)
+
+    assert reqmock.called_once
+
+
+def test_get_latest_trade_multi_not_found(
+    reqmock, stock_client: StockHistoricalDataClient
+):
+    symbol = "AAPL"
+
+    reqmock.get(
+        f"https://data.alpaca.markets/v2/stocks/trades/latest?symbols={symbol}&feed=IEX",
+        text="""
+    {
+        "trades": {}
+    }
+        """,
+    )
+    request = StockLatestTradeRequest(symbol_or_symbols=[symbol], feed=DataFeed.IEX)
+
+    trades = stock_client.get_stock_latest_trade(request_params=request)
+
+    assert isinstance(trades, Dict)
+
+    assert trades == {}
+
+    assert reqmock.called_once
+
+
 def test_get_latest_quote(reqmock, stock_client: StockHistoricalDataClient):
     # Test single symbol request
     symbol = "AAPL"
@@ -796,6 +851,55 @@ def test_get_latest_quote(reqmock, stock_client: StockHistoricalDataClient):
     assert quote.bid_size == 2
 
     assert quote.bid_exchange == "K"
+
+    assert reqmock.called_once
+
+
+def test_get_latest_quote_single_empty_response(
+    reqmock, stock_client: StockHistoricalDataClient
+):
+    # Test single symbol request
+    symbol = "AAPL"
+
+    reqmock.get(
+        f"https://data.alpaca.markets/v2/stocks/{symbol}/quotes/latest",
+        text="""
+    {
+        "message":"no quote found for AAPL"
+    }
+        """,
+        status_code=404,
+    )
+
+    request = StockLatestQuoteRequest(symbol_or_symbols=symbol)
+
+    with pytest.raises(APIError):
+        stock_client.get_stock_latest_quote(request)
+
+    assert reqmock.called_once
+
+
+def test_get_latest_quote_multi_empty_response(
+    reqmock, stock_client: StockHistoricalDataClient
+):
+    symbol = "AAPL"
+
+    reqmock.get(
+        f"https://data.alpaca.markets/v2/stocks/quotes/latest?symbols={symbol}",
+        text="""
+    {
+        "quotes": {}
+    }
+        """,
+    )
+
+    request = StockLatestQuoteRequest(symbol_or_symbols=[symbol])
+
+    quotes = stock_client.get_stock_latest_quote(request)
+
+    assert isinstance(quotes, Dict)
+
+    assert quotes == {}
 
     assert reqmock.called_once
 
@@ -886,6 +990,52 @@ def test_get_snapshot(reqmock, stock_client: StockHistoricalDataClient):
     assert reqmock.called_once
 
 
+def test_get_snapshot_single_empty_response(
+    reqmock, stock_client: StockHistoricalDataClient
+):
+    symbol = "AAPL"
+
+    reqmock.get(
+        f"https://data.alpaca.markets/v2/stocks/{symbol}/snapshot",
+        text="""
+    {
+        "message":"no snapshot found for OTOC"
+    }
+        """,
+        status_code=404,
+    )
+
+    request = StockSnapshotRequest(symbol_or_symbols=symbol)
+
+    with pytest.raises(APIError):
+        stock_client.get_stock_snapshot(request)
+
+    assert reqmock.called_once
+
+
+def test_get_snapshot_multi_empty_response(
+    reqmock, stock_client: StockHistoricalDataClient
+):
+    symbol = "AAPL"
+
+    reqmock.get(
+        f"https://data.alpaca.markets/v2/stocks/snapshots?symbols={symbol}",
+        text="""
+    {}
+        """,
+    )
+
+    request = StockSnapshotRequest(symbol_or_symbols=[symbol])
+
+    snapshots = stock_client.get_stock_snapshot(request)
+
+    assert isinstance(snapshots, Dict)
+
+    assert snapshots == {}
+
+    assert reqmock.called_once
+
+
 def test_stock_latest_bar(reqmock, stock_client: StockHistoricalDataClient):
     symbol = "SPY"
     reqmock.get(
@@ -966,5 +1116,51 @@ def test_multi_stock_latest_bar(reqmock, stock_client: StockHistoricalDataClient
     assert isinstance(bar, Bar)
 
     assert bar.open == 392.18
+
+    assert reqmock.called_once
+
+
+def test_stock_latest_bar_single_empty_response(
+    reqmock, stock_client: StockHistoricalDataClient
+):
+    symbol = "SPY"
+    reqmock.get(
+        f"https://data.alpaca.markets/v2/stocks/{symbol}/bars/latest",
+        text="""
+        {
+            "message":"no bar found for OTOC"
+        }
+    """,
+        status_code=404,
+    )
+
+    request = StockLatestBarRequest(symbol_or_symbols=symbol)
+
+    with pytest.raises(APIError):
+        stock_client.get_stock_latest_bar(request)
+
+    assert reqmock.called_once
+
+
+def test_stock_latest_bar_multi_empty_response(
+    reqmock, stock_client: StockHistoricalDataClient
+):
+    symbol = "AAPL"
+    reqmock.get(
+        f"https://data.alpaca.markets/v2/stocks/bars/latest?symbols={symbol}",
+        text="""
+    {
+        "bars": {}
+    }
+    """,
+    )
+
+    request = StockLatestBarRequest(symbol_or_symbols=[symbol])
+
+    bars = stock_client.get_stock_latest_bar(request)
+
+    assert isinstance(bars, Dict)
+
+    assert bars == {}
 
     assert reqmock.called_once

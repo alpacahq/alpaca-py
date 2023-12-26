@@ -779,15 +779,19 @@ def test_get_latest_trade_multi_not_found(
         f"https://data.alpaca.markets/v2/stocks/{symbol}/trades/latest?&feed=IEX",
         text="""
     {
-        "message":"no trade found for AAPL"
+        "next_page_token": null
+        "trade": null,
+        "symbol": "AAPL"
     }
         """,
-        status_code=404,
     )
     request = StockLatestTradeRequest(symbol_or_symbols=symbol, feed=DataFeed.IEX)
 
-    with pytest.raises(APIError):
-        stock_client.get_stock_latest_trade(request_params=request)
+    trade = stock_client.get_stock_latest_trade(request_params=request)
+
+    assert isinstance(trade, Dict)
+
+    assert trade == {}
 
     assert reqmock.called_once
 
@@ -870,16 +874,20 @@ def test_get_latest_quote_single_empty_response(
         f"https://data.alpaca.markets/v2/stocks/{symbol}/quotes/latest",
         text="""
     {
-        "message":"no quote found for AAPL"
+        "next_page_token": null,
+        "quote": null,
+        "symbol": "AAPL"
     }
         """,
-        status_code=404,
     )
 
     request = StockLatestQuoteRequest(symbol_or_symbols=symbol)
 
-    with pytest.raises(APIError):
-        stock_client.get_stock_latest_quote(request)
+    quote = stock_client.get_stock_latest_quote(request)
+
+    assert isinstance(quote, Dict)
+
+    assert quote == {}
 
     assert reqmock.called_once
 
@@ -1004,16 +1012,32 @@ def test_get_snapshot_single_empty_response(
         f"https://data.alpaca.markets/v2/stocks/{symbol}/snapshot",
         text="""
     {
-        "message":"no snapshot found for OTOC"
+        "symbol": "AAPL",
+        "latestTrade": null,
+        "latestQuote": null,
+        "minuteBar": null,
+        "dailyBar": null,
+        "prevDailyBar": null
     }
         """,
-        status_code=404,
     )
 
     request = StockSnapshotRequest(symbol_or_symbols=symbol)
 
-    with pytest.raises(APIError):
-        stock_client.get_stock_snapshot(request)
+    snapshot = stock_client.get_stock_snapshot(request)
+
+    assert isinstance(snapshot, Dict)
+
+    assert "AAPL" in snapshot
+
+    assert snapshot["AAPL"].model_dump() == {
+            "daily_bar": None,
+            "latest_quote": None,
+            "latest_trade": None,
+            "minute_bar": None,
+            "previous_daily_bar": None,
+            "symbol": "AAPL",
+        }
 
     assert reqmock.called_once
 
@@ -1133,16 +1157,19 @@ def test_stock_latest_bar_single_empty_response(
         f"https://data.alpaca.markets/v2/stocks/{symbol}/bars/latest",
         text="""
         {
-            "message":"no bar found for OTOC"
+            "symbol": "SPY",
+            "bar": null
         }
     """,
-        status_code=404,
     )
 
     request = StockLatestBarRequest(symbol_or_symbols=symbol)
 
-    with pytest.raises(APIError):
-        stock_client.get_stock_latest_bar(request)
+    bar = stock_client.get_stock_latest_bar(request)
+
+    assert isinstance(bar, Dict)
+
+    assert bar == {}
 
     assert reqmock.called_once
 

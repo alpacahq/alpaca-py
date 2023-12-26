@@ -208,6 +208,69 @@ def test_multisymbol_get_bars(reqmock, stock_client: StockHistoricalDataClient):
     assert barset.df.index.nlevels == 2
 
 
+def test_get_bars_single_empty_response(reqmock, stock_client: StockHistoricalDataClient):
+    symbol = "AAPL"
+    timeframe = TimeFrame.Day
+    start = datetime(2022, 2, 1)
+    limit = 2
+    _start_in_url = urllib.parse.quote_plus(
+        start.replace(tzinfo=timezone.utc).isoformat()
+    )
+    reqmock.get(
+        f"https://data.alpaca.markets/v2/stocks/{symbol}/bars?start={_start_in_url}&timeframe={timeframe}&limit={limit}",
+        text="""
+    {
+        "bars": null,
+        "next_page_token": null,
+        "symbol": "AAPL"
+    }
+        """,
+    )
+    request = StockBarsRequest(
+        symbol_or_symbols=symbol, timeframe=timeframe, start=start, limit=limit
+    )
+    barset = stock_client.get_stock_bars(request_params=request)
+
+    assert isinstance(barset, BarSet)
+
+    assert barset.dict() == {"AAPL": []}
+
+    assert len(barset.df) == 0
+
+    assert reqmock.called_once
+
+
+def test_get_bars_multi_empty_response(reqmock, stock_client: StockHistoricalDataClient):
+    symbol = "AAPL"
+    timeframe = TimeFrame.Day
+    start = datetime(2022, 2, 1)
+    limit = 2
+    _start_in_url = urllib.parse.quote_plus(
+        start.replace(tzinfo=timezone.utc).isoformat()
+    )
+    reqmock.get(
+        f"https://data.alpaca.markets/v2/stocks/bars?symbols={symbol}&start={_start_in_url}&timeframe={timeframe}&limit={limit}",
+        text="""
+    {
+        "bars": {},
+        "next_page_token": null
+    }
+        """,
+    )
+    request = StockBarsRequest(
+        symbol_or_symbols=[symbol], timeframe=timeframe, start=start, limit=limit
+    )
+    barset = stock_client.get_stock_bars(request_params=request)
+
+    assert isinstance(barset, BarSet)
+
+    assert barset.dict() == {}
+
+    assert len(barset.df) == 0
+
+    assert reqmock.called_once
+
+
 def test_get_quotes(reqmock, stock_client: StockHistoricalDataClient):
     # Test single symbol request
 
@@ -335,6 +398,69 @@ def test_multisymbol_quotes(reqmock, stock_client: StockHistoricalDataClient):
     assert quoteset["AAPL"][0].bid_exchange == "Q"
 
     assert quoteset.df.index.nlevels == 2
+
+    assert reqmock.called_once
+
+
+def test_get_quotes_single_empty_response(reqmock, stock_client: StockHistoricalDataClient):
+    symbol = "AAPL"
+    start = datetime(2022, 3, 9)
+    limit = 2
+
+    _start_in_url = urllib.parse.quote_plus(
+        start.replace(tzinfo=timezone.utc).isoformat()
+    )
+
+    reqmock.get(
+        f"https://data.alpaca.markets/v2/stocks/{symbol}/quotes?start={_start_in_url}&limit={limit}",
+        text="""
+    {
+        "next_page_token": null,
+        "quotes": null,
+        "symbol": "AAPL"
+    }
+        """,
+    )
+    request = StockQuotesRequest(symbol_or_symbols=symbol, start=start, limit=limit)
+
+    quoteset = stock_client.get_stock_quotes(request_params=request)
+
+    assert isinstance(quoteset, QuoteSet)
+
+    assert quoteset.dict() == {"AAPL": []}
+
+    assert len(quoteset.df) == 0
+
+    assert reqmock.called_once
+
+
+def test_get_quotes_multi_empty_response(reqmock, stock_client: StockHistoricalDataClient):
+    symbol = "AAPL"
+    start = datetime(2022, 3, 9)
+    limit = 2
+
+    _start_in_url = urllib.parse.quote_plus(
+        start.replace(tzinfo=timezone.utc).isoformat()
+    )
+
+    reqmock.get(
+        f"https://data.alpaca.markets/v2/stocks/quotes?symbols={symbol}&start={_start_in_url}&limit={limit}",
+        text="""
+    {
+        "next_page_token": null,
+        "quotes": {}
+    }
+        """,
+    )
+    request = StockQuotesRequest(symbol_or_symbols=[symbol], start=start, limit=limit)
+
+    quoteset = stock_client.get_stock_quotes(request_params=request)
+
+    assert isinstance(quoteset, QuoteSet)
+
+    assert quoteset.dict() == {}
+
+    assert len(quoteset.df) == 0
 
     assert reqmock.called_once
 
@@ -467,6 +593,71 @@ def test_multisymbol_get_trades(reqmock, stock_client: StockHistoricalDataClient
 
     assert tradeset.df.index[0][1].day == 9
     assert tradeset.df.index.nlevels == 2
+
+    assert reqmock.called_once
+
+
+def test_get_trades_single_empty_response(reqmock, stock_client: StockHistoricalDataClient):
+    symbol = "AAPL"
+    start = datetime(2022, 3, 9)
+    limit = 2
+
+    _start_in_url = urllib.parse.quote_plus(
+        start.replace(tzinfo=timezone.utc).isoformat()
+    )
+
+    reqmock.get(
+        f"https://data.alpaca.markets/v2/stocks/{symbol}/trades?start={_start_in_url}&limit={limit}",
+        text="""
+    {
+        "next_page_token": null,
+        "trades": null,
+        "symbol": "AAPL"
+    }
+        """,
+    )
+
+    request = StockTradesRequest(symbol_or_symbols=symbol, start=start, limit=limit)
+
+    tradeset = stock_client.get_stock_trades(request_params=request)
+
+    assert isinstance(tradeset, TradeSet)
+
+    assert tradeset.dict() == {"AAPL": []}
+
+    assert len(tradeset.df) == 0
+
+    assert reqmock.called_once
+
+
+def test_get_trades_multi_empty_response(reqmock, stock_client: StockHistoricalDataClient):
+    symbol = "AAPL"
+    start = datetime(2022, 3, 9)
+    limit = 2
+
+    _start_in_url = urllib.parse.quote_plus(
+        start.replace(tzinfo=timezone.utc).isoformat()
+    )
+
+    reqmock.get(
+        f"https://data.alpaca.markets/v2/stocks/trades?symbols={symbol}&start={_start_in_url}&limit={limit}",
+        text="""
+    {
+        "next_page_token": null,
+        "trades": {}
+    }
+        """,
+    )
+
+    request = StockTradesRequest(symbol_or_symbols=[symbol], start=start, limit=limit)
+
+    tradeset = stock_client.get_stock_trades(request_params=request)
+
+    assert isinstance(tradeset, TradeSet)
+
+    assert tradeset.dict() == {}
+
+    assert len(tradeset.df) == 0
 
     assert reqmock.called_once
 

@@ -99,9 +99,6 @@ class StockHistoricalDataClient(RESTClient):
         if self._use_raw_data:
             return raw_bars
 
-        if raw_bars is None:
-            return None
-
         return BarSet(raw_bars)
 
     def get_stock_quotes(
@@ -232,9 +229,6 @@ class StockHistoricalDataClient(RESTClient):
 
         if self._use_raw_data:
             return raw_latest_bars
-
-        if raw_latest_bars is None:
-            return {}
 
         return parse_obj_as_symbol_dict(Bar, raw_latest_bars)
 

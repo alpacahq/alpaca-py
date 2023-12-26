@@ -10,10 +10,15 @@ from alpaca.data import Bar, Quote, Snapshot, Trade
 from alpaca.data.enums import DataFeed, Exchange
 from alpaca.data.historical import StockHistoricalDataClient
 from alpaca.data.models import BarSet, QuoteSet, TradeSet
-from alpaca.data.requests import (StockBarsRequest, StockLatestBarRequest,
-                                  StockLatestQuoteRequest,
-                                  StockLatestTradeRequest, StockQuotesRequest,
-                                  StockSnapshotRequest, StockTradesRequest)
+from alpaca.data.requests import (
+    StockBarsRequest,
+    StockLatestBarRequest,
+    StockLatestQuoteRequest,
+    StockLatestTradeRequest,
+    StockQuotesRequest,
+    StockSnapshotRequest,
+    StockTradesRequest,
+)
 from alpaca.data.timeframe import TimeFrame
 
 

@@ -20,7 +20,7 @@ class APIError(Exception):
                 detailed_error["method"] = http_error.request.method
                 detailed_error["url"] = http_error.request.url
             # add tips for auth key error
-            if detailed_error["status_code"] in [401, 403]:
+            if detailed_error["status_code"] == 401:
                 detailed_error[
                     "tips"
                 ] = "please check your API key and environment (paper/sandbox/live)"

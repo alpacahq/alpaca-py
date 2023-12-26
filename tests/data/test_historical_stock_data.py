@@ -1031,13 +1031,13 @@ def test_get_snapshot_single_empty_response(
     assert "AAPL" in snapshot
 
     assert snapshot["AAPL"].model_dump() == {
-            "daily_bar": None,
-            "latest_quote": None,
-            "latest_trade": None,
-            "minute_bar": None,
-            "previous_daily_bar": None,
-            "symbol": "AAPL",
-        }
+        "daily_bar": None,
+        "latest_quote": None,
+        "latest_trade": None,
+        "minute_bar": None,
+        "previous_daily_bar": None,
+        "symbol": "AAPL",
+    }
 
     assert reqmock.called_once
 

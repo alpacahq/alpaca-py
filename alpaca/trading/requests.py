@@ -1,5 +1,5 @@
 from datetime import date, datetime, timedelta
-from typing import Optional, Any, List
+from typing import Optional, Any, List, Union
 
 import pandas as pd
 from pydantic import model_validator
@@ -125,6 +125,7 @@ class GetAssetsRequest(NonEmptyRequest):
     status: Optional[AssetStatus] = None
     asset_class: Optional[AssetClass] = None
     exchange: Optional[AssetExchange] = None
+    attributes: Optional[str] = None
 
 
 class TakeProfitRequest(NonEmptyRequest):

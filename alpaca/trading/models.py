@@ -45,7 +45,7 @@ class Asset(ModelWithID):
         shortable (bool): Whether the asset can be shorted.
         easy_to_borrow (bool): When shorting, whether the asset is easy to borrow
         fractionable (bool): Whether fractional shares are available
-        attributes (bool): One of ptp_no_exception or ptp_with_exception. It will include unique characteristics of the asset here.
+        attributes (Optional[list[str]]): One of ptp_no_exception or ptp_with_exception. It will include unique characteristics of the asset here.
     """
 
     asset_class: AssetClass = Field(
@@ -64,7 +64,7 @@ class Asset(ModelWithID):
     min_trade_increment: Optional[float] = None
     price_increment: Optional[float] = None
     maintenance_margin_requirement: Optional[float] = None
-    attributes: Optional[list] = None
+    attributes: Optional[list[str]] = None
 
 
 class USDPositionValues(BaseModel):

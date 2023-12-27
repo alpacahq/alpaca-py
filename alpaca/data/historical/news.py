@@ -58,7 +58,6 @@ class NewsClient(RESTClient):
 
         Args:
             request_params (NewsRequest): The request params to filter the news data
-            feed (News)
         Returns:
             Union[RawData, NewsSet]: The news data
         """
@@ -81,7 +80,7 @@ class NewsClient(RESTClient):
         symbol_or_symbols: Union[str, List[str]],
         endpoint_asset_class: str = "news",
         api_version: str = "v1beta1",
-        limit: Optional[int] = None,
+        limit: Optional[int] = 10,
         page_limit: int = DATA_V2_MAX_LIMIT,
         **kwargs,
     ) -> RawData:

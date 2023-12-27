@@ -120,9 +120,7 @@ Alpaca-py has a lot of client classes. There is a client for each API and even a
 
 **Trading API:** ``TradingClient``
 
-**Market Data API:**  ``StockHistoricalDataClient``, ``CryptoHistoricalDataClient``, ``CryptoDataStream``, ``StockDataStream``
-
-**News API:** ``NewsClient``, ``NewsDataStream``
+**Market Data API:**  ``StockHistoricalDataClient``, ``CryptoHistoricalDataClient``, ``CryptoDataStream``, ``StockDataStream``, ``NewsClient``, ``NewsDataStream``
 
 ## API Keys <a name="api-keys"></a>
 
@@ -137,9 +135,7 @@ Alpaca’s APIs allow you to do everything from building algorithmic trading str
 
 To view full descriptions and examples view the [documentation page](https://docs.alpaca.markets/docs/getting-started-1).
 
-**Market Data API**: Access live and historical market data for 5000+ stocks and 20+ crypto.
-
-**News API**: Access live and historical news data for stocks and crypto.
+**Market Data API**: Access live and historical market/news data for 5000+ stocks and 20+ crypto.
 
 **Trading API**: Trade stock and crypto with lightning fast execution speeds.
 
@@ -225,8 +221,7 @@ bars.df
 
 ```
 
-### News API Example <a name="news-api-example"></a>
-**Querying News Data**
+**Querying News Data** <a name="news-client-example"></a>  
 
 You can query news data via the NewsClient. In this example, we query news data for “TSLA” since July 1st 2022. You can convert the response to a pandas dataframe using the ``.df`` property.
 

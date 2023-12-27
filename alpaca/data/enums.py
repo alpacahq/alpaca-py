@@ -66,7 +66,6 @@ class DataFeed(str, Enum):
     IEX = "iex"
     SIP = "sip"
     OTC = "otc"
-    NEWS = "news"
 
 
 class Adjustment(str, Enum):

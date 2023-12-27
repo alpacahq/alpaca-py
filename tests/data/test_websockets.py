@@ -170,3 +170,5 @@ def test_cast(ws_client: BaseStream, raw_ws_client: BaseStream, timestamp: Times
         raw_news_cast_msg["headline"]
         == "Corsair Reports Purchase Of Majority Ownership In iDisplay, No Terms Disclosed"
     )
+    assert type(raw_news_cast_msg["created_at"]) == datetime
+    assert type(raw_news_cast_msg["updated_at"]) == datetime

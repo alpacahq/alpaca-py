@@ -2,7 +2,6 @@ from typing import Optional, Dict
 
 from alpaca.common.enums import BaseURL
 from alpaca.common.websocket import BaseStream
-from alpaca.data.enums import DataFeed
 
 
 class NewsDataStream(BaseStream):
@@ -17,7 +16,6 @@ class NewsDataStream(BaseStream):
         api_key: str,
         secret_key: str,
         raw_data: bool = False,
-        feed: DataFeed = DataFeed.NEWS,
         websocket_params: Optional[Dict] = None,
         url_override: Optional[str] = None,
     ) -> None:
@@ -28,19 +26,18 @@ class NewsDataStream(BaseStream):
             api_key (str): Alpaca API key.
             secret_key (str): Alpaca API secret key.
             raw_data (bool, optional): Whether to return wrapped data or raw API data. Defaults to False.
-            feed (DataFeed, optional): Which news data feed to use. Defaults to News
             websocket_params (Optional[Dict], optional): Any parameters for configuring websocket connection. Defaults to None.
             url_override (Optional[str]): If specified allows you to override the base url the client
               points to for proxy/testing. Defaults to None.
 
         Raises:
-            ValueError: Only News market data feeds are supported
+            ValueError: If api_key or secret_key are not provided.
         """
         super().__init__(
             endpoint=(
                 url_override
                 if url_override is not None
-                else BaseURL.MARKET_DATA_STREAM.value + "/v1beta1/" + feed.value
+                else BaseURL.MARKET_DATA_STREAM.value + "/v1beta1/news"
             ),
             api_key=api_key,
             secret_key=secret_key,

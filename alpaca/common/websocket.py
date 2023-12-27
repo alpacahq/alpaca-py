@@ -230,12 +230,16 @@ class BaseStream:
             if handler:
                 await handler(self._cast(msg_type, msg))
         elif msg_type == "n":
-            symbol = ",".join(symbol)
-            handler = self._handlers["news"].get(
-                symbol, self._handlers["news"].get("*", None)
-            )
-            if handler:
-                await handler(self._cast(msg_type, msg))
+            # prevent duplicate '*' handlers from being called
+            for s in symbol:
+                if s in self._handlers["news"]:
+                    handler = self._handlers["news"].get(s, None)
+                    if handler:
+                        await handler(self._cast(msg_type, msg))
+                else:
+                    handler = self._handlers["news"].get("*", None)
+                    if handler:
+                        await handler(self._cast(msg_type, msg))
         elif msg_type == "subscription":
             sub = [f"{k}: {msg.get(k, [])}" for k in self._handlers]
             log.info(f'subscribed to {", ".join(sub)}')

@@ -19,8 +19,6 @@ jobs:
       # install poetry first for cache
       - name: setup poetry
         run: pipx install poetry
-      - name: setup poetry-dynamic-versioning
-        run: pipx install poetry-dynamic-versioning
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
@@ -37,3 +35,4 @@ jobs:
         uses: JRubics/poetry-publish@v1.16
         with:
           pypi_token: ${{ secrets.PYPI_API_TOKEN }}
+          plugins: "poetry-dynamic-versioning"

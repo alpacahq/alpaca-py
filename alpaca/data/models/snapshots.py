@@ -44,19 +44,19 @@ class Snapshot(BaseModel):
         }
 
         # Parse each data type
-        if mapped_snapshot["latest_trade"] is not None:
+        if mapped_snapshot.get("latest_trade", None) is not None:
             mapped_snapshot["latest_trade"] = Trade(
                 symbol, mapped_snapshot["latest_trade"]
             )
-        if mapped_snapshot["latest_quote"] is not None:
+        if mapped_snapshot.get("latest_quote", None) is not None:
             mapped_snapshot["latest_quote"] = Quote(
                 symbol, mapped_snapshot["latest_quote"]
             )
-        if mapped_snapshot["minute_bar"] is not None:
+        if mapped_snapshot.get("minute_bar", None) is not None:
             mapped_snapshot["minute_bar"] = Bar(symbol, mapped_snapshot["minute_bar"])
-        if mapped_snapshot["daily_bar"] is not None:
+        if mapped_snapshot.get("daily_bar", None) is not None:
             mapped_snapshot["daily_bar"] = Bar(symbol, mapped_snapshot["daily_bar"])
-        if mapped_snapshot["previous_daily_bar"] is not None:
+        if mapped_snapshot.get("previous_daily_bar", None) is not None:
             mapped_snapshot["previous_daily_bar"] = Bar(
                 symbol, mapped_snapshot["previous_daily_bar"]
             )

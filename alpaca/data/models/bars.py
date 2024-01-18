@@ -43,9 +43,14 @@ class Bar(BaseModel):
         Args:
             raw_data (RawData): Raw unparsed bar data from API, contains ohlc and other fields.
         """
-        mapped_bar = {
-            BAR_MAPPING[key]: val for key, val in raw_data.items() if key in BAR_MAPPING
-        }
+        mapped_bar = {}
+
+        if raw_data is not None:
+            mapped_bar = {
+                BAR_MAPPING[key]: val
+                for key, val in raw_data.items()
+                if key in BAR_MAPPING
+            }
 
         super().__init__(symbol=symbol, **mapped_bar)
 
@@ -71,7 +76,10 @@ class BarSet(BaseDataSet, TimeSeriesMixin):
 
         raw_bars = raw_data
 
-        for symbol, bars in raw_bars.items():
-            parsed_bars[symbol] = [Bar(symbol, bar) for bar in bars]
+        if raw_bars is not None:
+            for symbol, bars in raw_bars.items():
+                parsed_bars[symbol] = [
+                    Bar(symbol, bar) for bar in bars if bar is not None
+                ]
 
         super().__init__(data=parsed_bars)

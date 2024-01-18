@@ -67,7 +67,10 @@ class TradeSet(BaseDataSet, TimeSeriesMixin):
         """
         parsed_trades = {}
 
-        for symbol, trades in raw_data.items():
-            parsed_trades[symbol] = [Trade(symbol, trade) for trade in trades]
+        if raw_data is not None:
+            for symbol, trades in raw_data.items():
+                parsed_trades[symbol] = [
+                    Trade(symbol, trade) for trade in trades if trade is not None
+                ]
 
         super().__init__(data=parsed_trades)

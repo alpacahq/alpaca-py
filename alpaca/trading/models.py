@@ -6,7 +6,9 @@ from alpaca.trading.enums import (
     AssetClass,
     AssetStatus,
     AssetExchange,
+    ContractType,
     DTBPCheck,
+    ExerciseStyle,
     OrderStatus,
     OrderType,
     OrderClass,
@@ -604,3 +606,61 @@ class TradeUpdate(BaseModel):
     position_qty: Optional[float] = None
     price: Optional[float] = None
     qty: Optional[float] = None
+
+
+class OptionContract(BaseModel):
+    """
+    Represents an option contract.
+
+    Attributes:
+        id (str) The unique identifier of the option contract.
+    symbol (str): The symbol representing the option contract.
+    name (str): The name of the option contract.
+    status (AssetStatus): The status of the option contract.
+    tradable (bool): Indicates whether the option contract is tradable.
+    expiration_date (date): The expiration date of the option contract.
+    root_symbol (str): The root symbol of the option contract.
+    underlying_symbol (str): The underlying symbol of the option contract.
+    underlying_asset_id (UUID): The unique identifier of the underlying asset.
+    type (ContractType): The type of the option contract.
+    style (ExerciseStyle): The style of the option contract.
+    strike_price (float): The strike price of the option contract.
+    size (str): The size of the option contract. Usually contracts have size=100.
+    open_interest (Optional[str]): The open interest of the option contract.
+    open_interest_date (Optional[date]): The date of the open interest data.
+    close_price (Optional[str]): The close price of the option contract.
+    close_price_date (Optional[date]): The date of the close price data.
+    """
+
+    id: str
+    symbol: str
+    name: str
+    status: AssetStatus
+    tradable: bool
+    expiration_date: date
+    root_symbol: str
+    underlying_symbol: str
+    underlying_asset_id: UUID
+    type: ContractType
+    style: ExerciseStyle
+    strike_price: float
+    size: str
+    open_interest: Optional[str] = None
+    open_interest_date: Optional[date] = None
+    close_price: Optional[str] = None
+    close_price_date: Optional[date] = None
+
+
+class OptionContractsResponse(BaseModel):
+    """
+    Represents a response from the option contracts endpoint.
+
+    Attributes:
+        option_contracts (Optional[List[OptionContract]]): The list of option contracts.
+        limit (int): The maximum number of option contracts in the response.
+        page (int): The page number of the response.
+    """
+
+    option_contracts: Optional[List[OptionContract]] = None
+    limit: int
+    page: int

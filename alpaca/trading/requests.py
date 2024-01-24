@@ -8,6 +8,8 @@ from alpaca.common.models import ModelWithID
 from alpaca.common.requests import NonEmptyRequest
 from alpaca.common.enums import Sort
 from alpaca.trading.enums import (
+    ContractType,
+    ExerciseStyle,
     OrderType,
     AssetStatus,
     AssetClass,
@@ -457,3 +459,38 @@ class GetCorporateAnnouncementsRequest(NonEmptyRequest):
             raise ValueError("The date range is limited to 90 days.")
 
         return values
+
+
+class GetOptionContractsRequest(NonEmptyRequest):
+    """
+    Used to fetch option contracts for a given underlying symbol.
+
+    Attributes:
+        underlying_symbol (str): The underlying symbol for the option contracts to be returned.
+        status (Optional[AssetStatus]): The status of the asset.
+        expiration_date (Optional[Union[date, str]]): The expiration date of the option contract. (YYYY-MM-DD)
+        expiration_date_gte (Optional[Union[date, str]]): The expiration date of the option contract greater than or equal to. (YYYY-MM-DD)
+        expiration_date_lte (Optional[Union[date, str]]): The expiration date of the option contract less than or equal to. (YYYY-MM-DD)
+        root_symbol (Optional[str]): The option root symbol.
+        type (Optional[ContractType]): The option contract type.
+        style (Optional[ExerciseStyle]): The option contract style.
+        strike_price_gte (Optional[str]): The option contract strike price greater than or equal to.
+        strike_price_lte (Optional[str]): The option contract strike price less than or equal to.
+        limit (Optional[int]): The maximum number of entries to return in the response.
+        page (Optional[int]): The page number for the results to return.
+    """
+
+    underlying_symbol: str
+
+    status: Optional[AssetStatus] = AssetStatus.ACTIVE
+    expiration_date: Optional[Union[date, str]] = None
+    expiration_date_gte: Optional[Union[date, str]] = None
+    expiration_date_lte: Optional[Union[date, str]] = None
+    root_symbol: Optional[str] = None
+    type: Optional[ContractType] = None
+    style: Optional[ExerciseStyle] = None
+    strike_price_gte: Optional[str] = None
+    strike_price_lte: Optional[str] = None
+
+    limit: Optional[int] = None
+    page: Optional[int] = None

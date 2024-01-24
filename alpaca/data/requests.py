@@ -412,7 +412,7 @@ class OptionChainRequest(NonEmptyRequest):
     This request class is used to submit a request for option chain data for options.
 
     Attributes:
-        symbol_or_symbols (Union[str, List[str]]): The option identifier or list of option identifiers.
+        underlying_symbol (str): The underlying_symbol for option contracts.
     """
 
     underlying_symbol: str

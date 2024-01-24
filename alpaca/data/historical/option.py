@@ -209,7 +209,7 @@ class OptionHistoricalDataClient(RESTClient):
         """The option chain endpoint for underlying symbol provides the latest trade, latest quote for each contract symbol of the underlying symbol.
 
         Args:
-            request_params (OptionSnapshotRequest): The request object for retrieving snapshot data.
+            request_params (OptionChainRequest): The request object for retrieving snapshot data.
 
         Returns:
             Union[SnapshotSet, RawData]: The snapshot data either in raw or wrapped form

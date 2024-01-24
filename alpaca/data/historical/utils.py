@@ -148,6 +148,8 @@ def format_snapshot_data(
         del response["symbol"]
         data_by_symbol[symbol] = response
     else:
+        if "snapshots" in response:
+            response = response["snapshots"]
         for symbol, data in response.items():
             data_by_symbol[symbol] = data
 

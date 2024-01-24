@@ -133,6 +133,23 @@ class StockQuotesRequest(BaseTimeseriesDataRequest):
     feed: Optional[DataFeed] = None
 
 
+class OptionQuotesRequest(BaseTimeseriesDataRequest):
+    """
+    This request class is used to submit a request for option quote data.
+
+    See BaseTimeseriesDataRequest for more information on available parameters.
+
+    Attributes:
+        symbol_or_symbols (Union[str, List[str]]): The option identifier or list of option identifiers.
+        start (Optional[datetime]): The beginning of the time interval for desired data. Timezone naive inputs assumed to be in UTC.
+        end (Optional[datetime]): The end of the time interval for desired data. Defaults to now. Timezone naive inputs assumed to be in UTC.
+        limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
+        sort (Optional[Sort]): The chronological order of response based on the timestamp. Defaults to ASC.
+    """
+
+    pass
+
+
 # ############################## Trades ################################# #
 
 
@@ -162,6 +179,23 @@ class CryptoTradesRequest(BaseTimeseriesDataRequest):
 
     Attributes:
         symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
+        start (Optional[datetime]): The beginning of the time interval for desired data. Timezone naive inputs assumed to be in UTC.
+        end (Optional[datetime]): The end of the time interval for desired data. Defaults to now. Timezone naive inputs assumed to be in UTC.
+        limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
+        sort (Optional[Sort]): The chronological order of response based on the timestamp. Defaults to ASC.
+    """
+
+    pass
+
+
+class OptionTradesRequest(BaseTimeseriesDataRequest):
+    """
+    This request class is used to submit a request for option trade data.
+
+    See BaseTimeseriesDataRequest for more information on available parameters.
+
+    Attributes:
+        symbol_or_symbols (Union[str, List[str]]): The option identifier or list of option identifiers.
         start (Optional[datetime]): The beginning of the time interval for desired data. Timezone naive inputs assumed to be in UTC.
         end (Optional[datetime]): The end of the time interval for desired data. Defaults to now. Timezone naive inputs assumed to be in UTC.
         limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
@@ -287,6 +321,46 @@ class CryptoLatestBarRequest(BaseCryptoLatestDataRequest):
     pass
 
 
+class BaseOptionLatestDataRequest(NonEmptyRequest):
+    """
+    A base request object for retrieving the latest data for options. You most likely should not use this directly and
+    instead use the asset class specific request objects.
+
+    Attributes:
+        symbol_or_symbols (Union[str, List[str]]): The option identifier or list of option identifiers.
+    """
+
+    symbol_or_symbols: Union[str, List[str]]
+
+    model_config = ConfigDict(protected_namespaces=tuple())
+
+
+class OptionLatestQuoteRequest(BaseOptionLatestDataRequest):
+    """
+    This request class is used to submit a request for the latest option quote data.
+
+    See BaseOptionLatestDataRequest for more information on available parameters.
+
+    Attributes:
+        symbol_or_symbols (Union[str, List[str]]): The option identifier or list of option identifiers.
+    """
+
+    pass
+
+
+class OptionLatestTradeRequest(BaseOptionLatestDataRequest):
+    """
+    This request class is used to submit a request for the latest option trade data.
+
+    See BaseOptionLatestDataRequest for more information on available parameters.
+
+    Attributes:
+        symbol_or_symbols (Union[str, List[str]]): The option identifier or list of option identifiers.
+    """
+
+    pass
+
+
 # ############################## Snapshots ################################# #
 
 
@@ -316,6 +390,32 @@ class CryptoSnapshotRequest(NonEmptyRequest):
     """
 
     symbol_or_symbols: Union[str, List[str]]
+
+    model_config = ConfigDict(protected_namespaces=tuple())
+
+
+class OptionSnapshotRequest(NonEmptyRequest):
+    """
+    This request class is used to submit a request for snapshot data for options.
+
+    Attributes:
+        symbol_or_symbols (Union[str, List[str]]): The option identifier or list of option identifiers.
+    """
+
+    symbol_or_symbols: Union[str, List[str]]
+
+    model_config = ConfigDict(protected_namespaces=tuple())
+
+
+class OptionChainRequest(NonEmptyRequest):
+    """
+    This request class is used to submit a request for option chain data for options.
+
+    Attributes:
+        symbol_or_symbols (Union[str, List[str]]): The option identifier or list of option identifiers.
+    """
+
+    underlying_symbol: str
 
     model_config = ConfigDict(protected_namespaces=tuple())
 

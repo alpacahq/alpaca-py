@@ -352,3 +352,30 @@ class TradeConfirmationEmail(str, Enum):
 
     ALL = "all"
     NONE = "none"
+
+
+class ContractType(str, Enum):
+    """
+    Represents the contract type of options
+    """
+
+    CALL = "call"
+    PUT = "put"
+
+
+class ExerciseStyle(str, Enum):
+    """
+    Represents the exercise style of options
+    """
+
+    AMERICAN = "american"
+    EUROPEAN = "european"
+
+
+class ActivityCategory(str, Enum):
+    """
+    Represents the category of an Activity
+    """
+
+    TRADE_ACTIVITY = "trade_activity"
+    NON_TRADE_ACTIVITY = "non_trade_activity"

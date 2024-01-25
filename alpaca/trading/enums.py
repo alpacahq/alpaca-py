@@ -323,5 +323,3 @@ class TradeConfirmationEmail(str, Enum):
 
     ALL = "all"
     NONE = "none"
-    # please do not use this value, to support legacy code
-    ENABLED = "enabled"  # should not be used

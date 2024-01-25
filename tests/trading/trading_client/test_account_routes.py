@@ -64,7 +64,8 @@ def test_get_account_configurations(reqmock: Mocker, trading_client: TradingClie
           "max_margin_multiplier": "4",
           "pdt_check": "entry",
           "trade_confirm_email": "all",
-          "ptp_no_exception_entry": false
+          "ptp_no_exception_entry": false,
+          "max_option_trading_level": "1"
         }
       """,
     )
@@ -72,6 +73,7 @@ def test_get_account_configurations(reqmock: Mocker, trading_client: TradingClie
     account_configurations = trading_client.get_account_configurations()
     assert reqmock.called_once
     assert isinstance(account_configurations, AccountConfiguration)
+    assert account_configurations.max_option_trading_level == "1"
 
 
 def test_set_account_configurations(reqmock: Mocker, trading_client: TradingClient):

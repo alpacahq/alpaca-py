@@ -346,7 +346,7 @@ class TradeConfirmationEmail(str, Enum):
     """
     Used for controlling when an Account will receive a trade confirmation email.
 
-    please see https://alpaca.markets/docs/api-references/broker-api/trading/trading-configurations/#attributes
+    please see https://docs.alpaca.markets/reference/getaccountconfig
     for more info.
     """
 

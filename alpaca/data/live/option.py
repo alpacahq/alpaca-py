@@ -2,7 +2,6 @@ from typing import Dict, Optional
 
 from alpaca.common.enums import BaseURL
 from alpaca.common.websocket import BaseStream
-from alpaca.data.enums import DataFeed
 
 
 class OptionDataStream(BaseStream):

@@ -686,7 +686,7 @@ class TradingClient(RESTClient):
 
         params = request.to_request_fields()
 
-        response = self.get(f"/options/contracts", params)
+        response = self.get("/options/contracts", params)
 
         if self._use_raw_data:
             return response

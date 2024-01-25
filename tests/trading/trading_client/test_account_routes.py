@@ -37,7 +37,9 @@ def test_get_account(reqmock: Mocker, trading_client: TradingClient):
           "status": "ACTIVE",
           "trade_suspended_by_user": false,
           "trading_blocked": false,
-          "transfers_blocked": false
+          "transfers_blocked": false,
+          "option_approved_level": "1",
+          "option_trading_level": "1"
         }
       """,
     )
@@ -46,6 +48,8 @@ def test_get_account(reqmock: Mocker, trading_client: TradingClient):
 
     assert reqmock.called_once
     assert isinstance(account, TradeAccount)
+    assert account.option_approved_level == 1
+    assert account.option_trading_level == 1
 
 
 def test_get_account_configurations(reqmock: Mocker, trading_client: TradingClient):

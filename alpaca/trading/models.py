@@ -491,6 +491,10 @@ class TradeAccount(ModelWithID):
         sma (Optional[str]): Value of Special Memorandum Account (will be used at a later date to provide additional buying_power)
         daytrade_count (Optional[int]): The current number of daytrades that have been made in the last 5 trading days
           (inclusive of today)
+        option_approved_level (Optional[int]): The option trading level that was approved for this account.
+          0=disabled, 1=Covered Call/Cash-Secured Put, 2=Long Call/Put.
+        option_trading_level (Optional[int]): The effective option trading level of the account. This is the minimum between account option_approved_level and account configurations max_option_trading_level.
+          0=disabled, 1=Covered Call/Cash-Secured Put, 2=Long
     """
 
     account_number: str
@@ -523,6 +527,8 @@ class TradeAccount(ModelWithID):
     last_maintenance_margin: Optional[str] = None
     sma: Optional[str] = None
     daytrade_count: Optional[int] = None
+    option_approved_level: Optional[int] = None
+    option_trading_level: Optional[int] = None
 
 
 class AccountConfiguration(BaseModel):

@@ -147,6 +147,7 @@ class BaseStream:
                     r = await asyncio.wait_for(self._ws.recv(), 5)
                     msgs = msgpack.unpackb(r)
                     for msg in msgs:
+                        log.info(f"received {msg}")
                         await self._dispatch(msg)
                 except asyncio.TimeoutError:
                     # ws.recv is hanging when no data is received. by using
@@ -165,6 +166,7 @@ class BaseStream:
         Returns:
             Union[BaseModel, RawData]: The raw or parsed live data
         """
+        msg = msg.copy()
         result = msg
         if not self._raw_data:
             if "t" in msg:
@@ -230,16 +232,18 @@ class BaseStream:
             if handler:
                 await handler(self._cast(msg_type, msg))
         elif msg_type == "n":
-            # prevent duplicate '*' handlers from being called
-            for s in symbol:
+            general_handler_called = False
+            handlers_to_call = []
+            for s in list(set(symbol)):
                 if s in self._handlers["news"]:
                     handler = self._handlers["news"].get(s, None)
-                    if handler:
-                        await handler(self._cast(msg_type, msg))
-                else:
+                elif not general_handler_called:
                     handler = self._handlers["news"].get("*", None)
-                    if handler:
-                        await handler(self._cast(msg_type, msg))
+                    general_handler_called = True
+                if handler:
+                    handlers_to_call.append(handler(self._cast(msg_type, msg)))
+            if handlers_to_call:
+                await asyncio.gather(*handlers_to_call)
         elif msg_type == "subscription":
             sub = [f"{k}: {msg.get(k, [])}" for k in self._handlers]
             log.info(f'subscribed to {", ".join(sub)}')

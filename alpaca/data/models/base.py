@@ -21,11 +21,13 @@ class TimeSeriesMixin:
         # combine all lists of data into one list
         data_list = list(itertools.chain.from_iterable(self.dict().values()))
 
+        df = pd.DataFrame(data_list)
+
         # set multi-level index
         if "news" in self.dict():
             # level=0 - id
             df = pd.DataFrame(data_list).set_index(["id"])
-        else:
+        if set(["symbol", "timestamp"]).issubset(df.columns):
             # level=0 - symbol
             # level=1 - timestamp
             df = pd.DataFrame(data_list).set_index(["symbol", "timestamp"])
@@ -41,7 +43,7 @@ class BaseDataSet(BaseModel):
     Base class to process data models for trades, bars quotes, and news.
     """
 
-    data: Dict[str, List[BaseModel]]
+    data: Dict[str, List[BaseModel]] = {}
     model_config = ConfigDict(protected_namespaces=tuple())
 
     def __getitem__(self, symbol: str) -> Any:

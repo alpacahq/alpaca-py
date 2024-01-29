@@ -12,6 +12,7 @@ from alpaca.trading.requests import (
     GetCalendarRequest,
     ClosePositionRequest,
     GetAssetsRequest,
+    GetOptionContractsRequest,
     OrderRequest,
     GetOrdersRequest,
     ReplaceOrderRequest,
@@ -23,6 +24,8 @@ from alpaca.trading.requests import (
 )
 
 from alpaca.trading.models import (
+    OptionContract,
+    OptionContractsResponse,
     Order,
     Position,
     ClosePositionResponse,
@@ -661,3 +664,53 @@ class TradingClient(RESTClient):
             return response
 
         return CorporateActionAnnouncement(**response)
+
+    # ############################## OPTIONS CONTRACTS ################################# #
+
+    def get_option_contracts(
+        self, request: GetOptionContractsRequest
+    ) -> Union[OptionContractsResponse, RawData]:
+        """
+        The option contracts API serves as the master list of option contracts available for trade and data consumption from Alpaca.
+
+        Args:
+            request (GetOptionContractsRequest): The parameters that option contracts can be queried by.
+
+        Returns:
+            OptionContracts (Union[OptionContractsResponse, RawData]): The object includes list of option contracts.
+        """
+        if request is None:
+            raise ValueError("request (GetOptionContractsRequest) is required")
+        if request.underlying_symbol == "":
+            raise ValueError("underlying_symbol is required")
+
+        params = request.to_request_fields()
+
+        response = self.get("/options/contracts", params)
+
+        if self._use_raw_data:
+            return response
+
+        return TypeAdapter(OptionContractsResponse).validate_python(response)
+
+    def get_option_contract(
+        self, symbol_or_id: Union[UUID, str]
+    ) -> Union[OptionContract, RawData]:
+        """
+        The option contracts API serves as the master list of option contracts available for trade and data consumption from Alpaca.
+
+        Args:
+            symbol_or_id (Union[UUID, str]): The symbol or id of the option contract to retrieve.
+
+        Returns:
+            OptionContracts (Union[OptionContracts, RawData]): The list of option contracts.
+        """
+        if symbol_or_id == "":
+            raise ValueError("symbol_or_id is required")
+
+        response = self.get(f"/options/contracts/{symbol_or_id}")
+
+        if self._use_raw_data:
+            return response
+
+        return TypeAdapter(OptionContract).validate_python(response)

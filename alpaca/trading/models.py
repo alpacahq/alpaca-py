@@ -6,7 +6,9 @@ from alpaca.trading.enums import (
     AssetClass,
     AssetStatus,
     AssetExchange,
+    ContractType,
     DTBPCheck,
+    ExerciseStyle,
     OrderStatus,
     OrderType,
     OrderClass,
@@ -45,7 +47,7 @@ class Asset(ModelWithID):
         shortable (bool): Whether the asset can be shorted.
         easy_to_borrow (bool): When shorting, whether the asset is easy to borrow
         fractionable (bool): Whether fractional shares are available
-        attributes (bool): One of ptp_no_exception or ptp_with_exception. It will include unique characteristics of the asset here.
+        attributes (Optional[List[str]]): One of ptp_no_exception or ptp_with_exception. It will include unique characteristics of the asset here.
     """
 
     asset_class: AssetClass = Field(
@@ -64,7 +66,7 @@ class Asset(ModelWithID):
     min_trade_increment: Optional[float] = None
     price_increment: Optional[float] = None
     maintenance_margin_requirement: Optional[float] = None
-    attributes: Optional[list] = None
+    attributes: Optional[List[str]] = None
 
 
 class USDPositionValues(BaseModel):
@@ -491,6 +493,10 @@ class TradeAccount(ModelWithID):
         sma (Optional[str]): Value of Special Memorandum Account (will be used at a later date to provide additional buying_power)
         daytrade_count (Optional[int]): The current number of daytrades that have been made in the last 5 trading days
           (inclusive of today)
+        option_approved_level (Optional[int]): The option trading level that was approved for this account.
+          0=disabled, 1=Covered Call/Cash-Secured Put, 2=Long Call/Put.
+        option_trading_level (Optional[int]): The effective option trading level of the account. This is the minimum between account option_approved_level and account configurations max_option_trading_level.
+          0=disabled, 1=Covered Call/Cash-Secured Put, 2=Long
     """
 
     account_number: str
@@ -523,6 +529,8 @@ class TradeAccount(ModelWithID):
     last_maintenance_margin: Optional[str] = None
     sma: Optional[str] = None
     daytrade_count: Optional[int] = None
+    option_approved_level: Optional[int] = None
+    option_trading_level: Optional[int] = None
 
 
 class AccountConfiguration(BaseModel):
@@ -538,6 +546,7 @@ class AccountConfiguration(BaseModel):
         suspend_trade (bool): If true Account becomes unable to submit new orders
         trade_confirm_email (TradeConfirmationEmail): Controls whether Trade confirmation emails are sent.
         ptp_no_exception_entry (bool): If set to true then Alpaca will accept orders for PTP symbols with no exception. Default is false.
+        max_option_trading_level (Optional[str]): The desired maximum option trading level. 0=disabled, 1=Covered Call/Cash-Secured Put, 2=Long Call/Put.
     """
 
     dtbp_check: DTBPCheck
@@ -548,6 +557,7 @@ class AccountConfiguration(BaseModel):
     suspend_trade: bool
     trade_confirm_email: TradeConfirmationEmail
     ptp_no_exception_entry: bool
+    max_option_trading_level: Optional[str] = None
 
 
 class CorporateActionAnnouncement(ModelWithID):
@@ -604,3 +614,61 @@ class TradeUpdate(BaseModel):
     position_qty: Optional[float] = None
     price: Optional[float] = None
     qty: Optional[float] = None
+
+
+class OptionContract(BaseModel):
+    """
+    Represents an option contract.
+
+    Attributes:
+        id (str): The unique identifier of the option contract.
+        symbol (str): The symbol representing the option contract.
+        name (str): The name of the option contract.
+        status (AssetStatus): The status of the option contract.
+        tradable (bool): Indicates whether the option contract is tradable.
+        expiration_date (date): The expiration date of the option contract.
+        root_symbol (str): The root symbol of the option contract.
+        underlying_symbol (str): The underlying symbol of the option contract.
+        underlying_asset_id (UUID): The unique identifier of the underlying asset.
+        type (ContractType): The type of the option contract.
+        style (ExerciseStyle): The style of the option contract.
+        strike_price (float): The strike price of the option contract.
+        size (str): The size of the option contract. Usually contracts have size=100.
+        open_interest (Optional[str]): The open interest of the option contract.
+        open_interest_date (Optional[date]): The date of the open interest data.
+        close_price (Optional[str]): The close price of the option contract.
+        close_price_date (Optional[date]): The date of the close price data.
+    """
+
+    id: str
+    symbol: str
+    name: str
+    status: AssetStatus
+    tradable: bool
+    expiration_date: date
+    root_symbol: str
+    underlying_symbol: str
+    underlying_asset_id: UUID
+    type: ContractType
+    style: ExerciseStyle
+    strike_price: float
+    size: str
+    open_interest: Optional[str] = None
+    open_interest_date: Optional[date] = None
+    close_price: Optional[str] = None
+    close_price_date: Optional[date] = None
+
+
+class OptionContractsResponse(BaseModel):
+    """
+    Represents a response from the option contracts endpoint.
+
+    Attributes:
+        option_contracts (Optional[List[OptionContract]]): The list of option contracts.
+        limit (int): The maximum number of option contracts in the response.
+        page (int): The page number of the response.
+    """
+
+    option_contracts: Optional[List[OptionContract]] = None
+    limit: int
+    page: int

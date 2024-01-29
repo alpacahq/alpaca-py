@@ -23,7 +23,11 @@ def parse_obj_as_symbol_dict(model: Type, raw_data: RawData) -> Dict[str, Type]:
     Returns:
         Dict[str, Type]: The symbol keyed dictionary of parsed data
     """
-    return {k: model(symbol=k, raw_data=v) for k, v in raw_data.items()}
+    if raw_data is None:
+        return {}
+    return {
+        k: model(symbol=k, raw_data=v) for k, v in raw_data.items() if v is not None
+    }
 
 
 def get_data_from_response(response: HTTPResult) -> RawData:

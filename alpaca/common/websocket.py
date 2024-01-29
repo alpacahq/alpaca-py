@@ -240,6 +240,8 @@ class BaseStream:
                 elif not general_handler_called:
                     handler = self._handlers["news"].get("*", None)
                     general_handler_called = True
+                else:
+                    handler = None
                 if handler:
                     handlers_to_call.append(handler(self._cast(msg_type, msg)))
             if handlers_to_call:

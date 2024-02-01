@@ -103,7 +103,7 @@ class OrderClass(str, Enum):
 
 class OrderType(str, Enum):
     """
-    Represents what type of roder this is.
+    Represents what type of order this is.
 
     The order types supported by Alpaca vary based on the order's security type.
     The following provides a comprehensive breakdown of the supported order types for each category:

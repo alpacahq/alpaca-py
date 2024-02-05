@@ -29,7 +29,7 @@ class Trade(BaseModel):
     exchange: Optional[Union[Exchange, str]] = None
     price: float
     size: float
-    id: Optional[int]
+    id: Optional[int] = None
     conditions: Optional[Union[List[str], str]] = None
     tape: Optional[str] = None
 

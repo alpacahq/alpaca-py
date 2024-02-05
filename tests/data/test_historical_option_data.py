@@ -554,7 +554,9 @@ def test_get_snapshot_multi_empty_response(
     reqmock.get(
         f"https://data.alpaca.markets/v1beta1/options/snapshots?symbols={symbol}",
         text="""
-    "snapshots":{}
+    {
+        "snapshots":{}
+    }
         """,
     )
 

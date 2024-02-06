@@ -12,16 +12,14 @@ from alpaca.data.historical.utils import (
     format_snapshot_data,
     parse_obj_as_symbol_dict,
 )
-from alpaca.data.models.quotes import Quote, QuoteSet
+from alpaca.data.models.quotes import Quote
 from alpaca.data.models.snapshots import Snapshot
-from alpaca.data.models.trades import Trade, TradeSet
+from alpaca.data.models.trades import Trade
 from alpaca.data.requests import (
     OptionChainRequest,
     OptionLatestQuoteRequest,
     OptionLatestTradeRequest,
-    OptionQuotesRequest,
     OptionSnapshotRequest,
-    OptionTradesRequest,
 )
 
 

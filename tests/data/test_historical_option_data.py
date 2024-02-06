@@ -5,13 +5,10 @@ from typing import Dict
 from alpaca.data import Quote, Snapshot, Trade
 from alpaca.data.enums import Exchange
 from alpaca.data.historical.option import OptionHistoricalDataClient
-from alpaca.data.models import QuoteSet, TradeSet
 from alpaca.data.requests import (
     OptionLatestQuoteRequest,
     OptionLatestTradeRequest,
-    OptionQuotesRequest,
     OptionSnapshotRequest,
-    OptionTradesRequest,
 )
 
 

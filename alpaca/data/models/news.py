@@ -1,8 +1,12 @@
 from datetime import datetime
 from typing import Optional, List
 
+from pydantic import ConfigDict
+
 from alpaca.common.models import ValidateBaseModel as BaseModel
+from alpaca.common.types import RawData
 from alpaca.data import NewsImageSize
+from alpaca.data.models.base import BaseDataSet, TimeSeriesMixin
 
 
 class NewsImage(BaseModel):
@@ -17,46 +21,71 @@ class NewsImage(BaseModel):
     size: NewsImageSize
     url: str
 
+    model_config = ConfigDict(protected_namespaces=tuple())
+
 
 class News(BaseModel):
     """
-    images (URLs) related to given article
+    News article object
 
     Attributes:
         id (str): News article ID
         headline (str): Headline or title of the article
-        author (str): Original author of news article
+        source (str): Source where the news originated from (e.g. Benzinga)
+        url (Optional[str]): URL of article (if applicable)
+        summary (str): Summary text for the article (may be first sentence of content)
         created_at (datetime): Date article was created (RFC 3339)
         updated_at (datetime): Date article was updated (RFC 3339)
-        summary (str): Summary text for the article (may be first sentence of content)
+        symbols (List[str]): List of related or mentioned symbols
         content (str): Content of the news article (might contain HTML)
-        url (Optional[str]): URL of article (if applicable)
+        author (str): Original author of news article
         images (List[NewsImage]): List of images (URLs) related to given article (may be empty)
-        symbols (str): List of related or mentioned symbols
-        source (str): Source where the news originated from (e.g. Benzinga)
     """
 
-    id: float
+    id: int
     headline: str
-    author: str
+    source: str
+    url: Optional[str]
+    summary: str
     created_at: datetime
     updated_at: datetime
-    summary: str
-    content: str
-    url: Optional[str]
-    images: List[NewsImage]
     symbols: List[str]
-    source: str
+    author: str
+    content: str
+    images: Optional[List[NewsImage]] = None  # Not in WS response
+
+    model_config = ConfigDict(protected_namespaces=tuple())
+
+    def __init__(self, raw_data: RawData) -> None:
+        """Instantiates a news article
+
+        Args:
+            raw_data (RawData): Raw unparsed news data from API.
+        """
+
+        super().__init__(**raw_data)
 
 
-class NewsSet(BaseModel):
+class NewsSet(BaseDataSet, TimeSeriesMixin):
     """
-    images (URLs) related to given article
+    A collection of News articles.
 
     Attributes:
-        news (List[News]): Array of news objects
-        next_page_token (Optional[str]): Pagination token for next page
+        data (Dict[str, List[News]]): The collection of News articles.
     """
 
-    news: List[News]
-    next_page_token: Optional[str]
+    def __init__(self, raw_data: RawData) -> None:
+        """A collection of News articles.
+
+        Args:
+            raw_data (RawData): The collection of raw news data from API.
+        """
+        parsed_news = {}
+        articles = []
+
+        for article in raw_data["news"]:
+            articles.append(News(raw_data=article))
+
+        parsed_news["news"] = articles
+
+        super().__init__(data=parsed_news)

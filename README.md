@@ -27,7 +27,7 @@
 
 ## About <a name="about"></a>
 
-Alpaca-py provides an interface for interacting with the API products Alpaca offers. These API products are provided as various REST, WebSocket and SSE endpoints that allow you to do everything from streaming market data to creating your own investment apps. 
+Alpaca-py provides an interface for interacting with the API products Alpaca offers. These API products are provided as various REST, WebSocket and SSE endpoints that allow you to do everything from streaming market data to creating your own investment apps.
 
 Learn more about the API products Alpaca offers at https://alpaca.markets.
 
@@ -65,9 +65,9 @@ If you’ve used the previous python SDK alpaca-trade-api, there are a few key d
 Alpaca-py lets you use Broker API to start building your investment apps! Learn more at the [Broker](https://docs.alpaca.markets/docs/broker-api) page.
 
 ### OOP Design <a name="oop-design"></a>
-Alpaca-py uses a more OOP approach to submitting requests compared to the previous SDK. To submit a request, you will most likely need to create a request object containing the desired request data. Generally, there is a unique request model for each method. 
+Alpaca-py uses a more OOP approach to submitting requests compared to the previous SDK. To submit a request, you will most likely need to create a request object containing the desired request data. Generally, there is a unique request model for each method.
 
-Some examples of request models corresponding to methods: 
+Some examples of request models corresponding to methods:
 
 * ``GetOrdersRequest`` for ``TradingClient.get_orders()``
 * ``CryptoLatestOrderbookRequest`` for ``CryptoHistoricalDataClient.get_crypto_latest_orderbook()``
@@ -120,12 +120,12 @@ Alpaca-py has a lot of client classes. There is a client for each API and even a
 
 **Trading API:** ``TradingClient``
 
-**Market Data API:**  ``StockHistoricalDataClient``, ``CryptoHistoricalDataClient``, ``CryptoDataStream``, ``StockDataStream``
+**Market Data API:**  ``StockHistoricalDataClient``, ``CryptoHistoricalDataClient``, ``CryptoDataStream``, ``StockDataStream``, ``NewsClient``, ``NewsDataStream``
 
 ## API Keys <a name="api-keys"></a>
 
 ### Trading and Market Data API <a name="trading-api-keys"></a>
-In order to use Alpaca’s services you’ll need to sign up for an Alpaca account and retrieve your API keys. Signing up is completely free and takes only a few minutes. Sandbox environments are available to test out the API. To use the sandbox environment, you will need to provide sandbox/paper keys. API keys are passed into Alpaca-py through either ``TradingClient``, ``StockHistoricalDataClient``, ``CryptoHistoricalDataClient``, ``StockDataStream``, or ``CryptoDataStream``.
+In order to use Alpaca’s services you’ll need to sign up for an Alpaca account and retrieve your API keys. Signing up is completely free and takes only a few minutes. Sandbox environments are available to test out the API. To use the sandbox environment, you will need to provide sandbox/paper keys. API keys are passed into Alpaca-py through either ``TradingClient``, ``StockHistoricalDataClient``, ``CryptoHistoricalDataClient``, ``StockDataStream``, ``CryptoDataStream``, ``NewsClient``, or ``NewsDataStream``.
 
 ### Broker API <a name="broker-api-keys"></a>
 To use the Broker API, you will need to sign up for a broker account and retrieve your Broker API keys. The API keys can be found on the dashboard once you’ve logged in. Alpaca also provides a sandbox environment to test out Broker API. To use the sandbox mode, provide your sandbox keys. Once you have your keys, you can pass them into ``BrokerClient`` to get started.
@@ -135,7 +135,7 @@ Alpaca’s APIs allow you to do everything from building algorithmic trading str
 
 To view full descriptions and examples view the [documentation page](https://docs.alpaca.markets/docs/getting-started-1).
 
-**Market Data API**: Access live and historical market data for 5000+ stocks and 20+ crypto.
+**Market Data API**: Access live and historical market/news data for 5000+ stocks and 20+ crypto.
 
 **Trading API**: Trade stock and crypto with lightning fast execution speeds.
 
@@ -218,5 +218,29 @@ bars = client.get_crypto_bars(request_params)
 
 # convert to dataframe
 bars.df
+
+```
+
+**Querying News Data** <a name="news-client-example"></a>  
+
+You can query news data via the NewsClient. In this example, we query news data for “TSLA” since July 1st 2022. You can convert the response to a pandas dataframe using the ``.df`` property.
+
+```python
+from alpaca.data.news import NewsClient
+from alpaca.data.requests import NewsRequest
+from datetime import datetime
+
+# no keys required for news data
+client = NewsClient()
+
+request_params = NewsRequest(
+                        symbols="TSLA",
+                        start=datetime.strptime("2022-07-01", '%Y-%m-%d')
+                        )
+
+news = client.get_news(request_params)
+
+# convert to dataframe
+news.df
 
 ```

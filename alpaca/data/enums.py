@@ -60,6 +60,7 @@ class DataFeed(str, Enum):
         IEX (str): Investor's exchange data feed
         SIP (str): Securities Information Processor feed
         OTC (str): Over the counter feed
+        NEWS (str): News feed
     """
 
     IEX = "iex"

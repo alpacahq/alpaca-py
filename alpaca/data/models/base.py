@@ -24,10 +24,13 @@ class TimeSeriesMixin:
         df = pd.DataFrame(data_list)
 
         # set multi-level index
-        # level=0 - symbol
-        # level=1 - timestamp
+        if "news" in self.dict():
+            # level=0 - id
+            df = pd.DataFrame(data_list).set_index(["id"])
         if set(["symbol", "timestamp"]).issubset(df.columns):
-            df = df.set_index(["symbol", "timestamp"])
+            # level=0 - symbol
+            # level=1 - timestamp
+            df = pd.DataFrame(data_list).set_index(["symbol", "timestamp"])
 
         # drop null columns
         df.dropna(axis=1, how="all", inplace=True)
@@ -37,7 +40,7 @@ class TimeSeriesMixin:
 
 class BaseDataSet(BaseModel):
     """
-    Base class to process data models for trades, bars and quotes.
+    Base class to process data models for trades, bars quotes, and news.
     """
 
     data: Dict[str, List[BaseModel]] = {}

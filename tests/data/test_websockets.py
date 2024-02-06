@@ -1,9 +1,10 @@
+from datetime import datetime
 import pytest
 from msgpack.ext import Timestamp
 
 from alpaca.common.websocket import BaseStream
 from alpaca.data.enums import Exchange
-from alpaca.data.models import Bar, Trade
+from alpaca.data.models import Bar, Trade, News
 
 
 @pytest.fixture
@@ -69,6 +70,35 @@ def test_cast(ws_client: BaseStream, raw_ws_client: BaseStream, timestamp: Times
     assert trade_cast_msg.price == 177.79
     assert trade_cast_msg.exchange == Exchange.V
 
+    # News
+    news_msg_type = "n"
+    news_msg_dict = {
+        "T": "n",
+        "id": 24918784,
+        "headline": "Corsair Reports Purchase Of Majority Ownership In iDisplay, No Terms Disclosed",
+        "summary": "Corsair Gaming, Inc. (NASDAQ:CRSR) (“Corsair”), a leading global provider and innovator of high-performance gear for gamers and content creators, today announced that it acquired a 51% stake in iDisplay",
+        "author": "Benzinga Newsdesk",
+        "created_at": timestamp,
+        "updated_at": timestamp,
+        "url": "https://www.benzinga.com/m-a/22/01/24918784/corsair-reports-purchase-of-majority-ownership-in-idisplay-no-terms-disclosed",
+        "content": '\u003cp\u003eCorsair Gaming, Inc. (NASDAQ:\u003ca class="ticker" href="https://www.benzinga.com/stock/CRSR#NASDAQ"\u003eCRSR\u003c/a\u003e) (\u0026ldquo;Corsair\u0026rdquo;), a leading global ...',
+        "symbols": ["CRSR"],
+        "source": "benzinga",
+    }
+
+    news_cast_msg = ws_client._cast(news_msg_type, news_msg_dict)
+
+    assert type(news_cast_msg) == News
+
+    assert "CRSR" in news_cast_msg.symbols
+    assert news_cast_msg.source == "benzinga"
+    assert (
+        news_cast_msg.headline
+        == "Corsair Reports Purchase Of Majority Ownership In iDisplay, No Terms Disclosed"
+    )
+    assert type(news_cast_msg.created_at) == datetime
+    assert type(news_cast_msg.updated_at) == datetime
+
     # Raw Client
 
     # Bar
@@ -94,7 +124,7 @@ def test_cast(ws_client: BaseStream, raw_ws_client: BaseStream, timestamp: Times
 
     # Trade
     raw_trade_msg_type = "t"
-    raw_trade__msg_dict = {
+    raw_trade_msg_dict = {
         "T": "t",
         "S": "AAPL",
         "i": 6142,
@@ -106,10 +136,37 @@ def test_cast(ws_client: BaseStream, raw_ws_client: BaseStream, timestamp: Times
         "t": timestamp,
     }
 
-    raw_trade_cast_msg = raw_ws_client._cast(raw_trade_msg_type, raw_trade__msg_dict)
+    raw_trade_cast_msg = raw_ws_client._cast(raw_trade_msg_type, raw_trade_msg_dict)
 
     assert type(raw_trade_cast_msg) == dict
 
     assert raw_trade_cast_msg["S"] == "AAPL"
     assert raw_trade_cast_msg["p"] == 177.79
     assert raw_trade_cast_msg["x"] == "V"
+
+    # News
+    raw_news_msg_type = "n"
+    raw_news_msg_dict = {
+        "T": "n",
+        "id": 24918784,
+        "headline": "Corsair Reports Purchase Of Majority Ownership In iDisplay, No Terms Disclosed",
+        "summary": "Corsair Gaming, Inc. (NASDAQ:CRSR) (“Corsair”), a leading global provider and innovator of high-performance gear for gamers and content creators, today announced that it acquired a 51% stake in iDisplay",
+        "author": "Benzinga Newsdesk",
+        "created_at": timestamp,
+        "updated_at": timestamp,
+        "url": "https://www.benzinga.com/m-a/22/01/24918784/corsair-reports-purchase-of-majority-ownership-in-idisplay-no-terms-disclosed",
+        "content": '\u003cp\u003eCorsair Gaming, Inc. (NASDAQ:\u003ca class="ticker" href="https://www.benzinga.com/stock/CRSR#NASDAQ"\u003eCRSR\u003c/a\u003e) (\u0026ldquo;Corsair\u0026rdquo;), a leading global ...',
+        "symbols": ["CRSR"],
+        "source": "benzinga",
+    }
+
+    raw_news_cast_msg = raw_ws_client._cast(raw_news_msg_type, raw_news_msg_dict)
+
+    assert type(raw_news_cast_msg) == dict
+
+    assert "CRSR" in raw_news_cast_msg["symbols"]
+    assert raw_news_cast_msg["source"] == "benzinga"
+    assert (
+        raw_news_cast_msg["headline"]
+        == "Corsair Reports Purchase Of Majority Ownership In iDisplay, No Terms Disclosed"
+    )

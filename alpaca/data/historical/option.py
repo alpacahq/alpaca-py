@@ -72,59 +72,6 @@ class OptionHistoricalDataClient(RESTClient):
             raw_data=raw_data,
         )
 
-    # not implemented yet
-    # def get_option_quotes(
-    #     self, request_params: OptionQuotesRequest
-    # ) -> Union[QuoteSet, RawData]:
-    #     """Returns level 1 quote data over a given time period for a option or list of options.
-
-    #     Args:
-    #         request_params (GetOptionQuotesRequest): The request object for retrieving option quote data.
-
-    #     Returns:
-    #         Union[QuoteSet, RawData]: The quote data either in raw or wrapped form
-    #     """
-    #     params = request_params.to_request_fields()
-
-    #     # paginated get request for market data api
-    #     raw_quotes = self._data_get(
-    #         endpoint_data_type="quotes",
-    #         endpoint_asset_class="options",
-    #         api_version=self._api_version,
-    #         **params,
-    #     )
-
-    #     if self._use_raw_data:
-    #         return raw_quotes
-
-    #     return QuoteSet(raw_quotes)
-
-    # def get_option_trades(
-    #     self, request_params: OptionTradesRequest
-    # ) -> Union[TradeSet, RawData]:
-    #     """Returns the price and sales history over a given time period for a option or list of options.
-
-    #     Args:
-    #         request_params (GetOptionTradesRequest): The request object for retrieving option trade data.
-
-    #     Returns:
-    #         Union[TradeSet, RawData]: The trade data either in raw or wrapped form
-    #     """
-    #     params = request_params.to_request_fields()
-
-    #     # paginated get request for market data api
-    #     raw_trades = self._data_get(
-    #         endpoint_data_type="trades",
-    #         endpoint_asset_class="options",
-    #         api_version=self._api_version,
-    #         **params,
-    #     )
-
-    #     if self._use_raw_data:
-    #         return raw_trades
-
-    #     return TradeSet(raw_trades)
-
     def get_option_latest_quote(
         self, request_params: OptionLatestQuoteRequest
     ) -> Union[Dict[str, Quote], RawData]:

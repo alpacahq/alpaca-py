@@ -22,7 +22,7 @@ class Quote(BaseModel):
         bid_exchange (Optional[str, Exchange]): The exchange the quote bid originates. Defaults to None.
         bid_price (float): The bidding price of the quote.
         bid_size (float): The size of the quote bid.
-        conditions (Optional[List[str]]): The quote conditions. Defaults to None.
+        conditions (Optional[Union[List[str], str]]): The quote conditions. Defaults to None.
         tape (Optional[str]): The quote tape. Defaults to None.
     """
 
@@ -34,7 +34,7 @@ class Quote(BaseModel):
     bid_exchange: Optional[Union[str, Exchange]] = None
     bid_price: float
     bid_size: float
-    conditions: Optional[List[str]] = None
+    conditions: Optional[Union[List[str], str]] = None
     tape: Optional[str] = None
 
     model_config = ConfigDict(protected_namespaces=tuple())

@@ -19,8 +19,8 @@ class Trade(BaseModel):
         exchange (Optional[Exchange]): The exchange the trade occurred.
         price (float): The price that the transaction occurred at.
         size (float): The quantity traded
-        id (int): The trade ID
-        conditions (Optional[List[str]]): The trade conditions. Defaults to None.
+        id (Optional[int]): The trade ID
+        conditions (Optional[Union[List[str], str]]): The trade conditions. Defaults to None.
         tape (Optional[str]): The trade tape. Defaults to None.
     """
 
@@ -29,8 +29,8 @@ class Trade(BaseModel):
     exchange: Optional[Union[Exchange, str]] = None
     price: float
     size: float
-    id: int
-    conditions: Optional[List[str]] = None
+    id: Optional[int] = None
+    conditions: Optional[Union[List[str], str]] = None
     tape: Optional[str] = None
 
     model_config = ConfigDict(protected_namespaces=tuple())

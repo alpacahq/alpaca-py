@@ -287,6 +287,46 @@ class CryptoLatestBarRequest(BaseCryptoLatestDataRequest):
     pass
 
 
+class BaseOptionLatestDataRequest(NonEmptyRequest):
+    """
+    A base request object for retrieving the latest data for options. You most likely should not use this directly and
+    instead use the asset class specific request objects.
+
+    Attributes:
+        symbol_or_symbols (Union[str, List[str]]): The option identifier or list of option identifiers.
+    """
+
+    symbol_or_symbols: Union[str, List[str]]
+
+    model_config = ConfigDict(protected_namespaces=tuple())
+
+
+class OptionLatestQuoteRequest(BaseOptionLatestDataRequest):
+    """
+    This request class is used to submit a request for the latest option quote data.
+
+    See BaseOptionLatestDataRequest for more information on available parameters.
+
+    Attributes:
+        symbol_or_symbols (Union[str, List[str]]): The option identifier or list of option identifiers.
+    """
+
+    pass
+
+
+class OptionLatestTradeRequest(BaseOptionLatestDataRequest):
+    """
+    This request class is used to submit a request for the latest option trade data.
+
+    See BaseOptionLatestDataRequest for more information on available parameters.
+
+    Attributes:
+        symbol_or_symbols (Union[str, List[str]]): The option identifier or list of option identifiers.
+    """
+
+    pass
+
+
 # ############################## Snapshots ################################# #
 
 
@@ -316,6 +356,32 @@ class CryptoSnapshotRequest(NonEmptyRequest):
     """
 
     symbol_or_symbols: Union[str, List[str]]
+
+    model_config = ConfigDict(protected_namespaces=tuple())
+
+
+class OptionSnapshotRequest(NonEmptyRequest):
+    """
+    This request class is used to submit a request for snapshot data for options.
+
+    Attributes:
+        symbol_or_symbols (Union[str, List[str]]): The option identifier or list of option identifiers.
+    """
+
+    symbol_or_symbols: Union[str, List[str]]
+
+    model_config = ConfigDict(protected_namespaces=tuple())
+
+
+class OptionChainRequest(NonEmptyRequest):
+    """
+    This request class is used to submit a request for option chain data for options.
+
+    Attributes:
+        underlying_symbol (str): The underlying_symbol for option contracts.
+    """
+
+    underlying_symbol: str
 
     model_config = ConfigDict(protected_namespaces=tuple())
 

@@ -19,9 +19,9 @@ Alpaca's APIs allow you to do everything from building algorithmic trading strat
 a full brokerage experience for your own end users.
 Here are some things you can do with Alpaca-py.
 
-**Market Data API**: Access live and historical market data for 5000+ stocks and 20+ crypto.
+**Market Data API**: Access live and historical market data for 5000+ stocks, 20+ crypto, and options(beta).
 
-**Trading API**: Trade stock and crypto with lightning fast execution speeds.
+**Trading API**: Trade stock, crypto, and options(beta) with lightning fast execution speeds.
 
 **Broker API & Connect**: Build investment apps - from robo-advisors to brokerages.
 
@@ -131,14 +131,14 @@ Many Clients
 ^^^^^^^^^^^^
 
 Alpaca-py has a lot of client classes. There is a client for each API and even
-asset class specific clients (``StockHistoricalData``, ``CryptoDataStream``). This requires
+asset class specific clients (``StockHistoricalDataClient``, ``CryptoHistoricalDataClient``, ``OptionHistoricalData``). This requires
 you to pick and choose clients based on your needs.
 
 **Broker API:** ``BrokerClient``
 
 **Trading API:** ``TradingClient``
 
-**Market Data API:**  ``StockHistoricalDataClient``, ``CryptoHistoricalDataClient``, ``CryptoDataStream``, ``StockDataStream``
+**Market Data API:**  ``StockHistoricalDataClient``, ``CryptoHistoricalDataClient``, ``OptionHistoricalDataClient``, ``CryptoDataStream``, ``StockDataStream``, ``OptionDataStream``
 
 
 
@@ -150,7 +150,7 @@ Trading and Market Data API
 In order to use Alpaca's services you'll need to `sign up for an Alpaca account <https://app.alpaca.markets/signup>`_ and retrieve your API keys.
 Signing up is completely free and takes only a few minutes. Sandbox environments are available to test
 out the API. To use the sandbox environment, you will need to provide sandbox/paper keys. API keys are
-passed into Alpaca-py through either ``TradingClient``, ``StockHistoricalDataClient``, ``CryptoHistoricalDataClient``, ``StockDataStream``,  or ``CryptoDataStream``.
+passed into Alpaca-py through either ``TradingClient``, ``StockHistoricalDataClient``, ``CryptoHistoricalDataClient``, ``OptionHistoricalDataClient``, ``StockDataStream``,  ``CryptoDataStream``, or ``OptionDataStream``.
 
 Broker API
 ^^^^^^^^^^

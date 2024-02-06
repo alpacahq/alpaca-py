@@ -114,18 +114,18 @@ Here is a rough example of what is possible.
 ```
 
 ### Many Clients <a name="many-clients"></a>
-Alpaca-py has a lot of client classes. There is a client for each API and even asset class specific clients (``StockHistoricalDataClient``, ``CryptoDataStream``). This requires you to pick and choose clients based on your needs.
+Alpaca-py has a lot of client classes. There is a client for each API and even asset class specific clients (``StockHistoricalDataClient``, ``CryptoDataStream``, ``OptionHistoricalDataClient``). This requires you to pick and choose clients based on your needs.
 
 **Broker API:** ``BrokerClient``
 
 **Trading API:** ``TradingClient``
 
-**Market Data API:**  ``StockHistoricalDataClient``, ``CryptoHistoricalDataClient``, ``CryptoDataStream``, ``StockDataStream``
+**Market Data API:**  ``StockHistoricalDataClient``, ``CryptoHistoricalDataClient``, ``OptionHistoricalDataClient``, ``CryptoDataStream``, ``StockDataStream``, ``OptionDataStream``
 
 ## API Keys <a name="api-keys"></a>
 
 ### Trading and Market Data API <a name="trading-api-keys"></a>
-In order to use Alpaca’s services you’ll need to sign up for an Alpaca account and retrieve your API keys. Signing up is completely free and takes only a few minutes. Sandbox environments are available to test out the API. To use the sandbox environment, you will need to provide sandbox/paper keys. API keys are passed into Alpaca-py through either ``TradingClient``, ``StockHistoricalDataClient``, ``CryptoHistoricalDataClient``, ``StockDataStream``, or ``CryptoDataStream``.
+In order to use Alpaca’s services you’ll need to sign up for an Alpaca account and retrieve your API keys. Signing up is completely free and takes only a few minutes. Sandbox environments are available to test out the API. To use the sandbox environment, you will need to provide sandbox/paper keys. API keys are passed into Alpaca-py through either ``TradingClient``, ``StockHistoricalDataClient``, ``CryptoHistoricalDataClient``, ``OptionHistoricalDataClient``. ``StockDataStream``, ``CryptoDataStream``, or ``OptionDataStream``.
 
 ### Broker API <a name="broker-api-keys"></a>
 To use the Broker API, you will need to sign up for a broker account and retrieve your Broker API keys. The API keys can be found on the dashboard once you’ve logged in. Alpaca also provides a sandbox environment to test out Broker API. To use the sandbox mode, provide your sandbox keys. Once you have your keys, you can pass them into ``BrokerClient`` to get started.
@@ -135,7 +135,7 @@ Alpaca’s APIs allow you to do everything from building algorithmic trading str
 
 To view full descriptions and examples view the [documentation page](https://docs.alpaca.markets/docs/getting-started-1).
 
-**Market Data API**: Access live and historical market data for 5000+ stocks and 20+ crypto.
+**Market Data API**: Access live and historical market data for 5000+ stocks, 20+ crypto, and options(beta).
 
 **Trading API**: Trade stock and crypto with lightning fast execution speeds.
 
@@ -220,3 +220,16 @@ bars = client.get_crypto_bars(request_params)
 bars.df
 
 ```
+
+### Options Trading (Beta) <a name="options-trading"></a>
+
+We're excited to support options trading! Use this section to read up on Alpaca's Beta trading capabilities.
+For more details, please refer to [our documentation page for options trading](https://docs.alpaca.markets/v1.1/docs/options-trading)
+
+```
+Options trading is in BETA. Only BETA users are able to access options endpoints. We will continue to update our documentation as we collect your valuable feedback.
+```
+
+There is an example jupyter notebook to explain methods of alpaca-py for options trading.
+
+- [jupyter notebook: options trading basic example with alpaca-py](examples/options-trading-basic.ipynb)

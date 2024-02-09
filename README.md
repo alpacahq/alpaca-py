@@ -226,10 +226,8 @@ bars.df
 We're excited to support options trading! Use this section to read up on Alpaca's Beta trading capabilities.
 For more details, please refer to [our documentation page for options trading](https://docs.alpaca.markets/v1.1/docs/options-trading)
 
-```
-Options trading is in BETA. Only BETA users are able to access options endpoints. We will continue to update our documentation as we collect your valuable feedback.
-```
+> Options trading is in BETA. Only BETA users are able to access options endpoints. We will continue to update our documentation as we collect your valuable feedback.
 
 There is an example jupyter notebook to explain methods of alpaca-py for options trading.
 
-- [jupyter notebook: options trading basic example with alpaca-py](examples/options-trading-basic.ipynb)
+* [jupyter notebook: options trading basic example with alpaca-py](examples/options-trading-basic.ipynb)

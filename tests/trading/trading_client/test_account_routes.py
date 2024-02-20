@@ -38,8 +38,9 @@ def test_get_account(reqmock: Mocker, trading_client: TradingClient):
           "trade_suspended_by_user": false,
           "trading_blocked": false,
           "transfers_blocked": false,
-          "option_approved_level": "1",
-          "option_trading_level": "1"
+          "options_buying_power": "262113.632",
+          "options_approved_level": "1",
+          "options_trading_level": "1"
         }
       """,
     )
@@ -48,8 +49,9 @@ def test_get_account(reqmock: Mocker, trading_client: TradingClient):
 
     assert reqmock.called_once
     assert isinstance(account, TradeAccount)
-    assert account.option_approved_level == 1
-    assert account.option_trading_level == 1
+    assert account.options_buying_power == "262113.632"
+    assert account.options_approved_level == 1
+    assert account.options_trading_level == 1
 
 
 def test_get_account_configurations(reqmock: Mocker, trading_client: TradingClient):
@@ -65,7 +67,7 @@ def test_get_account_configurations(reqmock: Mocker, trading_client: TradingClie
           "pdt_check": "entry",
           "trade_confirm_email": "all",
           "ptp_no_exception_entry": false,
-          "max_option_trading_level": "1"
+          "max_options_trading_level": "1"
         }
       """,
     )
@@ -73,7 +75,7 @@ def test_get_account_configurations(reqmock: Mocker, trading_client: TradingClie
     account_configurations = trading_client.get_account_configurations()
     assert reqmock.called_once
     assert isinstance(account_configurations, AccountConfiguration)
-    assert account_configurations.max_option_trading_level == "1"
+    assert account_configurations.max_options_trading_level == "1"
 
 
 def test_set_account_configurations(reqmock: Mocker, trading_client: TradingClient):

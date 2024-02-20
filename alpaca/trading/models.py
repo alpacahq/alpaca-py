@@ -493,9 +493,10 @@ class TradeAccount(ModelWithID):
         sma (Optional[str]): Value of Special Memorandum Account (will be used at a later date to provide additional buying_power)
         daytrade_count (Optional[int]): The current number of daytrades that have been made in the last 5 trading days
           (inclusive of today)
-        option_approved_level (Optional[int]): The option trading level that was approved for this account.
+        options_buying_power (Optional[str]): Your buying power for options trading
+        options_approved_level (Optional[int]): The options trading level that was approved for this account.
           0=disabled, 1=Covered Call/Cash-Secured Put, 2=Long Call/Put.
-        option_trading_level (Optional[int]): The effective option trading level of the account. This is the minimum between account option_approved_level and account configurations max_option_trading_level.
+        options_trading_level (Optional[int]): The effective options trading level of the account. This is the minimum between account options_approved_level and account configurations max_options_trading_level.
           0=disabled, 1=Covered Call/Cash-Secured Put, 2=Long
     """
 
@@ -529,8 +530,9 @@ class TradeAccount(ModelWithID):
     last_maintenance_margin: Optional[str] = None
     sma: Optional[str] = None
     daytrade_count: Optional[int] = None
-    option_approved_level: Optional[int] = None
-    option_trading_level: Optional[int] = None
+    options_buying_power: Optional[str] = None
+    options_approved_level: Optional[int] = None
+    options_trading_level: Optional[int] = None
 
 
 class AccountConfiguration(BaseModel):
@@ -546,7 +548,7 @@ class AccountConfiguration(BaseModel):
         suspend_trade (bool): If true Account becomes unable to submit new orders
         trade_confirm_email (TradeConfirmationEmail): Controls whether Trade confirmation emails are sent.
         ptp_no_exception_entry (bool): If set to true then Alpaca will accept orders for PTP symbols with no exception. Default is false.
-        max_option_trading_level (Optional[str]): The desired maximum option trading level. 0=disabled, 1=Covered Call/Cash-Secured Put, 2=Long Call/Put.
+        max_options_trading_level (Optional[str]): The desired maximum options trading level. 0=disabled, 1=Covered Call/Cash-Secured Put, 2=Long Call/Put.
     """
 
     dtbp_check: DTBPCheck
@@ -557,7 +559,7 @@ class AccountConfiguration(BaseModel):
     suspend_trade: bool
     trade_confirm_email: TradeConfirmationEmail
     ptp_no_exception_entry: bool
-    max_option_trading_level: Optional[str] = None
+    max_options_trading_level: Optional[str] = None
 
 
 class CorporateActionAnnouncement(ModelWithID):

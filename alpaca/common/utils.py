@@ -64,7 +64,7 @@ def validate_symbol_or_contract_id(
     ValueError if neither type.
 
     Args:
-        symbol_or_contract_id: String representing a symbol name or a UUID representing an contract id.
+        symbol_or_contract_id: String representing a symbol name or a UUID representing a contract id.
 
     Returns:
         String if symbol, UUID if contract id.
@@ -72,7 +72,7 @@ def validate_symbol_or_contract_id(
     if isinstance(symbol_or_contract_id, (UUID, str)):
         return symbol_or_contract_id
     raise ValueError(
-        "symbol_or_contract_id must be a UUID of an contract id or a string of a symbol."
+        "symbol_or_contract_id must be a UUID of a contract id or a string of a symbol."
     )
 
 

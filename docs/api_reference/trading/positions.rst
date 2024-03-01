@@ -27,4 +27,4 @@ Close A Position
 Exercise An Option Contract
 ---------------------------
 
-.. automethod:: alpaca.trading.client.TradingClient.exercise_option_contract
+.. automethod:: alpaca.trading.client.TradingClient.exercise_options_position

@@ -432,7 +432,7 @@ def test_close_position_with_percentage(reqmock, trading_client: TradingClient):
     assert isinstance(close_order, Order)
 
 
-def test_exercise_option_contract_with_symbol(
+def test_exercise_options_position_with_symbol(
     reqmock: Mocker, trading_client: TradingClient
 ) -> None:
     symbol = "SPY240304P00480000"
@@ -449,7 +449,7 @@ def test_exercise_option_contract_with_symbol(
     assert res is None
 
 
-def test_exercise_option_contract_with_id(
+def test_exercise_options_position_with_id(
     reqmock: Mocker, trading_client: TradingClient
 ) -> None:
     contract_id = UUID("fb37307e-0f6a-4b02-8dd2-10fc16b1d9e9")

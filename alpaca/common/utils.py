@@ -60,7 +60,7 @@ def validate_symbol_or_contract_id(
     """
     A helper function to eliminate duplicate checks of symbols or contract id.
 
-    If the argument given is a string, assumed to be a symbol name. If a UUID object, assumed to be an contract id.
+    If the argument given is a string, assumed to be a symbol name. If a UUID object, assumed to be a contract id.
     ValueError if neither type.
 
     Args:

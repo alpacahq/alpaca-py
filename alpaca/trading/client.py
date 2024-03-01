@@ -339,7 +339,7 @@ class TradingClient(RESTClient):
             None
         """
         symbol_or_contract_id = validate_symbol_or_contract_id(symbol_or_contract_id)
-        response = self.post(
+        self.post(
             f"/positions/{symbol_or_contract_id}/exercise",
         )
 

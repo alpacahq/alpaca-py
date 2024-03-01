@@ -321,7 +321,7 @@ class TradingClient(RESTClient):
 
         return Order(**response)
 
-    def exercise_option_contract(
+    def exercise_options_position(
         self,
         symbol_or_contract_id: Union[UUID, str],
     ) -> None:

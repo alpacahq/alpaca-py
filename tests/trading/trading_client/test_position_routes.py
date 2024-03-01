@@ -442,7 +442,7 @@ def test_exercise_option_contract_with_symbol(
         text="",
     )
 
-    res = trading_client.exercise_option_contract(symbol_or_contract_id=symbol)
+    res = trading_client.exercise_options_position(symbol_or_contract_id=symbol)
 
     assert reqmock.called_once
     assert reqmock.request_history[0].qs == {}
@@ -459,7 +459,7 @@ def test_exercise_option_contract_with_id(
         text="",
     )
 
-    res = trading_client.exercise_option_contract(symbol_or_contract_id=contract_id)
+    res = trading_client.exercise_options_position(symbol_or_contract_id=contract_id)
 
     assert reqmock.called_once
     assert reqmock.request_history[0].qs == {}

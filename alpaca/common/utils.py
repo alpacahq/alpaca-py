@@ -64,7 +64,7 @@ def validate_symbol_or_contract_id(
     ValueError if neither type.
 
     Args:
-        symbol_or_contractt_id: String representing a symbol name or a UUID representing an contract id.
+        symbol_or_contract_id: String representing a symbol name or a UUID representing an contract id.
 
     Returns:
         String if symbol, UUID if contract id.

@@ -1,15 +1,12 @@
+from typing import Iterator
 from uuid import UUID
 
+from requests_mock import Mocker
+
 from alpaca.common.enums import BaseURL
-from alpaca.trading.requests import (
-    ClosePositionRequest,
-)
-from alpaca.trading.models import (
-    Position,
-    ClosePositionResponse,
-    Order,
-)
 from alpaca.trading.client import TradingClient
+from alpaca.trading.models import ClosePositionResponse, Order, Position
+from alpaca.trading.requests import ClosePositionRequest
 
 
 def test_get_all_positions(reqmock, trading_client: TradingClient):
@@ -433,3 +430,37 @@ def test_close_position_with_percentage(reqmock, trading_client: TradingClient):
     assert reqmock.called_once
     assert reqmock.request_history[0].qs == {"percentage": ["0.5"]}
     assert isinstance(close_order, Order)
+
+
+def test_exercise_option_contract_with_symbol(
+    reqmock: Mocker, trading_client: TradingClient
+) -> None:
+    symbol = "SPY240304P00480000"
+
+    reqmock.post(
+        f"{BaseURL.TRADING_PAPER.value}/v2/positions/{symbol}/exercise",
+        text="",
+    )
+
+    res = trading_client.exercise_option_contract(symbol_or_contract_id=symbol)
+
+    assert reqmock.called_once
+    assert reqmock.request_history[0].qs == {}
+    assert res is None
+
+
+def test_exercise_option_contract_with_id(
+    reqmock: Mocker, trading_client: TradingClient
+) -> None:
+    contract_id = UUID("fb37307e-0f6a-4b02-8dd2-10fc16b1d9e9")
+
+    reqmock.post(
+        f"{BaseURL.TRADING_PAPER.value}/v2/positions/{contract_id}/exercise",
+        text="",
+    )
+
+    res = trading_client.exercise_option_contract(symbol_or_contract_id=contract_id)
+
+    assert reqmock.called_once
+    assert reqmock.request_history[0].qs == {}
+    assert res is None

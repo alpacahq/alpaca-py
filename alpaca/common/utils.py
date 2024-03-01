@@ -54,6 +54,28 @@ def validate_symbol_or_asset_id(
     )
 
 
+def validate_symbol_or_contract_id(
+    symbol_or_contract_id: Union[UUID, str]
+) -> Union[UUID, str]:
+    """
+    A helper function to eliminate duplicate checks of symbols or contract id.
+
+    If the argument given is a string, assumed to be a symbol name. If a UUID object, assumed to be an contract id.
+    ValueError if neither type.
+
+    Args:
+        symbol_or_contractt_id: String representing a symbol name or a UUID representing an contract id.
+
+    Returns:
+        String if symbol, UUID if contract id.
+    """
+    if isinstance(symbol_or_contract_id, (UUID, str)):
+        return symbol_or_contract_id
+    raise ValueError(
+        f"symbol_or_contract_id must be a UUID of an contract id or a string of a symbol."
+    )
+
+
 def tz_aware(dt: datetime) -> bool:
     """
     Returns if a given datetime is timezone aware

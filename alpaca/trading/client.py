@@ -3,7 +3,11 @@ from pydantic import TypeAdapter
 import json
 
 from alpaca.common import RawData
-from alpaca.common.utils import validate_uuid_id_param, validate_symbol_or_asset_id
+from alpaca.common.utils import (
+    validate_symbol_or_contract_id,
+    validate_uuid_id_param,
+    validate_symbol_or_asset_id,
+)
 from alpaca.common.rest import RESTClient
 from typing import Optional, List, Union
 from alpaca.common.enums import BaseURL
@@ -316,6 +320,28 @@ class TradingClient(RESTClient):
             return response
 
         return Order(**response)
+
+    def exercise_options_position(
+        self,
+        symbol_or_contract_id: Union[UUID, str],
+    ) -> None:
+        """
+        This endpoint enables users to exercise a held option contract, converting it into the underlying asset based on the specified terms.
+        All available held shares of this option contract will be exercised.
+        By default, Alpaca will automatically exercise in-the-money (ITM) contracts at expiry.
+        Exercise requests will be processed immediately once received. Exercise requests submitted outside market hours will be rejected.
+        To cancel an exercise request or to submit a Do-not-exercise (DNE) instruction, please contact our support team.
+
+        Args:
+            symbol_or_contract_id (Union[UUID, str]): Option contract symbol or ID.
+
+        Returns:
+            None
+        """
+        symbol_or_contract_id = validate_symbol_or_contract_id(symbol_or_contract_id)
+        self.post(
+            f"/positions/{symbol_or_contract_id}/exercise",
+        )
 
     # ############################## Assets ################################# #
 

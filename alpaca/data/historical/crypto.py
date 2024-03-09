@@ -367,7 +367,7 @@ class CryptoHistoricalDataClient(RESTClient):
 
             # if we've sent a request with a limit, increment count
             if actual_limit:
-                total_items += actual_limit
+                total_items = sum([len(items) for items in data_by_symbol])
 
             page_token = response.get("next_page_token", None)
 

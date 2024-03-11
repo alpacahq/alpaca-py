@@ -96,8 +96,8 @@ class CryptoFeed(str, Enum):
 
 class OptionsFeed(str, Enum):
     """
-    The source feed of the data. `opra` is the official OPRA feed,
-    `indicative` is a free indicative feed where trades are delayed and quotes are aggregated.
+    The source feed of the data.
+    `opra` requires subscription
 
     Attributes:
         OPRA (str): Options Price Reporting Authority

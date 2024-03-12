@@ -667,10 +667,8 @@ class OptionContractsResponse(BaseModel):
 
     Attributes:
         option_contracts (Optional[List[OptionContract]]): The list of option contracts.
-        limit (int): The maximum number of option contracts in the response.
-        page (int): The page number of the response.
+        next_page_token (Optional[str]): Pagination token for next page.
     """
 
     option_contracts: Optional[List[OptionContract]] = None
-    limit: int
-    page: int
+    next_page_token: Optional[str] = None

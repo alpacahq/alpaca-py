@@ -130,6 +130,7 @@ class BaseStream:
         self._should_run = False
         if self._stop_stream_queue.empty():
             self._stop_stream_queue.put_nowait({"should_stop": True})
+        await asyncio.sleep(1)
 
     async def _consume(self) -> None:
         """Distributes data from websocket connection to appropriate callbacks"""
@@ -453,7 +454,9 @@ class BaseStream:
     def stop(self) -> None:
         """Stops the websocket connection."""
         if self._loop.is_running():
-            asyncio.run_coroutine_threadsafe(self.stop_ws(), self._loop).result()
+            asyncio.run_coroutine_threadsafe(self.stop_ws(), self._loop).result(
+                timeout=5
+            )
 
     def _ensure_coroutine(self, handler: Callable) -> None:
         """Checks if a method is an asyncio coroutine method

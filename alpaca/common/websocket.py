@@ -125,13 +125,12 @@ class BaseStream:
             self._ws = None
             self._running = False
 
-    async def stop_ws(self) -> bool:
+    async def stop_ws(self) -> None:
         """Signals websocket connection should close by adding a closing message to the stop_stream_queue"""
         self._should_run = False
         if self._stop_stream_queue.empty():
             self._stop_stream_queue.put_nowait({"should_stop": True})
         await asyncio.sleep(0)
-        return True
 
     async def _consume(self) -> None:
         """Distributes data from websocket connection to appropriate callbacks"""
@@ -326,7 +325,7 @@ class BaseStream:
                     self._running = False
                     log.exception(f"error during websocket communication: {str(ve)}")
                     return
-                log.exception(f"error during websocket communication: {str(e)}")
+                log.exception(f"error during websocket communication: {str(ve)}")
             except Exception as e:
                 log.exception(f"error during websocket communication: {str(e)}")
             finally:

@@ -2,13 +2,13 @@ import asyncio
 import logging
 import queue
 from collections import defaultdict
-from typing import Callable, Dict, Optional, Union, Tuple
+from typing import Callable, Dict, Optional, Tuple, Union
 
 import msgpack
 import websockets
 from pydantic import BaseModel
-from alpaca import __version__
 
+from alpaca import __version__
 from alpaca.common.types import RawData
 from alpaca.data.models import Bar, Quote, Trade
 
@@ -318,10 +318,15 @@ class BaseStream:
                 await self.close()
                 self._running = False
                 log.warning("data websocket error, restarting connection: " + str(wse))
+            except ValueError as ve:
+                if "insufficient subscription" in str(ve):
+                    await self.close()
+                    self._running = False
+                    log.exception(f"error during websocket communication: {str(e)}")
+                    return
+                log.exception(f"error during websocket communication: {str(e)}")
             except Exception as e:
-                log.exception(
-                    "error during websocket " "communication: {}".format(str(e))
-                )
+                log.exception(f"error during websocket communication: {str(e)}")
             finally:
                 await asyncio.sleep(0)
 

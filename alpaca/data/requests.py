@@ -1,10 +1,18 @@
 from datetime import datetime
-from typing import Optional, Union, List, Any
-from pydantic import ConfigDict
+from typing import Any, List, Optional, Union
+
 import pytz
+from pydantic import ConfigDict
+
 from alpaca.common.enums import Sort, SupportedCurrencies
 from alpaca.common.requests import NonEmptyRequest
-from alpaca.data.enums import Adjustment, DataFeed, MarketType, MostActivesBy
+from alpaca.data.enums import (
+    Adjustment,
+    DataFeed,
+    MarketType,
+    MostActivesBy,
+    OptionsFeed,
+)
 from alpaca.data.timeframe import TimeFrame
 
 
@@ -294,9 +302,11 @@ class BaseOptionLatestDataRequest(NonEmptyRequest):
 
     Attributes:
         symbol_or_symbols (Union[str, List[str]]): The option identifier or list of option identifiers.
+        feed (Optional[OptionsFeed]): The source feed of the data. `opra` or `indicative`. Default: `opra` if the user has the options subscription, `indicative` otherwise.
     """
 
     symbol_or_symbols: Union[str, List[str]]
+    feed: Optional[OptionsFeed] = None
 
     model_config = ConfigDict(protected_namespaces=tuple())
 
@@ -309,6 +319,7 @@ class OptionLatestQuoteRequest(BaseOptionLatestDataRequest):
 
     Attributes:
         symbol_or_symbols (Union[str, List[str]]): The option identifier or list of option identifiers.
+        feed (Optional[OptionsFeed]): The source feed of the data. `opra` or `indicative`. Default: `opra` if the user has the options subscription, `indicative` otherwise.
     """
 
     pass
@@ -322,6 +333,7 @@ class OptionLatestTradeRequest(BaseOptionLatestDataRequest):
 
     Attributes:
         symbol_or_symbols (Union[str, List[str]]): The option identifier or list of option identifiers.
+        feed (Optional[OptionsFeed]): The source feed of the data. `opra` or `indicative`. Default: `opra` if the user has the options subscription, `indicative` otherwise.
     """
 
     pass
@@ -366,9 +378,11 @@ class OptionSnapshotRequest(NonEmptyRequest):
 
     Attributes:
         symbol_or_symbols (Union[str, List[str]]): The option identifier or list of option identifiers.
+        feed (Optional[OptionsFeed]): The source feed of the data. `opra` or `indicative`. Default: `opra` if the user has the options subscription, `indicative` otherwise.
     """
 
     symbol_or_symbols: Union[str, List[str]]
+    feed: Optional[OptionsFeed] = None
 
     model_config = ConfigDict(protected_namespaces=tuple())
 
@@ -379,9 +393,11 @@ class OptionChainRequest(NonEmptyRequest):
 
     Attributes:
         underlying_symbol (str): The underlying_symbol for option contracts.
+        feed (Optional[OptionsFeed]): The source feed of the data. `opra` or `indicative`. Default: `opra` if the user has the options subscription, `indicative` otherwise.
     """
 
     underlying_symbol: str
+    feed: Optional[OptionsFeed] = None
 
     model_config = ConfigDict(protected_namespaces=tuple())
 

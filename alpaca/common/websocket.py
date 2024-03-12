@@ -2,13 +2,13 @@ import asyncio
 import logging
 import queue
 from collections import defaultdict
-from typing import Callable, Dict, Optional, Union, Tuple
+from typing import Callable, Dict, Optional, Tuple, Union
 
 import msgpack
 import websockets
 from pydantic import BaseModel
-from alpaca import __version__
 
+from alpaca import __version__
 from alpaca.common.types import RawData
 from alpaca.data.models import Bar, Quote, Trade
 
@@ -130,6 +130,7 @@ class BaseStream:
         self._should_run = False
         if self._stop_stream_queue.empty():
             self._stop_stream_queue.put_nowait({"should_stop": True})
+        await asyncio.sleep(0)
 
     async def _consume(self) -> None:
         """Distributes data from websocket connection to appropriate callbacks"""
@@ -318,10 +319,15 @@ class BaseStream:
                 await self.close()
                 self._running = False
                 log.warning("data websocket error, restarting connection: " + str(wse))
+            except ValueError as ve:
+                if "insufficient subscription" in str(ve):
+                    await self.close()
+                    self._running = False
+                    log.exception(f"error during websocket communication: {str(ve)}")
+                    return
+                log.exception(f"error during websocket communication: {str(ve)}")
             except Exception as e:
-                log.exception(
-                    "error during websocket " "communication: {}".format(str(e))
-                )
+                log.exception(f"error during websocket communication: {str(e)}")
             finally:
                 await asyncio.sleep(0)
 
@@ -448,7 +454,9 @@ class BaseStream:
     def stop(self) -> None:
         """Stops the websocket connection."""
         if self._loop.is_running():
-            asyncio.run_coroutine_threadsafe(self.stop_ws(), self._loop).result()
+            asyncio.run_coroutine_threadsafe(self.stop_ws(), self._loop).result(
+                timeout=5
+            )
 
     def _ensure_coroutine(self, handler: Callable) -> None:
         """Checks if a method is an asyncio coroutine method

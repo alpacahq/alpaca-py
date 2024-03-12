@@ -197,12 +197,10 @@ class RESTClient(ABC):
         except HTTPError as http_error:
             # retry if we hit Rate Limit
             if response.status_code in self._retry_codes and retry > 0:
-                raise RetryException()
+                raise RetryException() from http_error
 
             # raise API error for all other errors
-            error = response.text
-
-            raise APIError(error, http_error)
+            raise APIError(http_error) from http_error
 
         if response.text != "":
             return response.json()

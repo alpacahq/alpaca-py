@@ -525,7 +525,7 @@ class BrokerClient(RESTClient):
             last_result = result[-1]
 
             if "id" not in last_result:
-                raise APIError(
+                raise AttributeError(
                     "AccountActivity didn't contain an `id` field to use for paginating results"
                 )
 
@@ -661,19 +661,14 @@ class BrokerClient(RESTClient):
             except HTTPError as http_error:
                 if response.status_code in self._retry_codes:
                     continue
-                if "code" in response.text:
-                    error = response.json()
-                    if "code" in error:
-                        raise APIError(error, http_error)
-                else:
-                    raise http_error
+                raise APIError(http_error) from http_error
 
             # if we got here there were no issues', so response is now a value
             break
 
-        if response is None:
-            # we got here either by error or someone has mis-configured us, so we didn't even try
-            raise Exception("Somehow we never made a request for download!")
+        # we got here either by error or someone has mis-configured us, so we didn't even try
+        if not isinstance(response, Response):
+            raise TypeError("Somehow we never made a request for download!")
 
         with open(file_path, "wb") as f:
             # we specify chunk_size none which is okay since we set stream to true above, so chunks will be as we

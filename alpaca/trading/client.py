@@ -707,10 +707,13 @@ class TradingClient(RESTClient):
         """
         if request is None:
             raise ValueError("request (GetOptionContractsRequest) is required")
-        if request.underlying_symbol == "":
-            raise ValueError("underlying_symbol is required")
 
         params = request.to_request_fields()
+
+        if "underlying_symbols" in params and isinstance(
+            request.underlying_symbols, list
+        ):
+            params["underlying_symbols"] = ",".join(request.underlying_symbols)
 
         response = self.get("/options/contracts", params)
 

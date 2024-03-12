@@ -466,7 +466,7 @@ class GetOptionContractsRequest(NonEmptyRequest):
     Used to fetch option contracts for a given underlying symbol.
 
     Attributes:
-        underlying_symbol (str): The underlying symbol for the option contracts to be returned.
+        underlying_symbols (Optional[List[str]]): The underlying symbols for the option contracts to be returned. (e.g. ["AAPL", "SPY"])
         status (Optional[AssetStatus]): The status of the asset.
         expiration_date (Optional[Union[date, str]]): The expiration date of the option contract. (YYYY-MM-DD)
         expiration_date_gte (Optional[Union[date, str]]): The expiration date of the option contract greater than or equal to. (YYYY-MM-DD)
@@ -476,12 +476,11 @@ class GetOptionContractsRequest(NonEmptyRequest):
         style (Optional[ExerciseStyle]): The option contract style.
         strike_price_gte (Optional[str]): The option contract strike price greater than or equal to.
         strike_price_lte (Optional[str]): The option contract strike price less than or equal to.
-        limit (Optional[int]): The maximum number of entries to return in the response.
-        page (Optional[int]): The page number for the results to return.
+        limit (Optional[int]): The number of contracts to limit per page (default=100, max=10000).
+        page_token (Optional[str]): Pagination token to continue from. The value to pass here is returned in specific requests when more data is available than the request limit allows.
     """
 
-    underlying_symbol: str
-
+    underlying_symbols: Optional[List[str]] = None
     status: Optional[AssetStatus] = AssetStatus.ACTIVE
     expiration_date: Optional[Union[date, str]] = None
     expiration_date_gte: Optional[Union[date, str]] = None
@@ -493,4 +492,4 @@ class GetOptionContractsRequest(NonEmptyRequest):
     strike_price_lte: Optional[str] = None
 
     limit: Optional[int] = None
-    page: Optional[int] = None
+    page_token: Optional[str] = None

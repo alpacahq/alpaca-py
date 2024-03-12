@@ -323,7 +323,7 @@ class BaseStream:
                 if "insufficient subscription" in str(ve):
                     await self.close()
                     self._running = False
-                    log.exception(f"error during websocket communication: {str(e)}")
+                    log.exception(f"error during websocket communication: {str(ve)}")
                     return
                 log.exception(f"error during websocket communication: {str(e)}")
             except Exception as e:

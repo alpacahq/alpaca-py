@@ -230,4 +230,4 @@ For more details, please refer to [our documentation page for options trading](h
 
 There is an example jupyter notebook to explain methods of alpaca-py for options trading.
 
-* [jupyter notebook: options trading basic example with alpaca-py](examples/options-trading-basic.ipynb)
+* [jupyter notebook: options trading basic example with alpaca-py](https://github.com/alpacahq/alpaca-py/blob/master/examples/options-trading-basic.ipynb)

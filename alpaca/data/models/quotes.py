@@ -1,13 +1,13 @@
 from datetime import datetime
-from typing import Optional, Dict, List, Union
+from typing import Dict, List, Optional, Union
 
 from pydantic import ConfigDict
 
-from alpaca.common.types import RawData
 from alpaca.common.models import ValidateBaseModel as BaseModel
+from alpaca.common.types import RawData
 from alpaca.data.enums import Exchange
 from alpaca.data.mappings import QUOTE_MAPPING
-from alpaca.data.models.base import TimeSeriesMixin, BaseDataSet
+from alpaca.data.models.base import BaseDataSet, TimeSeriesMixin
 
 
 class Quote(BaseModel):
@@ -62,6 +62,8 @@ class QuoteSet(BaseDataSet, TimeSeriesMixin):
     Attributes:
         data (Dict[str, List[Quote]]): The collection of Quotes keyed by symbol.
     """
+
+    data: Dict[str, List[Quote]] = {}
 
     def __init__(self, raw_data: RawData) -> None:
         """Instantiates a QuoteSet.

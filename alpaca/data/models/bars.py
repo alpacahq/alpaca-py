@@ -1,12 +1,12 @@
 from datetime import datetime
-from typing import Optional, Dict, List
+from typing import Dict, List, Optional
 
 from pydantic import ConfigDict
 
-from alpaca.common.types import RawData
 from alpaca.common.models import ValidateBaseModel as BaseModel
-from alpaca.data.models.base import TimeSeriesMixin, BaseDataSet
+from alpaca.common.types import RawData
 from alpaca.data.mappings import BAR_MAPPING
+from alpaca.data.models.base import BaseDataSet, TimeSeriesMixin
 
 
 class Bar(BaseModel):
@@ -61,6 +61,8 @@ class BarSet(BaseDataSet, TimeSeriesMixin):
     Attributes:
         data (Dict[str, List[Bar]]): The collection of Bars keyed by symbol.
     """
+
+    data: Dict[str, List[Bar]] = {}
 
     def __init__(
         self,

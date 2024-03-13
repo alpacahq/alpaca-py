@@ -5,11 +5,485 @@ from typing import Dict
 from alpaca.data import Quote, Snapshot, Trade
 from alpaca.data.enums import Exchange, OptionsFeed
 from alpaca.data.historical.option import OptionHistoricalDataClient
+from alpaca.data.models.bars import BarSet
+from alpaca.data.models.trades import TradeSet
 from alpaca.data.requests import (
+    OptionBarsRequest,
     OptionLatestQuoteRequest,
     OptionLatestTradeRequest,
     OptionSnapshotRequest,
+    OptionTradesRequest,
 )
+from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
+
+
+def test_get_bars(reqmock, option_client: OptionHistoricalDataClient):
+    # Test single symbol request
+    symbol = "SPY240426C00555000"
+    start = datetime(2024, 3, 12)
+    limit = 2
+    timeframe = TimeFrame(amount=1, unit=TimeFrameUnit.Hour)
+
+    _start_in_url = urllib.parse.quote_plus(
+        start.replace(tzinfo=timezone.utc).isoformat()
+    )
+
+    reqmock.get(
+        f"https://data.alpaca.markets/v1beta1/options/bars?symbols={symbol}&start={_start_in_url}&limit={limit}&timeframe={timeframe}",
+        text="""
+{
+  "bars": {
+    "SPY240426C00555000": [
+      {
+        "c": 0.21,
+        "h": 0.24,
+        "l": 0.21,
+        "n": 2,
+        "o": 0.24,
+        "t": "2024-03-12T13:00:00Z",
+        "v": 21,
+        "vw": 0.211429
+      },
+      {
+        "c": 0.3,
+        "h": 0.3,
+        "l": 0.25,
+        "n": 3,
+        "o": 0.25,
+        "t": "2024-03-12T14:00:00Z",
+        "v": 3,
+        "vw": 0.273333
+      }
+    ]
+  },
+  "next_page_token": "U1BZMjQwNDI2QzAwNTU1MDAwfE18MTcxMDI1NDM0MDAwMDAwMDAwMA=="
+}
+        """,
+    )
+
+    request = OptionBarsRequest(
+        symbol_or_symbols=symbol, start=start, limit=limit, timeframe=timeframe
+    )
+
+    barset = option_client.get_option_bars(request_params=request)
+
+    assert isinstance(barset, BarSet)
+    bar = barset[symbol][0]
+    assert bar.close == 0.21
+    assert bar.high == 0.24
+    assert bar.low == 0.21
+    assert bar.trade_count == 2
+    assert bar.open == 0.24
+    assert bar.volume == 21
+    assert bar.vwap == 0.211429
+    assert bar.timestamp == datetime(2024, 3, 12, 13, 0, tzinfo=timezone.utc)
+
+    bar2 = barset[symbol][1]
+    assert bar2.close == 0.3
+    assert bar2.high == 0.3
+    assert bar2.low == 0.25
+    assert bar2.trade_count == 3
+    assert bar2.open == 0.25
+    assert bar2.volume == 3
+    assert bar2.vwap == 0.273333
+    assert bar2.timestamp == datetime(2024, 3, 12, 14, 0, tzinfo=timezone.utc)
+
+    assert barset.df.index.nlevels == 2
+
+    assert reqmock.called_once
+
+
+def test_multisymbol_get_bars(reqmock, option_client: OptionHistoricalDataClient):
+    # test multisymbol request
+    symbols = ["SPY240426C00550000", "SPY240426C00555000"]
+    start = datetime(2024, 3, 12)
+    _symbols_in_url = "%2C".join(s for s in symbols)
+    timeframe = TimeFrame(amount=1, unit=TimeFrameUnit.Hour)
+
+    _start_in_url = urllib.parse.quote_plus(
+        start.replace(tzinfo=timezone.utc).isoformat()
+    )
+
+    reqmock.get(
+        f"https://data.alpaca.markets/v1beta1/options/bars?start={_start_in_url}&symbols={_symbols_in_url}&timeframe={timeframe}",
+        text="""
+{
+  "bars": {
+    "SPY240426C00550000": [
+      {
+        "c": 0.37,
+        "h": 0.37,
+        "l": 0.37,
+        "n": 1,
+        "o": 0.37,
+        "t": "2024-03-12T13:00:00Z",
+        "v": 1,
+        "vw": 0.37
+      },
+      {
+        "c": 0.51,
+        "h": 0.52,
+        "l": 0.41,
+        "n": 6,
+        "o": 0.41,
+        "t": "2024-03-12T14:00:00Z",
+        "v": 16,
+        "vw": 0.496875
+      }
+    ],
+    "SPY240426C00555000": [
+      {
+        "c": 0.21,
+        "h": 0.24,
+        "l": 0.21,
+        "n": 2,
+        "o": 0.24,
+        "t": "2024-03-12T13:00:00Z",
+        "v": 21,
+        "vw": 0.211429
+      }
+    ]
+  },
+  "next_page_token": null
+}
+        """,
+    )
+
+    request = OptionBarsRequest(
+        symbol_or_symbols=symbols, start=start, timeframe=timeframe
+    )
+
+    barset = option_client.get_option_bars(request_params=request)
+
+    assert isinstance(barset, BarSet)
+
+    bar = barset["SPY240426C00550000"][0]
+    assert bar.close == 0.37
+    assert bar.high == 0.37
+    assert bar.low == 0.37
+    assert bar.trade_count == 1
+    assert bar.open == 0.37
+    assert bar.volume == 1
+    assert bar.vwap == 0.37
+    assert bar.timestamp == datetime(2024, 3, 12, 13, 0, tzinfo=timezone.utc)
+
+    bar2 = barset["SPY240426C00550000"][1]
+    assert bar2.close == 0.51
+    assert bar2.high == 0.52
+    assert bar2.low == 0.41
+    assert bar2.trade_count == 6
+    assert bar2.open == 0.41
+    assert bar2.volume == 16
+    assert bar2.vwap == 0.496875
+    assert bar2.timestamp == datetime(2024, 3, 12, 14, 0, tzinfo=timezone.utc)
+
+    bar3 = barset["SPY240426C00555000"][0]
+    assert bar3.close == 0.21
+    assert bar3.high == 0.24
+    assert bar3.low == 0.21
+    assert bar3.trade_count == 2
+    assert bar3.open == 0.24
+    assert bar3.volume == 21
+    assert bar3.vwap == 0.211429
+    assert bar3.timestamp == datetime(2024, 3, 12, 13, 0, tzinfo=timezone.utc)
+
+    df = barset.df
+    assert df.index.nlevels == 2
+    assert len(df) == 3
+
+    assert reqmock.called_once
+
+
+def test_get_bars_single_empty_response(
+    reqmock, option_client: OptionHistoricalDataClient
+):
+    symbol = "AAPL240126P00050000"
+    start = datetime(2024, 1, 24)
+    limit = 2
+    timeframe = TimeFrame(amount=1, unit=TimeFrameUnit.Hour)
+
+    _start_in_url = urllib.parse.quote_plus(
+        start.replace(tzinfo=timezone.utc).isoformat()
+    )
+
+    reqmock.get(
+        f"https://data.alpaca.markets/v1beta1/options/bars?symbols={symbol}&start={_start_in_url}&limit={limit}&timeframe={timeframe}",
+        text="""
+{
+  "next_page_token": null,
+  "bars": {}
+}
+        """,
+    )
+
+    request = OptionBarsRequest(
+        symbol_or_symbols=symbol, start=start, limit=limit, timeframe=timeframe
+    )
+
+    barset = option_client.get_option_bars(request_params=request)
+
+    assert isinstance(barset, BarSet)
+
+    # this behaviour is different than stocks as no single symbol request endpoint for options
+    assert barset.dict() == {}
+
+    assert len(barset.df) == 0
+
+    assert reqmock.called_once
+
+
+def test_get_bars_multi_empty_response(
+    reqmock, option_client: OptionHistoricalDataClient
+):
+    symbol = "AAPL240126P00050000"
+    start = datetime(2024, 1, 24)
+    limit = 2
+    timeframe = TimeFrame(amount=1, unit=TimeFrameUnit.Hour)
+
+    _start_in_url = urllib.parse.quote_plus(
+        start.replace(tzinfo=timezone.utc).isoformat()
+    )
+
+    reqmock.get(
+        f"https://data.alpaca.markets/v1beta1/options/bars?symbols={symbol}&start={_start_in_url}&limit={limit}&timeframe={timeframe}",
+        text="""
+{
+  "next_page_token": null,
+  "bars": {}
+}
+        """,
+    )
+
+    request = OptionBarsRequest(
+        symbol_or_symbols=[symbol], start=start, limit=limit, timeframe=timeframe
+    )
+
+    barset = option_client.get_option_bars(request_params=request)
+
+    assert isinstance(barset, BarSet)
+
+    assert barset.dict() == {}
+
+    assert len(barset.df) == 0
+
+    assert reqmock.called_once
+
+
+def test_get_trades(reqmock, option_client: OptionHistoricalDataClient):
+    # Test single symbol request
+    symbol = "SPY240426C00555000"
+    start = datetime(2024, 3, 12)
+    limit = 2
+
+    _start_in_url = urllib.parse.quote_plus(
+        start.replace(tzinfo=timezone.utc).isoformat()
+    )
+
+    reqmock.get(
+        f"https://data.alpaca.markets/v1beta1/options/trades?symbols={symbol}&start={_start_in_url}&limit={limit}",
+        text="""
+    {
+        "next_page_token": "U1BZMjQwNDI2QzAwNTU1MDAwfDE3MTAyNTE1NDI1NTg0NDcxMDR8Qg==",
+        "trades": {
+            "SPY240426C00555000": [
+            {
+                "c": "I",
+                "p": 0.24,
+                "s": 1,
+                "t": "2024-03-12T13:34:54.178322688Z",
+                "x": "M"
+            },
+            {
+                "c": "j",
+                "p": 0.21,
+                "s": 20,
+                "t": "2024-03-12T13:52:22.558447104Z",
+                "x": "B"
+            }
+            ]
+        }
+    }
+        """,
+    )
+
+    request = OptionTradesRequest(symbol_or_symbols=symbol, start=start, limit=limit)
+
+    tradeset = option_client.get_option_trades(request_params=request)
+
+    assert isinstance(tradeset, TradeSet)
+    trade: Trade = tradeset[symbol][0]
+    assert trade.conditions == "I"
+    assert trade.price == 0.24
+    assert trade.size == 1
+    assert trade.timestamp == datetime(
+        2024, 3, 12, 13, 34, 54, 178322, tzinfo=timezone.utc
+    )
+    assert trade.exchange == Exchange.M
+
+    trade2: Trade = tradeset[symbol][1]
+    assert trade2.conditions == "j"
+    assert trade2.price == 0.21
+    assert trade2.size == 20
+    assert trade2.timestamp == datetime(
+        2024, 3, 12, 13, 52, 22, 558447, tzinfo=timezone.utc
+    )
+    assert trade2.exchange == Exchange.B
+
+    assert tradeset.df.index.nlevels == 2
+
+    assert reqmock.called_once
+
+
+def test_multisymbol_get_trades(reqmock, option_client: OptionHistoricalDataClient):
+    # test multisymbol request
+    symbols = ["SPY240426C00550000", "SPY240426C00555000"]
+    start = datetime(2024, 3, 12)
+    _symbols_in_url = "%2C".join(s for s in symbols)
+
+    _start_in_url = urllib.parse.quote_plus(
+        start.replace(tzinfo=timezone.utc).isoformat()
+    )
+
+    reqmock.get(
+        f"https://data.alpaca.markets/v1beta1/options/trades?start={_start_in_url}&symbols={_symbols_in_url}",
+        text="""
+{
+  "next_page_token": null,
+  "trades": {
+    "SPY240426C00550000": [
+      {
+        "c": "g",
+        "p": 0.37,
+        "s": 1,
+        "t": "2024-03-12T13:55:39.17011584Z",
+        "x": "C"
+      },
+      {
+        "c": "a",
+        "p": 0.41,
+        "s": 1,
+        "t": "2024-03-12T14:10:14.088364544Z",
+        "x": "C"
+      }
+    ],
+    "SPY240426C00555000": [
+      {
+        "c": "I",
+        "p": 0.24,
+        "s": 1,
+        "t": "2024-03-12T13:34:54.178322688Z",
+        "x": "M"
+      }
+    ]
+  }
+}
+        """,
+    )
+
+    request = OptionTradesRequest(symbol_or_symbols=symbols, start=start)
+
+    tradeset = option_client.get_option_trades(request_params=request)
+
+    assert isinstance(tradeset, TradeSet)
+
+    trade: Trade = tradeset["SPY240426C00550000"][0]
+    assert trade.conditions == "g"
+    assert trade.price == 0.37
+    assert trade.size == 1
+    assert trade.timestamp == datetime(
+        2024, 3, 12, 13, 55, 39, 170115, tzinfo=timezone.utc
+    )
+    assert trade.exchange == Exchange.C
+
+    trade2: Trade = tradeset["SPY240426C00550000"][1]
+    assert trade2.conditions == "a"
+    assert trade2.price == 0.41
+    assert trade2.size == 1
+    assert trade2.timestamp == datetime(
+        2024, 3, 12, 14, 10, 14, 88364, tzinfo=timezone.utc
+    )
+    assert trade2.exchange == Exchange.C
+
+    trade3: Trade = tradeset["SPY240426C00555000"][0]
+    assert trade3.conditions == "I"
+    assert trade3.price == 0.24
+    assert trade3.size == 1
+    assert trade3.timestamp == datetime(
+        2024, 3, 12, 13, 34, 54, 178322, tzinfo=timezone.utc
+    )
+    assert trade3.exchange == Exchange.M
+
+    assert reqmock.called_once
+
+
+def test_get_trades_single_empty_response(
+    reqmock, option_client: OptionHistoricalDataClient
+):
+    symbol = "AAPL240126P00050000"
+    start = datetime(2024, 1, 24)
+    limit = 2
+
+    _start_in_url = urllib.parse.quote_plus(
+        start.replace(tzinfo=timezone.utc).isoformat()
+    )
+
+    reqmock.get(
+        f"https://data.alpaca.markets/v1beta1/options/trades?symbols={symbol}&start={_start_in_url}&limit={limit}",
+        text="""
+{
+  "next_page_token": null,
+  "trades": {}
+}
+        """,
+    )
+
+    request = OptionTradesRequest(symbol_or_symbols=symbol, start=start, limit=limit)
+
+    tradeset = option_client.get_option_trades(request_params=request)
+
+    assert isinstance(tradeset, TradeSet)
+
+    # this behaviour is different than stocks as no single symbol request endpoint for options
+    assert tradeset.dict() == {}
+
+    assert len(tradeset.df) == 0
+
+    assert reqmock.called_once
+
+
+def test_get_trades_multi_empty_response(
+    reqmock, option_client: OptionHistoricalDataClient
+):
+    symbols = ["SPY240426C00550000", "SPY240426C00555000"]
+    _symbols_in_url = "%2C".join(s for s in symbols)
+    start = datetime(2024, 1, 24)
+    limit = 2
+
+    _start_in_url = urllib.parse.quote_plus(
+        start.replace(tzinfo=timezone.utc).isoformat()
+    )
+
+    reqmock.get(
+        f"https://data.alpaca.markets/v1beta1/options/trades?symbols={_symbols_in_url}&start={_start_in_url}&limit={limit}",
+        text="""
+{
+  "next_page_token": null,
+  "trades": {}
+}
+        """,
+    )
+
+    request = OptionTradesRequest(symbol_or_symbols=symbols, start=start, limit=limit)
+
+    tradeset = option_client.get_option_trades(request_params=request)
+
+    assert isinstance(tradeset, TradeSet)
+
+    assert tradeset.dict() == {}
+
+    assert len(tradeset.df) == 0
+
+    assert reqmock.called_once
 
 
 def test_get_latest_trade(reqmock, option_client: OptionHistoricalDataClient):

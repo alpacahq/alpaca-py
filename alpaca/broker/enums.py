@@ -424,3 +424,88 @@ class JournalStatus(str, Enum):
     CANCELED = "canceled"
     REFUSED = "refused"
     DELETED = "deleted"
+
+
+class WeightType(str, Enum):
+    """
+    The possible values of the Weight type.
+
+    See https://alpaca.markets/docs/api-references/broker-api/rebalancing/#weights-model
+    """
+
+    CASH = "cash"
+    ASSET = "asset"
+
+
+class RebalancingConditionsType(str, Enum):
+    """
+    The possible values of the Rebalancing Conditions type.
+
+    See https://alpaca.markets/docs/api-references/broker-api/rebalancing/#rebalancing-conditions-model
+    """
+
+    DRIFT_BAND = "drift_band"
+    CALENDAR = "calendar"
+
+
+class DriftBandSubType(str, Enum):
+    """
+    The possible values of the Rebalancing Conditions subtype for drift_band.
+
+    See https://alpaca.markets/docs/api-references/broker-api/rebalancing/#rebalancing-conditions-model
+    """
+
+    ABSOLUTE = "absolute"
+    RELATIVE = "relative"
+
+
+class CalendarSubType(str, Enum):
+    """
+    The possible values of the Rebalancing Conditions subtype for drift_band.
+
+    See https://alpaca.markets/docs/api-references/broker-api/rebalancing/#rebalancing-conditions-model
+    """
+
+    WEEKLY = "weekly"
+    MONTHLY = "monthly"
+    QUARTERLY = "quarterly"
+    ANNUALLY = "annually"
+
+
+class RunType(str, Enum):
+    """
+    The possible values of the Run type.
+
+    See https://alpaca.markets/docs/api-references/broker-api/rebalancing/#run-model
+    """
+
+    FULL_REBALANCE = "full_rebalance"
+    INVEST_CASH = "invest_cash"
+
+
+class RunInitiatedBy(str, Enum):
+    """
+    The possible values of the initiated_by field.
+
+    See https://alpaca.markets/docs/api-references/broker-api/rebalancing/#run-model
+    """
+
+    SYSTEM = "system"
+    API = "api"
+
+
+class RunStatus(str, Enum):
+    """
+    The possible values of the Run status.
+
+    See https://alpaca.markets/docs/api-references/broker-api/rebalancing/#run-model
+    """
+
+    QUEUED = "QUEUED"
+    IN_PROGRESS = "IN_PROGRESS"
+    CANCELED = "CANCELED"
+    CANCELED_MID_RUN = "CANCELED_MID_RUN"
+    ERROR = "ERROR"
+    TIMEOUT = "TIMEOUT"
+    COMPLETED_SUCCESS = "COMPLETED_SUCCESS"
+    COMPLETED_ADJUSTED = "COMPLETED_ADJUSTED"

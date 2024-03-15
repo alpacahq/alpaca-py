@@ -9,6 +9,24 @@ OptionHistoricalDataClient
    :members: __init__
 
 
+Get Option Bars
+---------------
+
+.. automethod:: alpaca.data.historical.option.OptionHistoricalDataClient.get_option_bars
+
+
+Get Option Trades
+-----------------
+
+.. automethod:: alpaca.data.historical.option.OptionHistoricalDataClient.get_option_trades
+
+
+Get Option Exchange Codes
+-------------------------
+
+.. automethod:: alpaca.data.historical.option.OptionHistoricalDataClient.get_option_exchange_codes
+
+
 Get Option Latest Quote
 -----------------------
 

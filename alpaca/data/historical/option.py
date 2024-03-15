@@ -12,14 +12,17 @@ from alpaca.data.historical.utils import (
     format_snapshot_data,
     parse_obj_as_symbol_dict,
 )
+from alpaca.data.models.bars import BarSet
 from alpaca.data.models.quotes import Quote
 from alpaca.data.models.snapshots import Snapshot
-from alpaca.data.models.trades import Trade
+from alpaca.data.models.trades import Trade, TradeSet
 from alpaca.data.requests import (
+    OptionBarsRequest,
     OptionChainRequest,
     OptionLatestQuoteRequest,
     OptionLatestTradeRequest,
     OptionSnapshotRequest,
+    OptionTradesRequest,
 )
 
 
@@ -69,6 +72,50 @@ class OptionHistoricalDataClient(RESTClient):
             sandbox=False,
             raw_data=raw_data,
         )
+
+    def get_option_bars(
+        self, request_params: OptionBarsRequest
+    ) -> Union[BarSet, RawData]:
+        """Returns bar data for an option contract or list of option contracts over a given
+        time period and timeframe.
+
+        Args:
+            request_params (OptionBarsRequest): The request object for retrieving option bar data.
+
+        Returns:
+            Union[BarSet, RawData]: The bar data either in raw or wrapped form
+        """
+        params = request_params.to_request_fields()
+
+        # paginated get request for market data api
+        raw_bars = self._data_get(
+            endpoint_data_type="bars",
+            endpoint_asset_class="options",
+            api_version=self._api_version,
+            **params,
+        )
+
+        if self._use_raw_data:
+            return raw_bars
+
+        return BarSet(raw_bars)
+
+    def get_option_exchange_codes(self) -> RawData:
+        """Returns the mapping between the option exchange codes and the corresponding exchanges names.
+
+        Args:
+            None
+
+        Returns:
+            RawData: The mapping between the option exchange codes and the corresponding exchanges names.
+        """
+        path = "/options/meta/exchanges"
+        raw_exchange_code = self.get(
+            path=path,
+            api_version=self._api_version,
+        )
+
+        return raw_exchange_code
 
     def get_option_latest_quote(
         self, request_params: OptionLatestQuoteRequest
@@ -121,6 +168,32 @@ class OptionHistoricalDataClient(RESTClient):
             return raw_latest_quotes
 
         return parse_obj_as_symbol_dict(Trade, raw_latest_quotes)
+
+    def get_option_trades(
+        self, request_params: OptionTradesRequest
+    ) -> Union[TradeSet, RawData]:
+        """The historical option trades API provides trade data for a list of contract symbols between the specified dates up to 7 days ago.
+
+        Args:
+            request_params (OptionTradesRequest): The request object for retrieving option trade data.
+
+        Returns:
+            Union[TradeSet, RawData]: The trade data either in raw or wrapped form
+        """
+        params = request_params.to_request_fields()
+
+        # paginated get request for market data api
+        raw_trades = self._data_get(
+            endpoint_data_type="trades",
+            endpoint_asset_class="options",
+            api_version=self._api_version,
+            **params,
+        )
+
+        if self._use_raw_data:
+            return raw_trades
+
+        return TradeSet(raw_trades)
 
     def get_option_snapshot(
         self, request_params: OptionSnapshotRequest

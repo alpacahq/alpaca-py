@@ -3,6 +3,12 @@ Requests
 ========
 
 
+BaseCryptoLatestDataRequest
+---------------------------
+
+.. autoclass:: alpaca.data.requests.BaseCryptoLatestDataRequest
+
+
 CryptoBarsRequest
 -----------------
 

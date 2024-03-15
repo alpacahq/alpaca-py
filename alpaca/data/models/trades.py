@@ -1,13 +1,13 @@
 from datetime import datetime
-from typing import Optional, Dict, List, Union
+from typing import Dict, List, Optional, Union
 
 from pydantic import ConfigDict
 
-from alpaca.common.types import RawData
 from alpaca.common.models import ValidateBaseModel as BaseModel
+from alpaca.common.types import RawData
 from alpaca.data.enums import Exchange
 from alpaca.data.mappings import TRADE_MAPPING
-from alpaca.data.models.base import TimeSeriesMixin, BaseDataSet
+from alpaca.data.models.base import BaseDataSet, TimeSeriesMixin
 
 
 class Trade(BaseModel):
@@ -58,6 +58,8 @@ class TradeSet(BaseDataSet, TimeSeriesMixin):
     Attributes:
         data (Dict[str, List[Trade]]]): The collection of Trades keyed by symbol.
     """
+
+    data: Dict[str, List[Trade]] = {}
 
     def __init__(self, raw_data: RawData) -> None:
         """Instantiates a TradeSet - a collection of Trades.

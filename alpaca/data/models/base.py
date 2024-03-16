@@ -43,6 +43,9 @@ class BaseDataSet(BaseModel):
     data: Dict[str, List[BaseModel]] = {}
     model_config = ConfigDict(protected_namespaces=tuple())
 
+    def get(self, symbol: str, default: Any = None) -> Any:
+        return self.data.get(symbol, default)
+
     def __getitem__(self, symbol: str) -> Any:
         """Gives dictionary-like access to multi-symbol data
 
@@ -59,6 +62,18 @@ class BaseDataSet(BaseModel):
             raise KeyError(f"No key {symbol} was found.")
 
         return self.data[symbol]
+
+    def __contains__(self, symbol: str) -> bool:
+        """Gives dictionary-like ability to check if a symbol is within the data
+
+        Args:
+            symbol (str): The ticker identifier to check
+
+
+        Returns:
+            bool: Whether the symbol was in the data set
+        """
+        return symbol in self.data
 
     def dict(self, **kwargs) -> dict:
         """

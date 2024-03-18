@@ -548,7 +548,7 @@ class AccountConfiguration(BaseModel):
         suspend_trade (bool): If true Account becomes unable to submit new orders
         trade_confirm_email (TradeConfirmationEmail): Controls whether Trade confirmation emails are sent.
         ptp_no_exception_entry (bool): If set to true then Alpaca will accept orders for PTP symbols with no exception. Default is false.
-        max_options_trading_level (Optional[str]): The desired maximum options trading level. 0=disabled, 1=Covered Call/Cash-Secured Put, 2=Long Call/Put.
+        max_options_trading_level (Optional[int]): The desired maximum options trading level. 0=disabled, 1=Covered Call/Cash-Secured Put, 2=Long Call/Put.
     """
 
     dtbp_check: DTBPCheck
@@ -559,7 +559,7 @@ class AccountConfiguration(BaseModel):
     suspend_trade: bool
     trade_confirm_email: TradeConfirmationEmail
     ptp_no_exception_entry: bool
-    max_options_trading_level: Optional[str] = None
+    max_options_trading_level: Optional[int] = None
 
 
 class CorporateActionAnnouncement(ModelWithID):

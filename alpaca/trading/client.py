@@ -482,7 +482,7 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return AccountConfiguration(**json.loads(response))
+        return AccountConfiguration(**response)
 
     # ############################## WATCHLIST ################################# #
 

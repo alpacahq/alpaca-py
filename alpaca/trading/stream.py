@@ -38,9 +38,7 @@ class TradingStream:
         self._endpoint = (
             url_override
             if url_override
-            else BaseURL.TRADING_STREAM_PAPER
-            if paper
-            else BaseURL.TRADING_STREAM_LIVE
+            else BaseURL.TRADING_STREAM_PAPER if paper else BaseURL.TRADING_STREAM_LIVE
         )
         self._ws = None
         self._running = False

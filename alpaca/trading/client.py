@@ -74,11 +74,11 @@ class TradingClient(RESTClient):
             secret_key=secret_key,
             oauth_token=oauth_token,
             api_version="v2",
-            base_url=url_override
-            if url_override
-            else BaseURL.TRADING_PAPER
-            if paper
-            else BaseURL.TRADING_LIVE,
+            base_url=(
+                url_override
+                if url_override
+                else BaseURL.TRADING_PAPER if paper else BaseURL.TRADING_LIVE
+            ),
             sandbox=paper,
             raw_data=raw_data,
         )

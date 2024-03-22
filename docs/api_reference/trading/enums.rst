@@ -115,3 +115,8 @@ TradeConfirmationEmail
 ----------------------
 
 .. autoenum:: alpaca.trading.enums.TradeConfirmationEmail
+
+PositionIntent
+----------------------
+
+.. autoenum:: alpaca.trading.enums.PositionIntent

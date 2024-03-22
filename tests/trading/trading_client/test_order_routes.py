@@ -9,7 +9,7 @@ from alpaca.trading.requests import (
 )
 from alpaca.trading.models import Order
 from alpaca.trading.client import TradingClient
-from alpaca.trading.enums import OrderSide, OrderStatus, TimeInForce
+from alpaca.trading.enums import OrderSide, OrderStatus, TimeInForce, PositionIntent
 from alpaca.common.enums import BaseURL
 
 import pytest
@@ -387,6 +387,121 @@ def test_limit_order(reqmock, trading_client):
         limit_price=300,
         qty=1,
     )
+
+    lo_response = trading_client.submit_order(lo)
+
+    assert lo_response.status == OrderStatus.ACCEPTED
+
+
+def test_order_position_intent(reqmock, trading_client: TradingClient):
+    reqmock.post(
+        f"{BaseURL.TRADING_PAPER.value}/v2/orders",
+        text="""
+        {
+          "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
+          "client_order_id": "eb9e2aaa-f71a-4f51-b5b4-52a6c565dad4",
+          "created_at": "2021-03-16T18:38:01.942282Z",
+          "updated_at": "2021-03-16T18:38:01.942282Z",
+          "submitted_at": "2021-03-16T18:38:01.937734Z",
+          "filled_at": null,
+          "expired_at": null,
+          "canceled_at": null,
+          "failed_at": null,
+          "replaced_at": null,
+          "replaced_by": null,
+          "replaces": null,
+          "asset_id": "b4695157-0d1d-4da0-8f9e-5c53149389e4",
+          "symbol": "SPY`",
+          "asset_class": "us_equity",
+          "notional": null,
+          "qty": 1,
+          "filled_qty": "0",
+          "filled_avg_price": null,
+          "order_class": "simple",
+          "order_type": "market",
+          "type": "market",
+          "side": "buy",
+          "time_in_force": "day",
+          "limit_price": null,
+          "stop_price": null,
+          "status": "accepted",
+          "extended_hours": false,
+          "legs": null,
+          "trail_percent": null,
+          "trail_price": null,
+          "hwm": null,
+          "commission": 1.25,
+          "position_intent": "buy_to_open"
+        }
+        """,
+    )
+
+    # Market Order
+    mo = MarketOrderRequest(
+        symbol="SPY",
+        side=OrderSide.BUY,
+        time_in_force=TimeInForce.DAY,
+        qty=1,
+        position_intent=PositionIntent.BUY_TO_OPEN,
+    )
+
+    assert mo.position_intent == PositionIntent.BUY_TO_OPEN
+
+    mo_response = trading_client.submit_order(mo)
+
+    assert mo_response.status == OrderStatus.ACCEPTED
+
+    reqmock.post(
+        f"{BaseURL.TRADING_PAPER.value}/v2/orders",
+        text="""
+        {
+          "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
+          "client_order_id": "eb9e2aaa-f71a-4f51-b5b4-52a6c565dad4",
+          "created_at": "2021-03-16T18:38:01.942282Z",
+          "updated_at": "2021-03-16T18:38:01.942282Z",
+          "submitted_at": "2021-03-16T18:38:01.937734Z",
+          "filled_at": null,
+          "expired_at": null,
+          "canceled_at": null,
+          "failed_at": null,
+          "replaced_at": null,
+          "replaced_by": null,
+          "replaces": null,
+          "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
+          "symbol": "AAPL`",
+          "asset_class": "us_equity",
+          "notional": null,
+          "qty": 1,
+          "filled_qty": "0",
+          "filled_avg_price": null,
+          "order_class": "simple",
+          "order_type": "limit",
+          "type": "limit",
+          "side": "sell",
+          "time_in_force": "day",
+          "limit_price": 300,
+          "stop_price": null,
+          "status": "accepted",
+          "extended_hours": false,
+          "legs": null,
+          "trail_percent": null,
+          "trail_price": null,
+          "hwm": null,
+          "commission": 1.25
+        }
+        """,
+    )
+
+    lo = LimitOrderRequest(
+        symbol="SPY",
+        side=OrderSide.BUY,
+        time_in_force=TimeInForce.DAY,
+        limit_price=300,
+        qty=1,
+        position_intent=PositionIntent.SELL_TO_OPEN,
+    )
+
+    assert lo.position_intent == PositionIntent.SELL_TO_OPEN
 
     lo_response = trading_client.submit_order(lo)
 

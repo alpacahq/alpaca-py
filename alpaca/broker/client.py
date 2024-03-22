@@ -126,9 +126,7 @@ class BrokerClient(RESTClient):
         base_url = (
             url_override
             if url_override is not None
-            else BaseURL.BROKER_SANDBOX.value
-            if sandbox
-            else BaseURL.BROKER_PRODUCTION
+            else BaseURL.BROKER_SANDBOX.value if sandbox else BaseURL.BROKER_PRODUCTION
         )
 
         super().__init__(
@@ -887,9 +885,11 @@ class BrokerClient(RESTClient):
 
         iterator = self._get_transfers_iterator(
             account_id=account_id,
-            transfers_filter=transfers_filter
-            if transfers_filter is not None
-            else GetTransfersRequest(),
+            transfers_filter=(
+                transfers_filter
+                if transfers_filter is not None
+                else GetTransfersRequest()
+            ),
             max_items_limit=max_items_limit,
         )
 

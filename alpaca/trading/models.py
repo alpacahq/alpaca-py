@@ -591,10 +591,10 @@ class CorporateActionAnnouncement(ModelWithID):
     ca_sub_type: CorporateActionSubType
     initiating_symbol: str
     initiating_original_cusip: str
-    target_symbol: Optional[str] = None
-    target_original_cusip: Optional[str] = None
-    declaration_date: Optional[date] = None
-    ex_date: Optional[date] = None
+    target_symbol: Optional[str]
+    target_original_cusip: Optional[str]
+    declaration_date: Optional[date]
+    ex_date: Optional[date]
     record_date: date
     payable_date: date
     cash: float

@@ -573,10 +573,10 @@ class CorporateActionAnnouncement(ModelWithID):
         ca_sub_type (CorporateActionSubType): The specific subtype of corporate action that was announced.
         initiating_symbol (str): Symbol of the company initiating the announcement.
         initiating_original_cusip (str): CUSIP of the company initiating the announcement.
-        target_symbol (str): Symbol of the child company involved in the announcement.
-        target_original_cusip (str): CUSIP of the child company involved in the announcement.
-        declaration_date (date): Date the corporate action or subsequent terms update was announced.
-        ex_date (date): The first date that purchasing a security will not result in a corporate action entitlement.
+        target_symbol (Optional[str]): Symbol of the child company involved in the announcement.
+        target_original_cusip (Optional[str]): CUSIP of the child company involved in the announcement.
+        declaration_date (Optional[date]): Date the corporate action or subsequent terms update was announced.
+        ex_date (Optional[date]): The first date that purchasing a security will not result in a corporate action entitlement.
         record_date (date): The date an account must hold a settled position in the security in order to receive the
             corporate action entitlement.
         payable_date (date): The date the announcement will take effect. On this date, account stock and cash
@@ -591,10 +591,10 @@ class CorporateActionAnnouncement(ModelWithID):
     ca_sub_type: CorporateActionSubType
     initiating_symbol: str
     initiating_original_cusip: str
-    target_symbol: Optional[str]
-    target_original_cusip: Optional[str]
-    declaration_date: Optional[date]
-    ex_date: Optional[date]
+    target_symbol: Optional[str] = None
+    target_original_cusip: Optional[str] = None
+    declaration_date: Optional[date] = None
+    ex_date: Optional[date] = None
     record_date: date
     payable_date: date
     cash: float

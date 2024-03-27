@@ -18,6 +18,11 @@ class APIError(Exception):
         return error["code"]
 
     @property
+    def message(self):
+        error = json.loads(self._error)
+        return error['message']
+
+    @property
     def status_code(self):
         http_error = self._http_error
         if http_error is not None and hasattr(http_error, "response"):

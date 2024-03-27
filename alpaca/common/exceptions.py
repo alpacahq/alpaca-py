@@ -20,7 +20,7 @@ class APIError(Exception):
     @property
     def message(self):
         error = json.loads(self._error)
-        return error['message']
+        return error["message"]
 
     @property
     def status_code(self):

@@ -288,7 +288,7 @@ class PortfolioHistory(BaseModel):
         timestamp (List[int]): Time of each data element, left-labeled (the beginning of time window).
         equity (List[float]): Equity value of the account in dollar amount as of the end of each time window.
         profit_loss (List[float]): Profit/loss in dollar from the base value.
-        profit_loss_pct (List[float]): Profit/loss in percentage from the base value.
+        profit_loss_pct (List[Optional[float]]): Profit/loss in percentage from the base value.
         base_value (float): Basis in dollar of the profit loss calculation.
         timeframe (str): Time window size of each data element.
     """
@@ -296,7 +296,7 @@ class PortfolioHistory(BaseModel):
     timestamp: List[int]
     equity: List[float]
     profit_loss: List[float]
-    profit_loss_pct: List[float]
+    profit_loss_pct: List[Optional[float]]
     base_value: float
     timeframe: str
 

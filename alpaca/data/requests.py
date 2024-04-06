@@ -173,9 +173,8 @@ class CryptoQuoteRequest(BaseTimeseriesDataRequest):
         sort (Optional[Sort]): The chronological order of response based on the timestamp. Defaults to ASC.
     
     """
-    
-    pass
 
+    timeframe: TimeFrame
 
 # ############################## Trades ################################# #
 

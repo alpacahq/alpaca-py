@@ -174,7 +174,8 @@ class CryptoQuoteRequest(BaseTimeseriesDataRequest):
     
     """
 
-    timeframe: TimeFrame
+    pass
+
 
 # ############################## Trades ################################# #
 

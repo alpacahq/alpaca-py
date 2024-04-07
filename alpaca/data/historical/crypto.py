@@ -102,10 +102,10 @@ class CryptoHistoricalDataClient(RESTClient):
     def get_crypto_quotes(
         self, request_params: CryptoQuoteRequest, feed: CryptoFeed = CryptoFeed.US
     ) -> Union[QuoteSet, RawData]:
-        """Returns the latest quote for a coin.
+        """Returns the quote data for a cryptocurrency or list of cryptocurrencies.
 
         Args:
-            request_params (CryptoBarsRequest): The parameters for the request.
+            request_params (CryptoQuoteRequest): The parameters for the request.
             feed (CryptoFeed): The data feed for crypto quotes.
 
         Returns:

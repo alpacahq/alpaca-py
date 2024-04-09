@@ -13,6 +13,7 @@ from typing import Optional, List, Union
 from alpaca.common.enums import BaseURL
 
 from alpaca.trading.requests import (
+    GetPortfolioHistoryRequest,
     GetCalendarRequest,
     ClosePositionRequest,
     GetAssetsRequest,
@@ -28,6 +29,7 @@ from alpaca.trading.requests import (
 )
 
 from alpaca.trading.models import (
+    PortfolioHistory,
     OptionContract,
     OptionContractsResponse,
     Order,
@@ -743,3 +745,28 @@ class TradingClient(RESTClient):
             return response
 
         return TypeAdapter(OptionContract).validate_python(response)
+    
+    # ############################## PORTFOLIO HISTORY ################################# #
+    def get_portfolio_history(
+        self,
+        history_filter: Optional[GetPortfolioHistoryRequest] = None,
+    ) -> Union[PortfolioHistory, RawData]:
+        """
+        Gets the portfolio history statistics for an account.
+
+        Args:
+            history_filter: The various portfolio history request parameters.
+
+        Returns:
+            PortfolioHistory: The portfolio history statistics for the account.
+        """
+
+        response = self.get(
+            f"/account/portfolio/history",
+            history_filter.to_request_fields() if history_filter else {},
+        )
+
+        if self._use_raw_data:
+            return response
+
+        return PortfolioHistory(**response)

@@ -1,29 +1,29 @@
 from collections import defaultdict
 from enum import Enum
-from typing import List, Optional, Union, Type, Dict
+from typing import Dict, List, Optional, Union
 
-from alpaca.common.enums import BaseURL
-from alpaca.common.rest import RESTClient, HTTPResult
-from alpaca.common.types import RawData
-from alpaca.data import Quote, Trade, Snapshot, Bar
-from alpaca.data.historical.utils import (
-    parse_obj_as_symbol_dict,
-    format_latest_data_response,
-    format_dataset_response,
-    format_snapshot_data,
-)
-
-from alpaca.data.models import BarSet, QuoteSet, TradeSet
-from alpaca.data.requests import (
-    StockBarsRequest,
-    StockQuotesRequest,
-    StockTradesRequest,
-    StockLatestTradeRequest,
-    StockLatestQuoteRequest,
-    StockSnapshotRequest,
-    StockLatestBarRequest,
-)
 from alpaca.common.constants import DATA_V2_MAX_LIMIT
+from alpaca.common.enums import BaseURL
+from alpaca.common.rest import RESTClient
+from alpaca.common.types import RawData
+from alpaca.data.historical.utils import (
+    format_dataset_response,
+    format_latest_data_response,
+    format_snapshot_data,
+    parse_obj_as_symbol_dict,
+)
+from alpaca.data.models.bars import BarSet
+from alpaca.data.models.quotes import Quote
+from alpaca.data.models.snapshots import Snapshot
+from alpaca.data.models.trades import Trade, TradeSet
+from alpaca.data.requests import (
+    OptionBarsRequest,
+    OptionChainRequest,
+    OptionLatestQuoteRequest,
+    OptionLatestTradeRequest,
+    OptionSnapshotRequest,
+    OptionTradesRequest,
+)
 
 
 class DataExtensionType(Enum):
@@ -33,11 +33,11 @@ class DataExtensionType(Enum):
     SNAPSHOT = "snapshot"
 
 
-class StockHistoricalDataClient(RESTClient):
+class OptionHistoricalDataClient(RESTClient):
     """
-    The REST client for interacting with Alpaca Market Data API stock data endpoints.
+    The REST client for interacting with Alpaca Market Data API option data endpoints.
 
-    Learn more on https://alpaca.markets/docs/market-data/
+    Learn more on https://docs.alpaca.markets/docs/about-market-data-api
     """
 
     def __init__(
@@ -67,32 +67,31 @@ class StockHistoricalDataClient(RESTClient):
             secret_key=secret_key,
             oauth_token=oauth_token,
             use_basic_auth=use_basic_auth,
-            api_version="v2",
+            api_version="v1beta1",
             base_url=url_override if url_override is not None else BaseURL.DATA,
             sandbox=False,
             raw_data=raw_data,
         )
 
-    def get_stock_bars(
-        self, request_params: StockBarsRequest
+    def get_option_bars(
+        self, request_params: OptionBarsRequest
     ) -> Union[BarSet, RawData]:
-        """Returns bar data for an equity or list of equities over a given
+        """Returns bar data for an option contract or list of option contracts over a given
         time period and timeframe.
 
         Args:
-            request_params (GetStockBarsRequest): The request object for retrieving stock bar data.
+            request_params (OptionBarsRequest): The request object for retrieving option bar data.
 
         Returns:
             Union[BarSet, RawData]: The bar data either in raw or wrapped form
         """
-
         params = request_params.to_request_fields()
 
         # paginated get request for market data api
         raw_bars = self._data_get(
             endpoint_data_type="bars",
-            endpoint_asset_class="stocks",
-            api_version="v2",
+            endpoint_asset_class="options",
+            api_version=self._api_version,
             **params,
         )
 
@@ -101,92 +100,30 @@ class StockHistoricalDataClient(RESTClient):
 
         return BarSet(raw_bars)
 
-    def get_stock_quotes(
-        self, request_params: StockQuotesRequest
-    ) -> Union[QuoteSet, RawData]:
-        """Returns level 1 quote data over a given time period for a security or list of securities.
+    def get_option_exchange_codes(self) -> RawData:
+        """Returns the mapping between the option exchange codes and the corresponding exchanges names.
 
         Args:
-            request_params (GetStockQuotesRequest): The request object for retrieving stock quote data.
+            None
 
         Returns:
-            Union[QuoteSet, RawData]: The quote data either in raw or wrapped form
+            RawData: The mapping between the option exchange codes and the corresponding exchanges names.
         """
-        params = request_params.to_request_fields()
-
-        # paginated get request for market data api
-        raw_quotes = self._data_get(
-            endpoint_data_type="quotes",
-            endpoint_asset_class="stocks",
-            api_version="v2",
-            **params,
+        path = "/options/meta/exchanges"
+        raw_exchange_code = self.get(
+            path=path,
+            api_version=self._api_version,
         )
 
-        if self._use_raw_data:
-            return raw_quotes
+        return raw_exchange_code
 
-        return QuoteSet(raw_quotes)
-
-    def get_stock_trades(
-        self, request_params: StockTradesRequest
-    ) -> Union[TradeSet, RawData]:
-        """Returns the price and sales history over a given time period for a security or list of securities.
-
-        Args:
-            request_params (GetStockTradesRequest): The request object for retrieving stock trade data.
-
-        Returns:
-            Union[TradeSet, RawData]: The trade data either in raw or wrapped form
-        """
-        params = request_params.to_request_fields()
-
-        # paginated get request for market data api
-        raw_trades = self._data_get(
-            endpoint_data_type="trades",
-            endpoint_asset_class="stocks",
-            api_version="v2",
-            **params,
-        )
-
-        if self._use_raw_data:
-            return raw_trades
-
-        return TradeSet(raw_trades)
-
-    def get_stock_latest_trade(
-        self, request_params: StockLatestTradeRequest
-    ) -> Union[Dict[str, Trade], RawData]:
-        """Retrieves the latest trade for an equity symbol or list of equities.
-
-        Args:
-            request_params (StockLatestTradeRequest): The request object for retrieving the latest trade data.
-
-        Returns:
-            Union[Dict[str, Trade], RawData]: The latest trade in raw or wrapped format
-        """
-
-        params = request_params.to_request_fields()
-
-        raw_latest_trades = self._data_get(
-            endpoint_data_type="trades",
-            endpoint_asset_class="stocks",
-            api_version="v2",
-            extension=DataExtensionType.LATEST,
-            **params,
-        )
-
-        if self._use_raw_data:
-            return raw_latest_trades
-
-        return parse_obj_as_symbol_dict(Trade, raw_latest_trades)
-
-    def get_stock_latest_quote(
-        self, request_params: StockLatestQuoteRequest
+    def get_option_latest_quote(
+        self, request_params: OptionLatestQuoteRequest
     ) -> Union[Dict[str, Quote], RawData]:
-        """Retrieves the latest quote for an equity symbol or list of equity symbols.
+        """Retrieves the latest quote for an option symbol or list of option symbols.
 
         Args:
-            request_params (StockLatestQuoteRequest): The request object for retrieving the latest quote data.
+            request_params (OptionLatestQuoteRequest): The request object for retrieving the latest quote data.
 
         Returns:
             Union[Dict[str, Quote], RawData]: The latest quote in raw or wrapped format
@@ -195,8 +132,8 @@ class StockHistoricalDataClient(RESTClient):
 
         raw_latest_quotes = self._data_get(
             endpoint_data_type="quotes",
-            endpoint_asset_class="stocks",
-            api_version="v2",
+            endpoint_asset_class="options",
+            api_version=self._api_version,
             extension=DataExtensionType.LATEST,
             **params,
         )
@@ -206,40 +143,65 @@ class StockHistoricalDataClient(RESTClient):
 
         return parse_obj_as_symbol_dict(Quote, raw_latest_quotes)
 
-    def get_stock_latest_bar(
-        self, request_params: StockLatestBarRequest
-    ) -> Union[Dict[str, Bar], RawData]:
-        """Retrieves the latest minute bar for an equity symbol or list of equity symbols.
+    def get_option_latest_trade(
+        self, request_params: OptionLatestTradeRequest
+    ) -> Union[Dict[str, Trade], RawData]:
+        """Retrieves the latest trade for an option symbol or list of option symbols.
 
         Args:
-            request_params (StockLatestBarRequest): The request object for retrieving the latest bar data.
+            request_params (OptionLatestQuoteRequest): The request object for retrieving the latest quote data.
 
         Returns:
-            Union[Dict[str, Bar], RawData]: The latest minute bar in raw or wrapped format
+            Union[Dict[str, Quote], RawData]: The latest quote in raw or wrapped format
         """
         params = request_params.to_request_fields()
 
-        raw_latest_bars = self._data_get(
-            endpoint_data_type="bars",
-            endpoint_asset_class="stocks",
-            api_version="v2",
+        raw_latest_quotes = self._data_get(
+            endpoint_data_type="trades",
+            endpoint_asset_class="options",
+            api_version=self._api_version,
             extension=DataExtensionType.LATEST,
             **params,
         )
 
         if self._use_raw_data:
-            return raw_latest_bars
+            return raw_latest_quotes
 
-        return parse_obj_as_symbol_dict(Bar, raw_latest_bars)
+        return parse_obj_as_symbol_dict(Trade, raw_latest_quotes)
 
-    def get_stock_snapshot(
-        self, request_params: StockSnapshotRequest
-    ) -> Union[Dict[str, Snapshot], RawData]:
-        """Returns snapshots of queried symbols. Snapshots contain latest trade, latest quote, latest minute bar,
-        latest daily bar and previous daily bar data for the queried symbols.
+    def get_option_trades(
+        self, request_params: OptionTradesRequest
+    ) -> Union[TradeSet, RawData]:
+        """The historical option trades API provides trade data for a list of contract symbols between the specified dates up to 7 days ago.
 
         Args:
-            request_params (StockSnapshotRequest): The request object for retrieving snapshot data.
+            request_params (OptionTradesRequest): The request object for retrieving option trade data.
+
+        Returns:
+            Union[TradeSet, RawData]: The trade data either in raw or wrapped form
+        """
+        params = request_params.to_request_fields()
+
+        # paginated get request for market data api
+        raw_trades = self._data_get(
+            endpoint_data_type="trades",
+            endpoint_asset_class="options",
+            api_version=self._api_version,
+            **params,
+        )
+
+        if self._use_raw_data:
+            return raw_trades
+
+        return TradeSet(raw_trades)
+
+    def get_option_snapshot(
+        self, request_params: OptionSnapshotRequest
+    ) -> Union[Dict[str, Snapshot], RawData]:
+        """Returns snapshots of queried symbols. Snapshots contain latest trade and latest quote for the queried symbols.
+
+        Args:
+            request_params (OptionSnapshotRequest): The request object for retrieving snapshot data.
 
         Returns:
             Union[SnapshotSet, RawData]: The snapshot data either in raw or wrapped form
@@ -248,9 +210,36 @@ class StockHistoricalDataClient(RESTClient):
         params = request_params.to_request_fields()
 
         raw_snapshots = self._data_get(
-            endpoint_asset_class="stocks",
+            endpoint_asset_class="options",
             endpoint_data_type="snapshot",
-            api_version="v2",
+            api_version=self._api_version,
+            extension=DataExtensionType.SNAPSHOT,
+            **params,
+        )
+
+        if self._use_raw_data:
+            return raw_snapshots
+
+        return parse_obj_as_symbol_dict(Snapshot, raw_snapshots)
+
+    def get_option_chain(
+        self, request_params: OptionChainRequest
+    ) -> Union[Dict[str, Snapshot], RawData]:
+        """The option chain endpoint for underlying symbol provides the latest trade, latest quote for each contract symbol of the underlying symbol.
+
+        Args:
+            request_params (OptionChainRequest): The request object for retrieving snapshot data.
+
+        Returns:
+            Union[SnapshotSet, RawData]: The snapshot data either in raw or wrapped form
+        """
+
+        params = request_params.to_request_fields()
+
+        raw_snapshots = self._data_get(
+            endpoint_asset_class="options",
+            endpoint_data_type="snapshot",
+            api_version=self._api_version,
             extension=DataExtensionType.SNAPSHOT,
             **params,
         )
@@ -266,10 +255,11 @@ class StockHistoricalDataClient(RESTClient):
         endpoint_asset_class: str,
         endpoint_data_type: str,
         api_version: str,
-        symbol_or_symbols: Union[str, List[str]],
+        symbol_or_symbols: Optional[Union[str, List[str]]] = None,
         limit: Optional[int] = None,
         page_limit: int = DATA_V2_MAX_LIMIT,
         extension: Optional[DataExtensionType] = None,
+        underlying_symbol: Optional[str] = None,
         **kwargs,
     ) -> RawData:
         """Performs Data API GET requests accounting for pagination. Data in responses are limited to the page_limit,
@@ -294,10 +284,12 @@ class StockHistoricalDataClient(RESTClient):
 
         multi_symbol = not isinstance(symbol_or_symbols, str)
 
+        if underlying_symbol is not None:
+            pass
         # multiple symbols passed as query params
         # single symbols are path params
-        if not multi_symbol:
-            path += f"/{symbol_or_symbols}"
+        elif not multi_symbol:
+            params["symbols"] = symbol_or_symbols
         else:
             params["symbols"] = ",".join(symbol_or_symbols)
 
@@ -306,11 +298,13 @@ class StockHistoricalDataClient(RESTClient):
             path += f"/{endpoint_data_type}"
             path += "/latest"
         elif extension == DataExtensionType.SNAPSHOT:
-            path += "/snapshots" if multi_symbol else "/snapshot"
+            path += "/snapshots"
         else:
             # bars, trades, quotes, etc
             path += f"/{endpoint_data_type}"
 
+        if underlying_symbol is not None:
+            path += f"/{underlying_symbol}"
         # data_by_symbol is in format of
         #    {
         #       "symbol1": [ "data1", "data2", ... ],

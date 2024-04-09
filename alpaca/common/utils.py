@@ -50,7 +50,29 @@ def validate_symbol_or_asset_id(
     if isinstance(symbol_or_asset_id, (UUID, str)):
         return symbol_or_asset_id
     raise ValueError(
-        f"symbol_or_asset_id must be a UUID of an asset id or a string of a symbol."
+        "symbol_or_asset_id must be a UUID of an asset id or a string of a symbol."
+    )
+
+
+def validate_symbol_or_contract_id(
+    symbol_or_contract_id: Union[UUID, str]
+) -> Union[UUID, str]:
+    """
+    A helper function to eliminate duplicate checks of symbols or contract id.
+
+    If the argument given is a string, assumed to be a symbol name. If a UUID object, assumed to be a contract id.
+    ValueError if neither type.
+
+    Args:
+        symbol_or_contract_id: String representing a symbol name or a UUID representing a contract id.
+
+    Returns:
+        String if symbol, UUID if contract id.
+    """
+    if isinstance(symbol_or_contract_id, (UUID, str)):
+        return symbol_or_contract_id
+    raise ValueError(
+        "symbol_or_contract_id must be a UUID of a contract id or a string of a symbol."
     )
 
 

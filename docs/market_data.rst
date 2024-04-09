@@ -4,7 +4,7 @@
 Market Data
 ===========
 
-The market data API allows you to access both live and historical data for equities and cryptocurrencies. 
+The market data API allows you to access both live and historical data for equities, cryptocurrencies, and options. 
 Over 5 years of historical data is available for thousands of equity and cryptocurrency symbols. 
 Various data types are available such as bars/candles (OHLCV), trade data (price and sales), and quote data. For
 crypto, there is also orderbook data. For more information on the data types available,
@@ -30,26 +30,27 @@ providing API keys. However, if you do provide API keys, your rate limit will be
 Historical Data
 ---------------
 
-There are 2 historical data clients: ``StockHistoricalDataClient`` and ``CryptoHistoricalDataClient``.
+There are 2 historical data clients: ``StockHistoricalDataClient``, ``CryptoHistoricalDataClient``, and ``OptionHistoricalDataClient``.
 The crypto data client does not require API keys to use.
 
 
 Clients
 ^^^^^^^
 
-Historical Data can be queried by using one of the two historical data clients: ``StockHistoricalDataClient``
-and ``CryptoHistoricalDataClient``. Historical data is available for Bar, Trade and Quote datatypes. For
-crypto, latest orderbook data is also available.
+Historical Data can be queried by using one of the two historical data clients: ``StockHistoricalDataClient``,
+``CryptoHistoricalDataClient``, and ``OptionHistoricalDataClient``. Historical data is available for Bar, Trade and Quote datatypes.
+For crypto, latest orderbook data is also available.
 
 .. code-block:: python
 
-    from alpaca.data import CryptoHistoricalDataClient, StockHistoricalDataClient
+    from alpaca.data import CryptoHistoricalDataClient, StockHistoricalDataClient, OptionHistoricalDataClient
 
     # no keys required.
     crypto_client = CryptoHistoricalDataClient()
 
     # keys required
     stock_client = StockHistoricalDataClient("api-key",  "secret-key")
+    option_client = OptionHistoricalDataClient("api-key",  "secret-key")
 
 
 Retrieving Latest Quote Data
@@ -150,7 +151,7 @@ Clients
 ^^^^^^^
 
 The data stream clients lets you subscribe to real-time data via WebSockets. There are clients
-for crypto data and stock data. These clients are different from the historical ones. They do not
+for crypto data, stock data and option data. These clients are different from the historical ones. They do not
 have methods which return data immediately. Instead, the methods in these clients allow you to assign
 methods to receive real-time data.
 
@@ -164,6 +165,7 @@ methods to receive real-time data.
 
     # keys required
     stock_stream = StockDataStream("api-key", "secret-key")
+    option_stream = OptionDataStream("api-key", "secret-key")
 
 
 Subscribing to Real-Time Quote Data

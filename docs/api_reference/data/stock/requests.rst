@@ -3,6 +3,12 @@ Requests
 ========
 
 
+BaseStockLatestDataRequest
+--------------------------
+
+.. autoclass:: alpaca.data.requests.BaseStockLatestDataRequest
+
+
 StockBarsRequest
 ----------------
 

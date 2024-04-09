@@ -164,6 +164,7 @@ class ClearingBroker(str, Enum):
     Velox = "VELOX"
     Vision = "VISION"
     Self = "SELF"
+    Alpaca_APCA = "ALPACA_APCA"
 
 
 class CIPProvider(str, Enum):

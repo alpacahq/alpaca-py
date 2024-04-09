@@ -288,7 +288,7 @@ class PortfolioHistory(BaseModel):
         timestamp (List[int]): Time of each data element, left-labeled (the beginning of time window).
         equity (List[float]): Equity value of the account in dollar amount as of the end of each time window.
         profit_loss (List[float]): Profit/loss in dollar from the base value.
-        profit_loss_pct (List[float]): Profit/loss in percentage from the base value.
+        profit_loss_pct (List[Optional[float]]): Profit/loss in percentage from the base value.
         base_value (float): Basis in dollar of the profit loss calculation.
         timeframe (str): Time window size of each data element.
     """
@@ -296,7 +296,7 @@ class PortfolioHistory(BaseModel):
     timestamp: List[int]
     equity: List[float]
     profit_loss: List[float]
-    profit_loss_pct: List[float]
+    profit_loss_pct: List[Optional[float]]
     base_value: float
     timeframe: str
 
@@ -493,9 +493,10 @@ class TradeAccount(ModelWithID):
         sma (Optional[str]): Value of Special Memorandum Account (will be used at a later date to provide additional buying_power)
         daytrade_count (Optional[int]): The current number of daytrades that have been made in the last 5 trading days
           (inclusive of today)
-        option_approved_level (Optional[int]): The option trading level that was approved for this account.
+        options_buying_power (Optional[str]): Your buying power for options trading
+        options_approved_level (Optional[int]): The options trading level that was approved for this account.
           0=disabled, 1=Covered Call/Cash-Secured Put, 2=Long Call/Put.
-        option_trading_level (Optional[int]): The effective option trading level of the account. This is the minimum between account option_approved_level and account configurations max_option_trading_level.
+        options_trading_level (Optional[int]): The effective options trading level of the account. This is the minimum between account options_approved_level and account configurations max_options_trading_level.
           0=disabled, 1=Covered Call/Cash-Secured Put, 2=Long
     """
 
@@ -529,8 +530,9 @@ class TradeAccount(ModelWithID):
     last_maintenance_margin: Optional[str] = None
     sma: Optional[str] = None
     daytrade_count: Optional[int] = None
-    option_approved_level: Optional[int] = None
-    option_trading_level: Optional[int] = None
+    options_buying_power: Optional[str] = None
+    options_approved_level: Optional[int] = None
+    options_trading_level: Optional[int] = None
 
 
 class AccountConfiguration(BaseModel):
@@ -546,7 +548,7 @@ class AccountConfiguration(BaseModel):
         suspend_trade (bool): If true Account becomes unable to submit new orders
         trade_confirm_email (TradeConfirmationEmail): Controls whether Trade confirmation emails are sent.
         ptp_no_exception_entry (bool): If set to true then Alpaca will accept orders for PTP symbols with no exception. Default is false.
-        max_option_trading_level (Optional[str]): The desired maximum option trading level. 0=disabled, 1=Covered Call/Cash-Secured Put, 2=Long Call/Put.
+        max_options_trading_level (Optional[int]): The desired maximum options trading level. 0=disabled, 1=Covered Call/Cash-Secured Put, 2=Long Call/Put.
     """
 
     dtbp_check: DTBPCheck
@@ -557,7 +559,7 @@ class AccountConfiguration(BaseModel):
     suspend_trade: bool
     trade_confirm_email: TradeConfirmationEmail
     ptp_no_exception_entry: bool
-    max_option_trading_level: Optional[str] = None
+    max_options_trading_level: Optional[int] = None
 
 
 class CorporateActionAnnouncement(ModelWithID):
@@ -571,10 +573,10 @@ class CorporateActionAnnouncement(ModelWithID):
         ca_sub_type (CorporateActionSubType): The specific subtype of corporate action that was announced.
         initiating_symbol (str): Symbol of the company initiating the announcement.
         initiating_original_cusip (str): CUSIP of the company initiating the announcement.
-        target_symbol (str): Symbol of the child company involved in the announcement.
-        target_original_cusip (str): CUSIP of the child company involved in the announcement.
-        declaration_date (date): Date the corporate action or subsequent terms update was announced.
-        ex_date (date): The first date that purchasing a security will not result in a corporate action entitlement.
+        target_symbol (Optional[str]): Symbol of the child company involved in the announcement.
+        target_original_cusip (Optional[str]): CUSIP of the child company involved in the announcement.
+        declaration_date (Optional[date]): Date the corporate action or subsequent terms update was announced.
+        ex_date (Optional[date]): The first date that purchasing a security will not result in a corporate action entitlement.
         record_date (date): The date an account must hold a settled position in the security in order to receive the
             corporate action entitlement.
         payable_date (date): The date the announcement will take effect. On this date, account stock and cash
@@ -589,10 +591,10 @@ class CorporateActionAnnouncement(ModelWithID):
     ca_sub_type: CorporateActionSubType
     initiating_symbol: str
     initiating_original_cusip: str
-    target_symbol: Optional[str]
-    target_original_cusip: Optional[str]
-    declaration_date: Optional[date]
-    ex_date: Optional[date]
+    target_symbol: Optional[str] = None
+    target_original_cusip: Optional[str] = None
+    declaration_date: Optional[date] = None
+    ex_date: Optional[date] = None
     record_date: date
     payable_date: date
     cash: float
@@ -665,10 +667,8 @@ class OptionContractsResponse(BaseModel):
 
     Attributes:
         option_contracts (Optional[List[OptionContract]]): The list of option contracts.
-        limit (int): The maximum number of option contracts in the response.
-        page (int): The page number of the response.
+        next_page_token (Optional[str]): Pagination token for next page.
     """
 
     option_contracts: Optional[List[OptionContract]] = None
-    limit: int
-    page: int
+    next_page_token: Optional[str] = None

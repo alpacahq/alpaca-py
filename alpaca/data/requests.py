@@ -1,10 +1,18 @@
 from datetime import datetime
-from typing import Optional, Union, List, Any
-from pydantic import ConfigDict
+from typing import Any, List, Optional, Union
+
 import pytz
+from pydantic import ConfigDict
+
 from alpaca.common.enums import Sort, SupportedCurrencies
 from alpaca.common.requests import NonEmptyRequest
-from alpaca.data.enums import Adjustment, DataFeed, MarketType, MostActivesBy
+from alpaca.data.enums import (
+    Adjustment,
+    DataFeed,
+    MarketType,
+    MostActivesBy,
+    OptionsFeed,
+)
 from alpaca.data.timeframe import TimeFrame
 
 
@@ -83,6 +91,7 @@ class StockBarsRequest(BaseBarsRequest):
 
     Attributes:
         symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
+        timeframe (TimeFrame): The period over which the bars should be aggregated. (i.e. 5 Min bars, 1 Day bars)
         start (Optional[datetime]): The beginning of the time interval for desired data. Timezone naive inputs assumed to be in UTC.
         end (Optional[datetime]): The end of the time interval for desired data. Defaults to now. Timezone naive inputs assumed to be in UTC.
         limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
@@ -103,6 +112,7 @@ class CryptoBarsRequest(BaseBarsRequest):
 
     Attributes:
         symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
+        timeframe (TimeFrame): The period over which the bars should be aggregated. (i.e. 5 Min bars, 1 Day bars)
         start (Optional[datetime]): The beginning of the time interval for desired data. Timezone naive inputs assumed to be in UTC.
         end (Optional[datetime]): The end of the time interval for desired data. Defaults to now. Timezone naive inputs assumed to be in UTC.
         limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
@@ -110,6 +120,22 @@ class CryptoBarsRequest(BaseBarsRequest):
     """
 
     pass
+
+
+class OptionBarsRequest(BaseBarsRequest):
+    """
+    The request model for retrieving bar data for option contracts.
+
+    See BaseBarsRequest for more information on available parameters.
+
+    Attributes:
+        symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
+        timeframe (TimeFrame): The period over which the bars should be aggregated. (i.e. 5 Min bars, 1 Day bars)
+        start (Optional[datetime]): The beginning of the time interval for desired data. Timezone naive inputs assumed to be in UTC.
+        end (Optional[datetime]): The end of the time interval for desired data. Defaults to now. Timezone naive inputs assumed to be in UTC.
+        limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
+        sort (Optional[Sort]): The chronological order of response based on the timestamp. Defaults to ASC.
+    """
 
 
 # ############################## Quotes ################################# #
@@ -162,6 +188,23 @@ class CryptoTradesRequest(BaseTimeseriesDataRequest):
 
     Attributes:
         symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
+        start (Optional[datetime]): The beginning of the time interval for desired data. Timezone naive inputs assumed to be in UTC.
+        end (Optional[datetime]): The end of the time interval for desired data. Defaults to now. Timezone naive inputs assumed to be in UTC.
+        limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
+        sort (Optional[Sort]): The chronological order of response based on the timestamp. Defaults to ASC.
+    """
+
+    pass
+
+
+class OptionTradesRequest(BaseTimeseriesDataRequest):
+    """
+    This request class is used to submit a request for option trade data.
+
+    See BaseTimeseriesDataRequest for more information on available parameters.
+
+    Attributes:
+        symbol_or_symbols (Union[str, List[str]]): The option identifier or list of option identifiers.
         start (Optional[datetime]): The beginning of the time interval for desired data. Timezone naive inputs assumed to be in UTC.
         end (Optional[datetime]): The end of the time interval for desired data. Defaults to now. Timezone naive inputs assumed to be in UTC.
         limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
@@ -287,6 +330,50 @@ class CryptoLatestBarRequest(BaseCryptoLatestDataRequest):
     pass
 
 
+class BaseOptionLatestDataRequest(NonEmptyRequest):
+    """
+    A base request object for retrieving the latest data for options. You most likely should not use this directly and
+    instead use the asset class specific request objects.
+
+    Attributes:
+        symbol_or_symbols (Union[str, List[str]]): The option identifier or list of option identifiers.
+        feed (Optional[OptionsFeed]): The source feed of the data. `opra` or `indicative`. Default: `opra` if the user has the options subscription, `indicative` otherwise.
+    """
+
+    symbol_or_symbols: Union[str, List[str]]
+    feed: Optional[OptionsFeed] = None
+
+    model_config = ConfigDict(protected_namespaces=tuple())
+
+
+class OptionLatestQuoteRequest(BaseOptionLatestDataRequest):
+    """
+    This request class is used to submit a request for the latest option quote data.
+
+    See BaseOptionLatestDataRequest for more information on available parameters.
+
+    Attributes:
+        symbol_or_symbols (Union[str, List[str]]): The option identifier or list of option identifiers.
+        feed (Optional[OptionsFeed]): The source feed of the data. `opra` or `indicative`. Default: `opra` if the user has the options subscription, `indicative` otherwise.
+    """
+
+    pass
+
+
+class OptionLatestTradeRequest(BaseOptionLatestDataRequest):
+    """
+    This request class is used to submit a request for the latest option trade data.
+
+    See BaseOptionLatestDataRequest for more information on available parameters.
+
+    Attributes:
+        symbol_or_symbols (Union[str, List[str]]): The option identifier or list of option identifiers.
+        feed (Optional[OptionsFeed]): The source feed of the data. `opra` or `indicative`. Default: `opra` if the user has the options subscription, `indicative` otherwise.
+    """
+
+    pass
+
+
 # ############################## Snapshots ################################# #
 
 
@@ -316,6 +403,36 @@ class CryptoSnapshotRequest(NonEmptyRequest):
     """
 
     symbol_or_symbols: Union[str, List[str]]
+
+    model_config = ConfigDict(protected_namespaces=tuple())
+
+
+class OptionSnapshotRequest(NonEmptyRequest):
+    """
+    This request class is used to submit a request for snapshot data for options.
+
+    Attributes:
+        symbol_or_symbols (Union[str, List[str]]): The option identifier or list of option identifiers.
+        feed (Optional[OptionsFeed]): The source feed of the data. `opra` or `indicative`. Default: `opra` if the user has the options subscription, `indicative` otherwise.
+    """
+
+    symbol_or_symbols: Union[str, List[str]]
+    feed: Optional[OptionsFeed] = None
+
+    model_config = ConfigDict(protected_namespaces=tuple())
+
+
+class OptionChainRequest(NonEmptyRequest):
+    """
+    This request class is used to submit a request for option chain data for options.
+
+    Attributes:
+        underlying_symbol (str): The underlying_symbol for option contracts.
+        feed (Optional[OptionsFeed]): The source feed of the data. `opra` or `indicative`. Default: `opra` if the user has the options subscription, `indicative` otherwise.
+    """
+
+    underlying_symbol: str
+    feed: Optional[OptionsFeed] = None
 
     model_config = ConfigDict(protected_namespaces=tuple())
 

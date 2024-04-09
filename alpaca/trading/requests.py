@@ -20,6 +20,7 @@ from alpaca.trading.enums import (
     CorporateActionType,
     CorporateActionDateType,
     QueryOrderStatus,
+    PositionIntent,
 )
 
 
@@ -238,6 +239,7 @@ class OrderRequest(NonEmptyRequest):
         order_class (Optional[OrderClass]): The class of the order. Simple orders have no other legs.
         take_profit (Optional[TakeProfitRequest]): For orders with multiple legs, an order to exit a profitable trade.
         stop_loss (Optional[StopLossRequest]): For orders with multiple legs, an order to exit a losing trade.
+        position_intent (Optional[PositionIntent]): An enum to indicate the desired position strategy: BTO, BTC, STO, STC.
     """
 
     symbol: str
@@ -251,6 +253,7 @@ class OrderRequest(NonEmptyRequest):
     client_order_id: Optional[str] = None
     take_profit: Optional[TakeProfitRequest] = None
     stop_loss: Optional[StopLossRequest] = None
+    position_intent: Optional[PositionIntent] = None
 
     @model_validator(mode="before")
     def root_validator(cls, values: dict) -> dict:
@@ -282,7 +285,7 @@ class MarketOrderRequest(OrderRequest):
         order_class (Optional[OrderClass]): The class of the order. Simple orders have no other legs.
         take_profit (Optional[TakeProfitRequest]): For orders with multiple legs, an order to exit a profitable trade.
         stop_loss (Optional[StopLossRequest]): For orders with multiple legs, an order to exit a losing trade.
-
+        position_intent (Optional[PositionIntent]): An enum to indicate the desired position strategy: BTO, BTC, STO, STC.
     """
 
     def __init__(self, **data: Any) -> None:
@@ -310,6 +313,7 @@ class StopOrderRequest(OrderRequest):
         stop_loss (Optional[StopLossRequest]): For orders with multiple legs, an order to exit a losing trade.
         stop_price (float): The price at which the stop order is converted to a market order or a stop limit
             order is converted to a limit order.
+        position_intent (Optional[PositionIntent]): An enum to indicate the desired position strategy: BTO, BTC, STO, STC.
     """
 
     stop_price: float
@@ -338,6 +342,7 @@ class LimitOrderRequest(OrderRequest):
         take_profit (Optional[TakeProfitRequest]): For orders with multiple legs, an order to exit a profitable trade.
         stop_loss (Optional[StopLossRequest]): For orders with multiple legs, an order to exit a losing trade.
         limit_price (float): The worst fill price for a limit or stop limit order.
+        position_intent (Optional[PositionIntent]): An enum to indicate the desired position strategy: BTO, BTC, STO, STC.
     """
 
     limit_price: float
@@ -368,6 +373,7 @@ class StopLimitOrderRequest(OrderRequest):
         stop_price (float): The price at which the stop order is converted to a market order or a stop limit
             order is converted to a limit order.
         limit_price (float): The worst fill price for a limit or stop limit order.
+        position_intent (Optional[PositionIntent]): An enum to indicate the desired position strategy: BTO, BTC, STO, STC.
     """
 
     stop_price: float
@@ -398,6 +404,7 @@ class TrailingStopOrderRequest(OrderRequest):
         stop_loss (Optional[StopLossRequest]): For orders with multiple legs, an order to exit a losing trade.
         trail_price (Optional[float]): The absolute price difference by which the trailing stop will trail.
         trail_percent (Optional[float]): The percent price difference by which the trailing stop will trail.
+        position_intent (Optional[PositionIntent]): An enum to indicate the desired position strategy: BTO, BTC, STO, STC.
     """
 
     trail_price: Optional[float] = None
@@ -466,7 +473,7 @@ class GetOptionContractsRequest(NonEmptyRequest):
     Used to fetch option contracts for a given underlying symbol.
 
     Attributes:
-        underlying_symbol (str): The underlying symbol for the option contracts to be returned.
+        underlying_symbols (Optional[List[str]]): The underlying symbols for the option contracts to be returned. (e.g. ["AAPL", "SPY"])
         status (Optional[AssetStatus]): The status of the asset.
         expiration_date (Optional[Union[date, str]]): The expiration date of the option contract. (YYYY-MM-DD)
         expiration_date_gte (Optional[Union[date, str]]): The expiration date of the option contract greater than or equal to. (YYYY-MM-DD)
@@ -476,12 +483,11 @@ class GetOptionContractsRequest(NonEmptyRequest):
         style (Optional[ExerciseStyle]): The option contract style.
         strike_price_gte (Optional[str]): The option contract strike price greater than or equal to.
         strike_price_lte (Optional[str]): The option contract strike price less than or equal to.
-        limit (Optional[int]): The maximum number of entries to return in the response.
-        page (Optional[int]): The page number for the results to return.
+        limit (Optional[int]): The number of contracts to limit per page (default=100, max=10000).
+        page_token (Optional[str]): Pagination token to continue from. The value to pass here is returned in specific requests when more data is available than the request limit allows.
     """
 
-    underlying_symbol: str
-
+    underlying_symbols: Optional[List[str]] = None
     status: Optional[AssetStatus] = AssetStatus.ACTIVE
     expiration_date: Optional[Union[date, str]] = None
     expiration_date_gte: Optional[Union[date, str]] = None
@@ -493,4 +499,4 @@ class GetOptionContractsRequest(NonEmptyRequest):
     strike_price_lte: Optional[str] = None
 
     limit: Optional[int] = None
-    page: Optional[int] = None
+    page_token: Optional[str] = None

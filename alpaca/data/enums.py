@@ -95,6 +95,20 @@ class CryptoFeed(str, Enum):
     US = "us"
 
 
+class OptionsFeed(str, Enum):
+    """
+    The source feed of the data.
+    `opra` requires subscription
+
+    Attributes:
+        OPRA (str): Options Price Reporting Authority
+        INDICATIVE (str): Indicative data
+    """
+
+    OPRA = "opra"
+    INDICATIVE = "indicative"
+
+
 class MostActivesBy(str, Enum):
     """
     Most actives possible filters.

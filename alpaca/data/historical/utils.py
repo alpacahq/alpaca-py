@@ -97,9 +97,11 @@ def format_dataset_response(
     # for non-list types, add as element of a list.
     # list comprehension used for speed
     [
-        data_by_symbol[symbol].extend(data)
-        if isinstance(data, list)
-        else data_by_symbol[symbol].append(data)
+        (
+            data_by_symbol[symbol].extend(data)
+            if isinstance(data, list)
+            else data_by_symbol[symbol].append(data)
+        )
         for symbol, data in response_data.items()
     ]
 
@@ -148,6 +150,8 @@ def format_snapshot_data(
         del response["symbol"]
         data_by_symbol[symbol] = response
     else:
+        if "snapshots" in response:
+            response = response["snapshots"]
         for symbol, data in response.items():
             data_by_symbol[symbol] = data
 

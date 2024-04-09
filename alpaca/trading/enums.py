@@ -379,3 +379,14 @@ class ActivityCategory(str, Enum):
 
     TRADE_ACTIVITY = "trade_activity"
     NON_TRADE_ACTIVITY = "non_trade_activity"
+
+
+class PositionIntent(str, Enum):
+    """
+    Represents what side this order was executed on.
+    """
+
+    BUY_TO_OPEN = "buy_to_open"
+    BUY_TO_CLOSE = "buy_to_close"
+    SELL_TO_OPEN = "sell_to_open"
+    SELL_TO_CLOSE = "sell_to_close"

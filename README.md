@@ -231,3 +231,11 @@ For more details, please refer to [our documentation page for options trading](h
 There is an example jupyter notebook to explain methods of alpaca-py for options trading.
 
 * [jupyter notebook: options trading basic example with alpaca-py](https://github.com/alpacahq/alpaca-py/blob/master/examples/options-trading-basic.ipynb)
+
+### Jupyter Notebook Library <a name="colab-library"></a>
+
+We have put together some examples in jupyter notebooks so that you can start developing today with alpaca-py right away!
+
+* [Stocks](https://github.com/alpacahq/alpaca-py/blob/master/examples/stocks-trading-basic.ipynb)
+* [Options](https://github.com/alpacahq/alpaca-py/blob/master/examples/options-trading-basic.ipynb)
+* [Crypto](https://github.com/alpacahq/alpaca-py/blob/master/examples/crypto-trading-basic.ipynb)

@@ -162,7 +162,7 @@ class StockQuotesRequest(BaseTimeseriesDataRequest):
 class CryptoQuoteRequest(BaseTimeseriesDataRequest):
     """
     This request class is used to submit a request for crypto quote data.
-    
+
     See BaseTimeseriesDataRequest for more information on available parameters.
 
     Attributes:
@@ -171,7 +171,7 @@ class CryptoQuoteRequest(BaseTimeseriesDataRequest):
         end (Optional[datetime]): The end of the time interval for desired data. Defaults to now. Timezone naive inputs assumed to be in UTC.
         limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
         sort (Optional[Sort]): The chronological order of response based on the timestamp. Defaults to ASC.
-    
+
     """
 
     pass

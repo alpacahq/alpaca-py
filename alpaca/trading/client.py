@@ -745,7 +745,7 @@ class TradingClient(RESTClient):
             return response
 
         return TypeAdapter(OptionContract).validate_python(response)
-    
+
     # ############################## PORTFOLIO HISTORY ################################# #
     def get_portfolio_history(
         self,

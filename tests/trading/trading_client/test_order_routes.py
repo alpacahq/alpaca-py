@@ -271,7 +271,7 @@ def test_replace_order(reqmock, trading_client: TradingClient):
     assert type(order) is Order
 
 
-def test_replace_order_validate_replace_request(reqmock, trading_client: TradingClient):
+def test_replace_order_validate_replace_request() -> None:
     # qty
     ReplaceOrderRequest(qty=1)
     with pytest.raises(ValueError):

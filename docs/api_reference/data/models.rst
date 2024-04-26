@@ -51,6 +51,18 @@ Snapshot
 .. autoclass:: alpaca.data.models.snapshots.Snapshot
 
 
+OptionsGreeks
+--------
+
+.. autoclass:: alpaca.data.models.snapshots.OptionsGreeks
+
+
+OptionsSnapshot
+--------
+
+.. autoclass:: alpaca.data.models.snapshots.OptionsSnapshot
+
+
 -----
 
 Orderbook

@@ -39,6 +39,8 @@ SNAPSHOT_MAPPING: Dict[str, str] = {
     "minuteBar": "minute_bar",
     "dailyBar": "daily_bar",
     "prevDailyBar": "previous_daily_bar",
+    "impliedVolatility": "implied_volatility",
+    "greeks": "greeks",
 }
 
 ORDERBOOK_MAPPING: Dict[str, str] = {

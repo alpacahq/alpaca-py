@@ -2,13 +2,14 @@ import urllib.parse
 from datetime import datetime, timezone
 from typing import Dict
 
-from alpaca.data import Quote, Snapshot, Trade
+from alpaca.data import OptionsSnapshot, Quote, Trade
 from alpaca.data.enums import Exchange, OptionsFeed
 from alpaca.data.historical.option import OptionHistoricalDataClient
 from alpaca.data.models.bars import BarSet
 from alpaca.data.models.trades import TradeSet
 from alpaca.data.requests import (
     OptionBarsRequest,
+    OptionChainRequest,
     OptionLatestQuoteRequest,
     OptionLatestTradeRequest,
     OptionSnapshotRequest,
@@ -779,6 +780,14 @@ def test_get_snapshot(reqmock, option_client: OptionHistoricalDataClient):
     {
         "snapshots": {
             "AAPL240126P00050000":{
+                "greeks": {
+                    "delta": 0.6742666141545315,
+                    "gamma": 0.027997890141030567,
+                    "rho": 0.06118767991284862,
+                    "theta": -0.12579419566886865,
+                    "vega": 0.1466720335488638
+                },
+                "impliedVolatility": 0.3160291785379539,
                 "latestQuote": {
                     "ap":0.59,
                     "as":458,
@@ -810,13 +819,62 @@ def test_get_snapshot(reqmock, option_client: OptionHistoricalDataClient):
 
     snapshot = snapshots[symbol]
 
-    assert isinstance(snapshot, Snapshot)
+    assert isinstance(snapshot, OptionsSnapshot)
 
     assert snapshot.latest_trade.price == 0.52
     assert snapshot.latest_quote.bid_size == 396
-    assert snapshot.minute_bar is None
-    assert snapshot.daily_bar is None
-    assert snapshot.previous_daily_bar is None
+    assert snapshot.greeks.delta == 0.6742666141545315
+    assert snapshot.greeks.gamma == 0.027997890141030567
+    assert snapshot.greeks.rho == 0.06118767991284862
+    assert snapshot.greeks.theta == -0.12579419566886865
+    assert snapshot.greeks.vega == 0.1466720335488638
+    assert snapshot.implied_volatility == 0.3160291785379539
+
+    assert reqmock.called_once
+
+
+def test_get_snapshot_latest_quote_only(
+    reqmock, option_client: OptionHistoricalDataClient
+):
+    # Test single symbol request
+    symbol = "AAPL240126P00050000"
+
+    reqmock.get(
+        f"https://data.alpaca.markets/v1beta1/options/snapshots?symbols={symbol}",
+        text="""
+    {
+        "snapshots": {
+            "AAPL240126P00050000":{
+                "latestQuote": {
+                    "ap":0.59,
+                    "as":458,
+                    "ax":"X",
+                    "bp":0.48,
+                    "bs":396,
+                    "bx":"X",
+                    "c":" ",
+                    "t":"2024-02-02T20:59:59.731674112Z"
+                }
+            }
+        }
+    }
+        """,
+    )
+
+    request = OptionSnapshotRequest(symbol_or_symbols=symbol)
+
+    snapshots = option_client.get_option_snapshot(request)
+
+    assert isinstance(snapshots, Dict)
+
+    snapshot = snapshots[symbol]
+
+    assert isinstance(snapshot, OptionsSnapshot)
+
+    assert snapshot.latest_trade is None
+    assert snapshot.latest_quote.bid_size == 396
+    assert snapshot.greeks is None
+    assert snapshot.implied_volatility is None
 
     assert reqmock.called_once
 
@@ -831,6 +889,14 @@ def test_get_snapshot_with_feed(reqmock, option_client: OptionHistoricalDataClie
     {
         "snapshots": {
             "AAPL240126P00050000":{
+                "greeks": {
+                    "delta": 0.6742666141545315,
+                    "gamma": 0.027997890141030567,
+                    "rho": 0.06118767991284862,
+                    "theta": -0.12579419566886865,
+                    "vega": 0.1466720335488638
+                },
+                "impliedVolatility": 0.3160291785379539,
                 "latestQuote": {
                     "ap":0.59,
                     "as":458,
@@ -865,13 +931,16 @@ def test_get_snapshot_with_feed(reqmock, option_client: OptionHistoricalDataClie
 
     snapshot = snapshots[symbol]
 
-    assert isinstance(snapshot, Snapshot)
+    assert isinstance(snapshot, OptionsSnapshot)
 
     assert snapshot.latest_trade.price == 0.52
     assert snapshot.latest_quote.bid_size == 396
-    assert snapshot.minute_bar is None
-    assert snapshot.daily_bar is None
-    assert snapshot.previous_daily_bar is None
+    assert snapshot.greeks.delta == 0.6742666141545315
+    assert snapshot.greeks.gamma == 0.027997890141030567
+    assert snapshot.greeks.rho == 0.06118767991284862
+    assert snapshot.greeks.theta == -0.12579419566886865
+    assert snapshot.greeks.vega == 0.1466720335488638
+    assert snapshot.implied_volatility == 0.3160291785379539
 
     assert reqmock.called_once
 
@@ -922,5 +991,69 @@ def test_get_snapshot_multi_empty_response(
     assert isinstance(snapshots, Dict)
 
     assert snapshots == {}
+
+    assert reqmock.called_once
+
+
+def test_get_option_chain(reqmock, option_client: OptionHistoricalDataClient):
+    # Test single symbol request
+    symbol = "AAPL"
+
+    reqmock.get(
+        f"https://data.alpaca.markets/v1beta1/options/snapshots/{symbol}",
+        text="""
+        {
+            "next_page_token": null,
+            "snapshots": {
+                "AAPL240503P00155000": {
+                    "greeks": {
+                        "delta": -0.06962352623019707,
+                        "gamma": 0.012407748296130911,
+                        "rho": -0.00233165154510125,
+                        "theta": -0.10116067021921063,
+                        "vega": 0.03143087569879542
+                    },
+                    "impliedVolatility": 0.4584478444465036,
+                    "latestQuote": {
+                        "ap": 0.35,
+                        "as": 119,
+                        "ax": "W",
+                        "bp": 0.32,
+                        "bs": 73,
+                        "bx": "N",
+                        "c": "A",
+                        "t": "2024-04-25T20:00:00.259610112Z"
+                    },
+                    "latestTrade": {
+                        "c": "I",
+                        "p": 0.34,
+                        "s": 1,
+                        "t": "2024-04-25T19:58:16.034908416Z",
+                        "x": "N"
+                    }
+                }
+            }
+        }
+        """,
+    )
+
+    request = OptionChainRequest(underlying_symbol=symbol)
+
+    snapshots = option_client.get_option_chain(request)
+
+    assert isinstance(snapshots, Dict)
+
+    snapshot = snapshots["AAPL240503P00155000"]
+
+    assert isinstance(snapshot, OptionsSnapshot)
+
+    assert snapshot.latest_trade.price == 0.34
+    assert snapshot.latest_quote.bid_size == 73
+    assert snapshot.greeks.delta == -0.06962352623019707
+    assert snapshot.greeks.gamma == 0.012407748296130911
+    assert snapshot.greeks.rho == -0.00233165154510125
+    assert snapshot.greeks.theta == -0.10116067021921063
+    assert snapshot.greeks.vega == 0.03143087569879542
+    assert snapshot.implied_volatility == 0.4584478444465036
 
     assert reqmock.called_once

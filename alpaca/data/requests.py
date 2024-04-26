@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any, List, Optional, Union
 
 import pytz
@@ -14,6 +14,7 @@ from alpaca.data.enums import (
     OptionsFeed,
 )
 from alpaca.data.timeframe import TimeFrame
+from alpaca.trading.enums import ContractType
 
 
 class BaseTimeseriesDataRequest(NonEmptyRequest):
@@ -429,10 +430,24 @@ class OptionChainRequest(NonEmptyRequest):
     Attributes:
         underlying_symbol (str): The underlying_symbol for option contracts.
         feed (Optional[OptionsFeed]): The source feed of the data. `opra` or `indicative`. Default: `opra` if the user has the options subscription, `indicative` otherwise.
+        type (Optional[ContractType]): Filter contracts by the type (call or put).
+        strike_price_gte (Optional[float]): Filter contracts with strike price greater than or equal to the specified value.
+        strike_price_lte (Optional[float]): Filter contracts with strike price less than or equal to the specified value.
+        expiration_date (Optional[Union[date, str]]): Filter contracts by the exact expiration date (format: YYYY-MM-DD).
+        expiration_date_gte (Optional[Union[date, str]]): Filter contracts with expiration date greater than or equal to the specified date.
+        expiration_date_lte (Optional[Union[date, str]]): Filter contracts with expiration date less than or equal to the specified date.
+        root_symbol (Optional[str]): Filter contracts by the root symbol.
     """
 
     underlying_symbol: str
     feed: Optional[OptionsFeed] = None
+    type: Optional[ContractType] = None
+    strike_price_gte: Optional[float] = None
+    strike_price_lte: Optional[float] = None
+    expiration_date: Optional[Union[date, str]] = None
+    expiration_date_gte: Optional[Union[date, str]] = None
+    expiration_date_lte: Optional[Union[date, str]] = None
+    root_symbol: Optional[str] = None
 
     model_config = ConfigDict(protected_namespaces=tuple())
 

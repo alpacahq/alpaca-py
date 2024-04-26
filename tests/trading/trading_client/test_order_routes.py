@@ -270,6 +270,33 @@ def test_replace_order(reqmock, trading_client: TradingClient):
 
     assert type(order) is Order
 
+def test_replace_order_validate_replace_request(reqmock, trading_client: TradingClient):
+    # qty
+    ReplaceOrderRequest(qty=1)
+    with pytest.raises(ValueError):
+        ReplaceOrderRequest(qty=0)
+        ReplaceOrderRequest(qty=0, limit_price=0.1)
+        ReplaceOrderRequest(qty=0, stop_price=0.1)
+        ReplaceOrderRequest(qty=0, trail=0.1)
+
+    # limit_price
+    ReplaceOrderRequest(limit_price=0.1)
+    ReplaceOrderRequest(qty=1, limit_price=0.1)
+    with pytest.raises(ValueError):
+        ReplaceOrderRequest(limit_price=0)
+
+    # stop_price
+    ReplaceOrderRequest(stop_price=0.1)
+    ReplaceOrderRequest(qty=1, stop_price=0.1)
+    with pytest.raises(ValueError):
+        ReplaceOrderRequest(stop_price=0)
+
+    # trail
+    ReplaceOrderRequest(trail=0.1)
+    ReplaceOrderRequest(qty=1, trail=0.1)
+    with pytest.raises(ValueError):
+        ReplaceOrderRequest(trail=0)
+
 
 def test_cancel_order_by_id(reqmock, trading_client: TradingClient):
     order_id = "61e69015-8549-4bfd-b9c3-01e75843f47d"

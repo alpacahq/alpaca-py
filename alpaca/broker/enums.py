@@ -424,4 +424,5 @@ class JournalStatus(str, Enum):
     REJECTED = "rejected"
     CANCELED = "canceled"
     REFUSED = "refused"
+    CORRECT = "correct"
     DELETED = "deleted"

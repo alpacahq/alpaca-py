@@ -824,8 +824,7 @@ def test_update_trade_configuration_for_account(reqmock, client: BrokerClient):
     account_id = "5fc0795e-1f16-40cc-aa90-ede67c39d7a9"
     config = factory.create_dummy_trade_account_configuration()
 
-    def match_request_text(request):
-        print(request.json())
+    def match_request_json(request):
         return request.json() == {
             "dtbp_check": "both",
             "fractional_trading": False,
@@ -840,7 +839,7 @@ def test_update_trade_configuration_for_account(reqmock, client: BrokerClient):
 
     reqmock.patch(
         f"{BaseURL.BROKER_SANDBOX.value}/v1/trading/accounts/{account_id}/account/configurations",
-        additional_matcher=match_request_text,
+        additional_matcher=match_request_json,
         text="""
         {
           "dtbp_check": "both",

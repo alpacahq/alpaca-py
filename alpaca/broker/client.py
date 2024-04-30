@@ -1,87 +1,83 @@
 import base64
-from typing import Callable, Iterator, List, Optional, Union, Dict
+from typing import Callable, Dict, Iterator, List, Optional, Union
 from uuid import UUID
 
 import sseclient
-
 from pydantic import TypeAdapter
 from requests import HTTPError, Response
 
-from .enums import ACHRelationshipStatus
 from alpaca.broker.models import (
-    ACHRelationship,
     Account,
+    ACHRelationship,
     Bank,
+    BatchJournalResponse,
     CIPInfo,
+    Journal,
+    Order,
     TradeAccount,
     TradeDocument,
     Transfer,
-    Order,
-    BatchJournalResponse,
-    Journal,
 )
-from .requests import (
-    CreateJournalRequest,
-    CreateBatchJournalRequest,
-    CreateReverseBatchJournalRequest,
-    GetJournalsRequest,
-    OrderRequest,
-    CancelOrderResponse,
-    UploadDocumentRequest,
-    CreateACHRelationshipRequest,
-    CreateACHTransferRequest,
-    CreateBankRequest,
-    CreateBankTransferRequest,
-    CreatePlaidRelationshipRequest,
-    GetAccountActivitiesRequest,
-    GetTradeDocumentsRequest,
-    GetTransfersRequest,
-    ListAccountsRequest,
-    CreateAccountRequest,
-    UpdateAccountRequest,
-    GetEventsRequest,
-)
-from alpaca.common.exceptions import APIError
 from alpaca.common.constants import (
     ACCOUNT_ACTIVITIES_DEFAULT_PAGE_SIZE,
     BROKER_DOCUMENT_UPLOAD_LIMIT,
 )
 from alpaca.common.enums import BaseURL, PaginationType
+from alpaca.common.exceptions import APIError
+from alpaca.common.utils import validate_symbol_or_asset_id, validate_uuid_id_param
+from alpaca.trading.enums import ActivityType
+from alpaca.trading.models import AccountConfiguration as TradeAccountConfiguration
 from alpaca.trading.models import (
-    PortfolioHistory,
-    Position,
     AllAccountsPositions,
-    ClosePositionResponse,
     Asset,
-    Watchlist,
+    BaseActivity,
     Calendar,
     Clock,
+    ClosePositionResponse,
     CorporateActionAnnouncement,
-    AccountConfiguration as TradeAccountConfiguration,
-)
-from alpaca.trading.models import (
-    BaseActivity,
     NonTradeActivity,
+    PortfolioHistory,
+    Position,
     TradeActivity,
+    Watchlist,
 )
 from alpaca.trading.requests import (
-    GetPortfolioHistoryRequest,
     ClosePositionRequest,
-    GetCalendarRequest,
-    UpdateWatchlistRequest,
     CreateWatchlistRequest,
-    ReplaceOrderRequest,
     GetAssetsRequest,
-    GetOrdersRequest,
-    GetOrderByIdRequest,
+    GetCalendarRequest,
     GetCorporateAnnouncementsRequest,
+    GetOrderByIdRequest,
+    GetOrdersRequest,
+    GetPortfolioHistoryRequest,
+    ReplaceOrderRequest,
+    UpdateWatchlistRequest,
 )
-from alpaca.trading.enums import (
-    ActivityType,
-)
+
 from ..common import RawData
 from ..common.rest import HTTPResult, RESTClient
-from alpaca.common.utils import validate_uuid_id_param, validate_symbol_or_asset_id
+from .enums import ACHRelationshipStatus
+from .requests import (
+    CancelOrderResponse,
+    CreateAccountRequest,
+    CreateACHRelationshipRequest,
+    CreateACHTransferRequest,
+    CreateBankRequest,
+    CreateBankTransferRequest,
+    CreateBatchJournalRequest,
+    CreateJournalRequest,
+    CreatePlaidRelationshipRequest,
+    CreateReverseBatchJournalRequest,
+    GetAccountActivitiesRequest,
+    GetEventsRequest,
+    GetJournalsRequest,
+    GetTradeDocumentsRequest,
+    GetTransfersRequest,
+    ListAccountsRequest,
+    OrderRequest,
+    UpdateAccountRequest,
+    UploadDocumentRequest,
+)
 
 
 class BrokerClient(RESTClient):
@@ -376,7 +372,7 @@ class BrokerClient(RESTClient):
 
         result = self.patch(
             f"/trading/accounts/{account_id}/account/configurations",
-            config.model_dump_json(),
+            config.model_dump(),
         )
 
         if self._use_raw_data:

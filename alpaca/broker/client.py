@@ -1,5 +1,5 @@
 import base64
-from typing import Callable, Iterator, List, Optional, Union, Dict
+from typing import Any, Callable, Dict, Iterator, List, Optional, Type, Union
 from uuid import UUID
 
 import sseclient
@@ -7,26 +7,36 @@ import sseclient
 from pydantic import TypeAdapter
 from requests import HTTPError, Response
 
-from .enums import ACHRelationshipStatus
+from alpaca.broker.enums import ACHRelationshipStatus
 from alpaca.broker.models import (
     ACHRelationship,
     Account,
     Bank,
-    CIPInfo,
     TradeAccount,
     TradeDocument,
     Transfer,
     Order,
     BatchJournalResponse,
     Journal,
+    Portfolio,
+    Subscription,
+    RebalancingRun,
+    BaseModel,
 )
-from .requests import (
+from alpaca.broker.requests import (
     CreateJournalRequest,
     CreateBatchJournalRequest,
+    CreatePortfolioRequest,
     CreateReverseBatchJournalRequest,
+    CreateRunRequest,
+    CreateSubscriptionRequest,
     GetJournalsRequest,
+    GetPortfoliosRequest,
+    GetRunsRequest,
+    GetSubscriptionsRequest,
     OrderRequest,
     CancelOrderResponse,
+    UpdatePortfolioRequest,
     UploadDocumentRequest,
     CreateACHRelationshipRequest,
     CreateACHTransferRequest,
@@ -79,8 +89,8 @@ from alpaca.trading.requests import (
 from alpaca.trading.enums import (
     ActivityType,
 )
-from ..common import RawData
-from ..common.rest import HTTPResult, RESTClient
+from alpaca.common import RawData
+from alpaca.common.rest import HTTPResult, RESTClient
 from alpaca.common.utils import validate_uuid_id_param, validate_symbol_or_asset_id
 
 
@@ -144,6 +154,33 @@ class BrokerClient(RESTClient):
         auth_string_encoded = base64.b64encode(str.encode(auth_string))
 
         return {"Authorization": "Basic " + auth_string_encoded.decode("utf-8")}
+
+    def _iterate_over_pages(
+        self,
+        endpoint: str,
+        params: Dict[str, Any],
+        response_field: str,
+        base_model_type: Type[BaseModel],
+    ) -> Iterator[Union[RawData, BaseModel]]:
+        """
+        Internal method to iterate over the result pages.
+        """
+
+        while True:
+            response = self.get(endpoint, params)
+            result = response[response_field]
+
+            if self._use_raw_data:
+                yield result
+
+            yield TypeAdapter(
+                List[base_model_type],
+            ).validate_python(result)
+
+            page_token = response.get("next_page_token", None)
+
+            if page_token is None:
+                break
 
     # ############################## ACCOUNTS/TRADING ACCOUNTS ################################# #
 
@@ -1909,3 +1946,293 @@ class BrokerClient(RESTClient):
         headers["Accept"] = "text/event-stream"
 
         return headers
+
+    # ############################## REBALANCING ################################# #
+
+    def create_portfolio(
+        self, portfolio_request: CreatePortfolioRequest
+    ) -> Union[Portfolio, RawData]:
+        """
+        Create a new portfolio.
+
+        Args:
+            portfolio_request (CreatePortfolioRequest): The details required to create a new portfolio.
+
+        Returns:
+            Portfolio: Newly created portfolio.
+        """
+
+        response = self.post(
+            "/rebalancing/portfolios", data=portfolio_request.to_request_fields()
+        )
+
+        if self._use_raw_data:
+            return response
+
+        return Portfolio(**response)
+
+    def get_all_portfolios(
+        self,
+        filter: Optional[GetPortfoliosRequest] = None,
+    ) -> Union[List[Portfolio], List[RawData]]:
+        """
+        Retrieves all portfolios based on the filter provided.
+
+        Args:
+            filter (Optional[GetPortfoliosRequest]): Filter criteria to narrow down portfolio list.
+
+        Returns:
+            List[Portfolio]: List of portfolios.
+        """
+
+        response = self.get(
+            "/rebalancing/portfolios", filter.to_request_fields() if filter else {}
+        )
+
+        if self._use_raw_data:
+            return response
+
+        return TypeAdapter(
+            List[Portfolio],
+        ).validate_python(response)
+
+    def get_portfolio_by_id(
+        self, portfolio_id: Union[UUID, str]
+    ) -> Union[Portfolio, RawData]:
+        """
+        Retrieves a specific portfolio using its ID.
+
+        Args:
+            portfolio_id (Union[UUID, str]): The ID of the desired portfolio.
+
+        Returns:
+            Portfolio: The portfolio queried.
+        """
+
+        response = self.get(f"/rebalancing/portfolios/{portfolio_id}")
+
+        if self._use_raw_data:
+            return response
+
+        return Portfolio(**response)
+
+    def update_portfolio_by_id(
+        self,
+        portfolio_id: Union[UUID, str],
+        update_request: UpdatePortfolioRequest,
+    ) -> Union[Portfolio, RawData]:
+        """
+        Updates a portfolio by ID.
+        If weights or conditions are changed, all subscribed accounts will be evaluated for rebalancing at the next opportunity (normal market hours).
+        If a cooldown is active on the portfolio, the rebalancing will occur after the cooldown expired.
+
+        Args:
+            portfolio_id (Union[UUID, str]): The ID of the portfolio to be updated.
+            update_request: The details to be updated for the portfolio.
+
+        Returns:
+            Portfolio: Updated portfolio.
+        """
+        portfolio_id = validate_uuid_id_param(portfolio_id)
+
+        response = self.patch(
+            f"/rebalancing/portfolios/{portfolio_id}",
+            data=update_request.to_request_fields(),
+        )
+
+        if self._use_raw_data:
+            return response
+
+        return Portfolio(**response)
+
+    def inactivate_portfolio_by_id(self, portfolio_id: Union[UUID, str]) -> None:
+        """
+        Sets a portfolio to “inactive”, so it can be filtered out of the list request.
+        Only permitted if there are no active subscriptions to this portfolio and this portfolio is not a listed in the weights of any active portfolios.
+        Inactive portfolios cannot be linked in new subscriptions or added as weights to new portfolios.
+
+        Args:
+            portfolio_id (Union[UUID, str]): The ID of the portfolio to be inactivated.
+        """
+        portfolio_id = validate_uuid_id_param(portfolio_id)
+
+        self.delete(
+            f"/rebalancing/portfolios/{portfolio_id}",
+        )
+
+    def create_subscription(
+        self, subscription_request: CreateSubscriptionRequest
+    ) -> Union[Subscription, RawData]:
+        """
+        Create a new subscription.
+
+        Args:
+            subscription_request (CreateSubscriptionRequest): The details required to create a new subscription.
+
+        Returns:
+            Subscription: Newly created subscription.
+        """
+
+        response = self.post(
+            "/rebalancing/subscriptions", data=subscription_request.to_request_fields()
+        )
+
+        if self._use_raw_data:
+            return response
+
+        return Subscription(**response)
+
+    def get_all_subscriptions(
+        self,
+        filter: Optional[GetSubscriptionsRequest] = None,
+        max_items_limit: Optional[int] = None,
+        handle_pagination: Optional[PaginationType] = None,
+    ) -> Union[List[Subscription], List[RawData]]:
+        """
+        Retrieves all subscriptions based on the filter provided.
+
+        Args:
+            filter (Optional[GetSubscriptionsRequest]): Filter criteria to narrow down subscription list.
+            max_items_limit (Optional[int]): A maximum number of items to return over all for when handle_pagination is
+              of type `PaginationType.FULL`. Ignored otherwise.
+            handle_pagination (Optional[PaginationType]): What kind of pagination you want. If None then defaults to
+              `PaginationType.FULL`.
+
+        Returns:
+            List[Subscription]: List of subscriptions.
+        """
+        handle_pagination = BrokerClient._validate_pagination(
+            max_items_limit, handle_pagination
+        )
+
+        subscriptions_iterator = self._iterate_over_pages(
+            endpoint="/rebalancing/subscriptions",
+            params=filter.to_request_fields() if filter else {},
+            response_field="subscriptions",
+            base_model_type=Subscription,
+        )
+
+        return BrokerClient._return_paginated_result(
+            subscriptions_iterator, handle_pagination
+        )
+
+    def get_subscription_by_id(
+        self, subscription_id: Union[UUID, str]
+    ) -> Union[Subscription, RawData]:
+        """
+        Get a subscription by its ID.
+
+        Args:
+            subscription_id (Union[UUID, str]): The ID of the desired subscription.
+
+        Returns:
+            Subscription: The subscription queried.
+        """
+        subscription_id = validate_uuid_id_param(subscription_id)
+
+        response = self.get(f"/rebalancing/subscriptions/{subscription_id}")
+
+        if self._use_raw_data:
+            return response
+
+        return Subscription(**response)
+
+    def unsubscribe_account(self, subscription_id: Union[UUID, str]) -> None:
+        """
+        Deletes the subscription which stops the rebalancing of an account.
+
+        Args:
+            subscription_id (Union[UUID, str]): The ID of the subscription to be removed.
+        """
+        subscription_id = validate_uuid_id_param(subscription_id)
+
+        self.delete(
+            f"/rebalancing/subscriptions/{subscription_id}",
+        )
+
+    def create_manual_run(
+        self, rebalancing_run_request: CreateRunRequest
+    ) -> Union[RebalancingRun, RawData]:
+        """
+        Create a new manual rebalancing run.
+
+        Args:
+            rebalancing_run_request: The details required to create a new rebalancing run.
+
+        Returns:
+            RebalancingRun: The rebalancing run initiated.
+        """
+
+        response = self.post(
+            "/rebalancing/runs", data=rebalancing_run_request.to_request_fields()
+        )
+
+        if self._use_raw_data:
+            return response
+
+        return RebalancingRun(**response)
+
+    def get_all_runs(
+        self,
+        filter: Optional[GetRunsRequest] = None,
+        max_items_limit: Optional[int] = None,
+        handle_pagination: Optional[PaginationType] = None,
+    ) -> Union[List[RebalancingRun], List[RawData]]:
+        """
+        Get all runs.
+
+        Args:
+            filter (Optional[GetRunsRequest]): Filter criteria to narrow down run list.
+            max_items_limit (Optional[int]): A maximum number of items to return over all for when handle_pagination is
+              of type `PaginationType.FULL`. Ignored otherwise.
+            handle_pagination (Optional[PaginationType]): What kind of pagination you want. If None then defaults to
+              `PaginationType.FULL`.
+
+        Returns:
+            List[RebalancingRun]: List of rebalancing runs.
+        """
+        handle_pagination = BrokerClient._validate_pagination(
+            max_items_limit, handle_pagination
+        )
+
+        runs_iterator = self._iterate_over_pages(
+            endpoint="/rebalancing/runs",
+            params=filter.to_request_fields() if filter else {},
+            response_field="runs",
+            base_model_type=RebalancingRun,
+        )
+
+        return BrokerClient._return_paginated_result(runs_iterator, handle_pagination)
+
+    def get_run_by_id(self, run_id: Union[UUID, str]) -> Union[RebalancingRun, RawData]:
+        """
+        Get a run by its ID.
+
+        Args:
+            run_id (Union[UUID, str]): The ID of the desired rebalancing run.
+
+        Returns:
+            RebalancingRun: The rebalancing run queried.
+        """
+        run_id = validate_uuid_id_param(run_id)
+
+        response = self.get(f"/rebalancing/subscriptions/{run_id}")
+
+        if self._use_raw_data:
+            return response
+
+        return RebalancingRun(**response)
+
+    def cancel_run_by_id(self, run_id: Union[UUID, str]) -> None:
+        """
+        Cancels a run.
+
+        Only runs within certain statuses (QUEUED, CANCELED, SELLS_IN_PROGRESS, BUYS_IN_PROGRESS) are cancelable.
+        If this endpoint is called after orders have been submitted, we’ll attempt to cancel the orders.
+
+        Args:
+            run_id (Union[UUID, str]): The ID of the desired rebalancing run.
+        """
+        run_id = validate_uuid_id_param(run_id)
+
+        self.delete(f"/rebalancing/runs/{run_id}")

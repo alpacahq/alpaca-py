@@ -6,29 +6,22 @@ from uuid import UUID
 
 import pytest
 
-from alpaca.trading.models import AccountConfiguration as TradeAccountConfiguration
-from alpaca.trading.enums import DTBPCheck, PDTCheck
 from alpaca.broker.client import BrokerClient
-from alpaca.broker.enums import (
-    AccountEntities,
-)
-from alpaca.broker.models import (
-    Account,
-    Contact,
-    Identity,
-    TradeAccount,
-)
+from alpaca.broker.enums import AccountEntities
+from alpaca.broker.models import Account, Contact, Identity, TradeAccount
 from alpaca.broker.requests import (
+    CreateAccountRequest,
+    ListAccountsRequest,
     UpdatableContact,
     UpdatableDisclosures,
     UpdatableIdentity,
     UpdatableTrustedContact,
-    ListAccountsRequest,
-    CreateAccountRequest,
     UpdateAccountRequest,
 )
-from alpaca.common.exceptions import APIError
 from alpaca.common.enums import BaseURL, SupportedCurrencies
+from alpaca.common.exceptions import APIError
+from alpaca.trading.enums import DTBPCheck, PDTCheck
+from alpaca.trading.models import AccountConfiguration as TradeAccountConfiguration
 from tests.broker.factories import accounts as factory
 
 
@@ -831,8 +824,22 @@ def test_update_trade_configuration_for_account(reqmock, client: BrokerClient):
     account_id = "5fc0795e-1f16-40cc-aa90-ede67c39d7a9"
     config = factory.create_dummy_trade_account_configuration()
 
+    def match_request_json(request):
+        return request.json() == {
+            "dtbp_check": "both",
+            "fractional_trading": False,
+            "max_margin_multiplier": "4",
+            "no_shorting": False,
+            "pdt_check": "entry",
+            "suspend_trade": False,
+            "trade_confirm_email": "all",
+            "ptp_no_exception_entry": False,
+            "max_options_trading_level": None,
+        }
+
     reqmock.patch(
         f"{BaseURL.BROKER_SANDBOX.value}/v1/trading/accounts/{account_id}/account/configurations",
+        additional_matcher=match_request_json,
         text="""
         {
           "dtbp_check": "both",

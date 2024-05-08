@@ -220,7 +220,9 @@ class RESTClient(ABC):
         """
         return self._request("GET", path, data, **kwargs)
 
-    def post(self, path: str, data: Optional[Union[dict, List[dict]]] = None) -> HTTPResult:
+    def post(
+        self, path: str, data: Optional[Union[dict, List[dict]]] = None
+    ) -> HTTPResult:
         """Performs a single POST request
 
         Args:

@@ -891,7 +891,7 @@ class BatchJournalRequestEntry(NonEmptyRequest):
 
     Attributes:
         to_account (UUID): Account to fund in batch journal request.
-        amount (float): The cash amount in USD to fund by.
+        amount (Union[str, float]): The cash amount in USD to fund by.
         transmitter_name (Optional[str]): For cash journals, travel rule related name info.
         transmitter_account_number (Optional[str]): For cash journals, travel rule account number info.
         transmitter_address (Optional[str]): For cash journals, travel rule related address info.

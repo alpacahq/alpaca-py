@@ -125,6 +125,7 @@ def test_create_account(reqmock, client: BrokerClient):
     assert reqmock.called_once
     assert type(returned_account) == Account
     assert returned_account.id == UUID(created_id)
+    assert returned_account.kyc_results is None
 
 
 def test_create_lct_account(reqmock, client: BrokerClient):
@@ -209,7 +210,8 @@ def test_create_lct_account(reqmock, client: BrokerClient):
           },
           "account_type": "trading",
           "trading_configurations": null,
-          "currency": "EUR"
+          "currency": "EUR",
+          "kyc_results": null
         }
         """,
     )
@@ -232,6 +234,7 @@ def test_create_lct_account(reqmock, client: BrokerClient):
     assert type(returned_account) == Account
     assert returned_account.id == UUID(created_id)
     assert returned_account.currency == currency
+    assert returned_account.kyc_results is None
 
 
 def test_get_account(reqmock, client: BrokerClient):
@@ -316,7 +319,14 @@ def test_get_account(reqmock, client: BrokerClient):
             "email_address": "agitated_golick_69906574@example.com"
           },
           "account_type": "trading",
-          "trading_configurations": null
+          "trading_configurations": null,
+          "kyc_results": {
+            "reject": {"IDENTITY_VERIFICATION": {}},
+            "accept": {"IDENTITY_VERIFICATION": {}},
+            "indeterminate": {"IDENTITY_VERIFICATION": {}},
+            "additional_information": "additional_information_test",
+            "summary": "pass"
+          }
         }
             """,
     )
@@ -326,6 +336,13 @@ def test_get_account(reqmock, client: BrokerClient):
     assert reqmock.called_once
     assert type(account) == Account
     assert account.id == UUID(account_id)
+
+    assert account.kyc_results is not None
+    assert account.kyc_results.reject == {"IDENTITY_VERIFICATION": {}}
+    assert account.kyc_results.accept == {"IDENTITY_VERIFICATION": {}}
+    assert account.kyc_results.indeterminate == {"IDENTITY_VERIFICATION": {}}
+    assert account.kyc_results.additional_information == "additional_information_test"
+    assert account.kyc_results.summary == "pass"
 
 
 def test_get_account_account_not_found(reqmock, client: BrokerClient):
@@ -473,6 +490,13 @@ def test_update_account(reqmock, client: BrokerClient):
     assert account.id == UUID(account_id)
     assert account.identity.family_name == family_name
 
+    assert account.kyc_results is not None
+    assert account.kyc_results.reject == {}
+    assert account.kyc_results.accept == {}
+    assert account.kyc_results.indeterminate == {}
+    assert account.kyc_results.additional_information is None
+    assert account.kyc_results.summary == "pass"
+
 
 def test_update_account_validates_account_id(reqmock, client: BrokerClient):
     # dummy update request just to test param parsing
@@ -582,6 +606,13 @@ def test_list_accounts_no_params(reqmock, client: BrokerClient):
         assert account.documents is None
         assert account.trusted_contact is None
         assert account.agreements is None
+
+        assert account.kyc_results is not None
+        assert account.kyc_results.reject == {}
+        assert account.kyc_results.accept == {}
+        assert account.kyc_results.indeterminate == {}
+        assert account.kyc_results.additional_information is None
+        assert account.kyc_results.summary == "pass"
 
 
 def test_list_accounts_parses_entities_if_present(reqmock, client: BrokerClient):
@@ -702,6 +733,13 @@ def test_list_accounts_parses_entities_if_present(reqmock, client: BrokerClient)
         assert account.documents is None
         assert account.trusted_contact is None
         assert account.agreements is None
+
+        assert account.kyc_results is not None
+        assert account.kyc_results.reject == {}
+        assert account.kyc_results.accept == {}
+        assert account.kyc_results.indeterminate == {}
+        assert account.kyc_results.additional_information is None
+        assert account.kyc_results.summary == "pass"
 
 
 def test_get_trade_account_by_id(reqmock, client: BrokerClient):

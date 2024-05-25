@@ -157,7 +157,7 @@ class Agreement(BaseModel):
     agreement: AgreementType
     signed_at: str
     ip_address: str
-    revision: Optional[str]
+    revision: Optional[str] = None
 
 
 class TrustedContact(BaseModel):

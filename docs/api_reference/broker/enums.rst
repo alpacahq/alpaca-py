@@ -136,3 +136,8 @@ JournalStatus
 -------------
 
 .. autoenum:: alpaca.broker.enums.JournalStatus
+
+CommissionType
+----------------------
+
+.. autoenum:: alpaca.broker.enums.CommissionType

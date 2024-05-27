@@ -426,3 +426,14 @@ class JournalStatus(str, Enum):
     REFUSED = "refused"
     CORRECT = "correct"
     DELETED = "deleted"
+
+
+class CommissionType(str, Enum):
+    """
+    Represents the available ways of charging commission. This determines how
+    the value in the commission field is interpreted.
+    """
+
+    NOTIONAL = "notional"
+    BPS = "bps"
+    QTY = "qty"

@@ -93,7 +93,7 @@ def test_order_commission_type(reqmock, client: BrokerClient):
             "side": "buy",
             "type": "market",
             "time_in_force": "day",
-            "commission": 1.25,
+            "commission": 100,
             "commission_type": "bps",
         }
 
@@ -134,7 +134,7 @@ def test_order_commission_type(reqmock, client: BrokerClient):
           "trail_percent": null,
           "trail_price": null,
           "hwm": null,
-          "commission": 1.25,
+          "commission": 100,
           "commission_type": "bps"
         }
         """,
@@ -145,7 +145,7 @@ def test_order_commission_type(reqmock, client: BrokerClient):
         side=OrderSide.BUY,
         time_in_force=TimeInForce.DAY,
         qty=1,
-        commission=1.25,
+        commission=100,
         commission_type=CommissionType.BPS,
     )
 
@@ -156,7 +156,7 @@ def test_order_commission_type(reqmock, client: BrokerClient):
     assert reqmock.call_count == 2
     assert isinstance(mo_response, Order)
     assert mo_response.status == OrderStatus.ACCEPTED
-    assert mo_response.commission == 1.25
+    assert mo_response.commission == 100
     assert mo_response.commission_type == CommissionType.BPS
 
     # 3. commission_type per qty

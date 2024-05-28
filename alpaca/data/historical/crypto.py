@@ -46,6 +46,8 @@ class CryptoHistoricalDataClient(RESTClient):
         oauth_token: Optional[str] = None,
         raw_data: bool = False,
         url_override: Optional[str] = None,
+        use_basic_auth: bool = False,
+        sandbox: bool = False,
     ) -> None:
         """
         Instantiates a Historical Data Client for Crypto Data.
@@ -58,15 +60,26 @@ class CryptoHistoricalDataClient(RESTClient):
               methods. Defaults to False. This has not been implemented yet.
             url_override (Optional[str], optional): If specified allows you to override the base url the client points
               to for proxy/testing.
+            use_basic_auth (bool, optional): If true, API requests will use basic authorization headers. Set to true if using
+              broker api sandbox credentials
+            sandbox (bool): True if using sandbox mode. Defaults to False.
         """
+
+        base_url = (
+            url_override
+            if url_override is not None
+            else BaseURL.DATA_SANDBOX if sandbox else BaseURL.DATA
+        )
+
         super().__init__(
             api_key=api_key,
             secret_key=secret_key,
             oauth_token=oauth_token,
             api_version="v1beta3",
-            base_url=url_override if url_override is not None else BaseURL.DATA,
-            sandbox=False,
+            base_url=base_url,
+            sandbox=sandbox,
             raw_data=raw_data,
+            use_basic_auth=use_basic_auth,
         )
 
     def get_crypto_bars(

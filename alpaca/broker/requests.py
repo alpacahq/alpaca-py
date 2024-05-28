@@ -667,6 +667,7 @@ class OrderRequest(BaseOrderRequest):
     """
 
     commission: Optional[float] = None
+    commission_type: Optional[CommissionType] = None
     currency: Optional[SupportedCurrencies] = None  # None = USD
 
     @model_validator(mode="before")

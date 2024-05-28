@@ -58,6 +58,7 @@ def test_order_commission_type(reqmock, client: BrokerClient):
         side=OrderSide.BUY,
         time_in_force=TimeInForce.DAY,
         qty=1,
+        commission=1.25,
         commission_type=CommissionType.NOTIONAL,
     )
 
@@ -66,6 +67,8 @@ def test_order_commission_type(reqmock, client: BrokerClient):
     mo_response = client.submit_order_for_account(account_id, mo)
 
     assert mo_response.status == OrderStatus.ACCEPTED
+    assert mo_response.commission == 1.25
+    assert mo_response.commission_type == CommissionType.NOTIONAL
 
     # 2. commission_type bps
     reqmock.post(
@@ -115,6 +118,7 @@ def test_order_commission_type(reqmock, client: BrokerClient):
         side=OrderSide.BUY,
         time_in_force=TimeInForce.DAY,
         qty=1,
+        commission=1.25,
         commission_type=CommissionType.BPS,
     )
 
@@ -123,6 +127,8 @@ def test_order_commission_type(reqmock, client: BrokerClient):
     mo_response = client.submit_order_for_account(account_id, mo)
 
     assert mo_response.status == OrderStatus.ACCEPTED
+    assert mo_response.commission == 1.25
+    assert mo_response.commission_type == CommissionType.BPS
 
     # 3. commission_type per qty
     reqmock.post(
@@ -162,7 +168,7 @@ def test_order_commission_type(reqmock, client: BrokerClient):
           "trail_price": null,
           "hwm": null,
           "commission": 1.25,
-          "commission_type": "bps"
+          "commission_type": "qty"
         }
         """,
     )
@@ -172,6 +178,7 @@ def test_order_commission_type(reqmock, client: BrokerClient):
         side=OrderSide.BUY,
         time_in_force=TimeInForce.DAY,
         qty=1,
+        commission=1.25,
         commission_type=CommissionType.QTY,
     )
 
@@ -180,3 +187,5 @@ def test_order_commission_type(reqmock, client: BrokerClient):
     mo_response = client.submit_order_for_account(account_id, mo)
 
     assert mo_response.status == OrderStatus.ACCEPTED
+    assert mo_response.commission == 1.25
+    assert mo_response.commission_type == CommissionType.QTY

@@ -892,6 +892,7 @@ class BatchJournalRequestEntry(NonEmptyRequest):
     Attributes:
         to_account (UUID): Account to fund in batch journal request.
         amount (Union[str, float]): The cash amount in USD to fund by.
+        description (Optional[str]): Journal description.
         transmitter_name (Optional[str]): For cash journals, travel rule related name info.
         transmitter_account_number (Optional[str]): For cash journals, travel rule account number info.
         transmitter_address (Optional[str]): For cash journals, travel rule related address info.
@@ -901,6 +902,7 @@ class BatchJournalRequestEntry(NonEmptyRequest):
 
     to_account: UUID
     amount: Union[str, float]
+    description: Optional[str] = None
     transmitter_name: Optional[str] = None
     transmitter_account_number: Optional[str] = None
     transmitter_address: Optional[str] = None

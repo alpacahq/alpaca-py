@@ -1,4 +1,5 @@
 import base64
+import warnings
 from typing import Callable, Dict, Iterator, List, Optional, Union
 from uuid import UUID
 
@@ -223,14 +224,37 @@ class BrokerClient(RESTClient):
         account_id: Union[UUID, str],
     ) -> None:
         """
-        Delete an Account by its id.
-
-        As the api itself returns a 204 on success this function returns nothing in the successful case and will raise
-        and exception in any other case.
+        DEPRECATED:
+            delete_account is deprecated and will be removed in a future version.
+            Please use `close_account(account_id)` instead
 
         Args:
-            account_id (Union[UUID, str]): the id of the Account you wish to delete. str values will attempt to be
-            upcast to UUID to validate.
+            account_id (Union[UUID, str]): The id of the account to be closed
+
+        Returns:
+            None:
+        """
+        warnings.warn(
+            "delete_account is deprecated and will be removed in a future version."
+            "Please use `close_account(account_id)` instead",
+            DeprecationWarning,
+        )
+
+        self.close_account(account_id)
+
+    def close_account(
+        self,
+        account_id: Union[UUID, str],
+    ) -> None:
+        """
+        This operation closes an active account. The underlying records and information of the account are not deleted by this operation.
+
+        Before closing an account, you are responsible for closing all the positions and withdrawing all the money associated with that account.
+
+        ref. https://docs.alpaca.markets/reference/post-v1-accounts-account_id-actions-close-1
+
+        Args:
+            account_id (Union[UUID, str]): The id of the account to be closed
 
         Returns:
             None:
@@ -238,7 +262,7 @@ class BrokerClient(RESTClient):
 
         account_id = validate_uuid_id_param(account_id)
 
-        self.delete(f"/accounts/{account_id}")
+        self.post(f"/accounts/{account_id}/actions/close")
 
     def list_accounts(
         self,

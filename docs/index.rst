@@ -8,6 +8,7 @@
    api_reference/index
 
 .. meta::
+   :image: https://alpaca.markets/static/images/meta-image-alpaca-py.png
    :description: The Official Python SDK for Alpaca's Suite of APIs
    
 

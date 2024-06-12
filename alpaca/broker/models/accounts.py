@@ -1,10 +1,9 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
-from pydantic import TypeAdapter, model_validator, field_validator, ValidationInfo
+from pydantic import TypeAdapter, ValidationInfo, field_validator, model_validator
 
-from alpaca.broker.models.documents import AccountDocument
 from alpaca.broker.enums import (
     AgreementType,
     ClearingBroker,
@@ -13,12 +12,31 @@ from alpaca.broker.enums import (
     TaxIdType,
     VisaType,
 )
+from alpaca.broker.models.documents import AccountDocument
+from alpaca.common.models import ModelWithID
+from alpaca.common.models import ValidateBaseModel as BaseModel
 from alpaca.trading.enums import AccountStatus
-from alpaca.common.models import (
-    ModelWithID,
-    ValidateBaseModel as BaseModel,
-)
 from alpaca.trading.models import TradeAccount as BaseTradeAccount
+
+
+class KycResults(BaseModel):
+    """
+    Hold information about the result of KYC.
+    ref. https://docs.alpaca.markets/reference/getaccount
+
+    Attributes:
+        reject (Optional[Dict[str, Any]]): The reason for the rejection
+        accept (Optional[Dict[str, Any]]): The reason for the acceptance
+        indeterminate (Optional[Dict[str, Any]]): The reason for the indeterminate result
+        additional_information (Optional[str]): Used to display a custom message
+        summary (Optional[str]): Either pass or fail. Used to indicate if KYC has completed and passed or not.
+    """
+
+    reject: Optional[Dict[str, Any]] = None
+    accept: Optional[Dict[str, Any]] = None
+    indeterminate: Optional[Dict[str, Any]] = None
+    additional_information: Optional[str] = None
+    summary: Optional[str] = None
 
 
 class Contact(BaseModel):
@@ -218,6 +236,7 @@ class Account(ModelWithID):
         account_number (str): A more human friendly identifier for this account
         status (AccountStatus): The approval status of this account
         crypto_status (Optional[AccountStatus]): The crypto trading status. Only present if crypto trading is enabled.
+        kyc_results (Optional[KycResult]): Hold information about the result of KYC.
         currency (str): The currency the account's values are returned in
         last_equity (str): The total equity value stored in the account
         created_at (str): The timestamp when the account was created
@@ -232,6 +251,7 @@ class Account(ModelWithID):
     account_number: str
     status: AccountStatus
     crypto_status: Optional[AccountStatus] = None
+    kyc_results: Optional[KycResults] = None
     currency: str
     last_equity: str
     created_at: str
@@ -249,6 +269,11 @@ class Account(ModelWithID):
             status=(response["status"]),
             crypto_status=(
                 response["crypto_status"] if "crypto_status" in response else None
+            ),
+            kyc_results=(
+                TypeAdapter(KycResults).validate_python(response["kyc_results"])
+                if "kyc_results" in response and response["kyc_results"] is not None
+                else None
             ),
             currency=(response["currency"]),
             last_equity=(response["last_equity"]),

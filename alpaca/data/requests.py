@@ -38,8 +38,6 @@ class BaseTimeseriesDataRequest(NonEmptyRequest):
     currency: Optional[SupportedCurrencies] = None  # None = USD
     sort: Optional[Sort] = None  # None = asc
 
-    model_config = ConfigDict(protected_namespaces=tuple())
-
     def __init__(self, **data: Any) -> None:
         # convert timezone aware datetime to timezone naive UTC datetime
         if (
@@ -233,8 +231,6 @@ class BaseStockLatestDataRequest(NonEmptyRequest):
     feed: Optional[DataFeed] = None
     currency: Optional[SupportedCurrencies] = None  # None = USD
 
-    model_config = ConfigDict(protected_namespaces=tuple())
-
 
 class StockLatestTradeRequest(BaseStockLatestDataRequest):
     """
@@ -289,8 +285,6 @@ class BaseCryptoLatestDataRequest(NonEmptyRequest):
 
     symbol_or_symbols: Union[str, List[str]]
 
-    model_config = ConfigDict(protected_namespaces=tuple())
-
 
 class CryptoLatestTradeRequest(BaseCryptoLatestDataRequest):
     """
@@ -344,8 +338,6 @@ class BaseOptionLatestDataRequest(NonEmptyRequest):
     symbol_or_symbols: Union[str, List[str]]
     feed: Optional[OptionsFeed] = None
 
-    model_config = ConfigDict(protected_namespaces=tuple())
-
 
 class OptionLatestQuoteRequest(BaseOptionLatestDataRequest):
     """
@@ -392,8 +384,6 @@ class StockSnapshotRequest(NonEmptyRequest):
     feed: Optional[DataFeed] = None
     currency: Optional[SupportedCurrencies] = None  # None = USD
 
-    model_config = ConfigDict(protected_namespaces=tuple())
-
 
 class CryptoSnapshotRequest(NonEmptyRequest):
     """
@@ -404,8 +394,6 @@ class CryptoSnapshotRequest(NonEmptyRequest):
     """
 
     symbol_or_symbols: Union[str, List[str]]
-
-    model_config = ConfigDict(protected_namespaces=tuple())
 
 
 class OptionSnapshotRequest(NonEmptyRequest):
@@ -419,8 +407,6 @@ class OptionSnapshotRequest(NonEmptyRequest):
 
     symbol_or_symbols: Union[str, List[str]]
     feed: Optional[OptionsFeed] = None
-
-    model_config = ConfigDict(protected_namespaces=tuple())
 
 
 class OptionChainRequest(NonEmptyRequest):
@@ -449,8 +435,6 @@ class OptionChainRequest(NonEmptyRequest):
     expiration_date_lte: Optional[Union[date, str]] = None
     root_symbol: Optional[str] = None
 
-    model_config = ConfigDict(protected_namespaces=tuple())
-
 
 # ############################## Orderbooks ################################# #
 
@@ -465,8 +449,6 @@ class CryptoLatestOrderbookRequest(NonEmptyRequest):
 
     symbol_or_symbols: Union[str, List[str]]
 
-    model_config = ConfigDict(protected_namespaces=tuple())
-
 
 # ############################## Screener #################################### #
 
@@ -480,8 +462,6 @@ class ScreenerRequest(NonEmptyRequest):
     """
 
     top: int = 10
-
-    model_config = ConfigDict(protected_namespaces=tuple())
 
 
 class MostActivesRequest(ScreenerRequest):
@@ -534,5 +514,3 @@ class NewsRequest(NonEmptyRequest):
     include_content: Optional[bool] = None
     exclude_contentless: Optional[bool] = None
     page_token: Optional[str] = None
-
-    model_config = ConfigDict(protected_namespaces=tuple())

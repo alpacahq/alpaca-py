@@ -99,10 +99,13 @@ class StockBarsRequest(BaseBarsRequest):
         adjustment (Optional[Adjustment]): The type of corporate action data normalization.
         feed (Optional[DataFeed]): The stock data feed to retrieve from.
         sort (Optional[Sort]): The chronological order of response based on the timestamp. Defaults to ASC.
+        asof (Optional[str]): The asof date of the queried stock symbol(s) in YYYY-MM-DD format.
+        currency (Optional[SupportedCurrencies]): The currency of all prices in ISO 4217 format. Default is USD.
     """
 
     adjustment: Optional[Adjustment] = None
     feed: Optional[DataFeed] = None
+    asof: Optional[str] = None
 
 
 class CryptoBarsRequest(BaseBarsRequest):
@@ -155,9 +158,12 @@ class StockQuotesRequest(BaseTimeseriesDataRequest):
         limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
         feed (Optional[DataFeed]): The stock data feed to retrieve from.
         sort (Optional[Sort]): The chronological order of response based on the timestamp. Defaults to ASC.
+        asof (Optional[str]): The asof date of the queried stock symbol(s) in YYYY-MM-DD format.
+        currency (Optional[SupportedCurrencies]): The currency of all prices in ISO 4217 format. Default is USD.
     """
 
     feed: Optional[DataFeed] = None
+    asof: Optional[str] = None
 
 
 # ############################## Trades ################################# #
@@ -176,9 +182,12 @@ class StockTradesRequest(BaseTimeseriesDataRequest):
         limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
         feed (Optional[DataFeed]): The stock data feed to retrieve from.
         sort (Optional[Sort]): The chronological order of response based on the timestamp. Defaults to ASC.
+        asof (Optional[str]): The asof date of the queried stock symbol(s) in YYYY-MM-DD format.
+        currency (Optional[SupportedCurrencies]): The currency of all prices in ISO 4217 format. Default is USD.
     """
 
     feed: Optional[DataFeed] = None
+    asof: Optional[str] = None
 
 
 class CryptoTradesRequest(BaseTimeseriesDataRequest):
@@ -245,6 +254,7 @@ class StockLatestTradeRequest(BaseStockLatestDataRequest):
     Attributes:
         symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
         feed (Optional[DataFeed]): The stock data feed to retrieve from.
+        currency (Optional[SupportedCurrencies]): The currency the data should be returned in. Default to USD.
     """
 
     pass
@@ -259,6 +269,7 @@ class StockLatestQuoteRequest(BaseStockLatestDataRequest):
     Attributes:
         symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
         feed (Optional[DataFeed]): The stock data feed to retrieve from.
+        currency (Optional[SupportedCurrencies]): The currency the data should be returned in. Default to USD.
     """
 
     pass
@@ -273,6 +284,7 @@ class StockLatestBarRequest(BaseStockLatestDataRequest):
     Attributes:
         symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
         feed (Optional[DataFeed]): The stock data feed to retrieve from.
+        currency (Optional[SupportedCurrencies]): The currency the data should be returned in. Default to USD.
     """
 
     pass

@@ -28,8 +28,6 @@ class Snapshot(BaseModel):
     daily_bar: Optional[Bar] = None
     previous_daily_bar: Optional[Bar] = None
 
-    model_config = ConfigDict(protected_namespaces=tuple())
-
     def __init__(self, symbol: str, raw_data: Dict[str, RawData]) -> None:
         """Instantiates a Snapshot.
 
@@ -81,8 +79,6 @@ class OptionsGreeks(BaseModel):
     theta: float
     vega: float
 
-    model_config = ConfigDict(protected_namespaces=tuple())
-
     def __init__(self, raw_data: RawData) -> None:
         """Instantiates an OptionGreeks object.
 
@@ -109,8 +105,6 @@ class OptionsSnapshot(BaseModel):
     latest_quote: Optional[Quote] = None
     implied_volatility: Optional[float] = None
     greeks: Optional[OptionsGreeks] = None
-
-    model_config = ConfigDict(protected_namespaces=tuple())
 
     def __init__(self, symbol: str, raw_data: Dict[str, RawData]) -> None:
         """Instantiates a Snapshot.

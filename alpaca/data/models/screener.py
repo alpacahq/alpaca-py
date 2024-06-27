@@ -21,8 +21,6 @@ class ActiveStock(BaseModel):
     volume: float
     trade_count: float
 
-    model_config = ConfigDict(protected_namespaces=tuple())
-
 
 class MostActives(BaseModel):
     """
@@ -36,8 +34,6 @@ class MostActives(BaseModel):
 
     most_actives: List[ActiveStock]
     last_updated: datetime
-
-    model_config = ConfigDict(protected_namespaces=tuple())
 
 
 class Mover(BaseModel):
@@ -54,8 +50,6 @@ class Mover(BaseModel):
     percent_change: float
     change: float
     price: float
-
-    model_config = ConfigDict(protected_namespaces=tuple())
 
 
 class Movers(BaseModel):
@@ -74,5 +68,3 @@ class Movers(BaseModel):
     losers: List[Mover]
     market_type: MarketType
     last_updated: datetime
-
-    model_config = ConfigDict(protected_namespaces=tuple())

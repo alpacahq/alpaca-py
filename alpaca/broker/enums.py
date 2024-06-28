@@ -69,7 +69,7 @@ class VisaType(str, Enum):
     H1B = "H1B"
     J1 = "J1"
     L1 = "L1"
-    Other = "Other"
+    Other = "OTHER"
     O1 = "O1"
     TN1 = "TN1"
 

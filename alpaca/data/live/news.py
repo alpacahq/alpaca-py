@@ -6,17 +6,17 @@ from alpaca.common.websocket import BaseStream
 
 class NewsDataStream(BaseStream):
     """
-     A WebSocket client for streaming news.
-     """
+    A WebSocket client for streaming news.
+    """
 
     def __init__(
-         self,
-         api_key: str,
-         secret_key: str,
-         raw_data: bool = False,
-         websocket_params: Optional[Dict] = None,
-         url_override: Optional[str] = None,
-     ) -> None:
+        self,
+        api_key: str,
+        secret_key: str,
+        raw_data: bool = False,
+        websocket_params: Optional[Dict] = None,
+        url_override: Optional[str] = None,
+    ) -> None:
         """
         Instantiates a WebSocket client for accessing live news.
         Args:
@@ -29,13 +29,13 @@ class NewsDataStream(BaseStream):
                 points to for proxy/testing. Defaults to None.
         """
         super().__init__(
-             endpoint=(
-                 url_override
-                 if url_override is not None
-                 else BaseURL.MARKET_DATA_STREAM.value + "/v1beta1/news"
-             ),
-             api_key=api_key,
-             secret_key=secret_key,
-             raw_data=raw_data,
-             websocket_params=websocket_params,
-         )
+            endpoint=(
+                url_override
+                if url_override is not None
+                else BaseURL.MARKET_DATA_STREAM.value + "/v1beta1/news"
+            ),
+            api_key=api_key,
+            secret_key=secret_key,
+            raw_data=raw_data,
+            websocket_params=websocket_params,
+        )

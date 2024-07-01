@@ -50,7 +50,7 @@ class News(BaseModel):
     symbols: List[str]
     author: str
     content: str
-    images: Optional[List[NewsImage]] = None # only in historical
+    images: Optional[List[NewsImage]] = None  # only in historical
 
     def __init__(self, raw_data: RawData) -> None:
         """Instantiates a news article
@@ -82,9 +82,10 @@ class NewsSet(BaseDataSet, TimeSeriesMixin):
         parsed_news = {}
         articles = []
 
-        for article in raw_data["news"]:
+        for article in raw_data.get("news", []):
             articles.append(News(raw_data=article))
 
         parsed_news["news"] = articles
+        parsed_news["next_page_token"] = raw_data.get("next_page_token")
 
-        super().__init__(data=parsed_news)
+        super().__init__(**parsed_news)

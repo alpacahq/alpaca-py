@@ -58,4 +58,4 @@ class NewsClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return NewsSet(**response)
+        return NewsSet(response)

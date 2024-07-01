@@ -1,7 +1,5 @@
 from typing import Dict, Optional
 
-from pydantic import ConfigDict
-
 from alpaca.common.models import ValidateBaseModel as BaseModel
 from alpaca.common.types import RawData
 from alpaca.data.mappings import SNAPSHOT_MAPPING

@@ -1,29 +1,28 @@
 from collections import defaultdict
 from enum import Enum
-from typing import List, Optional, Union, Type, Dict
+from typing import Dict, List, Optional, Type, Union
 
+from alpaca.common.constants import DATA_V2_MAX_LIMIT
 from alpaca.common.enums import BaseURL
-from alpaca.common.rest import RESTClient, HTTPResult
+from alpaca.common.rest import HTTPResult, RESTClient
 from alpaca.common.types import RawData
-from alpaca.data import Quote, Trade, Snapshot, Bar
+from alpaca.data import Bar, Quote, Snapshot, Trade
 from alpaca.data.historical.utils import (
-    parse_obj_as_symbol_dict,
-    format_latest_data_response,
     format_dataset_response,
+    format_latest_data_response,
     format_snapshot_data,
+    parse_obj_as_symbol_dict,
 )
-
 from alpaca.data.models import BarSet, QuoteSet, TradeSet
 from alpaca.data.requests import (
     StockBarsRequest,
-    StockQuotesRequest,
-    StockTradesRequest,
-    StockLatestTradeRequest,
-    StockLatestQuoteRequest,
-    StockSnapshotRequest,
     StockLatestBarRequest,
+    StockLatestQuoteRequest,
+    StockLatestTradeRequest,
+    StockQuotesRequest,
+    StockSnapshotRequest,
+    StockTradesRequest,
 )
-from alpaca.common.constants import DATA_V2_MAX_LIMIT
 
 
 class DataExtensionType(Enum):

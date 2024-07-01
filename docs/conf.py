@@ -19,6 +19,7 @@ sys.path.insert(0, os.path.abspath("../"))
 # NameError: Field "model_fields" conflicts with member {} of protected namespace "model_".
 # ref. https://github.com/pydantic/pydantic/discussions/7763#discussioncomment-8417097
 import alpaca.data.models.screener  # noqa # pylint: disable=unused-import
+import alpaca.data.models.news  # noqa # pylint: disable=unused-import
 
 # -- Project information -----------------------------------------------------
 

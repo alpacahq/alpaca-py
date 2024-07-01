@@ -1,10 +1,11 @@
-from typing import Optional, Dict
+from typing import Awaitable, Callable, Dict, Optional, Union
 
 from alpaca.common.enums import BaseURL
-from alpaca.common.websocket import BaseStream
+from alpaca.data.live.websocket import DataStream
+from alpaca.data.models.news import News
 
 
-class NewsDataStream(BaseStream):
+class NewsDataStream(DataStream):
     """
     A WebSocket client for streaming news.
     """
@@ -39,3 +40,23 @@ class NewsDataStream(BaseStream):
             raw_data=raw_data,
             websocket_params=websocket_params,
         )
+
+    def subscribe_news(
+        self, handler: Callable[[Union[News, Dict]], Awaitable[None]], *symbols: str
+    ) -> None:
+        """Subscribe to news
+
+        Args:
+            handler (Callable[[Union[News, Dict]], Awaitable[None]]): The coroutine callback
+                function to handle the incoming data.
+            *symbols: List of ticker symbols to subscribe to. "*" for everything.
+        """
+        self._subscribe(handler, symbols, self._handlers["news"])
+
+    def unsubscribe_news(self, *symbols: str) -> None:
+        """Unsubscribe from news
+
+        Args:
+            *symbols (str): List of ticker symbols to unsubscribe from. "*" for everything.
+        """
+        self._unsubscribe("news", symbols)

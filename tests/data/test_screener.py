@@ -1,10 +1,7 @@
-from alpaca.data.historical.screener import ScreenerClient
-
-from alpaca.data.requests import MarketMoversRequest, MostActivesRequest
-
-from alpaca.data.models.screener import MostActives, Movers
-
 from alpaca.common.enums import BaseURL
+from alpaca.data.historical.screener import ScreenerClient
+from alpaca.data.models.screener import MostActives, Movers
+from alpaca.data.requests import MarketMoversRequest, MostActivesRequest
 
 
 def test_get_market_movers(reqmock, screener_client: ScreenerClient):

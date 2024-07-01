@@ -1,9 +1,7 @@
 from datetime import datetime
 from typing import List
 
-from pydantic import ConfigDict
 from alpaca.common.models import ValidateBaseModel as BaseModel
-
 from alpaca.data.enums import MarketType
 
 

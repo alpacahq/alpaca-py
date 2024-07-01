@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Type, Dict
+from typing import Dict, Type
 
 from alpaca.common import HTTPResult, RawData
 

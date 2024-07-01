@@ -1,14 +1,10 @@
 from typing import Optional, Union
 
-from alpaca.common.rest import RESTClient
-
 from alpaca.common.enums import BaseURL
-
-from alpaca.data.requests import MarketMoversRequest, MostActivesRequest
-
-from alpaca.data.models.screener import MostActives, Movers
-
+from alpaca.common.rest import RESTClient
 from alpaca.common.types import RawData
+from alpaca.data.models.screener import MostActives, Movers
+from alpaca.data.requests import MarketMoversRequest, MostActivesRequest
 
 
 class ScreenerClient(RESTClient):

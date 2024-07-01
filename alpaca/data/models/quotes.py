@@ -1,8 +1,6 @@
 from datetime import datetime
 from typing import Dict, List, Optional, Union
 
-from pydantic import ConfigDict
-
 from alpaca.common.models import ValidateBaseModel as BaseModel
 from alpaca.common.types import RawData
 from alpaca.data.enums import Exchange
@@ -16,24 +14,24 @@ class Quote(BaseModel):
     Attributes:
         symbol (str): The ticker identifier for the security whose data forms the quote.
         timestamp (datetime): The time of submission of the quote.
-        ask_exchange (Optional[str, Exchange]): The exchange the quote ask originates. Defaults to None.
-        ask_price (float): The asking price of the quote.
-        ask_size (float): The size of the quote ask.
-        bid_exchange (Optional[str, Exchange]): The exchange the quote bid originates. Defaults to None.
         bid_price (float): The bidding price of the quote.
         bid_size (float): The size of the quote bid.
+        bid_exchange (Optional[str, Exchange]): The exchange the quote bid originates. Defaults to None.
+        ask_price (float): The asking price of the quote.
+        ask_size (float): The size of the quote ask.
+        ask_exchange (Optional[str, Exchange]): The exchange the quote ask originates. Defaults to None.
         conditions (Optional[Union[List[str], str]]): The quote conditions. Defaults to None.
         tape (Optional[str]): The quote tape. Defaults to None.
     """
 
     symbol: str
     timestamp: datetime
-    ask_exchange: Optional[Union[str, Exchange]] = None
-    ask_price: float
-    ask_size: float
-    bid_exchange: Optional[Union[str, Exchange]] = None
     bid_price: float
     bid_size: float
+    bid_exchange: Optional[Union[str, Exchange]] = None
+    ask_price: float
+    ask_size: float
+    ask_exchange: Optional[Union[str, Exchange]] = None
     conditions: Optional[Union[List[str], str]] = None
     tape: Optional[str] = None
 

@@ -11,6 +11,8 @@ from alpaca.data.historical.option import OptionHistoricalDataClient
 from alpaca.data.historical.screener import ScreenerClient
 from alpaca.trading.client import TradingClient
 
+pytest_plugins = ("pytest_asyncio",)
+
 
 @pytest.fixture
 def reqmock() -> Iterator[Mocker]:

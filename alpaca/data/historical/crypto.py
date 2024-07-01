@@ -16,6 +16,7 @@ from alpaca.data.models import BarSet, QuoteSet, TradeSet, Orderbook, Trade, Quo
 from alpaca.data.historical.stock import DataExtensionType
 from alpaca.data.requests import (
     CryptoBarsRequest,
+    CryptoQuoteRequest,
     CryptoTradesRequest,
     CryptoLatestTradeRequest,
     CryptoLatestQuoteRequest,
@@ -110,6 +111,35 @@ class CryptoHistoricalDataClient(RESTClient):
             return raw_bars
 
         return BarSet(raw_bars)
+
+    def get_crypto_quotes(
+        self, request_params: CryptoQuoteRequest, feed: CryptoFeed = CryptoFeed.US
+    ) -> Union[QuoteSet, RawData]:
+        """Returns the quote data for a cryptocurrency or list of cryptocurrencies.
+
+        Args:
+            request_params (CryptoQuoteRequest): The parameters for the request.
+            feed (CryptoFeed): The data feed for crypto quotes.
+
+        Returns:
+            Union[QuoteSet, RawData]: The crypto quote data either in raw or wrapped form
+        """
+
+        params = request_params.to_request_fields()
+
+        # paginated get request for market data api
+        raw_quotes = self._data_get(
+            endpoint_asset_class="crypto",
+            endpoint_data_type="quotes",
+            api_version="v1beta3",
+            feed=feed,
+            **params,
+        )
+
+        if self._use_raw_data:
+            return raw_quotes
+
+        return QuoteSet(raw_quotes)
 
     def get_crypto_trades(
         self, request_params: CryptoTradesRequest, feed: CryptoFeed = CryptoFeed.US

@@ -26,11 +26,11 @@ class TimeSeriesMixin:
         # set multi-level index
         if "news" in self.dict():
             # level=0 - id
-            df = pd.DataFrame(data_list).set_index(["id"])
+            df = df.set_index(["id"])
         if set(["symbol", "timestamp"]).issubset(df.columns):
             # level=0 - symbol
             # level=1 - timestamp
-            df = pd.DataFrame(data_list).set_index(["symbol", "timestamp"])
+            df = df.set_index(["symbol", "timestamp"])
 
         # drop null columns
         df.dropna(axis=1, how="all", inplace=True)

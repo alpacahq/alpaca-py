@@ -21,8 +21,6 @@ class NewsImage(BaseModel):
     size: NewsImageSize
     url: str
 
-    model_config = ConfigDict(protected_namespaces=tuple())
-
 
 class News(BaseModel):
     """
@@ -52,9 +50,7 @@ class News(BaseModel):
     symbols: List[str]
     author: str
     content: str
-    images: Optional[List[NewsImage]] = None  # Not in WS response
-
-    model_config = ConfigDict(protected_namespaces=tuple())
+    images: Optional[List[NewsImage]] = None # only in historical
 
     def __init__(self, raw_data: RawData) -> None:
         """Instantiates a news article
@@ -73,6 +69,9 @@ class NewsSet(BaseDataSet, TimeSeriesMixin):
     Attributes:
         data (Dict[str, List[News]]): The collection of News articles.
     """
+
+    news: List[News]
+    next_page_token: Optional[str]
 
     def __init__(self, raw_data: RawData) -> None:
         """A collection of News articles.

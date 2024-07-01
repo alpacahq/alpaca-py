@@ -146,7 +146,7 @@ Alpaca’s APIs allow you to do everything from building algorithmic trading str
 
 To view full descriptions and examples view the [documentation page](https://alpaca.markets/sdks/python/).
 
-**Market Data API**: Access live and historical market data for 5000+ stocks, 20+ crypto, news, and options(beta).
+**Market Data API**: Access live and historical market data for 5000+ stocks, 20+ crypto, and options(beta).
 
 **Trading API**: Trade stock and crypto with lightning fast execution speeds.
 
@@ -236,7 +236,7 @@ bars.df
 You can query news data via the NewsClient. In this example, we query news data for “TSLA” since July 1st 2022. You can convert the response to a pandas dataframe using the `.df` property.
 
 ```python
-from alpaca.data.news import NewsClient
+from alpaca.data.historical.news import NewsClient
 from alpaca.data.requests import NewsRequest
 from datetime import datetime
 

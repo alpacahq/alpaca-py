@@ -1,11 +1,8 @@
 import asyncio
-from datetime import datetime
 import logging
 import queue
 from collections import defaultdict
 from typing import Callable, Dict, Optional, Tuple, Union
-
-from pandas import Timestamp
 
 import msgpack
 import websockets
@@ -13,7 +10,7 @@ from pydantic import BaseModel
 
 from alpaca import __version__
 from alpaca.common.types import RawData
-from alpaca.data.models import Bar, Quote, Trade, News
+from alpaca.data.models import Bar, Quote, Trade
 
 log = logging.getLogger(__name__)
 
@@ -54,7 +51,6 @@ class BaseStream:
             "bars": {},
             "updatedBars": {},
             "dailyBars": {},
-            "news": {},
         }
         self._name = "data"
         self._should_run = True
@@ -148,7 +144,6 @@ class BaseStream:
                     r = await asyncio.wait_for(self._ws.recv(), 5)
                     msgs = msgpack.unpackb(r)
                     for msg in msgs:
-                        log.info(f"received {msg}")
                         await self._dispatch(msg)
                 except asyncio.TimeoutError:
                     # ws.recv is hanging when no data is received. by using
@@ -167,29 +162,22 @@ class BaseStream:
         Returns:
             Union[BaseModel, RawData]: The raw or parsed live data
         """
-        msg = msg.copy()
         result = msg
         if not self._raw_data:
             if "t" in msg:
                 msg["t"] = msg["t"].to_datetime()
 
-            symbol = msg.get("S", msg.get("symbols", None))
-            if symbol is None:
+            if "S" not in msg:
                 return msg
 
             if msg_type == "t":
-                result = Trade(symbol, msg)
+                result = Trade(msg["S"], msg)
 
             elif msg_type == "q":
-                result = Quote(symbol, msg)
+                result = Quote(msg["S"], msg)
 
             elif msg_type in ("b", "u", "d"):
-                result = Bar(symbol, msg)
-
-            elif msg_type == "n":
-                msg["created_at"] = msg["created_at"].to_datetime()
-                msg["updated_at"] = msg["updated_at"].to_datetime()
-                result = News(msg)
+                result = Bar(msg["S"], msg)
 
         return result
 
@@ -200,8 +188,7 @@ class BaseStream:
             msg (Dict): The message from the websocket connection
         """
         msg_type = msg.get("T")
-        symbol = msg.get("S", msg.get("symbols", "*"))
-
+        symbol = msg.get("S")
         if msg_type == "t":
             handler = self._handlers["trades"].get(
                 symbol, self._handlers["trades"].get("*", None)
@@ -232,21 +219,6 @@ class BaseStream:
             )
             if handler:
                 await handler(self._cast(msg_type, msg))
-        elif msg_type == "n":
-            general_handler_called = False
-            handlers_to_call = []
-            for s in list(set(symbol)):
-                if s in self._handlers["news"]:
-                    handler = self._handlers["news"].get(s, None)
-                elif not general_handler_called:
-                    handler = self._handlers["news"].get("*", None)
-                    general_handler_called = True
-                else:
-                    handler = None
-                if handler:
-                    handlers_to_call.append(handler(self._cast(msg_type, msg)))
-            if handlers_to_call:
-                await asyncio.gather(*handlers_to_call)
         elif msg_type == "subscription":
             sub = [f"{k}: {msg.get(k, [])}" for k in self._handlers]
             log.info(f'subscribed to {", ".join(sub)}')
@@ -276,7 +248,6 @@ class BaseStream:
             if k not in ("cancelErrors", "corrections") and v:
                 for s in v.keys():
                     msg[k].append(s)
-
         msg["action"] = "subscribe"
         bs = msgpack.packb(msg)
         frames = (
@@ -286,7 +257,7 @@ class BaseStream:
         await self._ws.send(frames)
 
     async def _unsubscribe(
-        self, trades=(), quotes=(), bars=(), updated_bars=(), daily_bars=(), news=()
+        self, trades=(), quotes=(), bars=(), updated_bars=(), daily_bars=()
     ) -> None:
         """Unsubscribes from data for symbols specified by the data type
         we want to subscribe from.
@@ -297,9 +268,8 @@ class BaseStream:
             bars (tuple, optional): All symbols to unsubscribe minute bar data for. Defaults to ().
             updated_bars (tuple, optional): All symbols to unsubscribe updated bar data for. Defaults to ().
             daily_bars (tuple, optional): All symbols to unsubscribe daily bar data for. Defaults to ().
-            news (tuple, optional): All symbols to unsubscribe news data for. Defaults to ().
         """
-        if trades or quotes or bars or updated_bars or daily_bars or news:
+        if trades or quotes or bars or updated_bars or daily_bars:
             await self._ws.send(
                 msgpack.packb(
                     {
@@ -309,7 +279,6 @@ class BaseStream:
                         "bars": bars,
                         "updatedBars": updated_bars,
                         "dailyBars": daily_bars,
-                        "news": news,
                     }
                 )
             )
@@ -407,15 +376,6 @@ class BaseStream:
         """
         self._subscribe(handler, symbols, self._handlers["dailyBars"])
 
-    def subscribe_news(self, handler: Callable, *symbols) -> None:
-        """Subscribe to news data for symbol inputs
-
-        Args:
-            handler (Callable): The coroutine callback function to handle live news data
-            *symbols: Variable string arguments for ticker identifiers to be subscribed to.
-        """
-        self._subscribe(handler, symbols, self._handlers["news"])
-
     def unsubscribe_trades(self, *symbols) -> None:
         """Unsubscribe from trade data for symbol inputs
 
@@ -480,19 +440,6 @@ class BaseStream:
             ).result()
         for symbol in symbols:
             del self._handlers["dailyBars"][symbol]
-
-    def unsubscribe_news(self, *symbols) -> None:
-        """Unsubscribe from news data for symbol inputs
-
-        Args:
-            *symbols: Variable string arguments for ticker identifiers to be unsubscribed from.
-        """
-        if self._running:
-            asyncio.run_coroutine_threadsafe(
-                self._unsubscribe(news=symbols), self._loop
-            ).result()
-        for symbol in symbols:
-            del self._handlers["news"][symbol]
 
     def run(self) -> None:
         """Starts up the websocket connection's event loop"""

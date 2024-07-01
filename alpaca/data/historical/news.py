@@ -1,14 +1,10 @@
 from typing import Optional, Union
 
-from alpaca.common.rest import RESTClient
-
 from alpaca.common.enums import BaseURL
-
-from alpaca.data.requests import NewsRequest
-
-from alpaca.data.models.news import NewsSet
-
+from alpaca.common.rest import RESTClient
 from alpaca.common.types import RawData
+from alpaca.data.models.news import NewsSet
+from alpaca.data.requests import NewsRequest
 
 
 class NewsClient(RESTClient):
@@ -62,4 +58,4 @@ class NewsClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return NewsSet(**response)
+        return NewsSet(response)

@@ -6,29 +6,22 @@ from uuid import UUID
 
 import pytest
 
-from alpaca.trading.models import AccountConfiguration as TradeAccountConfiguration
-from alpaca.trading.enums import DTBPCheck, PDTCheck
 from alpaca.broker.client import BrokerClient
-from alpaca.broker.enums import (
-    AccountEntities,
-)
-from alpaca.broker.models import (
-    Account,
-    Contact,
-    Identity,
-    TradeAccount,
-)
+from alpaca.broker.enums import AccountEntities
+from alpaca.broker.models import Account, Contact, Identity, TradeAccount
 from alpaca.broker.requests import (
+    CreateAccountRequest,
+    ListAccountsRequest,
     UpdatableContact,
     UpdatableDisclosures,
     UpdatableIdentity,
     UpdatableTrustedContact,
-    ListAccountsRequest,
-    CreateAccountRequest,
     UpdateAccountRequest,
 )
-from alpaca.common.exceptions import APIError
 from alpaca.common.enums import BaseURL, SupportedCurrencies
+from alpaca.common.exceptions import APIError
+from alpaca.trading.enums import DTBPCheck, PDTCheck
+from alpaca.trading.models import AccountConfiguration as TradeAccountConfiguration
 from tests.broker.factories import accounts as factory
 
 
@@ -132,6 +125,7 @@ def test_create_account(reqmock, client: BrokerClient):
     assert reqmock.called_once
     assert type(returned_account) == Account
     assert returned_account.id == UUID(created_id)
+    assert returned_account.kyc_results is None
 
 
 def test_create_lct_account(reqmock, client: BrokerClient):
@@ -216,7 +210,8 @@ def test_create_lct_account(reqmock, client: BrokerClient):
           },
           "account_type": "trading",
           "trading_configurations": null,
-          "currency": "EUR"
+          "currency": "EUR",
+          "kyc_results": null
         }
         """,
     )
@@ -239,6 +234,7 @@ def test_create_lct_account(reqmock, client: BrokerClient):
     assert type(returned_account) == Account
     assert returned_account.id == UUID(created_id)
     assert returned_account.currency == currency
+    assert returned_account.kyc_results is None
 
 
 def test_get_account(reqmock, client: BrokerClient):
@@ -323,7 +319,14 @@ def test_get_account(reqmock, client: BrokerClient):
             "email_address": "agitated_golick_69906574@example.com"
           },
           "account_type": "trading",
-          "trading_configurations": null
+          "trading_configurations": null,
+          "kyc_results": {
+            "reject": {"IDENTITY_VERIFICATION": {}},
+            "accept": {"IDENTITY_VERIFICATION": {}},
+            "indeterminate": {"IDENTITY_VERIFICATION": {}},
+            "additional_information": "additional_information_test",
+            "summary": "pass"
+          }
         }
             """,
     )
@@ -333,6 +336,13 @@ def test_get_account(reqmock, client: BrokerClient):
     assert reqmock.called_once
     assert type(account) == Account
     assert account.id == UUID(account_id)
+
+    assert account.kyc_results is not None
+    assert account.kyc_results.reject == {"IDENTITY_VERIFICATION": {}}
+    assert account.kyc_results.accept == {"IDENTITY_VERIFICATION": {}}
+    assert account.kyc_results.indeterminate == {"IDENTITY_VERIFICATION": {}}
+    assert account.kyc_results.additional_information == "additional_information_test"
+    assert account.kyc_results.summary == "pass"
 
 
 def test_get_account_account_not_found(reqmock, client: BrokerClient):
@@ -480,6 +490,13 @@ def test_update_account(reqmock, client: BrokerClient):
     assert account.id == UUID(account_id)
     assert account.identity.family_name == family_name
 
+    assert account.kyc_results is not None
+    assert account.kyc_results.reject == {}
+    assert account.kyc_results.accept == {}
+    assert account.kyc_results.indeterminate == {}
+    assert account.kyc_results.additional_information is None
+    assert account.kyc_results.summary == "pass"
+
 
 def test_update_account_validates_account_id(reqmock, client: BrokerClient):
     # dummy update request just to test param parsing
@@ -510,21 +527,42 @@ def test_update_account_validates_non_empty_request(reqmock, client: BrokerClien
 def test_delete_account(reqmock, client: BrokerClient):
     account_id = "0d969814-40d6-4b2b-99ac-2e37427f1ad2"
 
-    reqmock.delete(
-        f"https://broker-api.sandbox.alpaca.markets/v1/accounts/{account_id}",
+    reqmock.post(
+        f"https://broker-api.sandbox.alpaca.markets/v1/accounts/{account_id}/actions/close",
         status_code=204,
     )
 
-    assert client.delete_account(account_id) is None
+    with pytest.deprecated_call():
+        assert client.delete_account(account_id) is None
     assert reqmock.called_once
 
 
 def test_delete_account_validates_account_id(reqmock, client: BrokerClient):
-    with pytest.raises(ValueError):
+    with pytest.deprecated_call(), pytest.raises(ValueError):
         client.delete_account("not a uuid")
 
-    with pytest.raises(ValueError):
+    with pytest.deprecated_call(), pytest.raises(ValueError):
         client.delete_account(4)
+
+
+def test_close_account(reqmock, client: BrokerClient):
+    account_id = "0d969814-40d6-4b2b-99ac-2e37427f1ad2"
+
+    reqmock.post(
+        f"https://broker-api.sandbox.alpaca.markets/v1/accounts/{account_id}/actions/close",
+        status_code=204,
+    )
+
+    assert client.close_account(account_id) is None
+    assert reqmock.called_once
+
+
+def test_close_account_validates_account_id(reqmock, client: BrokerClient):
+    with pytest.raises(ValueError):
+        client.close_account("not a uuid")
+
+    with pytest.raises(ValueError):
+        client.close_account(4)
 
 
 def test_list_accounts_no_params(reqmock, client: BrokerClient):
@@ -589,6 +627,13 @@ def test_list_accounts_no_params(reqmock, client: BrokerClient):
         assert account.documents is None
         assert account.trusted_contact is None
         assert account.agreements is None
+
+        assert account.kyc_results is not None
+        assert account.kyc_results.reject == {}
+        assert account.kyc_results.accept == {}
+        assert account.kyc_results.indeterminate == {}
+        assert account.kyc_results.additional_information is None
+        assert account.kyc_results.summary == "pass"
 
 
 def test_list_accounts_parses_entities_if_present(reqmock, client: BrokerClient):
@@ -709,6 +754,13 @@ def test_list_accounts_parses_entities_if_present(reqmock, client: BrokerClient)
         assert account.documents is None
         assert account.trusted_contact is None
         assert account.agreements is None
+
+        assert account.kyc_results is not None
+        assert account.kyc_results.reject == {}
+        assert account.kyc_results.accept == {}
+        assert account.kyc_results.indeterminate == {}
+        assert account.kyc_results.additional_information is None
+        assert account.kyc_results.summary == "pass"
 
 
 def test_get_trade_account_by_id(reqmock, client: BrokerClient):
@@ -831,8 +883,22 @@ def test_update_trade_configuration_for_account(reqmock, client: BrokerClient):
     account_id = "5fc0795e-1f16-40cc-aa90-ede67c39d7a9"
     config = factory.create_dummy_trade_account_configuration()
 
+    def match_request_json(request):
+        return request.json() == {
+            "dtbp_check": "both",
+            "fractional_trading": False,
+            "max_margin_multiplier": "4",
+            "no_shorting": False,
+            "pdt_check": "entry",
+            "suspend_trade": False,
+            "trade_confirm_email": "all",
+            "ptp_no_exception_entry": False,
+            "max_options_trading_level": None,
+        }
+
     reqmock.patch(
         f"{BaseURL.BROKER_SANDBOX.value}/v1/trading/accounts/{account_id}/account/configurations",
+        additional_matcher=match_request_json,
         text="""
         {
           "dtbp_check": "both",

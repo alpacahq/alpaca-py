@@ -14,8 +14,6 @@ class OrderbookQuote(BaseModel):
     price: float = Field(alias="p")
     size: float = Field(alias="s")
 
-    model_config = ConfigDict(protected_namespaces=tuple())
-
 
 class Orderbook(BaseModel):
     """Level 2 ask/bid pair orderbook data.
@@ -31,8 +29,6 @@ class Orderbook(BaseModel):
     timestamp: datetime
     bids: List[OrderbookQuote]
     asks: List[OrderbookQuote]
-
-    model_config = ConfigDict(protected_namespaces=tuple())
 
     def __init__(self, symbol: str, raw_data: RawData) -> None:
         """Instantiates an Orderbook.

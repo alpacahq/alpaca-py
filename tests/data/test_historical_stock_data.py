@@ -353,7 +353,7 @@ def test_multisymbol_quotes(reqmock, stock_client: StockHistoricalDataClient):
     )
 
     reqmock.get(
-        f"https://data.alpaca.markets/v2/stocks/quotes?start={_start_in_url}&symbols={_symbols_in_url}",
+        f"https://data.alpaca.markets/v2/stocks/quotes?start={_start_in_url}&symbols={_symbols_in_url}&asof=-",
         text="""
     {
         "quotes": {
@@ -393,7 +393,7 @@ def test_multisymbol_quotes(reqmock, stock_client: StockHistoricalDataClient):
         """,
     )
 
-    request = StockQuotesRequest(symbol_or_symbols=symbols, start=start)
+    request = StockQuotesRequest(symbol_or_symbols=symbols, start=start, asof="-")
 
     quoteset = stock_client.get_stock_quotes(request_params=request)
 
@@ -487,7 +487,7 @@ def test_get_trades(reqmock, stock_client: StockHistoricalDataClient):
     )
 
     reqmock.get(
-        f"https://data.alpaca.markets/v2/stocks/{symbol}/trades?start={_start_in_url}&limit={limit}",
+        f"https://data.alpaca.markets/v2/stocks/{symbol}/trades?start={_start_in_url}&limit={limit}&asof=2022-03-09",
         text="""
     {
         "trades": [
@@ -524,7 +524,9 @@ def test_get_trades(reqmock, stock_client: StockHistoricalDataClient):
         """,
     )
 
-    request = StockTradesRequest(symbol_or_symbols=symbol, start=start, limit=limit)
+    request = StockTradesRequest(
+        symbol_or_symbols=symbol, start=start, limit=limit, asof="2022-03-09"
+    )
 
     tradeset = stock_client.get_stock_trades(request_params=request)
 

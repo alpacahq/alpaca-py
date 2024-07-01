@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any, List, Optional, Union
 
 import pytz
@@ -14,6 +14,7 @@ from alpaca.data.enums import (
     OptionsFeed,
 )
 from alpaca.data.timeframe import TimeFrame
+from alpaca.trading.enums import ContractType
 
 
 class BaseTimeseriesDataRequest(NonEmptyRequest):
@@ -36,8 +37,6 @@ class BaseTimeseriesDataRequest(NonEmptyRequest):
     limit: Optional[int] = None
     currency: Optional[SupportedCurrencies] = None  # None = USD
     sort: Optional[Sort] = None  # None = asc
-
-    model_config = ConfigDict(protected_namespaces=tuple())
 
     def __init__(self, **data: Any) -> None:
         # convert timezone aware datetime to timezone naive UTC datetime
@@ -98,10 +97,13 @@ class StockBarsRequest(BaseBarsRequest):
         adjustment (Optional[Adjustment]): The type of corporate action data normalization.
         feed (Optional[DataFeed]): The stock data feed to retrieve from.
         sort (Optional[Sort]): The chronological order of response based on the timestamp. Defaults to ASC.
+        asof (Optional[str]): The asof date of the queried stock symbol(s) in YYYY-MM-DD format.
+        currency (Optional[SupportedCurrencies]): The currency of all prices in ISO 4217 format. Default is USD.
     """
 
     adjustment: Optional[Adjustment] = None
     feed: Optional[DataFeed] = None
+    asof: Optional[str] = None
 
 
 class CryptoBarsRequest(BaseBarsRequest):
@@ -154,9 +156,12 @@ class StockQuotesRequest(BaseTimeseriesDataRequest):
         limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
         feed (Optional[DataFeed]): The stock data feed to retrieve from.
         sort (Optional[Sort]): The chronological order of response based on the timestamp. Defaults to ASC.
+        asof (Optional[str]): The asof date of the queried stock symbol(s) in YYYY-MM-DD format.
+        currency (Optional[SupportedCurrencies]): The currency of all prices in ISO 4217 format. Default is USD.
     """
 
     feed: Optional[DataFeed] = None
+    asof: Optional[str] = None
 
 
 # ############################## Trades ################################# #
@@ -175,9 +180,12 @@ class StockTradesRequest(BaseTimeseriesDataRequest):
         limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
         feed (Optional[DataFeed]): The stock data feed to retrieve from.
         sort (Optional[Sort]): The chronological order of response based on the timestamp. Defaults to ASC.
+        asof (Optional[str]): The asof date of the queried stock symbol(s) in YYYY-MM-DD format.
+        currency (Optional[SupportedCurrencies]): The currency of all prices in ISO 4217 format. Default is USD.
     """
 
     feed: Optional[DataFeed] = None
+    asof: Optional[str] = None
 
 
 class CryptoTradesRequest(BaseTimeseriesDataRequest):
@@ -232,8 +240,6 @@ class BaseStockLatestDataRequest(NonEmptyRequest):
     feed: Optional[DataFeed] = None
     currency: Optional[SupportedCurrencies] = None  # None = USD
 
-    model_config = ConfigDict(protected_namespaces=tuple())
-
 
 class StockLatestTradeRequest(BaseStockLatestDataRequest):
     """
@@ -244,6 +250,7 @@ class StockLatestTradeRequest(BaseStockLatestDataRequest):
     Attributes:
         symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
         feed (Optional[DataFeed]): The stock data feed to retrieve from.
+        currency (Optional[SupportedCurrencies]): The currency the data should be returned in. Default to USD.
     """
 
     pass
@@ -258,6 +265,7 @@ class StockLatestQuoteRequest(BaseStockLatestDataRequest):
     Attributes:
         symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
         feed (Optional[DataFeed]): The stock data feed to retrieve from.
+        currency (Optional[SupportedCurrencies]): The currency the data should be returned in. Default to USD.
     """
 
     pass
@@ -272,6 +280,7 @@ class StockLatestBarRequest(BaseStockLatestDataRequest):
     Attributes:
         symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
         feed (Optional[DataFeed]): The stock data feed to retrieve from.
+        currency (Optional[SupportedCurrencies]): The currency the data should be returned in. Default to USD.
     """
 
     pass
@@ -287,8 +296,6 @@ class BaseCryptoLatestDataRequest(NonEmptyRequest):
     """
 
     symbol_or_symbols: Union[str, List[str]]
-
-    model_config = ConfigDict(protected_namespaces=tuple())
 
 
 class CryptoLatestTradeRequest(BaseCryptoLatestDataRequest):
@@ -343,8 +350,6 @@ class BaseOptionLatestDataRequest(NonEmptyRequest):
     symbol_or_symbols: Union[str, List[str]]
     feed: Optional[OptionsFeed] = None
 
-    model_config = ConfigDict(protected_namespaces=tuple())
-
 
 class OptionLatestQuoteRequest(BaseOptionLatestDataRequest):
     """
@@ -391,8 +396,6 @@ class StockSnapshotRequest(NonEmptyRequest):
     feed: Optional[DataFeed] = None
     currency: Optional[SupportedCurrencies] = None  # None = USD
 
-    model_config = ConfigDict(protected_namespaces=tuple())
-
 
 class CryptoSnapshotRequest(NonEmptyRequest):
     """
@@ -403,8 +406,6 @@ class CryptoSnapshotRequest(NonEmptyRequest):
     """
 
     symbol_or_symbols: Union[str, List[str]]
-
-    model_config = ConfigDict(protected_namespaces=tuple())
 
 
 class OptionSnapshotRequest(NonEmptyRequest):
@@ -419,8 +420,6 @@ class OptionSnapshotRequest(NonEmptyRequest):
     symbol_or_symbols: Union[str, List[str]]
     feed: Optional[OptionsFeed] = None
 
-    model_config = ConfigDict(protected_namespaces=tuple())
-
 
 class OptionChainRequest(NonEmptyRequest):
     """
@@ -429,12 +428,24 @@ class OptionChainRequest(NonEmptyRequest):
     Attributes:
         underlying_symbol (str): The underlying_symbol for option contracts.
         feed (Optional[OptionsFeed]): The source feed of the data. `opra` or `indicative`. Default: `opra` if the user has the options subscription, `indicative` otherwise.
+        type (Optional[ContractType]): Filter contracts by the type (call or put).
+        strike_price_gte (Optional[float]): Filter contracts with strike price greater than or equal to the specified value.
+        strike_price_lte (Optional[float]): Filter contracts with strike price less than or equal to the specified value.
+        expiration_date (Optional[Union[date, str]]): Filter contracts by the exact expiration date (format: YYYY-MM-DD).
+        expiration_date_gte (Optional[Union[date, str]]): Filter contracts with expiration date greater than or equal to the specified date.
+        expiration_date_lte (Optional[Union[date, str]]): Filter contracts with expiration date less than or equal to the specified date.
+        root_symbol (Optional[str]): Filter contracts by the root symbol.
     """
 
     underlying_symbol: str
     feed: Optional[OptionsFeed] = None
-
-    model_config = ConfigDict(protected_namespaces=tuple())
+    type: Optional[ContractType] = None
+    strike_price_gte: Optional[float] = None
+    strike_price_lte: Optional[float] = None
+    expiration_date: Optional[Union[date, str]] = None
+    expiration_date_gte: Optional[Union[date, str]] = None
+    expiration_date_lte: Optional[Union[date, str]] = None
+    root_symbol: Optional[str] = None
 
 
 # ############################## Orderbooks ################################# #
@@ -450,8 +461,6 @@ class CryptoLatestOrderbookRequest(NonEmptyRequest):
 
     symbol_or_symbols: Union[str, List[str]]
 
-    model_config = ConfigDict(protected_namespaces=tuple())
-
 
 # ############################## Screener #################################### #
 
@@ -465,8 +474,6 @@ class ScreenerRequest(NonEmptyRequest):
     """
 
     top: int = 10
-
-    model_config = ConfigDict(protected_namespaces=tuple())
 
 
 class MostActivesRequest(ScreenerRequest):
@@ -519,5 +526,3 @@ class NewsRequest(NonEmptyRequest):
     include_content: Optional[bool] = None
     exclude_contentless: Optional[bool] = None
     page_token: Optional[str] = None
-
-    model_config = ConfigDict(protected_namespaces=tuple())

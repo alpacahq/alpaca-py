@@ -35,8 +35,6 @@ class Bar(BaseModel):
     trade_count: Optional[float]
     vwap: Optional[float]
 
-    model_config = ConfigDict(protected_namespaces=tuple())
-
     def __init__(self, symbol: str, raw_data: RawData) -> None:
         """Instantiates a bar
 

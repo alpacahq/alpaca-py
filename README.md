@@ -37,11 +37,13 @@ Learn more about the API products Alpaca offers at https://alpaca.markets.
 Alpaca-py has a supplementary documentation site which contains references for all clients, methods and models found in this codebase. The documentation
 also contains examples to get started with alpaca-py.
 
-You can find the documentation site here: https://docs.alpaca.markets/docs/getting-started-1
+You can find the documentation site here: https://alpaca.markets/sdks/python/getting_started.html
+
+You can also find the API Reference of Alpaca APIs: https://docs.alpaca.markets/reference
 
 ## Installation <a name="installation"></a>
 
-Alpaca-py is supported on Python 3.7+. You can install Alpaca-py using pip.
+Alpaca-py is supported on Python 3.8+.  You can install Alpaca-py using pip.
 
 Run the following command in your terminal.
 
@@ -65,7 +67,7 @@ If you’ve used the previous python SDK alpaca-trade-api, there are a few key d
 
 ### Broker API <a name="broker-api-new"></a>
 
-Alpaca-py lets you use Broker API to start building your investment apps! Learn more at the [Broker](https://docs.alpaca.markets/docs/broker-api) page.
+Alpaca-py lets you use Broker API to start building your investment apps! Learn more at the [Broker](https://docs.alpaca.markets/docs/about-broker-api) page.
 
 ### OOP Design <a name="oop-design"></a>
 
@@ -142,7 +144,7 @@ To use the Broker API, you will need to sign up for a broker account and retriev
 
 Alpaca’s APIs allow you to do everything from building algorithmic trading strategies to building a full brokerage experience for your own end users. Here are some things you can do with Alpaca-py.
 
-To view full descriptions and examples view the [documentation page](https://docs.alpaca.markets/docs/getting-started-1).
+To view full descriptions and examples view the [documentation page](https://alpaca.markets/sdks/python/).
 
 **Market Data API**: Access live and historical market data for 5000+ stocks, 20+ crypto, news, and options(beta).
 
@@ -253,13 +255,19 @@ news.df
 
 ```
 
-### Options Trading (Beta) <a name="options-trading"></a>
+### Options Trading <a name="options-trading"></a>
 
-We're excited to support options trading! Use this section to read up on Alpaca's Beta trading capabilities.
-For more details, please refer to [our documentation page for options trading](https://docs.alpaca.markets/v1.1/docs/options-trading)
-
-> Options trading is in BETA. Only BETA users are able to access options endpoints. We will continue to update our documentation as we collect your valuable feedback.
+We're excited to support options trading! Use this section to read up on Alpaca's options trading capabilities.
+For more details, please refer to [our documentation page for options trading](https://docs.alpaca.markets/docs/options-trading)
 
 There is an example jupyter notebook to explain methods of alpaca-py for options trading.
 
-- [jupyter notebook: options trading basic example with alpaca-py](https://github.com/alpacahq/alpaca-py/blob/master/examples/options-trading-basic.ipynb)
+* [jupyter notebook: options trading basic example with alpaca-py](https://github.com/alpacahq/alpaca-py/blob/master/examples/options-trading-basic.ipynb)
+
+### Jupyter Notebook Library <a name="colab-library"></a>
+
+We have put together some examples in jupyter notebooks so that you can start developing today with alpaca-py right away!
+
+* [Stocks](https://github.com/alpacahq/alpaca-py/blob/master/examples/stocks-trading-basic.ipynb)
+* [Options](https://github.com/alpacahq/alpaca-py/blob/master/examples/options-trading-basic.ipynb)
+* [Crypto](https://github.com/alpacahq/alpaca-py/blob/master/examples/crypto-trading-basic.ipynb)

@@ -59,8 +59,6 @@ def test_get_announcements(reqmock, trading_client: TradingClient):
             "ca_sub_type": "cash",
             "initiating_symbol": "KKR",
             "initiating_original_cusip": "G52830109",
-            "record_date": "2021-11-15",
-            "payable_date": "2021-11-30",
             "cash": "0.145",
             "old_rate": "1",
             "new_rate": "1"

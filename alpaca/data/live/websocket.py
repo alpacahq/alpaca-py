@@ -12,6 +12,7 @@ from alpaca import __version__
 from alpaca.common.types import RawData
 from alpaca.data.models import (
     Bar,
+    News,
     Orderbook,
     Quote,
     Trade,
@@ -19,7 +20,6 @@ from alpaca.data.models import (
     TradeCorrection,
     TradingStatus,
 )
-from alpaca.data.models.news import News
 
 log = logging.getLogger(__name__)
 

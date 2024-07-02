@@ -141,7 +141,7 @@ class StockDataStream(DataStream):
     def register_trade_cancels(
         self, handler: Callable[[Union[TradeCancel, Dict]], Awaitable[None]]
     ) -> None:
-        """Register a trade cancel handler. You can only subscribe to trade corrections by
+        """Register a trade cancel handler. You can only subscribe to trade cancels by
         subscribing to the underlying trades.
 
         Args:

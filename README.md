@@ -207,7 +207,7 @@ market_order = trading_client.submit_order(
 
 **Querying Historical Bar Data**
 
-You can request bar data via the HistoricalDataClients. In this example, we query daily bar data for “BTC/USD” and “ETH/USD” since July 1st 2022. You can convert the response to a multi-index pandas dataframe using the `.df` property.
+You can request bar data via the HistoricalDataClients. In this example, we query daily bar data for “BTC/USD” and “ETH/USD” since July 1st 2022. You can convert the response to a multi-index pandas dataframe using the `.df` property. There are `StockHistoricalDataClient` and `OptionHistoricalDataClient` that you also could use to fetch equity/options historical data.
 
 ```python
 from alpaca.data.historical import CryptoHistoricalDataClient

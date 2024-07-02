@@ -2,22 +2,18 @@ import urllib.parse
 from datetime import datetime, timezone
 from typing import Dict
 
-from alpaca.data import Quote, Trade, Bar
+from alpaca.data import Bar, Quote, Trade
 from alpaca.data.historical.crypto import CryptoHistoricalDataClient
+from alpaca.data.models import BarSet, Snapshot, TradeSet
 from alpaca.data.requests import (
     CryptoBarsRequest,
-    CryptoTradesRequest,
-    CryptoLatestTradeRequest,
-    CryptoLatestQuoteRequest,
-    CryptoSnapshotRequest,
     CryptoLatestBarRequest,
+    CryptoLatestQuoteRequest,
+    CryptoLatestTradeRequest,
+    CryptoSnapshotRequest,
+    CryptoTradesRequest,
 )
 from alpaca.data.timeframe import TimeFrame
-from alpaca.data.models import (
-    BarSet,
-    Snapshot,
-    TradeSet,
-)
 
 
 def test_get_crypto_bars(reqmock, crypto_client: CryptoHistoricalDataClient):

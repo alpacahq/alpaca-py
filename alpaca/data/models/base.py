@@ -1,10 +1,8 @@
 import itertools
-import pprint
 from typing import Any, Dict, List
 
 import pandas as pd
 from pandas import DataFrame
-from pydantic import ConfigDict
 
 from alpaca.common.models import ValidateBaseModel as BaseModel
 

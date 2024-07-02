@@ -1,8 +1,6 @@
 from datetime import datetime
 from typing import Dict, List, Optional
 
-from pydantic import ConfigDict
-
 from alpaca.common.models import ValidateBaseModel as BaseModel
 from alpaca.common.types import RawData
 from alpaca.data.mappings import BAR_MAPPING

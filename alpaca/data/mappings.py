@@ -47,9 +47,38 @@ ORDERBOOK_MAPPING: Dict[str, str] = {
     "t": "timestamp",
     "b": "bids",
     "a": "asks",
+    "r": "reset",
 }
 
-ORDERBOOK_QUOTE_MAPPING: Dict[str, str] = {
+TRADING_STATUS_MAPPING: Dict[str, str] = {
+    "t": "timestamp",
+    "sc": "status_code",
+    "sm": "status_message",
+    "rc": "reason_code",
+    "rm": "reason_message",
+    "z": "tape",
+}
+
+TRADE_CANCEL_MAPPING: Dict[str, str] = {
+    "t": "timestamp",
     "p": "price",
     "s": "size",
+    "x": "exchange",
+    "i": "id",
+    "a": "action",
+    "z": "tape",
+}
+
+TRADE_CORRECTION_MAPPING: Dict[str, str] = {
+    "t": "timestamp",
+    "x": "exchange",
+    "oi": "original_id",
+    "op": "original_price",
+    "os": "original_size",
+    "oc": "original_conditions",
+    "ci": "corrected_id",
+    "cp": "corrected_price",
+    "cs": "corrected_size",
+    "cc": "corrected_conditions",
+    "z": "tape",
 }

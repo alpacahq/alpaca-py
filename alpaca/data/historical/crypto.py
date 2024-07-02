@@ -1,29 +1,28 @@
 from collections import defaultdict
-from typing import Union, Optional, List, Dict
+from typing import Dict, List, Optional, Union
 
 from alpaca.common.constants import DATA_V2_MAX_LIMIT
-from alpaca.common.types import RawData
 from alpaca.common.enums import BaseURL
 from alpaca.common.rest import RESTClient
-from alpaca.common.types import Credentials
-from alpaca.data import Snapshot, Bar
-from alpaca.data.historical.utils import (
-    parse_obj_as_symbol_dict,
-    format_latest_data_response,
-    format_dataset_response,
-)
-from alpaca.data.models import BarSet, QuoteSet, TradeSet, Orderbook, Trade, Quote
+from alpaca.common.types import Credentials, RawData
+from alpaca.data import Bar, Snapshot
+from alpaca.data.enums import CryptoFeed
 from alpaca.data.historical.stock import DataExtensionType
+from alpaca.data.historical.utils import (
+    format_dataset_response,
+    format_latest_data_response,
+    parse_obj_as_symbol_dict,
+)
+from alpaca.data.models import BarSet, Orderbook, Quote, Trade, TradeSet
 from alpaca.data.requests import (
     CryptoBarsRequest,
-    CryptoTradesRequest,
-    CryptoLatestTradeRequest,
-    CryptoLatestQuoteRequest,
-    CryptoSnapshotRequest,
-    CryptoLatestOrderbookRequest,
     CryptoLatestBarRequest,
+    CryptoLatestOrderbookRequest,
+    CryptoLatestQuoteRequest,
+    CryptoLatestTradeRequest,
+    CryptoSnapshotRequest,
+    CryptoTradesRequest,
 )
-from alpaca.data.enums import CryptoFeed
 
 
 class CryptoHistoricalDataClient(RESTClient):

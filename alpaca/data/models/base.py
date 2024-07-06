@@ -3,6 +3,7 @@ from typing import Any, Dict, List
 
 import pandas as pd
 from pandas import DataFrame
+import polars as pl
 
 from alpaca.common.models import ValidateBaseModel as BaseModel
 
@@ -34,6 +35,25 @@ class TimeSeriesMixin:
         df.dropna(axis=1, how="all", inplace=True)
 
         return df
+
+    def to_polars(self) -> pl.DataFrame:
+        """Returns a polars dataframe containing the bar data.
+        Requires mapping to be defined in child class.
+
+        Returns:
+            pl.DataFrame: data in a polars dataframe
+        """
+
+        data_list = list(itertools.chain.from_iterable(self.dict().values()))
+
+        # data_list timestamp values are in UTC, set it accordingly into polars DF
+        pl_df = pl.DataFrame(data_list).with_columns(
+            pl.col("timestamp").dt.convert_time_zone("UTC")
+        )
+
+        pl_df.drop_nulls()
+
+        return pl_df
 
 
 class BaseDataSet(BaseModel):

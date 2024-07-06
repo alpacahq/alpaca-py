@@ -2,10 +2,8 @@ import urllib.parse
 from datetime import datetime, timezone
 from typing import Dict
 
-import pytest
 
 from alpaca.common.enums import Sort
-from alpaca.common.exceptions import APIError
 from alpaca.data import Bar, Quote, Snapshot, Trade
 from alpaca.data.enums import DataFeed, Exchange
 from alpaca.data.historical import StockHistoricalDataClient
@@ -77,6 +75,80 @@ def test_get_bars(reqmock, stock_client: StockHistoricalDataClient):
 
     assert reqmock.called_once
 
+
+def test_get_bars_as_polars(reqmock, stock_client: StockHistoricalDataClient):
+    # Test single symbol request and check polars dataframe result
+
+    symbol = "AAPL"
+    timeframe = TimeFrame.Day
+    start = datetime(2022, 2, 1)
+    limit = 2
+    _start_in_url = urllib.parse.quote_plus(
+        start.replace(tzinfo=timezone.utc).isoformat()
+    )
+    reqmock.get(
+        f"https://data.alpaca.markets/v2/stocks/{symbol}/bars?start={_start_in_url}&timeframe={timeframe}&limit={limit}",
+        text="""
+    {
+        "bars": [
+            {
+                "t": "2022-02-01T05:00:00Z",
+                "o": 174,
+                "h": 174.84,
+                "l": 172.31,
+                "c": 174.61,
+                "v": 85998033,
+                "n": 732412,
+                "vw": 173.703516
+            },
+            {
+                "t": "2022-02-02T05:00:00Z",
+                "o": 174.64,
+                "h": 175.88,
+                "l": 173.33,
+                "c": 175.84,
+                "v": 84817432,
+                "n": 675034,
+                "vw": 174.941288
+            }
+        ],
+        "symbol": "AAPL",
+        "next_page_token": "QUFQTHxEfDIwMjItMDItMDJUMDU6MDA6MDAuMDAwMDAwMDAwWg=="
+    }
+        """,
+    )
+    request = StockBarsRequest(
+        symbol_or_symbols=symbol, timeframe=timeframe, start=start, limit=limit
+    )
+    barset = stock_client.get_stock_bars(request_params=request)
+
+    assert isinstance(barset, BarSet)
+
+    pl_df = barset.to_polars()
+
+    assert pl_df.shape == (2, 9)
+
+    assert pl_df["symbol"][0] == "AAPL"
+    assert pl_df["timestamp"][0] == datetime(2022, 2, 1, 5, 0, tzinfo=timezone.utc)
+    assert pl_df["open"][0] == 174
+    assert pl_df["high"][0] == 174.84
+    assert pl_df["low"][0] == 172.31
+    assert pl_df["close"][0] == 174.61
+    assert pl_df["volume"][0] == 85998033
+    assert pl_df["trade_count"][0] == 732412
+    assert pl_df["vwap"][0] == 173.703516
+
+    assert pl_df["symbol"][1] == "AAPL"
+    assert pl_df["timestamp"][1] == datetime(2022, 2, 2, 5, 0, tzinfo=timezone.utc)
+    assert pl_df["open"][1] == 174.64
+    assert pl_df["high"][1] == 175.88
+    assert pl_df["low"][1] == 173.33
+    assert pl_df["close"][1] == 175.84
+    assert pl_df["volume"][1] == 84817432
+    assert pl_df["trade_count"][1] == 675034
+    assert pl_df["vwap"][1] == 174.941288
+
+    assert reqmock.called_once
 
 def test_get_bars_desc(reqmock, stock_client: StockHistoricalDataClient):
     symbol = "TSLA"

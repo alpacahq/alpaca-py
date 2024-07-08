@@ -27,6 +27,7 @@ sseclient-py = "^1.7.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1"
+pytest-asyncio = "^0.23.7"
 requests-mock = "^1.9.3"
 black = "^24.3.0"
 isort = "^5.10.1"

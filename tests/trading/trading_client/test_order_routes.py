@@ -1,18 +1,18 @@
+import pytest
+
+from alpaca.common.enums import BaseURL
 from alpaca.common.exceptions import APIError
+from alpaca.trading.client import TradingClient
+from alpaca.trading.enums import OrderSide, OrderStatus, PositionIntent, TimeInForce
+from alpaca.trading.models import Order
 from alpaca.trading.requests import (
+    CancelOrderResponse,
     GetOrderByIdRequest,
     GetOrdersRequest,
-    ReplaceOrderRequest,
-    CancelOrderResponse,
-    MarketOrderRequest,
     LimitOrderRequest,
+    MarketOrderRequest,
+    ReplaceOrderRequest,
 )
-from alpaca.trading.models import Order
-from alpaca.trading.client import TradingClient
-from alpaca.trading.enums import OrderSide, OrderStatus, TimeInForce, PositionIntent
-from alpaca.common.enums import BaseURL
-
-import pytest
 
 
 def test_market_order(reqmock, trading_client):
@@ -269,6 +269,34 @@ def test_replace_order(reqmock, trading_client: TradingClient):
     order = trading_client.replace_order_by_id(order_id, replace_order_request)
 
     assert type(order) is Order
+
+
+def test_replace_order_validate_replace_request() -> None:
+    # qty
+    ReplaceOrderRequest(qty=1)
+    with pytest.raises(ValueError):
+        ReplaceOrderRequest(qty=0)
+        ReplaceOrderRequest(qty=0, limit_price=0.1)
+        ReplaceOrderRequest(qty=0, stop_price=0.1)
+        ReplaceOrderRequest(qty=0, trail=0.1)
+
+    # limit_price
+    ReplaceOrderRequest(limit_price=0.1)
+    ReplaceOrderRequest(qty=1, limit_price=0.1)
+    with pytest.raises(ValueError):
+        ReplaceOrderRequest(limit_price=0)
+
+    # stop_price
+    ReplaceOrderRequest(stop_price=0.1)
+    ReplaceOrderRequest(qty=1, stop_price=0.1)
+    with pytest.raises(ValueError):
+        ReplaceOrderRequest(stop_price=0)
+
+    # trail
+    ReplaceOrderRequest(trail=0.1)
+    ReplaceOrderRequest(qty=1, trail=0.1)
+    with pytest.raises(ValueError):
+        ReplaceOrderRequest(trail=0)
 
 
 def test_cancel_order_by_id(reqmock, trading_client: TradingClient):

@@ -577,9 +577,9 @@ class CorporateActionAnnouncement(ModelWithID):
         target_original_cusip (Optional[str]): CUSIP of the child company involved in the announcement.
         declaration_date (Optional[date]): Date the corporate action or subsequent terms update was announced.
         ex_date (Optional[date]): The first date that purchasing a security will not result in a corporate action entitlement.
-        record_date (date): The date an account must hold a settled position in the security in order to receive the
+        record_date (Optional[date]): The date an account must hold a settled position in the security in order to receive the
             corporate action entitlement.
-        payable_date (date): The date the announcement will take effect. On this date, account stock and cash
+        payable_date (Optional[date]): The date the announcement will take effect. On this date, account stock and cash
             balances are expected to be processed accordingly.
         cash (float): The amount of cash to be paid per share held by an account on the record date.
         old_rate (float): The denominator to determine any quantity change ratios in positions.
@@ -595,8 +595,8 @@ class CorporateActionAnnouncement(ModelWithID):
     target_original_cusip: Optional[str] = None
     declaration_date: Optional[date] = None
     ex_date: Optional[date] = None
-    record_date: date
-    payable_date: date
+    record_date: Optional[date] = None
+    payable_date: Optional[date] = None
     cash: float
     old_rate: float
     new_rate: float

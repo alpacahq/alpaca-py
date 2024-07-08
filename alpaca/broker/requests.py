@@ -891,11 +891,23 @@ class BatchJournalRequestEntry(NonEmptyRequest):
 
     Attributes:
         to_account (UUID): Account to fund in batch journal request.
-        amount (float): The cash amount in USD to fund by.
+        amount (Union[str, float]): The cash amount in USD to fund by.
+        description (Optional[str]): Journal description.
+        transmitter_name (Optional[str]): For cash journals, travel rule related name info.
+        transmitter_account_number (Optional[str]): For cash journals, travel rule account number info.
+        transmitter_address (Optional[str]): For cash journals, travel rule related address info.
+        transmitter_financial_institution (Optional[str]): For cash journals, travel rule related institution info.
+        transmitter_timestamp (Optional[str]): For cash journals, travel rule related timestamp info.
     """
 
     to_account: UUID
-    amount: float
+    amount: Union[str, float]
+    description: Optional[str] = None
+    transmitter_name: Optional[str] = None
+    transmitter_account_number: Optional[str] = None
+    transmitter_address: Optional[str] = None
+    transmitter_financial_institution: Optional[str] = None
+    transmitter_timestamp: Optional[str] = None
 
 
 class ReverseBatchJournalRequestEntry(NonEmptyRequest):
@@ -903,12 +915,24 @@ class ReverseBatchJournalRequestEntry(NonEmptyRequest):
     Entry in reverse batch journal request.
 
     Attributes:
-        to_account (UUID): Account to fund in batch journal request.
-        amount (float): The cash amount in USD to fund by.
+        from_account (UUID): Account from fund in batch journal request.
+        amount (Union[str, float]): The cash amount in USD to fund by.
+        description (Optional[str]): Journal description.
+        transmitter_name (Optional[str]): For cash journals, travel rule related name info.
+        transmitter_account_number (Optional[str]): For cash journals, travel rule account number info.
+        transmitter_address (Optional[str]): For cash journals, travel rule related address info.
+        transmitter_financial_institution (Optional[str]): For cash journals, travel rule related institution info.
+        transmitter_timestamp (Optional[str]): For cash journals, travel rule related timestamp info.
     """
 
     from_account: UUID
-    amount: float
+    amount: Union[str, float]
+    description: Optional[str] = None
+    transmitter_name: Optional[str] = None
+    transmitter_account_number: Optional[str] = None
+    transmitter_address: Optional[str] = None
+    transmitter_financial_institution: Optional[str] = None
+    transmitter_timestamp: Optional[str] = None
 
 
 class CreateBatchJournalRequest(NonEmptyRequest):
@@ -921,13 +945,11 @@ class CreateBatchJournalRequest(NonEmptyRequest):
     Attributes:
         entry_type (JournalEntryType): The type of journal transfer.
         from_account (UUID): The originator of funds. Most likely is your Sweep Firm Account
-        description (Optional[str]): Journal description, gets returned in the response.
         entries (List[BatchJournalRequestEntry]): List of journals to execute.
     """
 
     entry_type: JournalEntryType
     from_account: UUID
-    description: Optional[str] = None
     entries: List[BatchJournalRequestEntry]
 
 
@@ -941,13 +963,11 @@ class CreateReverseBatchJournalRequest(NonEmptyRequest):
     Attributes:
         entry_type (JournalEntryType): The type of journal transfer.
         to_account (UUID): The destination of funds. Most likely is your Sweep Firm Account
-        description (Optional[str]): Journal description, gets returned in the response.
         entries (List[BatchJournalRequestEntry]): List of journals to execute.
     """
 
     entry_type: JournalEntryType
     to_account: UUID
-    description: Optional[str] = None
     entries: List[ReverseBatchJournalRequestEntry]
 
 

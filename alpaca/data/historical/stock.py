@@ -1,29 +1,28 @@
 from collections import defaultdict
 from enum import Enum
-from typing import List, Optional, Union, Type, Dict
+from typing import Dict, List, Optional, Type, Union
 
+from alpaca.common.constants import DATA_V2_MAX_LIMIT
 from alpaca.common.enums import BaseURL
-from alpaca.common.rest import RESTClient, HTTPResult
+from alpaca.common.rest import HTTPResult, RESTClient
 from alpaca.common.types import RawData
-from alpaca.data import Quote, Trade, Snapshot, Bar
+from alpaca.data import Bar, Quote, Snapshot, Trade
 from alpaca.data.historical.utils import (
-    parse_obj_as_symbol_dict,
-    format_latest_data_response,
     format_dataset_response,
+    format_latest_data_response,
     format_snapshot_data,
+    parse_obj_as_symbol_dict,
 )
-
 from alpaca.data.models import BarSet, QuoteSet, TradeSet
 from alpaca.data.requests import (
     StockBarsRequest,
-    StockQuotesRequest,
-    StockTradesRequest,
-    StockLatestTradeRequest,
-    StockLatestQuoteRequest,
-    StockSnapshotRequest,
     StockLatestBarRequest,
+    StockLatestQuoteRequest,
+    StockLatestTradeRequest,
+    StockQuotesRequest,
+    StockSnapshotRequest,
+    StockTradesRequest,
 )
-from alpaca.common.constants import DATA_V2_MAX_LIMIT
 
 
 class DataExtensionType(Enum):
@@ -48,6 +47,7 @@ class StockHistoricalDataClient(RESTClient):
         use_basic_auth: bool = False,
         raw_data: bool = False,
         url_override: Optional[str] = None,
+        sandbox: bool = False,
     ) -> None:
         """
         Instantiates a Historical Data Client.
@@ -56,20 +56,29 @@ class StockHistoricalDataClient(RESTClient):
             api_key (Optional[str], optional): Alpaca API key. Defaults to None.
             secret_key (Optional[str], optional): Alpaca API secret key. Defaults to None.
             oauth_token (Optional[str]): The oauth token if authenticating via OAuth. Defaults to None.
-            use_basic_auth (bool, optional): If true, API requests will use basic authorization headers.
+            use_basic_auth (bool, optional): If true, API requests will use basic authorization headers. Set to true if using
+              broker api sandbox credentials
             raw_data (bool, optional): If true, API responses will not be wrapped and raw responses will be returned from
               methods. Defaults to False. This has not been implemented yet.
             url_override (Optional[str], optional): If specified allows you to override the base url the client points
               to for proxy/testing.
+            sandbox (bool): True if using sandbox mode. Defaults to False.
         """
+
+        base_url = (
+            url_override
+            if url_override is not None
+            else BaseURL.DATA_SANDBOX if sandbox else BaseURL.DATA
+        )
+
         super().__init__(
             api_key=api_key,
             secret_key=secret_key,
             oauth_token=oauth_token,
             use_basic_auth=use_basic_auth,
             api_version="v2",
-            base_url=url_override if url_override is not None else BaseURL.DATA,
-            sandbox=False,
+            base_url=base_url,
+            sandbox=sandbox,
             raw_data=raw_data,
         )
 

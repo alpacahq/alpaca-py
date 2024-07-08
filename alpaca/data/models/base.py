@@ -1,10 +1,8 @@
 import itertools
-import pprint
 from typing import Any, Dict, List
 
 import pandas as pd
 from pandas import DataFrame
-from pydantic import ConfigDict
 
 from alpaca.common.models import ValidateBaseModel as BaseModel
 
@@ -24,9 +22,12 @@ class TimeSeriesMixin:
         df = pd.DataFrame(data_list)
 
         # set multi-level index
-        # level=0 - symbol
-        # level=1 - timestamp
+        if "news" in self.dict():
+            # level=0 - id
+            df = df.set_index(["id"])
         if set(["symbol", "timestamp"]).issubset(df.columns):
+            # level=0 - symbol
+            # level=1 - timestamp
             df = df.set_index(["symbol", "timestamp"])
 
         # drop null columns
@@ -37,11 +38,10 @@ class TimeSeriesMixin:
 
 class BaseDataSet(BaseModel):
     """
-    Base class to process data models for trades, bars and quotes.
+    Base class to process data models for trades, bars quotes, and news.
     """
 
     data: Dict[str, List[BaseModel]] = {}
-    model_config = ConfigDict(protected_namespaces=tuple())
 
     def __getitem__(self, symbol: str) -> Any:
         """Gives dictionary-like access to multi-symbol data

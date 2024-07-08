@@ -1,26 +1,26 @@
 from datetime import date, datetime, timedelta
-from typing import Optional, Any, List, Union
+from typing import Any, List, Optional, Union
 
 import pandas as pd
 from pydantic import model_validator
-from alpaca.common.models import ModelWithID
 
-from alpaca.common.requests import NonEmptyRequest
 from alpaca.common.enums import Sort
+from alpaca.common.models import ModelWithID
+from alpaca.common.requests import NonEmptyRequest
 from alpaca.trading.enums import (
-    ContractType,
-    ExerciseStyle,
-    OrderType,
-    AssetStatus,
     AssetClass,
     AssetExchange,
-    TimeInForce,
-    OrderSide,
-    OrderClass,
-    CorporateActionType,
+    AssetStatus,
+    ContractType,
     CorporateActionDateType,
-    QueryOrderStatus,
+    CorporateActionType,
+    ExerciseStyle,
+    OrderClass,
+    OrderSide,
+    OrderType,
     PositionIntent,
+    QueryOrderStatus,
+    TimeInForce,
 )
 
 
@@ -208,6 +208,24 @@ class ReplaceOrderRequest(NonEmptyRequest):
     stop_price: Optional[float] = None
     trail: Optional[float] = None
     client_order_id: Optional[str] = None
+
+    @model_validator(mode="before")
+    def root_validator(cls, values: dict) -> dict:
+        qty = values.get("qty", None)
+        limit_price = values.get("limit_price", None)
+        stop_price = values.get("stop_price", None)
+        trail = values.get("trail", None)
+
+        if (qty is not None) and (qty <= 0):
+            raise ValueError("qty must be greater than 0")
+        if (limit_price is not None) and (limit_price <= 0):
+            raise ValueError("limit_price must be greater than 0")
+        if (stop_price is not None) and (stop_price <= 0):
+            raise ValueError("stop_price must be greater than 0")
+        if (trail is not None) and (trail <= 0):
+            raise ValueError("trail must be greater than 0")
+
+        return values
 
 
 class CancelOrderResponse(ModelWithID):

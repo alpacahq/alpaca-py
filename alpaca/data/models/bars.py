@@ -1,8 +1,6 @@
 from datetime import datetime
 from typing import Dict, List, Optional
 
-from pydantic import ConfigDict
-
 from alpaca.common.models import ValidateBaseModel as BaseModel
 from alpaca.common.types import RawData
 from alpaca.data.mappings import BAR_MAPPING
@@ -34,8 +32,6 @@ class Bar(BaseModel):
     volume: float
     trade_count: Optional[float]
     vwap: Optional[float]
-
-    model_config = ConfigDict(protected_namespaces=tuple())
 
     def __init__(self, symbol: str, raw_data: RawData) -> None:
         """Instantiates a bar

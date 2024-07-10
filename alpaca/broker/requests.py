@@ -32,6 +32,7 @@ from alpaca.broker.enums import (
     VisaType,
     JournalEntryType,
     JournalStatus,
+    CommissionType,
 )
 from alpaca.common.enums import Sort, SupportedCurrencies
 from alpaca.trading.enums import ActivityType, AccountStatus, OrderType, AssetClass
@@ -662,9 +663,11 @@ class OrderRequest(BaseOrderRequest):
         take_profit (Optional[TakeProfitRequest]): For orders with multiple legs, an order to exit a profitable trade.
         stop_loss (Optional[StopLossRequest]): For orders with multiple legs, an order to exit a losing trade.
         commission (Optional[float]): The dollar value commission you want to charge the end user.
+        commission_type (Optional[CommissionType]): An enum to select how to interpret the value provided in the commission field: notional, bps, qty.
     """
 
     commission: Optional[float] = None
+    commission_type: Optional[CommissionType] = None
     currency: Optional[SupportedCurrencies] = None  # None = USD
 
     @model_validator(mode="before")
@@ -705,9 +708,11 @@ class MarketOrderRequest(BaseMarketOrderRequest):
         take_profit (Optional[TakeProfitRequest]): For orders with multiple legs, an order to exit a profitable trade.
         stop_loss (Optional[StopLossRequest]): For orders with multiple legs, an order to exit a losing trade.
         commission (Optional[float]): The dollar value commission you want to charge the end user.
+        commission_type (Optional[CommissionType]): An enum to select how to interpret the value provided in the commission field: notional, bps, qty.
     """
 
     commission: Optional[float] = None
+    commission_type: Optional[CommissionType] = None
 
 
 class LimitOrderRequest(BaseLimitOrderRequest):
@@ -729,9 +734,11 @@ class LimitOrderRequest(BaseLimitOrderRequest):
         stop_loss (Optional[StopLossRequest]): For orders with multiple legs, an order to exit a losing trade.
         limit_price (float): The worst fill price for a limit or stop limit order.
         commission (Optional[float]): The dollar value commission you want to charge the end user.
+        commission_type (Optional[CommissionType]): An enum to select how to interpret the value provided in the commission field: notional, bps, qty.
     """
 
     commission: Optional[float] = None
+    commission_type: Optional[CommissionType] = None
 
 
 class StopOrderRequest(BaseStopOrderRequest):
@@ -754,9 +761,11 @@ class StopOrderRequest(BaseStopOrderRequest):
         stop_price (float): The price at which the stop order is converted to a market order or a stop limit
             order is converted to a limit order.
         commission (Optional[float]): The dollar value commission you want to charge the end user.
+        commission_type (Optional[CommissionType]): An enum to select how to interpret the value provided in the commission field: notional, bps, qty.
     """
 
     commission: Optional[float] = None
+    commission_type: Optional[CommissionType] = None
 
 
 class StopLimitOrderRequest(BaseStopLimitOrderRequest):
@@ -780,9 +789,11 @@ class StopLimitOrderRequest(BaseStopLimitOrderRequest):
             order is converted to a limit order.
         limit_price (float): The worst fill price for a limit or stop limit order.
         commission (Optional[float]): The dollar value commission you want to charge the end user
+        commission_type (Optional[CommissionType]): An enum to select how to interpret the value provided in the commission field: notional, bps, qty.
     """
 
     commission: Optional[float] = None
+    commission_type: Optional[CommissionType] = None
 
 
 class TrailingStopOrderRequest(BaseTrailingStopOrderRequest):
@@ -805,9 +816,11 @@ class TrailingStopOrderRequest(BaseTrailingStopOrderRequest):
         trail_price (Optional[float]): The absolute price difference by which the trailing stop will trail.
         trail_percent (Optional[float]): The percent price difference by which the trailing stop will trail.
         commission (Optional[float]): The dollar value commission you want to charge the end user.
+        commission_type (Optional[CommissionType]): An enum to select how to interpret the value provided in the commission field: notional, bps, qty.
     """
 
     commission: Optional[float] = None
+    commission_type: Optional[CommissionType] = None
 
 
 class CancelOrderResponse(BaseCancelOrderResponse):

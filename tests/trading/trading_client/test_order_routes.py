@@ -1,4 +1,3 @@
-from tracemalloc import stop
 import pytest
 
 from alpaca.common.enums import BaseURL

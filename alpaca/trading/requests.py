@@ -359,16 +359,24 @@ class LimitOrderRequest(OrderRequest):
         order_class (Optional[OrderClass]): The class of the order. Simple orders have no other legs.
         take_profit (Optional[TakeProfitRequest]): For orders with multiple legs, an order to exit a profitable trade.
         stop_loss (Optional[StopLossRequest]): For orders with multiple legs, an order to exit a losing trade.
-        limit_price (float): The worst fill price for a limit or stop limit order.
+        limit_price (Optional[float]): The worst fill price for a limit or stop limit order.
         position_intent (Optional[PositionIntent]): An enum to indicate the desired position strategy: BTO, BTC, STO, STC.
     """
 
-    limit_price: float
+    limit_price: Optional[float] = None
 
     def __init__(self, **data: Any) -> None:
         data["type"] = OrderType.LIMIT
 
         super().__init__(**data)
+
+    @model_validator(mode="before")
+    def root_validator(cls, values: dict) -> dict:
+        if values.get("order_class", "") != OrderClass.OCO:
+            limit_price = values.get("limit_price", None)
+            if limit_price is None:
+                raise ValueError("limit_price is required")
+        return values
 
 
 class StopLimitOrderRequest(OrderRequest):

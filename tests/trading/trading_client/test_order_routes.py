@@ -3,7 +3,13 @@ import pytest
 from alpaca.common.enums import BaseURL
 from alpaca.common.exceptions import APIError
 from alpaca.trading.client import TradingClient
-from alpaca.trading.enums import OrderSide, OrderStatus, PositionIntent, TimeInForce
+from alpaca.trading.enums import (
+    OrderClass,
+    OrderSide,
+    OrderStatus,
+    PositionIntent,
+    TimeInForce,
+)
 from alpaca.trading.models import Order
 from alpaca.trading.requests import (
     CancelOrderResponse,
@@ -12,6 +18,8 @@ from alpaca.trading.requests import (
     LimitOrderRequest,
     MarketOrderRequest,
     ReplaceOrderRequest,
+    StopLossRequest,
+    TakeProfitRequest,
 )
 
 
@@ -419,6 +427,68 @@ def test_limit_order(reqmock, trading_client):
     lo_response = trading_client.submit_order(lo)
 
     assert lo_response.status == OrderStatus.ACCEPTED
+
+
+def test_limit_order_request_validation() -> None:
+    # missing limit_price for non-OCOC
+    with pytest.raises(ValueError):
+        # order_class is not specified (default: simple)
+        LimitOrderRequest(
+            symbol="AAPL",
+            qty=1,
+            side=OrderSide.SELL,
+            time_in_force=TimeInForce.DAY,
+        )
+    with pytest.raises(ValueError):
+        # simple
+        LimitOrderRequest(
+            symbol="AAPL",
+            qty=1,
+            side=OrderSide.SELL,
+            time_in_force=TimeInForce.DAY,
+            order_class=OrderClass.SIMPLE,
+        )
+    with pytest.raises(ValueError):
+        # oto with take_profit
+        LimitOrderRequest(
+            symbol="AAPL",
+            qty=1,
+            side=OrderSide.SELL,
+            time_in_force=TimeInForce.DAY,
+            order_class=OrderClass.OTO,
+            take_profit=TakeProfitRequest(limit_price=100),
+        )
+    with pytest.raises(ValueError):
+        # oto with stop_loss
+        LimitOrderRequest(
+            symbol="AAPL",
+            qty=1,
+            side=OrderSide.SELL,
+            time_in_force=TimeInForce.DAY,
+            order_class=OrderClass.OTO,
+            stop_loss=StopLossRequest(stop_price=300),
+        )
+    with pytest.raises(ValueError):
+        # bracket
+        LimitOrderRequest(
+            symbol="AAPL",
+            qty=1,
+            side=OrderSide.SELL,
+            time_in_force=TimeInForce.DAY,
+            order_class=OrderClass.BRACKET,
+            take_profit=TakeProfitRequest(limit_price=100),
+            stop_loss=StopLossRequest(stop_price=300),
+        )
+    # no limit_price for OCO
+    LimitOrderRequest(
+        symbol="AAPL",
+        qty=1,
+        side=OrderSide.SELL,
+        time_in_force=TimeInForce.DAY,
+        order_class=OrderClass.OCO,
+        take_profit=TakeProfitRequest(limit_price=300),
+        stop_loss=StopLossRequest(stop_price=100),
+    )
 
 
 def test_order_position_intent(reqmock, trading_client: TradingClient):

@@ -164,6 +164,24 @@ class StockQuotesRequest(BaseTimeseriesDataRequest):
     asof: Optional[str] = None
 
 
+class CryptoQuoteRequest(BaseTimeseriesDataRequest):
+    """
+    This request class is used to submit a request for crypto quote data.
+
+    See BaseTimeseriesDataRequest for more information on available parameters.
+
+    Attributes:
+        symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
+        start (Optional[datetime]): The beginning of the time interval for desired data. Timezone naive inputs assumed to be in UTC.
+        end (Optional[datetime]): The end of the time interval for desired data. Defaults to now. Timezone naive inputs assumed to be in UTC.
+        limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
+        sort (Optional[Sort]): The chronological order of response based on the timestamp. Defaults to ASC.
+
+    """
+
+    pass
+
+
 # ############################## Trades ################################# #
 
 

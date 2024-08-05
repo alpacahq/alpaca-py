@@ -3,6 +3,7 @@ import logging
 import queue
 from collections import defaultdict
 from typing import Callable, Dict, List, Optional, Tuple, Union
+from datetime import timedelta
 
 import msgpack
 import websockets
@@ -359,10 +360,19 @@ class DataStream:
             finally:
                 await asyncio.sleep(0)
 
-    def run(self) -> None:
-        """Starts up the websocket connection's event loop"""
+    def run(self, duration: timedelta = None) -> None:
+        """Starts up the websocket connection's event loop
+
+        Parameters:
+        -----------
+        duration: timedelta, default 'None'
+            Duration of event loop before timeout."""
         try:
-            asyncio.run(self._run_forever())
+            timeout_seconds = duration.total_seconds() if duration != None else 0
+            asyncio.run(asyncio.wait([self._run_forever()], timeout=timeout_seconds))
+        except TypeError:
+            print("invalid duration type entered")
+            pass
         except KeyboardInterrupt:
             print("keyboard interrupt, bye")
             pass

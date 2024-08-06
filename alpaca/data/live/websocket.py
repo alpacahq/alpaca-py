@@ -360,6 +360,11 @@ class DataStream:
             finally:
                 await asyncio.sleep(0)
 
+    async def _run(self, duration: timedelta = None) -> None:
+        timeout_seconds = duration.total_seconds() if duration != None else None
+        run_task = asyncio.create_task(self._run_forever())
+        await asyncio.wait([run_task], timeout=timeout_seconds)
+
     def run(self, duration: timedelta = None) -> None:
         """Starts up the websocket connection's event loop
 
@@ -368,9 +373,9 @@ class DataStream:
         duration: timedelta, default 'None'
             Duration of event loop before timeout."""
         try:
-            timeout_seconds = duration.total_seconds() if duration != None else 0
-            asyncio.run(asyncio.wait([self._run_forever()], timeout=timeout_seconds))
-        except TypeError:
+            asyncio.run(self._run(duration))
+        except TypeError as e:
+            print(e)
             print("invalid duration type entered")
             pass
         except KeyboardInterrupt:

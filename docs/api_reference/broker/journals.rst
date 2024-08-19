@@ -37,4 +37,3 @@ Cancel Journal by ID
 --------------------
 
 .. automethod:: alpaca.broker.client.BrokerClient.cancel_journal_by_id
-

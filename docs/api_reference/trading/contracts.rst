@@ -14,5 +14,3 @@ Get Option Contract
 -------------------
 
 .. automethod:: alpaca.trading.client.TradingClient.get_option_contract
-
-

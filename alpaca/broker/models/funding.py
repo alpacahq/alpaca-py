@@ -99,9 +99,10 @@ class Transfer(ModelWithID):
 
     account_id: UUID
     created_at: datetime
-    updated_at: datetime
-    expires_at: datetime
-    relationship_id: UUID
+    updated_at: Optional[datetime] = None
+    expires_at: Optional[datetime] = None
+    relationship_id: Optional[UUID] = None
+    bank_id: Optional[UUID] = None
     amount: str
     type: TransferType
     status: TransferStatus

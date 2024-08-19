@@ -266,19 +266,20 @@ def setup_reqmock_for_paginated_transfers_response(account_id, reqmock):
     resp_one = """
     [
         {
-          "id": "be3c368a-4c7c-4384-808e-f02c9f5a8afe",
-          "relationship_id": "0f08c6bc-8e9f-463d-a73f-fd047fdb5e94",
-          "account_id": "2a87c088-ffb6-472b-a4a3-cd9305c8605c",
-          "type": "ach",
-          "status": "COMPLETE",
-          "reason": null,
-          "amount": "498",
+          "id": "bf438b6d-4ea3-4241-9e1c-a0e55b47f4e0",
+          "account_id": "2d6cab28-c5d1-4ff8-91c6-b6404a9ee114",
+          "type": "wire",
+          "status": "CANCELED",
+          "currency": "USD",
+          "amount": "100",
+          "instant_amount": "0",
           "direction": "INCOMING",
-          "created_at": "2021-05-05T07:55:31.190788Z",
-          "updated_at": "2021-05-05T08:13:33.029539Z",
-          "expires_at": "2021-05-12T07:55:31.190719Z",
-          "requested_amount": "500",
-          "fee": "2",
+          "created_at": "2024-07-15T13:40:01.963459Z",
+          "updated_at": "2024-07-22T08:22:29.990176Z",
+          "reason": null,
+          "hold_until": null,
+          "requested_amount": "100",
+          "fee": "0",
           "fee_payment_method": "user"
         },
         {

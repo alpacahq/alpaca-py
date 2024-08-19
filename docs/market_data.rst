@@ -4,8 +4,8 @@
 Market Data
 ===========
 
-The market data API allows you to access both live and historical data for equities, cryptocurrencies, and options. 
-Over 5 years of historical data is available for thousands of equity and cryptocurrency symbols. 
+The market data API allows you to access both live and historical data for equities, cryptocurrencies, and options.
+Over 5 years of historical data is available for thousands of equity and cryptocurrency symbols.
 Various data types are available such as bars/candles (OHLCV), trade data (price and sales), and quote data. For
 crypto, there is also orderbook data. For more information on the data types available,
 please look at the `API reference <https://alpaca.markets/docs/market-data/>`_.
@@ -192,7 +192,3 @@ Finally, you will need to call the ``run`` method to start receiving data.
     wss_client.subscribe_quotes(quote_data_handler, "SPY")
 
     wss_client.run()
-
-
-
-

@@ -56,5 +56,3 @@ Update Trade Configuration For Account
 --------------------------------------
 
 .. automethod:: alpaca.broker.client.BrokerClient.update_trade_configuration_for_account
-
-

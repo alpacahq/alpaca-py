@@ -48,4 +48,3 @@ Get Stock Snapshot
 ------------------
 
 .. automethod:: alpaca.data.historical.stock.StockHistoricalDataClient.get_stock_snapshot
-

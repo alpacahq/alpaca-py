@@ -1,6 +1,6 @@
 ## Google Colab Notebooks
 
-Explore the examples for Stocks, Options, and Crypto utilizing alpaca-py in the notebooks provided below. Open them in Google Colab to jumpstart your development journey! 
+Explore the examples for Stocks, Options, and Crypto utilizing alpaca-py in the notebooks provided below. Open them in Google Colab to jumpstart your development journey!
 
 | Notebooks                                                                                |                                                                                                       Open in Google Colab                                                                                                       |
 | :--------------------------------------------------------------------------------------- | :-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |

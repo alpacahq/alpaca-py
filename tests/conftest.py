@@ -7,6 +7,7 @@ from requests_mock import Mocker
 from alpaca.broker.client import BrokerClient
 from alpaca.data.historical import StockHistoricalDataClient
 from alpaca.data.historical.crypto import CryptoHistoricalDataClient
+from alpaca.data.historical.news import NewsClient
 from alpaca.data.historical.option import OptionHistoricalDataClient
 from alpaca.data.historical.screener import ScreenerClient
 from alpaca.trading.client import TradingClient
@@ -45,6 +46,12 @@ def trading_client():
 @pytest.fixture
 def stock_client():
     client = StockHistoricalDataClient("key-id", "secret-key")
+    return client
+
+
+@pytest.fixture
+def news_client():
+    client = NewsClient("key-id", "secret-key")
     return client
 
 

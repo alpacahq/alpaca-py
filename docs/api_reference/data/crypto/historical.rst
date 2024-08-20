@@ -50,4 +50,3 @@ Get Crypto Latest Orderbook
 ---------------------------
 
 .. automethod:: alpaca.data.historical.crypto.CryptoHistoricalDataClient.get_crypto_latest_orderbook
-

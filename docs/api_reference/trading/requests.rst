@@ -114,11 +114,3 @@ GetCorporateAnnouncementsRequest
 --------------------------------
 
 .. autoclass:: alpaca.trading.requests.GetCorporateAnnouncementsRequest
-
-
-
-
-
-
-
-

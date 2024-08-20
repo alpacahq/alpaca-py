@@ -10,4 +10,3 @@ Get Account Details
 -------------------
 
 .. automethod:: alpaca.trading.client.TradingClient.get_account
-

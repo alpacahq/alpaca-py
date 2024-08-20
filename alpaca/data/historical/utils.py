@@ -5,9 +5,9 @@ from alpaca.common import HTTPResult, RawData
 
 """
 These functions were created and put in this file to handle all of the edge cases
-for parsing data that exist in the market data API. 
+for parsing data that exist in the market data API.
 
-v2/stocks and v1beta2/crypto 
+v2/stocks and v1beta2/crypto
 """
 
 

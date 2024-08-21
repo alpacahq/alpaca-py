@@ -66,9 +66,9 @@ class NewsSet(BaseDataSet, TimeSeriesMixin):
 
     Attributes:
         data (Dict[str, List[News]]): The collection of News articles.
+        next_page_token (Optional[str]): The token to get the next page of data.
     """
 
-    news: List[News]
     next_page_token: Optional[str]
 
     def __init__(self, raw_data: RawData) -> None:
@@ -81,9 +81,10 @@ class NewsSet(BaseDataSet, TimeSeriesMixin):
         articles = []
 
         for article in raw_data.get("news", []):
-            articles.append(News(raw_data=article))
+            news = News(raw_data=article)
+            articles.append(news)
 
         parsed_news["news"] = articles
-        parsed_news["next_page_token"] = raw_data.get("next_page_token")
+        next_page_token = raw_data.get("next_page_token")
 
-        super().__init__(**parsed_news)
+        super().__init__(data=parsed_news, next_page_token=next_page_token)

@@ -453,6 +453,7 @@ class OptionChainRequest(NonEmptyRequest):
         expiration_date_gte (Optional[Union[date, str]]): Filter contracts with expiration date greater than or equal to the specified date.
         expiration_date_lte (Optional[Union[date, str]]): Filter contracts with expiration date less than or equal to the specified date.
         root_symbol (Optional[str]): Filter contracts by the root symbol.
+        updated_since (Optional[datetime]): Filter to snapshots that were updated since this timestamp.
     """
 
     underlying_symbol: str
@@ -464,6 +465,7 @@ class OptionChainRequest(NonEmptyRequest):
     expiration_date_gte: Optional[Union[date, str]] = None
     expiration_date_lte: Optional[Union[date, str]] = None
     root_symbol: Optional[str] = None
+    updated_since: Optional[datetime] = None
 
 
 # ############################## Orderbooks ################################# #

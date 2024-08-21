@@ -15,6 +15,12 @@ CryptoBarsRequest
 .. autoclass:: alpaca.data.requests.CryptoBarsRequest
 
 
+CryptoQuoteRequest
+------------------
+
+.. autoclass:: alpaca.data.requests.CryptoQuoteRequest
+
+
 CryptoTradesRequest
 -------------------
 

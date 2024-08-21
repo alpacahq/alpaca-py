@@ -13,14 +13,14 @@ from alpaca.data.historical.utils import (
     format_latest_data_response,
     parse_obj_as_symbol_dict,
 )
-from alpaca.data.models import BarSet, Orderbook, Quote, Trade, TradeSet, QuoteSet
+from alpaca.data.models import BarSet, Orderbook, Quote, QuoteSet, Trade, TradeSet
 from alpaca.data.requests import (
     CryptoBarsRequest,
-    CryptoQuoteRequest,
     CryptoLatestBarRequest,
     CryptoLatestOrderbookRequest,
     CryptoLatestQuoteRequest,
     CryptoLatestTradeRequest,
+    CryptoQuoteRequest,
     CryptoSnapshotRequest,
     CryptoTradesRequest,
 )

@@ -4,12 +4,13 @@ from typing import Dict
 
 from alpaca.data import Bar, Quote, Trade
 from alpaca.data.historical.crypto import CryptoHistoricalDataClient
-from alpaca.data.models import BarSet, Snapshot, TradeSet
+from alpaca.data.models import BarSet, QuoteSet, Snapshot, TradeSet
 from alpaca.data.requests import (
     CryptoBarsRequest,
     CryptoLatestBarRequest,
     CryptoLatestQuoteRequest,
     CryptoLatestTradeRequest,
+    CryptoQuoteRequest,
     CryptoSnapshotRequest,
     CryptoTradesRequest,
 )
@@ -74,6 +75,57 @@ def test_get_crypto_bars(reqmock, crypto_client: CryptoHistoricalDataClient):
 
     assert barset.df.index[0][1].day == 9
     assert barset.df.index.nlevels == 2
+
+
+def test_get_crypto_quotes(reqmock, crypto_client: CryptoHistoricalDataClient):
+    # test multisymbol request
+    symbols = ["BTC/USD", "ETH/USD"]
+    start = datetime(2022, 5, 26)
+    end = datetime(2022, 5, 26)
+    _symbols_in_url = "%2C".join(s for s in symbols)
+
+    _start_in_url = urllib.parse.quote_plus(
+        start.replace(tzinfo=timezone.utc).isoformat()
+    )
+    _end_in_url = urllib.parse.quote_plus(end.replace(tzinfo=timezone.utc).isoformat())
+    reqmock.get(
+        f"https://data.alpaca.markets/v1beta3/crypto/us/quotes?start={_start_in_url}&end={_end_in_url}&symbols={_symbols_in_url}",
+        text="""
+    {
+    "quotes": {
+        "BTC/USD": [
+        {
+            "t": "2022-05-26T11:47:18.44347136Z",
+            "bp": 29058,
+            "bs": 0.3544,
+            "ap": 29059,
+            "as": 3.252
+        }
+        ],
+        "ETH/USD": [
+        {
+            "t": "2022-05-26T11:47:18.499478272Z",
+            "bp": 1817,
+            "bs": 4.76,
+            "ap": 1817.7,
+            "as": 6.137
+        }
+        ]
+    },
+    "next_page_token": null
+    }
+        """,
+    )
+    request = CryptoQuoteRequest(symbol_or_symbols=symbols, start=start, end=end)
+    quoteset = crypto_client.get_crypto_quotes(request)
+
+    assert isinstance(quoteset, QuoteSet)
+
+    assert quoteset["BTC/USD"][0].bid_price == 29058
+    assert quoteset["ETH/USD"][0].ask_size == 6.137
+
+    assert quoteset.df.index[0][1].day == 26
+    assert quoteset.df.index.nlevels == 2
 
 
 def test_get_trades(reqmock, crypto_client: CryptoHistoricalDataClient):

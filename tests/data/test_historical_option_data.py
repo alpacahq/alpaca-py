@@ -1000,7 +1000,7 @@ def test_get_option_chain(reqmock, option_client: OptionHistoricalDataClient):
     symbol = "AAPL"
 
     reqmock.get(
-        f"https://data.alpaca.markets/v1beta1/options/snapshots/{symbol}",
+        f"https://data.alpaca.markets/v1beta1/options/snapshots/{symbol}?updated_since=2024-04-25T00%3A00%3A00%2B00%3A00",
         text="""
         {
             "next_page_token": null,
@@ -1037,7 +1037,9 @@ def test_get_option_chain(reqmock, option_client: OptionHistoricalDataClient):
         """,
     )
 
-    request = OptionChainRequest(underlying_symbol=symbol)
+    request = OptionChainRequest(
+        underlying_symbol=symbol, updated_since=datetime(2024, 4, 25)
+    )
 
     snapshots = option_client.get_option_chain(request)
 

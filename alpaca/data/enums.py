@@ -140,3 +140,24 @@ class NewsImageSize(str, Enum):
     THUMB = "thumb"
     SMALL = "small"
     LARGE = "large"
+
+
+class CorporateActionsType(str, Enum):
+    """
+    The type of corporate action.
+    ref. https://docs.alpaca.markets/reference/corporateactions-1
+    """
+
+    REVERSE_SPLIT = "reverse_split"
+    FORWARD_SPLIT = "forward_split"
+    UNIT_SPLIT = "unit_split"
+    CASH_DIVIDEND = "cash_dividend"
+    STOCK_DIVIDEND = "stock_dividend"
+    SPIN_OFF = "spin_off"
+    CASH_MERGER = "cash_merger"
+    STOCK_MERGER = "stock_merger"
+    STOCK_AND_CASH_MERGER = "stock_and_cash_merger"
+    REDEMPTION = "redemption"
+    NAME_CHANGE = "name_change"
+    WORTHLESS_REMOVAL = "worthless_removal"
+    RIGHTS_DISTRIBUTION = "rights_distribution"

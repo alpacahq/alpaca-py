@@ -146,6 +146,21 @@ class CorporateActionsType(str, Enum):
     """
     The type of corporate action.
     ref. https://docs.alpaca.markets/reference/corporateactions-1
+
+    Attributes:
+        REVERSE_SPLIT (str): Reverse split
+        FORWARD_SPLIT (str): Forward split
+        UNIT_SPLIT (str): Unit split
+        CASH_DIVIDEND (str): Cash dividend
+        STOCK_DIVIDEND (str): Stock dividend
+        SPIN_OFF (str): Spin off
+        CASH_MERGER (str): Cash merger
+        STOCK_MERGER (str): Stock merger
+        STOCK_AND_CASH_MERGER (str): Stock and cash merger
+        REDEMPTION (str): Redemption
+        NAME_CHANGE (str): Name change
+        WORTHLESS_REMOVAL (str): Worthless removal
+        RIGHTS_DISTRIBUTION (str): Rights distribution
     """
 
     REVERSE_SPLIT = "reverse_split"

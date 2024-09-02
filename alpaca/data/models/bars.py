@@ -56,20 +56,22 @@ class BarSet(BaseDataSet, TimeSeriesMixin):
 
     Attributes:
         data (Dict[str, List[Bar]]): The collection of Bars keyed by symbol.
+        next_page_token (Optional[str]): The token to get the next page of data.
     """
 
     data: Dict[str, List[Bar]] = {}
+    next_page_token: Optional[str] = None
 
     def __init__(
         self,
         raw_data: RawData,
+        next_page_token: Optional[str] = None,
     ) -> None:
         """A collection of Bars.
 
         Args:
             raw_data (RawData): The collection of raw bar data from API keyed by Symbol.
         """
-
         parsed_bars = {}
 
         raw_bars = raw_data
@@ -80,4 +82,4 @@ class BarSet(BaseDataSet, TimeSeriesMixin):
                     Bar(symbol, bar) for bar in bars if bar is not None
                 ]
 
-        super().__init__(data=parsed_bars)
+        super().__init__(data=parsed_bars, next_page_token=next_page_token)

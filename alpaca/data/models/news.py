@@ -69,7 +69,7 @@ class NewsSet(BaseDataSet, TimeSeriesMixin):
         next_page_token (Optional[str]): The token to get the next page of data.
     """
 
-    next_page_token: Optional[str]
+    next_page_token: Optional[str] = None
 
     def __init__(self, raw_data: RawData) -> None:
         """A collection of News articles.

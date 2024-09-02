@@ -58,11 +58,15 @@ class TradeSet(BaseDataSet, TimeSeriesMixin):
 
     Attributes:
         data (Dict[str, List[Trade]]]): The collection of Trades keyed by symbol.
+        next_page_token (Optional[str]): The token to get the next page of data.
     """
 
     data: Dict[str, List[Trade]] = {}
+    next_page_token: Optional[str] = None
 
-    def __init__(self, raw_data: RawData) -> None:
+    def __init__(
+        self, raw_data: RawData, next_page_token: Optional[str] = None
+    ) -> None:
         """Instantiates a TradeSet - a collection of Trades.
 
         Args:
@@ -76,7 +80,7 @@ class TradeSet(BaseDataSet, TimeSeriesMixin):
                     Trade(symbol, trade) for trade in trades if trade is not None
                 ]
 
-        super().__init__(data=parsed_trades)
+        super().__init__(data=parsed_trades, next_page_token=next_page_token)
 
 
 class TradingStatus(BaseModel):

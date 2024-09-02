@@ -29,6 +29,8 @@ class BaseTimeseriesDataRequest(NonEmptyRequest):
         limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
         currency (Optional[SupportedCurrencies]): The currency the data should be returned in. Default to USD.
         sort: (Optional[Sort]): The chronological order of response based on the timestamp. Defaults to ASC.
+        page_token (Optional[str]): Pagination token to continue from. The value to pass here is returned in specific requests
+            when more data is available than the request limit allows.
     """
 
     symbol_or_symbols: Union[str, List[str]]
@@ -37,6 +39,7 @@ class BaseTimeseriesDataRequest(NonEmptyRequest):
     limit: Optional[int] = None
     currency: Optional[SupportedCurrencies] = None  # None = USD
     sort: Optional[Sort] = None  # None = asc
+    page_token: Optional[str] = None
 
     def __init__(self, **data: Any) -> None:
         # convert timezone aware datetime to timezone naive UTC datetime
@@ -74,6 +77,8 @@ class BaseBarsRequest(BaseTimeseriesDataRequest):
         limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
         timeframe (TimeFrame): The period over which the bars should be aggregated. (i.e. 5 Min bars, 1 Day bars)
         sort (Optional[Sort]): The chronological order of response based on the timestamp. Defaults to ASC.
+        page_token (Optional[str]): Pagination token to continue from. The value to pass here is returned in specific requests
+            when more data is available than the request limit allows.
     """
 
     timeframe: TimeFrame
@@ -99,6 +104,8 @@ class StockBarsRequest(BaseBarsRequest):
         sort (Optional[Sort]): The chronological order of response based on the timestamp. Defaults to ASC.
         asof (Optional[str]): The asof date of the queried stock symbol(s) in YYYY-MM-DD format.
         currency (Optional[SupportedCurrencies]): The currency of all prices in ISO 4217 format. Default is USD.
+        page_token (Optional[str]): Pagination token to continue from. The value to pass here is returned in specific requests
+            when more data is available than the request limit allows.
     """
 
     adjustment: Optional[Adjustment] = None
@@ -119,6 +126,8 @@ class CryptoBarsRequest(BaseBarsRequest):
         end (Optional[datetime]): The end of the time interval for desired data. Defaults to now. Timezone naive inputs assumed to be in UTC.
         limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
         sort (Optional[Sort]): The chronological order of response based on the timestamp. Defaults to ASC.
+        page_token (Optional[str]): Pagination token to continue from. The value to pass here is returned in specific requests
+            when more data is available than the request limit allows.
     """
 
     pass
@@ -137,6 +146,8 @@ class OptionBarsRequest(BaseBarsRequest):
         end (Optional[datetime]): The end of the time interval for desired data. Defaults to now. Timezone naive inputs assumed to be in UTC.
         limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
         sort (Optional[Sort]): The chronological order of response based on the timestamp. Defaults to ASC.
+        page_token (Optional[str]): Pagination token to continue from. The value to pass here is returned in specific requests
+            when more data is available than the request limit allows.
     """
 
 
@@ -158,6 +169,8 @@ class StockQuotesRequest(BaseTimeseriesDataRequest):
         sort (Optional[Sort]): The chronological order of response based on the timestamp. Defaults to ASC.
         asof (Optional[str]): The asof date of the queried stock symbol(s) in YYYY-MM-DD format.
         currency (Optional[SupportedCurrencies]): The currency of all prices in ISO 4217 format. Default is USD.
+        page_token (Optional[str]): Pagination token to continue from. The value to pass here is returned in specific requests
+            when more data is available than the request limit allows.
     """
 
     feed: Optional[DataFeed] = None
@@ -176,7 +189,8 @@ class CryptoQuoteRequest(BaseTimeseriesDataRequest):
         end (Optional[datetime]): The end of the time interval for desired data. Defaults to now. Timezone naive inputs assumed to be in UTC.
         limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
         sort (Optional[Sort]): The chronological order of response based on the timestamp. Defaults to ASC.
-
+        page_token (Optional[str]): Pagination token to continue from. The value to pass here is returned in specific requests
+            when more data is available than the request limit allows.
     """
 
     pass
@@ -200,6 +214,8 @@ class StockTradesRequest(BaseTimeseriesDataRequest):
         sort (Optional[Sort]): The chronological order of response based on the timestamp. Defaults to ASC.
         asof (Optional[str]): The asof date of the queried stock symbol(s) in YYYY-MM-DD format.
         currency (Optional[SupportedCurrencies]): The currency of all prices in ISO 4217 format. Default is USD.
+        page_token (Optional[str]): Pagination token to continue from. The value to pass here is returned in specific requests
+            when more data is available than the request limit allows.
     """
 
     feed: Optional[DataFeed] = None
@@ -218,6 +234,8 @@ class CryptoTradesRequest(BaseTimeseriesDataRequest):
         end (Optional[datetime]): The end of the time interval for desired data. Defaults to now. Timezone naive inputs assumed to be in UTC.
         limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
         sort (Optional[Sort]): The chronological order of response based on the timestamp. Defaults to ASC.
+        page_token (Optional[str]): Pagination token to continue from. The value to pass here is returned in specific requests
+            when more data is available than the request limit allows.
     """
 
     pass
@@ -235,6 +253,8 @@ class OptionTradesRequest(BaseTimeseriesDataRequest):
         end (Optional[datetime]): The end of the time interval for desired data. Defaults to now. Timezone naive inputs assumed to be in UTC.
         limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
         sort (Optional[Sort]): The chronological order of response based on the timestamp. Defaults to ASC.
+        page_token (Optional[str]): Pagination token to continue from. The value to pass here is returned in specific requests
+            when more data is available than the request limit allows.
     """
 
     pass

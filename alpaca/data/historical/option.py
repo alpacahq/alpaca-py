@@ -1,6 +1,6 @@
 from collections import defaultdict
 from enum import Enum
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 from alpaca.common.constants import DATA_V2_MAX_LIMIT
 from alpaca.common.enums import BaseURL
@@ -98,7 +98,7 @@ class OptionHistoricalDataClient(RESTClient):
         params = request_params.to_request_fields()
 
         # paginated get request for market data api
-        raw_bars = self._data_get(
+        raw_bars, next_page_token = self._data_get(
             endpoint_data_type="bars",
             endpoint_asset_class="options",
             api_version=self._api_version,
@@ -108,7 +108,7 @@ class OptionHistoricalDataClient(RESTClient):
         if self._use_raw_data:
             return raw_bars
 
-        return BarSet(raw_bars)
+        return BarSet(raw_data=raw_bars, next_page_token=next_page_token)
 
     def get_option_exchange_codes(self) -> RawData:
         """Returns the mapping between the option exchange codes and the corresponding exchanges names.
@@ -140,7 +140,7 @@ class OptionHistoricalDataClient(RESTClient):
         """
         params = request_params.to_request_fields()
 
-        raw_latest_quotes = self._data_get(
+        raw_latest_quotes, _ = self._data_get(
             endpoint_data_type="quotes",
             endpoint_asset_class="options",
             api_version=self._api_version,
@@ -166,7 +166,7 @@ class OptionHistoricalDataClient(RESTClient):
         """
         params = request_params.to_request_fields()
 
-        raw_latest_quotes = self._data_get(
+        raw_latest_quotes, _ = self._data_get(
             endpoint_data_type="trades",
             endpoint_asset_class="options",
             api_version=self._api_version,
@@ -193,7 +193,7 @@ class OptionHistoricalDataClient(RESTClient):
         params = request_params.to_request_fields()
 
         # paginated get request for market data api
-        raw_trades = self._data_get(
+        raw_trades, next_page_token = self._data_get(
             endpoint_data_type="trades",
             endpoint_asset_class="options",
             api_version=self._api_version,
@@ -203,7 +203,7 @@ class OptionHistoricalDataClient(RESTClient):
         if self._use_raw_data:
             return raw_trades
 
-        return TradeSet(raw_trades)
+        return TradeSet(raw_data=raw_trades, next_page_token=next_page_token)
 
     def get_option_snapshot(
         self, request_params: OptionSnapshotRequest
@@ -220,7 +220,7 @@ class OptionHistoricalDataClient(RESTClient):
 
         params = request_params.to_request_fields()
 
-        raw_snapshots = self._data_get(
+        raw_snapshots, _ = self._data_get(
             endpoint_asset_class="options",
             endpoint_data_type="snapshot",
             api_version=self._api_version,
@@ -248,7 +248,7 @@ class OptionHistoricalDataClient(RESTClient):
 
         params = request_params.to_request_fields()
 
-        raw_snapshots = self._data_get(
+        raw_snapshots, _ = self._data_get(
             endpoint_asset_class="options",
             endpoint_data_type="snapshot",
             api_version=self._api_version,
@@ -273,7 +273,7 @@ class OptionHistoricalDataClient(RESTClient):
         extension: Optional[DataExtensionType] = None,
         underlying_symbol: Optional[str] = None,
         **kwargs,
-    ) -> RawData:
+    ) -> Tuple[RawData, Optional[str]]:
         """Performs Data API GET requests accounting for pagination. Data in responses are limited to the page_limit,
         which defaults to 10,000 items. If any more data is requested, the data will be paginated.
 
@@ -326,7 +326,7 @@ class OptionHistoricalDataClient(RESTClient):
         data_by_symbol = defaultdict(list)
 
         total_items = 0
-        page_token = None
+        page_token = params.get("page_token", None)
 
         while True:
             actual_limit = None
@@ -361,4 +361,4 @@ class OptionHistoricalDataClient(RESTClient):
                 break
 
         # users receive Type dict
-        return dict(data_by_symbol)
+        return dict(data_by_symbol), page_token

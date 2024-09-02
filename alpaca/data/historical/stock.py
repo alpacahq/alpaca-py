@@ -1,6 +1,6 @@
 from collections import defaultdict
 from enum import Enum
-from typing import Dict, List, Optional, Type, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 from alpaca.common.constants import DATA_V2_MAX_LIMIT
 from alpaca.common.enums import BaseURL
@@ -98,7 +98,7 @@ class StockHistoricalDataClient(RESTClient):
         params = request_params.to_request_fields()
 
         # paginated get request for market data api
-        raw_bars = self._data_get(
+        raw_bars, next_page_token = self._data_get(
             endpoint_data_type="bars",
             endpoint_asset_class="stocks",
             api_version="v2",
@@ -108,7 +108,7 @@ class StockHistoricalDataClient(RESTClient):
         if self._use_raw_data:
             return raw_bars
 
-        return BarSet(raw_bars)
+        return BarSet(raw_data=raw_bars, next_page_token=next_page_token)
 
     def get_stock_quotes(
         self, request_params: StockQuotesRequest
@@ -124,7 +124,7 @@ class StockHistoricalDataClient(RESTClient):
         params = request_params.to_request_fields()
 
         # paginated get request for market data api
-        raw_quotes = self._data_get(
+        raw_quotes, next_page_token = self._data_get(
             endpoint_data_type="quotes",
             endpoint_asset_class="stocks",
             api_version="v2",
@@ -134,7 +134,7 @@ class StockHistoricalDataClient(RESTClient):
         if self._use_raw_data:
             return raw_quotes
 
-        return QuoteSet(raw_quotes)
+        return QuoteSet(raw_data=raw_quotes, next_page_token=next_page_token)
 
     def get_stock_trades(
         self, request_params: StockTradesRequest
@@ -150,7 +150,7 @@ class StockHistoricalDataClient(RESTClient):
         params = request_params.to_request_fields()
 
         # paginated get request for market data api
-        raw_trades = self._data_get(
+        raw_trades, next_page_token = self._data_get(
             endpoint_data_type="trades",
             endpoint_asset_class="stocks",
             api_version="v2",
@@ -160,7 +160,7 @@ class StockHistoricalDataClient(RESTClient):
         if self._use_raw_data:
             return raw_trades
 
-        return TradeSet(raw_trades)
+        return TradeSet(raw_data=raw_trades, next_page_token=next_page_token)
 
     def get_stock_latest_trade(
         self, request_params: StockLatestTradeRequest
@@ -176,7 +176,7 @@ class StockHistoricalDataClient(RESTClient):
 
         params = request_params.to_request_fields()
 
-        raw_latest_trades = self._data_get(
+        raw_latest_trades, _ = self._data_get(
             endpoint_data_type="trades",
             endpoint_asset_class="stocks",
             api_version="v2",
@@ -202,7 +202,7 @@ class StockHistoricalDataClient(RESTClient):
         """
         params = request_params.to_request_fields()
 
-        raw_latest_quotes = self._data_get(
+        raw_latest_quotes, _ = self._data_get(
             endpoint_data_type="quotes",
             endpoint_asset_class="stocks",
             api_version="v2",
@@ -228,7 +228,7 @@ class StockHistoricalDataClient(RESTClient):
         """
         params = request_params.to_request_fields()
 
-        raw_latest_bars = self._data_get(
+        raw_latest_bars, _ = self._data_get(
             endpoint_data_type="bars",
             endpoint_asset_class="stocks",
             api_version="v2",
@@ -256,7 +256,7 @@ class StockHistoricalDataClient(RESTClient):
 
         params = request_params.to_request_fields()
 
-        raw_snapshots = self._data_get(
+        raw_snapshots, _ = self._data_get(
             endpoint_asset_class="stocks",
             endpoint_data_type="snapshot",
             api_version="v2",
@@ -280,7 +280,7 @@ class StockHistoricalDataClient(RESTClient):
         page_limit: int = DATA_V2_MAX_LIMIT,
         extension: Optional[DataExtensionType] = None,
         **kwargs,
-    ) -> RawData:
+    ) -> Tuple[RawData, Optional[str]]:
         """Performs Data API GET requests accounting for pagination. Data in responses are limited to the page_limit,
         which defaults to 10,000 items. If any more data is requested, the data will be paginated.
 
@@ -329,7 +329,7 @@ class StockHistoricalDataClient(RESTClient):
         data_by_symbol = defaultdict(list)
 
         total_items = 0
-        page_token = None
+        page_token = params.get("page_token", None)
 
         while True:
             actual_limit = None
@@ -364,4 +364,4 @@ class StockHistoricalDataClient(RESTClient):
                 break
 
         # users receive Type dict
-        return dict(data_by_symbol)
+        return dict(data_by_symbol), page_token

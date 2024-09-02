@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 from alpaca.common.constants import DATA_V2_MAX_LIMIT
 from alpaca.common.enums import BaseURL
@@ -98,7 +98,7 @@ class CryptoHistoricalDataClient(RESTClient):
         params = request_params.to_request_fields()
 
         # paginated get request for crypto market data api
-        raw_bars = self._data_get(
+        raw_bars, next_page_token = self._data_get(
             endpoint_asset_class="crypto",
             endpoint_data_type="bars",
             api_version="v1beta3",
@@ -109,7 +109,7 @@ class CryptoHistoricalDataClient(RESTClient):
         if self._use_raw_data:
             return raw_bars
 
-        return BarSet(raw_bars)
+        return BarSet(raw_data=raw_bars, next_page_token=next_page_token)
 
     def get_crypto_quotes(
         self, request_params: CryptoQuoteRequest, feed: CryptoFeed = CryptoFeed.US
@@ -127,7 +127,7 @@ class CryptoHistoricalDataClient(RESTClient):
         params = request_params.to_request_fields()
 
         # paginated get request for market data api
-        raw_quotes = self._data_get(
+        raw_quotes, next_page_token = self._data_get(
             endpoint_asset_class="crypto",
             endpoint_data_type="quotes",
             api_version="v1beta3",
@@ -138,7 +138,7 @@ class CryptoHistoricalDataClient(RESTClient):
         if self._use_raw_data:
             return raw_quotes
 
-        return QuoteSet(raw_quotes)
+        return QuoteSet(raw_data=raw_quotes, next_page_token=next_page_token)
 
     def get_crypto_trades(
         self, request_params: CryptoTradesRequest, feed: CryptoFeed = CryptoFeed.US
@@ -157,7 +157,7 @@ class CryptoHistoricalDataClient(RESTClient):
         params = request_params.to_request_fields()
 
         # paginated get request for market data api
-        raw_trades = self._data_get(
+        raw_trades, next_page_token = self._data_get(
             endpoint_asset_class="crypto",
             endpoint_data_type="trades",
             api_version="v1beta3",
@@ -168,7 +168,7 @@ class CryptoHistoricalDataClient(RESTClient):
         if self._use_raw_data:
             return raw_trades
 
-        return TradeSet(raw_trades)
+        return TradeSet(raw_data=raw_trades, next_page_token=next_page_token)
 
     def get_crypto_latest_trade(
         self, request_params: CryptoLatestTradeRequest, feed: CryptoFeed = CryptoFeed.US
@@ -185,7 +185,7 @@ class CryptoHistoricalDataClient(RESTClient):
 
         params = request_params.to_request_fields()
 
-        raw_trades = self._data_get(
+        raw_trades, _ = self._data_get(
             endpoint_asset_class="crypto",
             endpoint_data_type="trades",
             api_version="v1beta3",
@@ -214,7 +214,7 @@ class CryptoHistoricalDataClient(RESTClient):
 
         params = request_params.to_request_fields()
 
-        raw_quotes = self._data_get(
+        raw_quotes, _ = self._data_get(
             endpoint_asset_class="crypto",
             endpoint_data_type="quotes",
             api_version="v1beta3",
@@ -243,7 +243,7 @@ class CryptoHistoricalDataClient(RESTClient):
 
         params = request_params.to_request_fields()
 
-        raw_bars = self._data_get(
+        raw_bars, _ = self._data_get(
             endpoint_asset_class="crypto",
             endpoint_data_type="bars",
             api_version="v1beta3",
@@ -275,7 +275,7 @@ class CryptoHistoricalDataClient(RESTClient):
 
         params = request_params.to_request_fields()
 
-        raw_orderbooks = self._data_get(
+        raw_orderbooks, _ = self._data_get(
             endpoint_asset_class="crypto",
             endpoint_data_type="orderbooks",
             api_version="v1beta3",
@@ -305,7 +305,7 @@ class CryptoHistoricalDataClient(RESTClient):
 
         params = request_params.to_request_fields()
 
-        raw_snapshots = self._data_get(
+        raw_snapshots, _ = self._data_get(
             endpoint_asset_class="crypto",
             endpoint_data_type="snapshots",
             api_version="v1beta3",
@@ -331,7 +331,7 @@ class CryptoHistoricalDataClient(RESTClient):
         page_limit: int = DATA_V2_MAX_LIMIT,
         extension: Optional[DataExtensionType] = None,
         **kwargs,
-    ) -> RawData:
+    ) -> Tuple[RawData, Optional[str]]:
         """Performs Data API GET requests accounting for pagination. Data in responses are limited to the page_limit,
         which defaults to 10,000 items. If any more data is requested, the data will be paginated.
 
@@ -381,7 +381,7 @@ class CryptoHistoricalDataClient(RESTClient):
         data_by_symbol = defaultdict(list)
 
         total_items = 0
-        page_token = None
+        page_token = params.get("page_token", None)
 
         while True:
             actual_limit = None
@@ -417,7 +417,7 @@ class CryptoHistoricalDataClient(RESTClient):
                 break
 
         # users receive Type dict
-        return dict(data_by_symbol)
+        return dict(data_by_symbol), page_token
 
     @staticmethod
     def _validate_credentials(

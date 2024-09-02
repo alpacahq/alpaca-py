@@ -57,11 +57,13 @@ class QuoteSet(BaseDataSet, TimeSeriesMixin):
 
     Attributes:
         data (Dict[str, List[Quote]]): The collection of Quotes keyed by symbol.
+        next_page_token (Optional[str]): The token to get the next page of data.
     """
 
     data: Dict[str, List[Quote]] = {}
+    next_page_token: Optional[str] = None
 
-    def __init__(self, raw_data: RawData) -> None:
+    def __init__(self, raw_data: RawData, next_page_token: Optional[str]) -> None:
         """Instantiates a QuoteSet.
 
         Args:
@@ -75,4 +77,4 @@ class QuoteSet(BaseDataSet, TimeSeriesMixin):
                     Quote(symbol, quote) for quote in quotes if quote is not None
                 ]
 
-        super().__init__(data=parsed_quotes)
+        super().__init__(data=parsed_quotes, next_page_token=next_page_token)

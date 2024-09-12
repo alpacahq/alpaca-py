@@ -1,1 +1,2 @@
-__version__ = "0.12.0"
+# placeholder for poetry-dynamic-versioning
+__version__ = "0.0.0"

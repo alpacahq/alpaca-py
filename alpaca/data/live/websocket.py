@@ -2,22 +2,31 @@ import asyncio
 import logging
 import queue
 from collections import defaultdict
-from typing import Callable, Dict, Optional, Union, Tuple
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import msgpack
 import websockets
 from pydantic import BaseModel
-from alpaca import __version__
 
+from alpaca import __version__
 from alpaca.common.types import RawData
-from alpaca.data.models import Bar, Quote, Trade
+from alpaca.data.models import (
+    Bar,
+    News,
+    Orderbook,
+    Quote,
+    Trade,
+    TradeCancel,
+    TradeCorrection,
+    TradingStatus,
+)
 
 log = logging.getLogger(__name__)
 
 
-class BaseStream:
+class DataStream:
     """
-    A base class for extracting out common functionality for websockets
+    A base class for extracting out common functionality for data websockets
     """
 
     def __init__(
@@ -28,7 +37,7 @@ class BaseStream:
         raw_data: bool = False,
         websocket_params: Optional[Dict] = None,
     ) -> None:
-        """_summary_
+        """Creates a new DataStream instance.
 
         Args:
             endpoint (str): The websocket endpoint to connect to
@@ -48,9 +57,15 @@ class BaseStream:
         self._handlers = {
             "trades": {},
             "quotes": {},
+            "orderbooks": {},
             "bars": {},
             "updatedBars": {},
             "dailyBars": {},
+            "statuses": {},
+            "lulds": {},
+            "news": {},
+            "corrections": {},
+            "cancelErrors": {},
         }
         self._name = "data"
         self._should_run = True
@@ -78,6 +93,7 @@ class BaseStream:
             "User-Agent": "APCA-PY/" + __version__,
         }
 
+        log.info(f"connecting to {self._endpoint}")
         self._ws = await websockets.connect(
             self._endpoint,
             extra_headers=extra_headers,
@@ -89,7 +105,7 @@ class BaseStream:
             raise ValueError("connected message not received")
 
     async def _auth(self) -> None:
-        """Authenicates with API keys after a successful connection is established.
+        """Authenticates with API keys after a successful connection is established.
 
         Raises:
             ValueError: Raised if authentication is unsuccessful
@@ -116,7 +132,7 @@ class BaseStream:
         """
         await self._connect()
         await self._auth()
-        log.info(f"connected to: {self._endpoint}")
+        log.info(f"connected to {self._endpoint}")
 
     async def close(self) -> None:
         """Closes the websocket connection."""
@@ -130,6 +146,7 @@ class BaseStream:
         self._should_run = False
         if self._stop_stream_queue.empty():
             self._stop_stream_queue.put_nowait({"should_stop": True})
+        await asyncio.sleep(0)
 
     async def _consume(self) -> None:
         """Distributes data from websocket connection to appropriate callbacks"""
@@ -150,80 +167,98 @@ class BaseStream:
                     # to break the loop when needed
                     pass
 
-    def _cast(self, msg_type: str, msg: Dict) -> Union[BaseModel, RawData]:
+    def _cast(self, msg: Dict) -> Union[BaseModel, RawData]:
         """Parses data from websocket message if raw_data is False, otherwise
-        returns raw websocket message
+        returns the raw websocket message.
 
         Args:
-            msg_type (str): The type of data contained in messaged. ('t' for trade, 'q' for quote, etc)
             msg (Dict): The message containing market data
 
         Returns:
-            Union[BaseModel, RawData]: The raw or parsed live data
+            Union[BaseModel, RawData]: The raw or parsed message
         """
-        result = msg
-        if not self._raw_data:
-
-            if "t" in msg:
-                msg["t"] = msg["t"].to_datetime()
-
-            if "S" not in msg:
-                return msg
-
-            if msg_type == "t":
-                result = Trade(msg["S"], msg)
-
-            elif msg_type == "q":
-                result = Quote(msg["S"], msg)
-
-            elif msg_type in ("b", "u", "d"):
-                result = Bar(msg["S"], msg)
-
-        return result
+        if self._raw_data:
+            return msg
+        msg_type = msg.get("T")
+        if "t" in msg:
+            msg["t"] = msg["t"].to_datetime()
+        if msg_type == "n":
+            msg["created_at"] = msg["created_at"].to_datetime()
+            msg["updated_at"] = msg["updated_at"].to_datetime()
+            return News(msg)
+        if "S" not in msg:
+            return msg
+        if msg_type == "t":
+            return Trade(msg["S"], msg)
+        if msg_type == "q":
+            return Quote(msg["S"], msg)
+        if msg_type == "o":
+            return Orderbook(msg["S"], msg)
+        if msg_type in ("b", "u", "d"):
+            return Bar(msg["S"], msg)
+        if msg_type == "s":
+            return TradingStatus(msg["S"], msg)
+        if msg_type == "c":
+            return TradeCorrection(msg["S"], msg)
+        if msg_type == "x":
+            return TradeCancel(msg["S"], msg)
+        return msg
 
     async def _dispatch(self, msg: Dict) -> None:
-        """Distributes message from websocket connection to appropriate handler
+        """Distributes the message from websocket connection to the appropriate handler.
 
         Args:
             msg (Dict): The message from the websocket connection
         """
         msg_type = msg.get("T")
-        symbol = msg.get("S")
-        if msg_type == "t":
-            handler = self._handlers["trades"].get(
-                symbol, self._handlers["trades"].get("*", None)
-            )
-            if handler:
-                await handler(self._cast(msg_type, msg))
-        elif msg_type == "q":
-            handler = self._handlers["quotes"].get(
-                symbol, self._handlers["quotes"].get("*", None)
-            )
-            if handler:
-                await handler(self._cast(msg_type, msg))
-        elif msg_type == "b":
-            handler = self._handlers["bars"].get(
-                symbol, self._handlers["bars"].get("*", None)
-            )
-            if handler:
-                await handler(self._cast(msg_type, msg))
-        elif msg_type == "u":
-            handler = self._handlers["updatedBars"].get(
-                symbol, self._handlers["updatedBars"].get("*", None)
-            )
-            if handler:
-                await handler(self._cast(msg_type, msg))
-        elif msg_type == "d":
-            handler = self._handlers["dailyBars"].get(
-                symbol, self._handlers["dailyBars"].get("*", None)
-            )
-            if handler:
-                await handler(self._cast(msg_type, msg))
-        elif msg_type == "subscription":
-            sub = [f"{k}: {msg.get(k, [])}" for k in self._handlers]
+        if msg_type == "subscription":
+            sub = [f"{k}: {msg.get(k, [])}" for k in self._handlers if msg.get(k)]
             log.info(f'subscribed to {", ".join(sub)}')
-        elif msg_type == "error":
+            return
+
+        if msg_type == "error":
             log.error(f'error: {msg.get("msg")} ({msg.get("code")})')
+            return
+
+        if msg_type == "n":
+            symbols = msg.get("symbols", "*")
+            star_handler_called = False
+            handlers_to_call = []
+            news = self._cast(msg)
+            for symbol in set(symbols):
+                if symbol in self._handlers["news"]:
+                    handler = self._handlers["news"].get(symbol)
+                elif not star_handler_called:
+                    handler = self._handlers["news"].get("*")
+                    star_handler_called = True
+                else:
+                    handler = None
+                if handler:
+                    handlers_to_call.append(handler(news))
+            if handlers_to_call:
+                await asyncio.gather(*handlers_to_call)
+            return
+
+        channel_types = {
+            "t": "trades",
+            "q": "quotes",
+            "o": "orderbooks",
+            "b": "bars",
+            "u": "updatedBars",
+            "d": "dailyBars",
+            "s": "statuses",
+            "l": "lulds",
+            "n": "news",
+            "c": "corrections",
+            "x": "cancelErrors",
+        }
+        channel = channel_types.get(msg_type)
+        if not channel:
+            return
+        symbol = msg.get("S")
+        handler = self._handlers[channel].get(symbol, self._handlers[channel].get("*"))
+        if handler:
+            await handler(self._cast(msg))
 
     def _subscribe(
         self, handler: Callable, symbols: Tuple[str], handlers: Dict
@@ -239,10 +274,11 @@ class BaseStream:
         for symbol in symbols:
             handlers[symbol] = handler
         if self._running:
-            asyncio.run_coroutine_threadsafe(self._subscribe_all(), self._loop).result()
+            asyncio.run_coroutine_threadsafe(
+                self._send_subscribe_msg(), self._loop
+            ).result()
 
-    async def _subscribe_all(self) -> None:
-        """Subscribes to live data"""
+    async def _send_subscribe_msg(self) -> None:
         msg = defaultdict(list)
         for k, v in self._handlers.items():
             if k not in ("cancelErrors", "corrections") and v:
@@ -256,29 +292,21 @@ class BaseStream:
         )
         await self._ws.send(frames)
 
-    async def _unsubscribe(
-        self, trades=(), quotes=(), bars=(), updated_bars=(), daily_bars=()
-    ) -> None:
-        """Unsubscribes from data for symbols specified by the data type
-        we want to subscribe from.
+    def _unsubscribe(self, channel: str, symbols: List[str]) -> None:
+        if self._running:
+            asyncio.run_coroutine_threadsafe(
+                self._send_unsubscribe_msg(channel, symbols), self._loop
+            ).result()
+        for symbol in symbols:
+            del self._handlers[channel][symbol]
 
-        Args:
-            trades (tuple, optional): All symbols to unsubscribe trade data for. Defaults to ().
-            quotes (tuple, optional): All symbols to unsubscribe quotes data for. Defaults to ().
-            bars (tuple, optional): All symbols to unsubscribe minute bar data for. Defaults to ().
-            updated_bars (tuple, optional): All symbols to unsubscribe updated bar data for. Defaults to ().
-            daily_bars (tuple, optional): All symbols to unsubscribe daily bar data for. Defaults to ().
-        """
-        if trades or quotes or bars or updated_bars or daily_bars:
+    async def _send_unsubscribe_msg(self, channel: str, symbols: List[str]) -> None:
+        if symbols:
             await self._ws.send(
                 msgpack.packb(
                     {
                         "action": "unsubscribe",
-                        "trades": trades,
-                        "quotes": quotes,
-                        "bars": bars,
-                        "updatedBars": updated_bars,
-                        "dailyBars": daily_bars,
+                        channel: symbols,
                     }
                 )
             )
@@ -312,129 +340,24 @@ class BaseStream:
                 if not self._running:
                     log.info("starting {} websocket connection".format(self._name))
                     await self._start_ws()
-                    await self._subscribe_all()
+                    await self._send_subscribe_msg()
                     self._running = True
                 await self._consume()
             except websockets.WebSocketException as wse:
                 await self.close()
                 self._running = False
                 log.warning("data websocket error, restarting connection: " + str(wse))
+            except ValueError as ve:
+                if "insufficient subscription" in str(ve):
+                    await self.close()
+                    self._running = False
+                    log.exception(f"error during websocket communication: {str(ve)}")
+                    return
+                log.exception(f"error during websocket communication: {str(ve)}")
             except Exception as e:
-                log.exception(
-                    "error during websocket " "communication: {}".format(str(e))
-                )
+                log.exception(f"error during websocket communication: {str(e)}")
             finally:
                 await asyncio.sleep(0)
-
-    def subscribe_trades(self, handler: Callable, *symbols) -> None:
-        """Subscribe to trade data for symbol inputs
-
-        Args:
-            handler (Callable): The coroutine callback function to handle live trade data
-            *symbols: Variable string arguments for ticker identifiers to be subscribed to.
-        """
-        self._subscribe(handler, symbols, self._handlers["trades"])
-
-    def subscribe_quotes(self, handler: Callable, *symbols) -> None:
-        """Subscribe to quote data for symbol inputs
-
-        Args:
-            handler (Callable): The coroutine callback function to handle live quote data
-            *symbols: Variable string arguments for ticker identifiers to be subscribed to.
-        """
-        self._subscribe(handler, symbols, self._handlers["quotes"])
-
-    def subscribe_bars(self, handler: Callable, *symbols) -> None:
-        """Subscribe to minute bar data for symbol inputs
-
-        Args:
-            handler (Callable): The coroutine callback function to handle live minute bar data
-            *symbols: Variable string arguments for ticker identifiers to be subscribed to.
-        """
-        self._subscribe(handler, symbols, self._handlers["bars"])
-
-    def subscribe_updated_bars(self, handler: Callable, *symbols) -> None:
-        """Subscribe to updated bar data for symbol inputs
-
-        Args:
-            handler (Callable): The coroutine callback function to handle live updated bar data
-            *symbols: Variable string arguments for ticker identifiers to be subscribed to.
-        """
-        self._subscribe(handler, symbols, self._handlers["updatedBars"])
-
-    def subscribe_daily_bars(self, handler: Callable, *symbols) -> None:
-        """Subscribe to daily bar data for symbol inputs
-
-        Args:
-            handler (Callable): The coroutine callback function to handle live daily bar data
-            *symbols: Variable string arguments for ticker identifiers to be subscribed to.
-        """
-        self._subscribe(handler, symbols, self._handlers["dailyBars"])
-
-    def unsubscribe_trades(self, *symbols) -> None:
-        """Unsubscribe from trade data for symbol inputs
-
-        Args:
-            *symbols: Variable string arguments for ticker identifiers to be unsubscribed from.
-        """
-        if self._running:
-            asyncio.run_coroutine_threadsafe(
-                self._unsubscribe(trades=symbols), self._loop
-            ).result()
-        for symbol in symbols:
-            del self._handlers["trades"][symbol]
-
-    def unsubscribe_quotes(self, *symbols) -> None:
-        """Unsubscribe from quote data for symbol inputs
-
-        Args:
-            *symbols: Variable string arguments for ticker identifiers to be unsubscribed from.
-        """
-        if self._running:
-            asyncio.run_coroutine_threadsafe(
-                self._unsubscribe(quotes=symbols), self._loop
-            ).result()
-        for symbol in symbols:
-            del self._handlers["quotes"][symbol]
-
-    def unsubscribe_bars(self, *symbols) -> None:
-        """Unsubscribe from minute bar data for symbol inputs
-
-        Args:
-            *symbols: Variable string arguments for ticker identifiers to be unsubscribed from.
-        """
-        if self._running:
-            asyncio.run_coroutine_threadsafe(
-                self._unsubscribe(bars=symbols), self._loop
-            ).result()
-        for symbol in symbols:
-            del self._handlers["bars"][symbol]
-
-    def unsubscribe_updated_bars(self, *symbols) -> None:
-        """Unsubscribe from updated bar data for symbol inputs
-
-        Args:
-            *symbols: Variable string arguments for ticker identifiers to be unsubscribed from.
-        """
-        if self._running:
-            asyncio.get_event_loop().run_until_complete(
-                self._unsubscribe(updated_bars=symbols)
-            )
-        for symbol in symbols:
-            del self._handlers["updatedBars"][symbol]
-
-    def unsubscribe_daily_bars(self, *symbols) -> None:
-        """Unsubscribe from daily bar data for symbol inputs
-
-        Args:
-            *symbols: Variable string arguments for ticker identifiers to be unsubscribed from.
-        """
-        if self._running:
-            asyncio.run_coroutine_threadsafe(
-                self._unsubscribe(daily_bars=symbols), self._loop
-            ).result()
-        for symbol in symbols:
-            del self._handlers["dailyBars"][symbol]
 
     def run(self) -> None:
         """Starts up the websocket connection's event loop"""
@@ -449,7 +372,9 @@ class BaseStream:
     def stop(self) -> None:
         """Stops the websocket connection."""
         if self._loop.is_running():
-            asyncio.run_coroutine_threadsafe(self.stop_ws(), self._loop).result()
+            asyncio.run_coroutine_threadsafe(self.stop_ws(), self._loop).result(
+                timeout=5
+            )
 
     def _ensure_coroutine(self, handler: Callable) -> None:
         """Checks if a method is an asyncio coroutine method

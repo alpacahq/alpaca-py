@@ -15,6 +15,12 @@ Get Crypto Bars
 .. automethod:: alpaca.data.historical.crypto.CryptoHistoricalDataClient.get_crypto_bars
 
 
+Get Crypto Quotes
+-----------------
+
+.. automethod:: alpaca.data.historical.crypto.CryptoHistoricalDataClient.get_crypto_quotes
+
+
 Get Crypto Trades
 -----------------
 
@@ -50,4 +56,3 @@ Get Crypto Latest Orderbook
 ---------------------------
 
 .. automethod:: alpaca.data.historical.crypto.CryptoHistoricalDataClient.get_crypto_latest_orderbook
-

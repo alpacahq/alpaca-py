@@ -23,3 +23,8 @@ Close A Position
 ----------------
 
 .. automethod:: alpaca.trading.client.TradingClient.close_position
+
+Exercise An Option Contract
+---------------------------
+
+.. automethod:: alpaca.trading.client.TradingClient.exercise_options_position

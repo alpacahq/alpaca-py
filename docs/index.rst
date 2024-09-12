@@ -8,20 +8,21 @@
    api_reference/index
 
 .. meta::
+   :image: https://alpaca.markets/static/images/meta-image-alpaca-py.png
    :description: The Official Python SDK for Alpaca's Suite of APIs
-   
+
 
 Alpaca-py Documentation
 =======================
 
 .. container:: homepage-banner
-   
+
    .. image:: images/alpaca-py-banner.png
       :alt: The official Python SDK for Alpaca's APIs.
 
 
 
-.. container:: badges-row 
+.. container:: badges-row
 
    |GitHub stars|
 
@@ -64,7 +65,7 @@ Market Data
 
 .. image:: images/icons/market-data.png
 
-The Market Data API gives you access to real time and historical data for equities and crypto.
+The Market Data API gives you access to real time and historical data for equities, crypto and options(beta).
 Learn more on the :ref:`market-data` page.
 
 
@@ -99,5 +100,3 @@ Here are some libraries that work well with Alpaca-py.
 
 * `Plaid <https://github.com/plaid/plaid-python>`_ -  Connect user banking information.
 * `Onfido <https://github.com/onfido/onfido-python>`_ -  Identity verification / KYC.
-
-

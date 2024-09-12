@@ -1,16 +1,16 @@
 import base64
-from typing import Any, Callable, Dict, Iterator, List, Optional, Type, Union
+import warnings
+from typing import Any, Type
+from typing import Callable, Dict, Iterator, List, Optional, Union
 from uuid import UUID
 
 import sseclient
-
 from pydantic import TypeAdapter
 from requests import HTTPError, Response
 
-from alpaca.broker.enums import ACHRelationshipStatus
 from alpaca.broker.models import (
-    ACHRelationship,
     Account,
+    ACHRelationship,
     Bank,
     TradeAccount,
     TradeDocument,
@@ -24,74 +24,75 @@ from alpaca.broker.models import (
     BaseModel,
 )
 from alpaca.broker.requests import (
-    CreateJournalRequest,
-    CreateBatchJournalRequest,
     CreatePortfolioRequest,
-    CreateReverseBatchJournalRequest,
     CreateRunRequest,
     CreateSubscriptionRequest,
-    GetJournalsRequest,
     GetPortfoliosRequest,
     GetRunsRequest,
     GetSubscriptionsRequest,
-    OrderRequest,
-    CancelOrderResponse,
     UpdatePortfolioRequest,
-    UploadDocumentRequest,
-    CreateACHRelationshipRequest,
-    CreateACHTransferRequest,
-    CreateBankRequest,
-    CreateBankTransferRequest,
-    CreatePlaidRelationshipRequest,
-    GetAccountActivitiesRequest,
-    GetTradeDocumentsRequest,
-    GetTransfersRequest,
-    ListAccountsRequest,
-    CreateAccountRequest,
-    UpdateAccountRequest,
-    GetEventsRequest,
 )
-from alpaca.common.exceptions import APIError
 from alpaca.common.constants import (
     ACCOUNT_ACTIVITIES_DEFAULT_PAGE_SIZE,
     BROKER_DOCUMENT_UPLOAD_LIMIT,
 )
 from alpaca.common.enums import BaseURL, PaginationType
-from alpaca.trading.models import (
-    PortfolioHistory,
-    Position,
-    AllAccountsPositions,
-    ClosePositionResponse,
-    Asset,
-    Watchlist,
-    Calendar,
-    Clock,
-    CorporateActionAnnouncement,
-    AccountConfiguration as TradeAccountConfiguration,
-)
-from alpaca.trading.models import (
-    BaseActivity,
-    NonTradeActivity,
-    TradeActivity,
-)
-from alpaca.trading.requests import (
-    GetPortfolioHistoryRequest,
-    ClosePositionRequest,
-    GetCalendarRequest,
-    UpdateWatchlistRequest,
-    CreateWatchlistRequest,
-    ReplaceOrderRequest,
-    GetAssetsRequest,
-    GetOrdersRequest,
-    GetOrderByIdRequest,
-    GetCorporateAnnouncementsRequest,
-)
+from alpaca.common.exceptions import APIError
+from alpaca.common.utils import validate_uuid_id_param, validate_symbol_or_asset_id
 from alpaca.trading.enums import (
     ActivityType,
 )
-from alpaca.common import RawData
-from alpaca.common.rest import HTTPResult, RESTClient
-from alpaca.common.utils import validate_uuid_id_param, validate_symbol_or_asset_id
+from alpaca.trading.models import AccountConfiguration as TradeAccountConfiguration
+from alpaca.trading.models import (
+    AllAccountsPositions,
+    Asset,
+    BaseActivity,
+    Calendar,
+    Clock,
+    ClosePositionResponse,
+    CorporateActionAnnouncement,
+    NonTradeActivity,
+    PortfolioHistory,
+    Position,
+    TradeActivity,
+    Watchlist,
+)
+from alpaca.trading.requests import (
+    ClosePositionRequest,
+    CreateWatchlistRequest,
+    GetAssetsRequest,
+    GetCalendarRequest,
+    GetCorporateAnnouncementsRequest,
+    GetOrderByIdRequest,
+    GetOrdersRequest,
+    GetPortfolioHistoryRequest,
+    ReplaceOrderRequest,
+    UpdateWatchlistRequest,
+)
+from .enums import ACHRelationshipStatus
+from .requests import (
+    CancelOrderResponse,
+    CreateAccountRequest,
+    CreateACHRelationshipRequest,
+    CreateACHTransferRequest,
+    CreateBankRequest,
+    CreateBankTransferRequest,
+    CreateBatchJournalRequest,
+    CreateJournalRequest,
+    CreatePlaidRelationshipRequest,
+    CreateReverseBatchJournalRequest,
+    GetAccountActivitiesRequest,
+    GetEventsRequest,
+    GetJournalsRequest,
+    GetTradeDocumentsRequest,
+    GetTransfersRequest,
+    ListAccountsRequest,
+    OrderRequest,
+    UpdateAccountRequest,
+    UploadDocumentRequest,
+)
+from ..common import RawData
+from ..common.rest import HTTPResult, RESTClient
 
 
 class BrokerClient(RESTClient):
@@ -136,9 +137,7 @@ class BrokerClient(RESTClient):
         base_url = (
             url_override
             if url_override is not None
-            else BaseURL.BROKER_SANDBOX.value
-            if sandbox
-            else BaseURL.BROKER_PRODUCTION
+            else BaseURL.BROKER_SANDBOX.value if sandbox else BaseURL.BROKER_PRODUCTION
         )
 
         super().__init__(
@@ -266,14 +265,37 @@ class BrokerClient(RESTClient):
         account_id: Union[UUID, str],
     ) -> None:
         """
-        Delete an Account by its id.
-
-        As the api itself returns a 204 on success this function returns nothing in the successful case and will raise
-        and exception in any other case.
+        DEPRECATED:
+            delete_account is deprecated and will be removed in a future version.
+            Please use `close_account(account_id)` instead
 
         Args:
-            account_id (Union[UUID, str]): the id of the Account you wish to delete. str values will attempt to be
-            upcast to UUID to validate.
+            account_id (Union[UUID, str]): The id of the account to be closed
+
+        Returns:
+            None:
+        """
+        warnings.warn(
+            "delete_account is deprecated and will be removed in a future version."
+            "Please use `close_account(account_id)` instead",
+            DeprecationWarning,
+        )
+
+        self.close_account(account_id)
+
+    def close_account(
+        self,
+        account_id: Union[UUID, str],
+    ) -> None:
+        """
+        This operation closes an active account. The underlying records and information of the account are not deleted by this operation.
+
+        Before closing an account, you are responsible for closing all the positions and withdrawing all the money associated with that account.
+
+        ref. https://docs.alpaca.markets/reference/post-v1-accounts-account_id-actions-close-1
+
+        Args:
+            account_id (Union[UUID, str]): The id of the account to be closed
 
         Returns:
             None:
@@ -281,7 +303,7 @@ class BrokerClient(RESTClient):
 
         account_id = validate_uuid_id_param(account_id)
 
-        self.delete(f"/accounts/{account_id}")
+        self.post(f"/accounts/{account_id}/actions/close")
 
     def list_accounts(
         self,
@@ -415,7 +437,7 @@ class BrokerClient(RESTClient):
 
         result = self.patch(
             f"/trading/accounts/{account_id}/account/configurations",
-            config.model_dump_json(),
+            config.model_dump(),
         )
 
         if self._use_raw_data:
@@ -678,7 +700,10 @@ class BrokerClient(RESTClient):
         # self.get/post/etc all set follow redirects to false, however API will return a 301 redirect we need to follow,
         # so we just do a raw request
 
-        target_url = f"{self._base_url}/{self._api_version}/accounts/{account_id}/documents/{document_id}/download"
+        # force base_url to be a string value instead of enum name
+        base_url = self._base_url + ""
+
+        target_url = f"{base_url}/{self._api_version}/accounts/{account_id}/documents/{document_id}/download"
         num_tries = 0
 
         while num_tries <= self._retry:
@@ -921,9 +946,11 @@ class BrokerClient(RESTClient):
 
         iterator = self._get_transfers_iterator(
             account_id=account_id,
-            transfers_filter=transfers_filter
-            if transfers_filter is not None
-            else GetTransfersRequest(),
+            transfers_filter=(
+                transfers_filter
+                if transfers_filter is not None
+                else GetTransfersRequest()
+            ),
             max_items_limit=max_items_limit,
         )
 

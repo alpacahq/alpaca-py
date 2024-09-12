@@ -55,13 +55,3 @@ Cancel Transfer For Account
 ---------------------------
 
 .. automethod:: alpaca.broker.client.BrokerClient.cancel_transfer_for_account
-
-
-
-
-
-
-
-
-
-

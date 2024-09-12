@@ -220,12 +220,14 @@ class RESTClient(ABC):
         """
         return self._request("GET", path, data, **kwargs)
 
-    def post(self, path: str, data: Union[dict, List[dict], str] = None) -> HTTPResult:
+    def post(
+        self, path: str, data: Optional[Union[dict, List[dict]]] = None
+    ) -> HTTPResult:
         """Performs a single POST request
 
         Args:
             path (str): The API endpoint path
-            data (Union[dict, str], optional): The json payload if str, or a dict of values to be converted.
+            data (Optional[Union[dict, List[dict]]): The json payload as a dict of values to be converted.
              Defaults to None.
 
         Returns:
@@ -233,12 +235,12 @@ class RESTClient(ABC):
         """
         return self._request("POST", path, data)
 
-    def put(self, path: str, data: Union[dict, str] = None) -> dict:
+    def put(self, path: str, data: Optional[dict] = None) -> dict:
         """Performs a single PUT request
 
         Args:
             path (str): The API endpoint path
-            data (Union[dict, str], optional): The json payload if str, or a dict of values to be converted.
+            data (Optional[dict]): The json payload as a dict of values to be converted.
              Defaults to None.
 
         Returns:
@@ -246,12 +248,12 @@ class RESTClient(ABC):
         """
         return self._request("PUT", path, data)
 
-    def patch(self, path: str, data: Union[dict, str] = None) -> dict:
+    def patch(self, path: str, data: Optional[dict] = None) -> dict:
         """Performs a single PATCH request
 
         Args:
             path (str): The API endpoint path
-            data (Union[dict, str], optional): The json payload if str, or a dict of values to be converted.
+            data (Optional[dict]): The json payload as a dict of values to be converted.
              Defaults to None.
 
         Returns:

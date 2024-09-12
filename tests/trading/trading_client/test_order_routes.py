@@ -1,18 +1,26 @@
+import pytest
+
+from alpaca.common.enums import BaseURL
 from alpaca.common.exceptions import APIError
-from alpaca.trading.requests import (
-    GetOrderByIdRequest,
-    GetOrdersRequest,
-    ReplaceOrderRequest,
-    CancelOrderResponse,
-    MarketOrderRequest,
-    LimitOrderRequest,
+from alpaca.trading.client import TradingClient
+from alpaca.trading.enums import (
+    OrderClass,
+    OrderSide,
+    OrderStatus,
+    PositionIntent,
+    TimeInForce,
 )
 from alpaca.trading.models import Order
-from alpaca.trading.client import TradingClient
-from alpaca.trading.enums import OrderSide, OrderStatus, TimeInForce
-from alpaca.common.enums import BaseURL
-
-import pytest
+from alpaca.trading.requests import (
+    CancelOrderResponse,
+    GetOrderByIdRequest,
+    GetOrdersRequest,
+    LimitOrderRequest,
+    MarketOrderRequest,
+    ReplaceOrderRequest,
+    StopLossRequest,
+    TakeProfitRequest,
+)
 
 
 def test_market_order(reqmock, trading_client):
@@ -271,6 +279,34 @@ def test_replace_order(reqmock, trading_client: TradingClient):
     assert type(order) is Order
 
 
+def test_replace_order_validate_replace_request() -> None:
+    # qty
+    ReplaceOrderRequest(qty=1)
+    with pytest.raises(ValueError):
+        ReplaceOrderRequest(qty=0)
+        ReplaceOrderRequest(qty=0, limit_price=0.1)
+        ReplaceOrderRequest(qty=0, stop_price=0.1)
+        ReplaceOrderRequest(qty=0, trail=0.1)
+
+    # limit_price
+    ReplaceOrderRequest(limit_price=0.1)
+    ReplaceOrderRequest(qty=1, limit_price=0.1)
+    with pytest.raises(ValueError):
+        ReplaceOrderRequest(limit_price=0)
+
+    # stop_price
+    ReplaceOrderRequest(stop_price=0.1)
+    ReplaceOrderRequest(qty=1, stop_price=0.1)
+    with pytest.raises(ValueError):
+        ReplaceOrderRequest(stop_price=0)
+
+    # trail
+    ReplaceOrderRequest(trail=0.1)
+    ReplaceOrderRequest(qty=1, trail=0.1)
+    with pytest.raises(ValueError):
+        ReplaceOrderRequest(trail=0)
+
+
 def test_cancel_order_by_id(reqmock, trading_client: TradingClient):
     order_id = "61e69015-8549-4bfd-b9c3-01e75843f47d"
     status_code = 204
@@ -387,6 +423,183 @@ def test_limit_order(reqmock, trading_client):
         limit_price=300,
         qty=1,
     )
+
+    lo_response = trading_client.submit_order(lo)
+
+    assert lo_response.status == OrderStatus.ACCEPTED
+
+
+def test_limit_order_request_validation() -> None:
+    # missing limit_price for non-OCOC
+    with pytest.raises(ValueError):
+        # order_class is not specified (default: simple)
+        LimitOrderRequest(
+            symbol="AAPL",
+            qty=1,
+            side=OrderSide.SELL,
+            time_in_force=TimeInForce.DAY,
+        )
+    with pytest.raises(ValueError):
+        # simple
+        LimitOrderRequest(
+            symbol="AAPL",
+            qty=1,
+            side=OrderSide.SELL,
+            time_in_force=TimeInForce.DAY,
+            order_class=OrderClass.SIMPLE,
+        )
+    with pytest.raises(ValueError):
+        # oto with take_profit
+        LimitOrderRequest(
+            symbol="AAPL",
+            qty=1,
+            side=OrderSide.SELL,
+            time_in_force=TimeInForce.DAY,
+            order_class=OrderClass.OTO,
+            take_profit=TakeProfitRequest(limit_price=100),
+        )
+    with pytest.raises(ValueError):
+        # oto with stop_loss
+        LimitOrderRequest(
+            symbol="AAPL",
+            qty=1,
+            side=OrderSide.SELL,
+            time_in_force=TimeInForce.DAY,
+            order_class=OrderClass.OTO,
+            stop_loss=StopLossRequest(stop_price=300),
+        )
+    with pytest.raises(ValueError):
+        # bracket
+        LimitOrderRequest(
+            symbol="AAPL",
+            qty=1,
+            side=OrderSide.SELL,
+            time_in_force=TimeInForce.DAY,
+            order_class=OrderClass.BRACKET,
+            take_profit=TakeProfitRequest(limit_price=100),
+            stop_loss=StopLossRequest(stop_price=300),
+        )
+    # no limit_price for OCO
+    LimitOrderRequest(
+        symbol="AAPL",
+        qty=1,
+        side=OrderSide.SELL,
+        time_in_force=TimeInForce.DAY,
+        order_class=OrderClass.OCO,
+        take_profit=TakeProfitRequest(limit_price=300),
+        stop_loss=StopLossRequest(stop_price=100),
+    )
+
+
+def test_order_position_intent(reqmock, trading_client: TradingClient):
+    reqmock.post(
+        f"{BaseURL.TRADING_PAPER.value}/v2/orders",
+        text="""
+        {
+          "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
+          "client_order_id": "eb9e2aaa-f71a-4f51-b5b4-52a6c565dad4",
+          "created_at": "2021-03-16T18:38:01.942282Z",
+          "updated_at": "2021-03-16T18:38:01.942282Z",
+          "submitted_at": "2021-03-16T18:38:01.937734Z",
+          "filled_at": null,
+          "expired_at": null,
+          "canceled_at": null,
+          "failed_at": null,
+          "replaced_at": null,
+          "replaced_by": null,
+          "replaces": null,
+          "asset_id": "b4695157-0d1d-4da0-8f9e-5c53149389e4",
+          "symbol": "SPY`",
+          "asset_class": "us_equity",
+          "notional": null,
+          "qty": 1,
+          "filled_qty": "0",
+          "filled_avg_price": null,
+          "order_class": "simple",
+          "order_type": "market",
+          "type": "market",
+          "side": "buy",
+          "time_in_force": "day",
+          "limit_price": null,
+          "stop_price": null,
+          "status": "accepted",
+          "extended_hours": false,
+          "legs": null,
+          "trail_percent": null,
+          "trail_price": null,
+          "hwm": null,
+          "commission": 1.25,
+          "position_intent": "buy_to_open"
+        }
+        """,
+    )
+
+    # Market Order
+    mo = MarketOrderRequest(
+        symbol="SPY",
+        side=OrderSide.BUY,
+        time_in_force=TimeInForce.DAY,
+        qty=1,
+        position_intent=PositionIntent.BUY_TO_OPEN,
+    )
+
+    assert mo.position_intent == PositionIntent.BUY_TO_OPEN
+
+    mo_response = trading_client.submit_order(mo)
+
+    assert mo_response.status == OrderStatus.ACCEPTED
+
+    reqmock.post(
+        f"{BaseURL.TRADING_PAPER.value}/v2/orders",
+        text="""
+        {
+          "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
+          "client_order_id": "eb9e2aaa-f71a-4f51-b5b4-52a6c565dad4",
+          "created_at": "2021-03-16T18:38:01.942282Z",
+          "updated_at": "2021-03-16T18:38:01.942282Z",
+          "submitted_at": "2021-03-16T18:38:01.937734Z",
+          "filled_at": null,
+          "expired_at": null,
+          "canceled_at": null,
+          "failed_at": null,
+          "replaced_at": null,
+          "replaced_by": null,
+          "replaces": null,
+          "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
+          "symbol": "AAPL`",
+          "asset_class": "us_equity",
+          "notional": null,
+          "qty": 1,
+          "filled_qty": "0",
+          "filled_avg_price": null,
+          "order_class": "simple",
+          "order_type": "limit",
+          "type": "limit",
+          "side": "sell",
+          "time_in_force": "day",
+          "limit_price": 300,
+          "stop_price": null,
+          "status": "accepted",
+          "extended_hours": false,
+          "legs": null,
+          "trail_percent": null,
+          "trail_price": null,
+          "hwm": null,
+          "commission": 1.25
+        }
+        """,
+    )
+
+    lo = LimitOrderRequest(
+        symbol="SPY",
+        side=OrderSide.BUY,
+        time_in_force=TimeInForce.DAY,
+        limit_price=300,
+        qty=1,
+        position_intent=PositionIntent.SELL_TO_OPEN,
+    )
+
+    assert lo.position_intent == PositionIntent.SELL_TO_OPEN
 
     lo_response = trading_client.submit_order(lo)
 

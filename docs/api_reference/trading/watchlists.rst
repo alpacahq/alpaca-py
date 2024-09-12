@@ -46,4 +46,3 @@ Delete Watchlist By Id
 ----------------------
 
 .. automethod:: alpaca.trading.client.TradingClient.delete_watchlist_by_id
-

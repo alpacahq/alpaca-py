@@ -262,56 +262,6 @@ class Account(ModelWithID):
     documents: Optional[List[AccountDocument]] = None
     trusted_contact: Optional[TrustedContact] = None
 
-    def __init__(self, **response):
-        super().__init__(
-            id=(UUID(response["id"])),
-            account_number=(response["account_number"]),
-            status=(response["status"]),
-            crypto_status=(
-                response["crypto_status"] if "crypto_status" in response else None
-            ),
-            kyc_results=(
-                TypeAdapter(KycResults).validate_python(response["kyc_results"])
-                if "kyc_results" in response and response["kyc_results"] is not None
-                else None
-            ),
-            currency=(response["currency"]),
-            last_equity=(response["last_equity"]),
-            created_at=(response["created_at"]),
-            contact=(
-                TypeAdapter(Contact).validate_python(response["contact"])
-                if "contact" in response
-                else None
-            ),
-            identity=(
-                TypeAdapter(Identity).validate_python(response["identity"])
-                if "identity" in response
-                else None
-            ),
-            disclosures=(
-                TypeAdapter(Disclosures).validate_python(response["disclosures"])
-                if "disclosures" in response
-                else None
-            ),
-            agreements=(
-                TypeAdapter(List[Agreement]).validate_python(response["agreements"])
-                if "agreements" in response
-                else None
-            ),
-            documents=(
-                TypeAdapter(List[AccountDocument]).validate_python(
-                    response["documents"]
-                )
-                if "documents" in response
-                else None
-            ),
-            trusted_contact=(
-                TypeAdapter(TrustedContact).validate_python(response["trusted_contact"])
-                if "trusted_contact" in response
-                else None
-            ),
-        )
-
 
 class TradeAccount(BaseTradeAccount):
     """

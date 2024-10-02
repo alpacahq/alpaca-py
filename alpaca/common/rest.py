@@ -207,7 +207,9 @@ class RESTClient(ABC):
         if response.text != "":
             return response.json()
 
-    def get(self, path: str, data: Optional[Union[dict, str]] = None, **kwargs) -> HTTPResult:
+    def get(
+        self, path: str, data: Optional[Union[dict, str]] = None, **kwargs
+    ) -> HTTPResult:
         """Performs a single GET request
 
         Args:

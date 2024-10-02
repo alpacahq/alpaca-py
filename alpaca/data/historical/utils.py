@@ -1,13 +1,13 @@
 from collections import defaultdict
-from typing import Type, Dict
+from typing import Dict, Type
 
 from alpaca.common import HTTPResult, RawData
 
 """
 These functions were created and put in this file to handle all of the edge cases
-for parsing data that exist in the market data API. 
+for parsing data that exist in the market data API.
 
-v2/stocks and v1beta2/crypto 
+v2/stocks and v1beta2/crypto
 """
 
 
@@ -23,7 +23,11 @@ def parse_obj_as_symbol_dict(model: Type, raw_data: RawData) -> Dict[str, Type]:
     Returns:
         Dict[str, Type]: The symbol keyed dictionary of parsed data
     """
-    return {k: model(symbol=k, raw_data=v) for k, v in raw_data.items()}
+    if raw_data is None:
+        return {}
+    return {
+        k: model(symbol=k, raw_data=v) for k, v in raw_data.items() if v is not None
+    }
 
 
 def get_data_from_response(response: HTTPResult) -> RawData:
@@ -93,9 +97,11 @@ def format_dataset_response(
     # for non-list types, add as element of a list.
     # list comprehension used for speed
     [
-        data_by_symbol[symbol].extend(data)
-        if isinstance(data, list)
-        else data_by_symbol[symbol].append(data)
+        (
+            data_by_symbol[symbol].extend(data)
+            if isinstance(data, list)
+            else data_by_symbol[symbol].append(data)
+        )
         for symbol, data in response_data.items()
     ]
 
@@ -144,6 +150,8 @@ def format_snapshot_data(
         del response["symbol"]
         data_by_symbol[symbol] = response
     else:
+        if "snapshots" in response:
+            response = response["snapshots"]
         for symbol, data in response.items():
             data_by_symbol[symbol] = data
 

@@ -51,6 +51,17 @@ def test_get_announcements(reqmock, trading_client: TradingClient):
             "cash": "0.145",
             "old_rate": "1",
             "new_rate": "1"
+          },
+          {
+            "id": "be3c368a-4c7c-4384-808e-f02c9f5a8afe",
+            "corporate_action_id": "48251W104_AD21",
+            "ca_type": "dividend",
+            "ca_sub_type": "cash",
+            "initiating_symbol": "KKR",
+            "initiating_original_cusip": "G52830109",
+            "cash": "0.145",
+            "old_rate": "1",
+            "new_rate": "1"
           }
         ]
       """,

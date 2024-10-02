@@ -15,5 +15,3 @@ Get Asset
 ---------
 
 .. automethod:: alpaca.trading.client.TradingClient.get_asset
-
-

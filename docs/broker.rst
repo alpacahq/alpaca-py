@@ -401,8 +401,3 @@ This will return a list of ``Position`` objects.
     account_id = "c8f1ef5d-edc0-4f23-9ee4-378f19cb92a4"
 
     positions = broker_client.get_all_positions_for_account(account_id=account_id)
-
-
-
-
-

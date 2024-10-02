@@ -14,6 +14,7 @@ Contents
    trading/positions
    trading/orders
    trading/assets
+   trading/contracts
    trading/watchlists
    trading/calendar
    trading/clock
@@ -21,4 +22,3 @@ Contents
    trading/models
    trading/requests
    trading/enums
-

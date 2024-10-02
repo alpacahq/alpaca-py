@@ -6,7 +6,9 @@ from alpaca.trading.enums import (
     AssetClass,
     AssetStatus,
     AssetExchange,
+    ContractType,
     DTBPCheck,
+    ExerciseStyle,
     OrderStatus,
     OrderType,
     OrderClass,
@@ -45,7 +47,7 @@ class Asset(ModelWithID):
         shortable (bool): Whether the asset can be shorted.
         easy_to_borrow (bool): When shorting, whether the asset is easy to borrow
         fractionable (bool): Whether fractional shares are available
-        attributes (bool): One of ptp_no_exception or ptp_with_exception. It will include unique characteristics of the asset here.
+        attributes (Optional[List[str]]): One of ptp_no_exception or ptp_with_exception. It will include unique characteristics of the asset here.
     """
 
     asset_class: AssetClass = Field(
@@ -64,7 +66,7 @@ class Asset(ModelWithID):
     min_trade_increment: Optional[float] = None
     price_increment: Optional[float] = None
     maintenance_margin_requirement: Optional[float] = None
-    attributes: Optional[list] = None
+    attributes: Optional[List[str]] = None
 
 
 class USDPositionValues(BaseModel):
@@ -286,7 +288,7 @@ class PortfolioHistory(BaseModel):
         timestamp (List[int]): Time of each data element, left-labeled (the beginning of time window).
         equity (List[float]): Equity value of the account in dollar amount as of the end of each time window.
         profit_loss (List[float]): Profit/loss in dollar from the base value.
-        profit_loss_pct (List[float]): Profit/loss in percentage from the base value.
+        profit_loss_pct (List[Optional[float]]): Profit/loss in percentage from the base value.
         base_value (float): Basis in dollar of the profit loss calculation.
         timeframe (str): Time window size of each data element.
     """
@@ -294,7 +296,7 @@ class PortfolioHistory(BaseModel):
     timestamp: List[int]
     equity: List[float]
     profit_loss: List[float]
-    profit_loss_pct: List[float]
+    profit_loss_pct: List[Optional[float]]
     base_value: float
     timeframe: str
 
@@ -491,6 +493,11 @@ class TradeAccount(ModelWithID):
         sma (Optional[str]): Value of Special Memorandum Account (will be used at a later date to provide additional buying_power)
         daytrade_count (Optional[int]): The current number of daytrades that have been made in the last 5 trading days
           (inclusive of today)
+        options_buying_power (Optional[str]): Your buying power for options trading
+        options_approved_level (Optional[int]): The options trading level that was approved for this account.
+          0=disabled, 1=Covered Call/Cash-Secured Put, 2=Long Call/Put.
+        options_trading_level (Optional[int]): The effective options trading level of the account. This is the minimum between account options_approved_level and account configurations max_options_trading_level.
+          0=disabled, 1=Covered Call/Cash-Secured Put, 2=Long
     """
 
     account_number: str
@@ -523,6 +530,9 @@ class TradeAccount(ModelWithID):
     last_maintenance_margin: Optional[str] = None
     sma: Optional[str] = None
     daytrade_count: Optional[int] = None
+    options_buying_power: Optional[str] = None
+    options_approved_level: Optional[int] = None
+    options_trading_level: Optional[int] = None
 
 
 class AccountConfiguration(BaseModel):
@@ -538,6 +548,7 @@ class AccountConfiguration(BaseModel):
         suspend_trade (bool): If true Account becomes unable to submit new orders
         trade_confirm_email (TradeConfirmationEmail): Controls whether Trade confirmation emails are sent.
         ptp_no_exception_entry (bool): If set to true then Alpaca will accept orders for PTP symbols with no exception. Default is false.
+        max_options_trading_level (Optional[int]): The desired maximum options trading level. 0=disabled, 1=Covered Call/Cash-Secured Put, 2=Long Call/Put.
     """
 
     dtbp_check: DTBPCheck
@@ -548,6 +559,7 @@ class AccountConfiguration(BaseModel):
     suspend_trade: bool
     trade_confirm_email: TradeConfirmationEmail
     ptp_no_exception_entry: bool
+    max_options_trading_level: Optional[int] = None
 
 
 class CorporateActionAnnouncement(ModelWithID):
@@ -561,13 +573,13 @@ class CorporateActionAnnouncement(ModelWithID):
         ca_sub_type (CorporateActionSubType): The specific subtype of corporate action that was announced.
         initiating_symbol (str): Symbol of the company initiating the announcement.
         initiating_original_cusip (str): CUSIP of the company initiating the announcement.
-        target_symbol (str): Symbol of the child company involved in the announcement.
-        target_original_cusip (str): CUSIP of the child company involved in the announcement.
-        declaration_date (date): Date the corporate action or subsequent terms update was announced.
-        ex_date (date): The first date that purchasing a security will not result in a corporate action entitlement.
-        record_date (date): The date an account must hold a settled position in the security in order to receive the
+        target_symbol (Optional[str]): Symbol of the child company involved in the announcement.
+        target_original_cusip (Optional[str]): CUSIP of the child company involved in the announcement.
+        declaration_date (Optional[date]): Date the corporate action or subsequent terms update was announced.
+        ex_date (Optional[date]): The first date that purchasing a security will not result in a corporate action entitlement.
+        record_date (Optional[date]): The date an account must hold a settled position in the security in order to receive the
             corporate action entitlement.
-        payable_date (date): The date the announcement will take effect. On this date, account stock and cash
+        payable_date (Optional[date]): The date the announcement will take effect. On this date, account stock and cash
             balances are expected to be processed accordingly.
         cash (float): The amount of cash to be paid per share held by an account on the record date.
         old_rate (float): The denominator to determine any quantity change ratios in positions.
@@ -579,22 +591,84 @@ class CorporateActionAnnouncement(ModelWithID):
     ca_sub_type: CorporateActionSubType
     initiating_symbol: str
     initiating_original_cusip: str
-    target_symbol: Optional[str]
-    target_original_cusip: Optional[str]
-    declaration_date: Optional[date]
-    ex_date: Optional[date]
-    record_date: date
-    payable_date: date
+    target_symbol: Optional[str] = None
+    target_original_cusip: Optional[str] = None
+    declaration_date: Optional[date] = None
+    ex_date: Optional[date] = None
+    record_date: Optional[date] = None
+    payable_date: Optional[date] = None
     cash: float
     old_rate: float
     new_rate: float
 
 
 class TradeUpdate(BaseModel):
+    """
+    Represents a trade update.
+
+    ref. https://docs.alpaca.markets/docs/websocket-streaming#example
+    """
+
     event: Union[TradeEvent, str]
-    execution_id: Optional[UUID]
+    execution_id: Optional[UUID] = None
     order: Order
     timestamp: datetime
-    position_qty: Optional[float]
-    price: Optional[float]
-    qty: Optional[float]
+    position_qty: Optional[float] = None
+    price: Optional[float] = None
+    qty: Optional[float] = None
+
+
+class OptionContract(BaseModel):
+    """
+    Represents an option contract.
+
+    Attributes:
+        id (str): The unique identifier of the option contract.
+        symbol (str): The symbol representing the option contract.
+        name (str): The name of the option contract.
+        status (AssetStatus): The status of the option contract.
+        tradable (bool): Indicates whether the option contract is tradable.
+        expiration_date (date): The expiration date of the option contract.
+        root_symbol (str): The root symbol of the option contract.
+        underlying_symbol (str): The underlying symbol of the option contract.
+        underlying_asset_id (UUID): The unique identifier of the underlying asset.
+        type (ContractType): The type of the option contract.
+        style (ExerciseStyle): The style of the option contract.
+        strike_price (float): The strike price of the option contract.
+        size (str): The size of the option contract. Usually contracts have size=100.
+        open_interest (Optional[str]): The open interest of the option contract.
+        open_interest_date (Optional[date]): The date of the open interest data.
+        close_price (Optional[str]): The close price of the option contract.
+        close_price_date (Optional[date]): The date of the close price data.
+    """
+
+    id: str
+    symbol: str
+    name: str
+    status: AssetStatus
+    tradable: bool
+    expiration_date: date
+    root_symbol: str
+    underlying_symbol: str
+    underlying_asset_id: UUID
+    type: ContractType
+    style: ExerciseStyle
+    strike_price: float
+    size: str
+    open_interest: Optional[str] = None
+    open_interest_date: Optional[date] = None
+    close_price: Optional[str] = None
+    close_price_date: Optional[date] = None
+
+
+class OptionContractsResponse(BaseModel):
+    """
+    Represents a response from the option contracts endpoint.
+
+    Attributes:
+        option_contracts (Optional[List[OptionContract]]): The list of option contracts.
+        next_page_token (Optional[str]): Pagination token for next page.
+    """
+
+    option_contracts: Optional[List[OptionContract]] = None
+    next_page_token: Optional[str] = None

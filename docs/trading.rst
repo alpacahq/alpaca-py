@@ -250,6 +250,3 @@ Here is an example
 
     # start our websocket streaming
     trading_stream.run()
-
-
-

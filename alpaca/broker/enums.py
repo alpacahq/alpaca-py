@@ -69,7 +69,7 @@ class VisaType(str, Enum):
     H1B = "H1B"
     J1 = "J1"
     L1 = "L1"
-    Other = "Other"
+    Other = "OTHER"
     O1 = "O1"
     TN1 = "TN1"
 
@@ -133,6 +133,7 @@ class DocumentType(str, Enum):
     W8BEN = "w8ben"
     SOCIAL_SECURITY_NUMBER_VERIFICATION = "social_security_number_verification"
     NULL = ""
+    CIP_RESULT = "cip_result"
 
 
 class AccountEntities(str, Enum):
@@ -163,6 +164,7 @@ class ClearingBroker(str, Enum):
     Velox = "VELOX"
     Vision = "VISION"
     Self = "SELF"
+    Alpaca_APCA = "ALPACA_APCA"
 
 
 class CIPProvider(str, Enum):
@@ -422,6 +424,7 @@ class JournalStatus(str, Enum):
     REJECTED = "rejected"
     CANCELED = "canceled"
     REFUSED = "refused"
+    CORRECT = "correct"
     DELETED = "deleted"
 
 

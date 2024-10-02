@@ -11,7 +11,3 @@ Get Calendar
 ------------
 
 .. automethod:: alpaca.trading.client.TradingClient.get_calendar
-
-
-
-

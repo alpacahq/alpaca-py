@@ -43,4 +43,3 @@ Cancel an Order For Account By Id
 ---------------------------------
 
 .. automethod:: alpaca.broker.client.BrokerClient.cancel_order_for_account_by_id
-

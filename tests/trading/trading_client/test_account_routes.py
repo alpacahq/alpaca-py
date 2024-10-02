@@ -37,7 +37,10 @@ def test_get_account(reqmock: Mocker, trading_client: TradingClient):
           "status": "ACTIVE",
           "trade_suspended_by_user": false,
           "trading_blocked": false,
-          "transfers_blocked": false
+          "transfers_blocked": false,
+          "options_buying_power": "262113.632",
+          "options_approved_level": "1",
+          "options_trading_level": "1"
         }
       """,
     )
@@ -46,6 +49,9 @@ def test_get_account(reqmock: Mocker, trading_client: TradingClient):
 
     assert reqmock.called_once
     assert isinstance(account, TradeAccount)
+    assert account.options_buying_power == "262113.632"
+    assert account.options_approved_level == 1
+    assert account.options_trading_level == 1
 
 
 def test_get_account_configurations(reqmock: Mocker, trading_client: TradingClient):
@@ -60,7 +66,8 @@ def test_get_account_configurations(reqmock: Mocker, trading_client: TradingClie
           "max_margin_multiplier": "4",
           "pdt_check": "entry",
           "trade_confirm_email": "all",
-          "ptp_no_exception_entry": false
+          "ptp_no_exception_entry": false,
+          "max_options_trading_level": 1
         }
       """,
     )
@@ -68,6 +75,7 @@ def test_get_account_configurations(reqmock: Mocker, trading_client: TradingClie
     account_configurations = trading_client.get_account_configurations()
     assert reqmock.called_once
     assert isinstance(account_configurations, AccountConfiguration)
+    assert account_configurations.max_options_trading_level == 1
 
 
 def test_set_account_configurations(reqmock: Mocker, trading_client: TradingClient):
@@ -81,11 +89,12 @@ def test_set_account_configurations(reqmock: Mocker, trading_client: TradingClie
             "pdt_check": "both",
             "trade_confirm_email": "all",
             "ptp_no_exception_entry": False,
+            "max_options_trading_level": 1,
         }
     )
     reqmock.patch(
         f"{BaseURL.TRADING_PAPER.value}/v2/account/configurations",
-        json=json.dumps(new_account_configurations.model_dump()),
+        json=new_account_configurations.model_dump(),
     )
 
     account_configurations = trading_client.set_account_configurations(

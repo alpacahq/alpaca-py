@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID
 
@@ -46,7 +46,11 @@ class NonEmptyRequest(BaseModel):
 
             # RFC 3339
             if isinstance(val, datetime):
-                return val.isoformat("T") + "Z"
+                # if the datetime is naive, assume it's UTC
+                # https://docs.python.org/3/library/datetime.html#determining-if-an-object-is-aware-or-naive
+                if val.tzinfo is None or val.tzinfo.utcoffset(val) is None:
+                    val = val.replace(tzinfo=timezone.utc)
+                return val.isoformat()
 
             return val
 

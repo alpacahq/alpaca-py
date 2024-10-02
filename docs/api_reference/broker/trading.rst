@@ -10,5 +10,3 @@ Trading
    trading/positions
    trading/portfolio-history
    trading/watchlists
-
-

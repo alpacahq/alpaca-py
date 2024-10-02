@@ -1,6 +1,6 @@
 import base64
 import warnings
-from typing import Callable, Dict, Iterator, List, Optional, Union
+from typing import Any, Callable, Dict, Iterator, List, Optional, Type, Union
 from uuid import UUID
 
 import sseclient
@@ -14,7 +14,7 @@ from alpaca.broker.models import (
     Bank,
     BaseModel,
     BatchJournalResponse,
-    CIPInfo,
+    CIPInfo,  # TODO: currently not used
     Journal,
     Order,
     Portfolio,

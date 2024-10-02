@@ -57,7 +57,7 @@ class RESTClient(ABC):
         """
 
         self._api_key, self._secret_key, self._oauth_token = self._validate_credentials(
-            api_key, secret_key, oauth_token
+            api_key=api_key, secret_key=secret_key, oauth_token=oauth_token
         )
         self._api_version: str = api_version
         self._base_url: Union[BaseURL, str] = base_url
@@ -207,7 +207,7 @@ class RESTClient(ABC):
         if response.text != "":
             return response.json()
 
-    def get(self, path: str, data: Union[dict, str] = None, **kwargs) -> HTTPResult:
+    def get(self, path: str, data: Optional[Union[dict, str]] = None, **kwargs) -> HTTPResult:
         """Performs a single GET request
 
         Args:

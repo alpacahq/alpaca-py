@@ -9,7 +9,7 @@ from alpaca.broker.requests import (
     CreateSubscriptionRequest,
 )
 from alpaca.common.models import ValidateBaseModel as BaseModel
-from alpaca.trading.models import Order
+from alpaca.broker.models import Order
 
 
 class Portfolio(CreatePortfolioRequest):

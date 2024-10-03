@@ -146,7 +146,7 @@ Alpaca’s APIs allow you to do everything from building algorithmic trading str
 
 To view full descriptions and examples view the [documentation page](https://alpaca.markets/sdks/python/).
 
-**Market Data API**: Access live and historical market data for 5000+ stocks, 20+ crypto, and options(beta).
+**Market Data API**: Access live and historical market data for 5000+ stocks, 20+ crypto, and options.
 
 **Trading API**: Trade stock and crypto with lightning fast execution speeds.
 

@@ -19,9 +19,9 @@ Alpaca's APIs allow you to do everything from building algorithmic trading strat
 a full brokerage experience for your own end users.
 Here are some things you can do with Alpaca-py.
 
-**Market Data API**: Access live and historical market data for 5000+ stocks, 20+ crypto, and options(beta).
+**Market Data API**: Access live and historical market data for 5000+ stocks, 20+ crypto, and options.
 
-**Trading API**: Trade stock, crypto, and options(beta) with lightning fast execution speeds.
+**Trading API**: Trade stock, crypto, and options with lightning fast execution speeds.
 
 **Broker API & Connect**: Build investment apps - from robo-advisors to brokerages.
 

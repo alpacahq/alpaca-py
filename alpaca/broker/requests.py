@@ -13,7 +13,6 @@ from alpaca.broker.models.accounts import (
     TrustedContact,
 )
 from alpaca.broker.models.documents import W8BenDocument
-from alpaca.broker.models.trading import Order
 from alpaca.broker.enums import (
     AccountEntities,
     BankAccountType,
@@ -43,7 +42,6 @@ from alpaca.trading.requests import (
     StopOrderRequest as BaseStopOrderRequest,
     StopLimitOrderRequest as BaseStopLimitOrderRequest,
     TrailingStopOrderRequest as BaseTrailingStopOrderRequest,
-    CancelOrderResponse as BaseCancelOrderResponse,
 )
 
 
@@ -808,17 +806,6 @@ class TrailingStopOrderRequest(BaseTrailingStopOrderRequest):
     """
 
     commission: Optional[float] = None
-
-
-class CancelOrderResponse(BaseCancelOrderResponse):
-    """
-    See base alpaca.trading.models.CancelOrderResponse model for more information.
-
-    Attributes:
-        body (Order): The order being cancelled.
-    """
-
-    body: Order
 
 
 # ############################## Journals ################################# #

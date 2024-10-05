@@ -1,3 +1,4 @@
+from uuid import UUID
 import pytest
 
 from alpaca.common.enums import BaseURL
@@ -362,7 +363,12 @@ def test_cancel_orders(reqmock, trading_client: TradingClient):
           {
             "id": "497f6eca-6276-4993-bfeb-53cbbbba6f08",
             "status": 200
-          }
+          },
+          {
+            "id": "72249bb6-6c89-4ea7-b8cf-73f1a140812b",
+            "status": 404,
+            "body": {"code": 40410000, "message": "order not found"}
+           }
         ]
         """,
     )
@@ -372,7 +378,12 @@ def test_cancel_orders(reqmock, trading_client: TradingClient):
     assert type(response) is list
     assert type(response[0]) is CancelOrderResponse
     assert response[0].status == 200
-
+    assert response[0].id == UUID("497f6eca-6276-4993-bfeb-53cbbbba6f08")
+    assert response[1].status == 404
+    assert response[1].id == UUID("72249bb6-6c89-4ea7-b8cf-73f1a140812b")
+    assert response[1].body is not None
+    assert response[1].body["code"] == 40410000
+    assert response[1].body["message"] == "order not found"
 
 def test_limit_order(reqmock, trading_client):
     reqmock.post(

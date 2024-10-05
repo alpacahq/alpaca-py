@@ -385,6 +385,7 @@ def test_cancel_orders(reqmock, trading_client: TradingClient):
     assert response[1].body["code"] == 40410000
     assert response[1].body["message"] == "order not found"
 
+
 def test_limit_order(reqmock, trading_client):
     reqmock.post(
         f"{BaseURL.TRADING_PAPER.value}/v2/orders",

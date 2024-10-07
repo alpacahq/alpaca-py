@@ -261,7 +261,7 @@ class RESTClient(ABC):
         """
         return self._request("PATCH", path, data)
 
-    def delete(self, path, data: Union[dict, str] = None) -> dict:
+    def delete(self, path, data: Optional[Union[dict, str]] = None) -> dict:
         """Performs a single DELETE request
 
         Args:

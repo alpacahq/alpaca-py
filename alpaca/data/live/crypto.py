@@ -72,7 +72,7 @@ class CryptoDataStream(DataStream):
         self._subscribe(handler, symbols, self._handlers["quotes"])
 
     def subscribe_bars(
-        self, handler: Callable[[Union[Quote, Dict]], Awaitable[None]], *symbols: str
+        self, handler: Callable[[Union[Bar, Dict]], Awaitable[None]], *symbols: str
     ) -> None:
         """Subscribe to minute bars
 

@@ -65,7 +65,7 @@ Market Data
 
 .. image:: images/icons/market-data.png
 
-The Market Data API gives you access to real time and historical data for equities, crypto and options(beta).
+The Market Data API gives you access to real time and historical data for equities, crypto and options.
 Learn more on the :ref:`market-data` page.
 
 

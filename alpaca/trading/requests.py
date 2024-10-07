@@ -1,5 +1,5 @@
 from datetime import date, datetime, timedelta
-from typing import Any, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import pandas as pd
 from pydantic import model_validator
@@ -235,9 +235,11 @@ class CancelOrderResponse(ModelWithID):
     Attributes:
         id (UUID): The order id
         status (int): The HTTP status returned after attempting to cancel the order.
+        body (Dict[str, Any]): an error description
     """
 
     status: int
+    body: Optional[Dict[str, Any]] = None
 
 
 class OrderRequest(NonEmptyRequest):

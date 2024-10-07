@@ -57,7 +57,7 @@ class Journal(ModelWithID):
     transmitter_address: Optional[str] = None
     transmitter_financial_institution: Optional[str] = None
     transmitter_timestamp: Optional[str] = None
-    currency: SupportedCurrencies
+    currency: Optional[SupportedCurrencies] = None
 
 
 class BatchJournalResponse(Journal):

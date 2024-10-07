@@ -78,6 +78,7 @@ from alpaca.trading.models import (
     Watchlist,
 )
 from alpaca.trading.requests import (
+    CancelOrderResponse,
     ClosePositionRequest,
     CreateWatchlistRequest,
     GetAssetsRequest,
@@ -94,7 +95,6 @@ from ..common import RawData
 from ..common.rest import HTTPResult, RESTClient
 from .enums import ACHRelationshipStatus
 from .requests import (
-    CancelOrderResponse,
     CreateAccountRequest,
     CreateACHRelationshipRequest,
     CreateACHTransferRequest,

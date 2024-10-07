@@ -37,3 +37,9 @@ MarketType
 ----------
 
 .. autoclass:: alpaca.data.enums.MarketType
+
+
+CorporateActionsType
+--------------------
+
+.. autoclass:: alpaca.data.enums.CorporateActionsType

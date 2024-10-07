@@ -6,6 +6,7 @@ Market Data Reference
    :maxdepth: 2
 
    data/common
+   data/corporate_actions
    data/stock
    data/crypto
    data/option

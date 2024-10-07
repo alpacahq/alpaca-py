@@ -8,6 +8,7 @@ from alpaca.common.enums import Sort, SupportedCurrencies
 from alpaca.common.requests import NonEmptyRequest
 from alpaca.data.enums import (
     Adjustment,
+    CorporateActionsType,
     DataFeed,
     MarketType,
     MostActivesBy,
@@ -520,6 +521,9 @@ class MarketMoversRequest(ScreenerRequest):
     market_type: MarketType = MarketType.STOCKS
 
 
+# ############################## News #################################### #
+
+
 class NewsRequest(NonEmptyRequest):
     """
     This request class is used to submit a request for most actives screener endpoint.
@@ -546,3 +550,28 @@ class NewsRequest(NonEmptyRequest):
     include_content: Optional[bool] = None
     exclude_contentless: Optional[bool] = None
     page_token: Optional[str] = None
+
+
+# ############################## CorporateActions #################################### #
+
+
+class CorporateActionsRequest(NonEmptyRequest):
+    """
+    This request class is used to submit a request for corporate actions data.
+    ref. https://docs.alpaca.markets/reference/corporateactions-1
+
+    Attributes:
+        symbols (Optional[List[str]]): The list of ticker identifiers.
+        types (Optional[List[CorporateActionsType]]): The types of corporate actions to filter by. (default: all types)
+        start (Optional[date]): The inclusive start of the interval. Format: YYYY-MM-DD. (default: current day)
+        end (Optional[date])): The inclusive end of the interval. Format: YYYY-MM-DD. (default: current day)
+        limit (Optional[int]): Upper limit of number of data points to return. (default: 1000)
+        sort (Optional[Sort]): The chronological order of response based on the timestamp. Defaults to ASC.
+    """
+
+    symbols: Optional[List[str]] = None
+    types: Optional[List[CorporateActionsType]] = None
+    start: Optional[date] = None
+    end: Optional[date] = None
+    limit: Optional[int] = 1000
+    sort: Optional[Sort] = Sort.ASC

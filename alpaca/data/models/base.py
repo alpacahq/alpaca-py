@@ -20,12 +20,17 @@ class TimeSeriesMixin:
         data_list = list(itertools.chain.from_iterable(self.dict().values()))
 
         df = pd.DataFrame(data_list)
+        columns = df.columns
 
         # set multi-level index
         if "news" in self.dict():
             # level=0 - id
             df = df.set_index(["id"])
-        if set(["symbol", "timestamp"]).issubset(df.columns):
+        elif "corporate_action_type" in columns:
+            # level=0 - corporate_action_type
+            # level=1 - process_date
+            df = df.set_index(["corporate_action_type", "process_date"])
+        elif set(["symbol", "timestamp"]).issubset(columns):
             # level=0 - symbol
             # level=1 - timestamp
             df = df.set_index(["symbol", "timestamp"])

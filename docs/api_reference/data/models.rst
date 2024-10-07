@@ -99,3 +99,15 @@ Movers
 ------
 
 .. autoclass:: alpaca.data.models.screener.Movers
+
+
+CorporateAction
+---------------
+
+.. autoclass:: alpaca.data.models.corporate_actions.CorporateAction
+
+
+CorporateActionsSet
+-------------------
+
+.. autoclass:: alpaca.data.models.corporate_actions.CorporateActionsSet

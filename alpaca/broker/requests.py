@@ -1,8 +1,8 @@
 from datetime import date, datetime
-from typing import List, Optional, Union, Dict, Any
+from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
-from pydantic import model_validator, field_validator
+from pydantic import field_validator, model_validator
 
 from alpaca.broker.models.accounts import (
     AccountDocument,
@@ -16,12 +16,17 @@ from alpaca.broker.models.documents import W8BenDocument
 from alpaca.broker.enums import (
     AccountEntities,
     BankAccountType,
+    CalendarSubType,
     DocumentType,
-    EmploymentStatus,
+    DriftBandSubType,
     FeePaymentMethod,
     FundingSource,
     IdentifierType,
-    TaxIdType,
+    JournalEntryType,
+    JournalStatus,
+    PortfolioStatus,
+    RebalancingConditionsType,
+    RunType,
     TradeDocumentType,
     TransferDirection,
     TransferTiming,
@@ -29,9 +34,9 @@ from alpaca.broker.enums import (
     UploadDocumentMimeType,
     UploadDocumentSubType,
     VisaType,
-    JournalEntryType,
-    JournalStatus,
+    WeightType,
 )
+from alpaca.common.models import BaseModel
 from alpaca.common.enums import Sort, SupportedCurrencies
 from alpaca.trading.enums import ActivityType, AccountStatus, OrderType, AssetClass
 from alpaca.common.requests import NonEmptyRequest
@@ -43,7 +48,6 @@ from alpaca.trading.requests import (
     StopLimitOrderRequest as BaseStopLimitOrderRequest,
     TrailingStopOrderRequest as BaseTrailingStopOrderRequest,
 )
-
 
 # ############################## Accounts ################################# #
 
@@ -985,3 +989,138 @@ class GetEventsRequest(NonEmptyRequest):
     until: Optional[Union[date, str]] = None
     since_id: Optional[int] = None
     until_id: Optional[int] = None
+
+
+# ############################## Rebalancing ################################# #
+
+
+class Weight(BaseModel):
+    """
+    Weight model.
+
+    https://docs.alpaca.markets/reference/post-v1-rebalancing-portfolios
+    """
+
+    type: WeightType
+    symbol: Optional[str] = None
+    percent: float
+
+    @field_validator("percent")
+    def percent_must_be_positive(cls, value: float) -> float:
+        """Validate and round the percent field to 2 decimal places."""
+        if value <= 0:
+            raise ValueError("You must provide an amount > 0.")
+        return round(value, 2)
+
+    @model_validator(mode="before")
+    def validator(cls, values: dict) -> dict:
+        """Verify that the symbol is provided when the weights type is asset."""
+        if (
+            values["type"] == WeightType.ASSET.value
+            and values.get("symbol", None) is None
+        ):
+            raise ValueError
+        return values
+
+
+class RebalancingConditions(BaseModel):
+    """
+    Rebalancing conditions model.
+
+    https://docs.alpaca.markets/reference/post-v1-rebalancing-portfolios
+    """
+
+    type: RebalancingConditionsType
+    sub_type: Union[DriftBandSubType, CalendarSubType]
+    percent: Optional[float] = None
+    day: Optional[str] = None
+
+
+class CreatePortfolioRequest(NonEmptyRequest):
+    """
+    Portfolio request model.
+
+    https://docs.alpaca.markets/reference/post-v1-rebalancing-portfolios
+    """
+
+    name: str
+    description: str
+    weights: List[Weight]
+    cooldown_days: int
+    rebalance_conditions: Optional[List[RebalancingConditions]] = None
+
+
+class UpdatePortfolioRequest(NonEmptyRequest):
+    """
+    Portfolio request update model.
+
+    https://docs.alpaca.markets/reference/patch-v1-rebalancing-portfolios-portfolio_id-1
+    """
+
+    name: Optional[str] = None
+    description: Optional[str] = None
+    weights: Optional[List[Weight]] = None
+    cooldown_days: Optional[int] = None
+    rebalance_conditions: Optional[List[RebalancingConditions]] = None
+
+
+class GetPortfoliosRequest(NonEmptyRequest):
+    """
+    Get portfolios request query parameters.
+
+    https://docs.alpaca.markets/reference/get-v1-rebalancing-portfolios
+    """
+
+    name: Optional[str] = None
+    description: Optional[str] = None
+    symbol: Optional[str] = None
+    portfolio_id: Optional[UUID] = None
+    status: Optional[PortfolioStatus] = None
+
+
+class CreateSubscriptionRequest(NonEmptyRequest):
+    """
+    Subscription request model.
+
+    https://docs.alpaca.markets/reference/post-v1-rebalancing-subscriptions-1
+    """
+
+    account_id: UUID
+    portfolio_id: UUID
+
+
+class GetSubscriptionsRequest(NonEmptyRequest):
+    """
+    Get subscriptions request query parameters.
+
+    https://docs.alpaca.markets/reference/get-v1-rebalancing-subscriptions-1
+    """
+
+    account_id: Optional[UUID] = None
+    portfolio_id: Optional[UUID] = None
+    limit: Optional[int] = None
+    page_token: Optional[str] = None
+
+
+class CreateRunRequest(NonEmptyRequest):
+    """
+    Manually creates a rebalancing run.
+
+    https://docs.alpaca.markets/reference/post-v1-rebalancing-runs
+    """
+
+    account_id: UUID
+    type: RunType
+    weights: List[Weight]
+
+
+class GetRunsRequest(NonEmptyRequest):
+    """
+    Get runs request query parameters.
+
+    https://docs.alpaca.markets/reference/get-v1-rebalancing-runs
+    """
+
+    account_id: Optional[UUID] = None
+    type: Optional[RunType] = None
+    limit: Optional[int] = None

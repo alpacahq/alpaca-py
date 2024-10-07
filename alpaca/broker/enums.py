@@ -426,3 +426,100 @@ class JournalStatus(str, Enum):
     REFUSED = "refused"
     CORRECT = "correct"
     DELETED = "deleted"
+
+
+class PortfolioStatus(str, Enum):
+    """
+    The possible values of the Portfolio status.
+
+    See https://docs.alpaca.markets/reference/get-v1-rebalancing-portfolios
+    """
+
+    ACTIVE = "active"
+    INACTIVE = "inactive"
+    NEEDS_ADJUSTMENT = "needs_adjustment"
+
+
+class WeightType(str, Enum):
+    """
+    The possible values of the Weight type.
+
+    See https://docs.alpaca.markets/reference/post-v1-rebalancing-portfolios
+    """
+
+    CASH = "cash"
+    ASSET = "asset"
+
+
+class RebalancingConditionsType(str, Enum):
+    """
+    The possible values of the Rebalancing Conditions type.
+
+    See https://docs.alpaca.markets/reference/post-v1-rebalancing-portfolios
+    """
+
+    DRIFT_BAND = "drift_band"
+    CALENDAR = "calendar"
+
+
+class DriftBandSubType(str, Enum):
+    """
+    The possible values of the Rebalancing Conditions subtype for drift_band.
+
+    See https://docs.alpaca.markets/reference/post-v1-rebalancing-portfolios
+    """
+
+    ABSOLUTE = "absolute"
+    RELATIVE = "relative"
+
+
+class CalendarSubType(str, Enum):
+    """
+    The possible values of the Rebalancing Conditions subtype for drift_band.
+
+    See https://docs.alpaca.markets/reference/post-v1-rebalancing-portfolios
+    """
+
+    WEEKLY = "weekly"
+    MONTHLY = "monthly"
+    QUARTERLY = "quarterly"
+    ANNUALLY = "annually"
+
+
+class RunType(str, Enum):
+    """
+    The possible values of the Run type.
+
+    See https://docs.alpaca.markets/reference/post-v1-rebalancing-runs
+    """
+
+    FULL_REBALANCE = "full_rebalance"
+    INVEST_CASH = "invest_cash"
+
+
+class RunInitiatedFrom(str, Enum):
+    """
+    The possible values of the initiated_from field.
+
+    See https://docs.alpaca.markets/docs/portfolio-rebalancing
+    """
+
+    SYSTEM = "system"
+    API = "api"
+
+
+class RunStatus(str, Enum):
+    """
+    The possible values of the Run status.
+
+    See https://docs.alpaca.markets/reference/get-v1-rebalancing-runs
+    """
+
+    QUEUED = "QUEUED"
+    IN_PROGRESS = "IN_PROGRESS"
+    CANCELED = "CANCELED"
+    CANCELED_MID_RUN = "CANCELED_MID_RUN"
+    ERROR = "ERROR"
+    TIMEOUT = "TIMEOUT"
+    COMPLETED_SUCCESS = "COMPLETED_SUCCESS"
+    COMPLETED_ADJUSTED = "COMPLETED_ADJUSTED"

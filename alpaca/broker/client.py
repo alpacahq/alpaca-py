@@ -14,7 +14,6 @@ from alpaca.broker.models import (
     Bank,
     BaseModel,
     BatchJournalResponse,
-    CIPInfo,  # TODO: currently not used
     Journal,
     Order,
     Portfolio,
@@ -25,7 +24,6 @@ from alpaca.broker.models import (
     Transfer,
 )
 from alpaca.broker.requests import (
-    CancelOrderResponse,
     CreateAccountRequest,
     CreateACHRelationshipRequest,
     CreateACHTransferRequest,
@@ -183,26 +181,55 @@ class BrokerClient(RESTClient):
         params: Dict[str, Any],
         response_field: str,
         base_model_type: Type[BaseModel],
+        max_items_limit: Optional[int] = None,
     ) -> Iterator[Union[RawData, BaseModel]]:
         """
         Internal method to iterate over the result pages.
         """
 
+        # we need to track total items retrieved
+        total_items = 0
+        page_size = params.get("limit", 100)
+
         while True:
+            if max_items_limit is not None:
+                normalized_page_size = min(
+                    int(max_items_limit) - total_items, page_size
+                )
+                params["limit"] = normalized_page_size
+
             response = self.get(endpoint, params)
-            result = response[response_field]
+            if response is None:
+                break
+            result = response.get(response_field, None)
+
+            if not isinstance(result, List) or len(result) == 0:
+                break
+
+            num_items_returned = len(result)
+            if (
+                max_items_limit is not None
+                and num_items_returned + total_items > max_items_limit
+            ):
+                result = result[: (max_items_limit - total_items)]
+                total_items += max_items_limit - total_items
+            else:
+                total_items += num_items_returned
 
             if self._use_raw_data:
                 yield result
+            else:
+                yield TypeAdapter(type=List[base_model_type]).validate_python(result)
 
-            yield TypeAdapter(
-                List[base_model_type],
-            ).validate_python(result)
+            if max_items_limit is not None and total_items >= max_items_limit:
+                break
 
             page_token = response.get("next_page_token", None)
 
             if page_token is None:
                 break
+
+            params["page_token"] = page_token
 
     # ############################## ACCOUNTS/TRADING ACCOUNTS ################################# #
 
@@ -2000,6 +2027,8 @@ class BrokerClient(RESTClient):
         """
         Create a new portfolio.
 
+        ref. https://docs.alpaca.markets/reference/post-v1-rebalancing-portfolios
+
         Args:
             portfolio_request (CreatePortfolioRequest): The details required to create a new portfolio.
 
@@ -2022,6 +2051,8 @@ class BrokerClient(RESTClient):
     ) -> Union[List[Portfolio], List[RawData]]:
         """
         Retrieves all portfolios based on the filter provided.
+
+        ref. https://docs.alpaca.markets/reference/get-v1-rebalancing-portfolios
 
         Args:
             filter (Optional[GetPortfoliosRequest]): Filter criteria to narrow down portfolio list.
@@ -2071,6 +2102,8 @@ class BrokerClient(RESTClient):
         If weights or conditions are changed, all subscribed accounts will be evaluated for rebalancing at the next opportunity (normal market hours).
         If a cooldown is active on the portfolio, the rebalancing will occur after the cooldown expired.
 
+        ref. https://docs.alpaca.markets/reference/patch-v1-rebalancing-portfolios-portfolio_id-1
+
         Args:
             portfolio_id (Union[UUID, str]): The ID of the portfolio to be updated.
             update_request: The details to be updated for the portfolio.
@@ -2095,6 +2128,8 @@ class BrokerClient(RESTClient):
         Sets a portfolio to “inactive”, so it can be filtered out of the list request.
         Only permitted if there are no active subscriptions to this portfolio and this portfolio is not a listed in the weights of any active portfolios.
         Inactive portfolios cannot be linked in new subscriptions or added as weights to new portfolios.
+
+        ref. https://docs.alpaca.markets/reference/delete-v1-rebalancing-portfolios-portfolio_id-1
 
         Args:
             portfolio_id (Union[UUID, str]): The ID of the portfolio to be inactivated.
@@ -2136,6 +2171,8 @@ class BrokerClient(RESTClient):
         """
         Retrieves all subscriptions based on the filter provided.
 
+        ref. https://docs.alpaca.markets/reference/get-v1-rebalancing-subscriptions-1
+
         Args:
             filter (Optional[GetSubscriptionsRequest]): Filter criteria to narrow down subscription list.
             max_items_limit (Optional[int]): A maximum number of items to return over all for when handle_pagination is
@@ -2155,6 +2192,7 @@ class BrokerClient(RESTClient):
             params=filter.to_request_fields() if filter else {},
             response_field="subscriptions",
             base_model_type=Subscription,
+            max_items_limit=max_items_limit,
         )
 
         return BrokerClient._return_paginated_result(
@@ -2245,6 +2283,7 @@ class BrokerClient(RESTClient):
             params=filter.to_request_fields() if filter else {},
             response_field="runs",
             base_model_type=RebalancingRun,
+            max_items_limit=max_items_limit,
         )
 
         return BrokerClient._return_paginated_result(runs_iterator, handle_pagination)
@@ -2261,7 +2300,7 @@ class BrokerClient(RESTClient):
         """
         run_id = validate_uuid_id_param(run_id)
 
-        response = self.get(f"/rebalancing/subscriptions/{run_id}")
+        response = self.get(f"/rebalancing/runs/{run_id}")
 
         if self._use_raw_data:
             return response

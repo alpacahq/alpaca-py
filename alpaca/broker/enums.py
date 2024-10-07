@@ -428,11 +428,23 @@ class JournalStatus(str, Enum):
     DELETED = "deleted"
 
 
+class PortfolioStatus(str, Enum):
+    """
+    The possible values of the Portfolio status.
+
+    See https://docs.alpaca.markets/reference/get-v1-rebalancing-portfolios
+    """
+
+    ACTIVE = "active"
+    INACTIVE = "inactive"
+    NEEDS_ADJUSTMENT = "needs_adjustment"
+
+
 class WeightType(str, Enum):
     """
     The possible values of the Weight type.
 
-    See https://alpaca.markets/docs/api-references/broker-api/rebalancing/#weights-model
+    See https://docs.alpaca.markets/reference/post-v1-rebalancing-portfolios
     """
 
     CASH = "cash"
@@ -443,7 +455,7 @@ class RebalancingConditionsType(str, Enum):
     """
     The possible values of the Rebalancing Conditions type.
 
-    See https://alpaca.markets/docs/api-references/broker-api/rebalancing/#rebalancing-conditions-model
+    See https://docs.alpaca.markets/reference/post-v1-rebalancing-portfolios
     """
 
     DRIFT_BAND = "drift_band"
@@ -454,7 +466,7 @@ class DriftBandSubType(str, Enum):
     """
     The possible values of the Rebalancing Conditions subtype for drift_band.
 
-    See https://alpaca.markets/docs/api-references/broker-api/rebalancing/#rebalancing-conditions-model
+    See https://docs.alpaca.markets/reference/post-v1-rebalancing-portfolios
     """
 
     ABSOLUTE = "absolute"
@@ -465,7 +477,7 @@ class CalendarSubType(str, Enum):
     """
     The possible values of the Rebalancing Conditions subtype for drift_band.
 
-    See https://alpaca.markets/docs/api-references/broker-api/rebalancing/#rebalancing-conditions-model
+    See https://docs.alpaca.markets/reference/post-v1-rebalancing-portfolios
     """
 
     WEEKLY = "weekly"
@@ -478,18 +490,18 @@ class RunType(str, Enum):
     """
     The possible values of the Run type.
 
-    See https://alpaca.markets/docs/api-references/broker-api/rebalancing/#run-model
+    See https://docs.alpaca.markets/reference/post-v1-rebalancing-runs
     """
 
     FULL_REBALANCE = "full_rebalance"
     INVEST_CASH = "invest_cash"
 
 
-class RunInitiatedBy(str, Enum):
+class RunInitiatedFrom(str, Enum):
     """
-    The possible values of the initiated_by field.
+    The possible values of the initiated_from field.
 
-    See https://alpaca.markets/docs/api-references/broker-api/rebalancing/#run-model
+    See https://docs.alpaca.markets/docs/portfolio-rebalancing
     """
 
     SYSTEM = "system"
@@ -500,7 +512,7 @@ class RunStatus(str, Enum):
     """
     The possible values of the Run status.
 
-    See https://alpaca.markets/docs/api-references/broker-api/rebalancing/#run-model
+    See https://docs.alpaca.markets/reference/get-v1-rebalancing-runs
     """
 
     QUEUED = "QUEUED"

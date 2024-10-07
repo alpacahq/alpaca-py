@@ -1,8 +1,8 @@
 from datetime import date, datetime
-from typing import List, Optional, Union, Dict, Any
+from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
-from pydantic import model_validator, field_validator
+from pydantic import field_validator, model_validator
 
 from alpaca.broker.models.accounts import (
     AccountDocument,
@@ -22,6 +22,9 @@ from alpaca.broker.enums import (
     FeePaymentMethod,
     FundingSource,
     IdentifierType,
+    JournalEntryType,
+    JournalStatus,
+    PortfolioStatus,
     RebalancingConditionsType,
     RunType,
     TradeDocumentType,
@@ -31,8 +34,6 @@ from alpaca.broker.enums import (
     UploadDocumentMimeType,
     UploadDocumentSubType,
     VisaType,
-    JournalEntryType,
-    JournalStatus,
     WeightType,
 )
 from alpaca.common.models import BaseModel
@@ -47,7 +48,6 @@ from alpaca.trading.requests import (
     StopLimitOrderRequest as BaseStopLimitOrderRequest,
     TrailingStopOrderRequest as BaseTrailingStopOrderRequest,
 )
-
 
 # ############################## Accounts ################################# #
 
@@ -998,7 +998,7 @@ class Weight(BaseModel):
     """
     Weight model.
 
-    https://alpaca.markets/docs/api-references/broker-api/rebalancing/#weights-model
+    https://docs.alpaca.markets/reference/post-v1-rebalancing-portfolios
     """
 
     type: WeightType
@@ -1027,12 +1027,12 @@ class RebalancingConditions(BaseModel):
     """
     Rebalancing conditions model.
 
-    https://alpaca.markets/docs/api-references/broker-api/rebalancing/#rebalancing-conditions-model
+    https://docs.alpaca.markets/reference/post-v1-rebalancing-portfolios
     """
 
     type: RebalancingConditionsType
     sub_type: Union[DriftBandSubType, CalendarSubType]
-    percent: float
+    percent: Optional[float] = None
     day: Optional[str] = None
 
 
@@ -1040,21 +1040,21 @@ class CreatePortfolioRequest(NonEmptyRequest):
     """
     Portfolio request model.
 
-    https://alpaca.markets/docs/api-references/broker-api/rebalancing/#portfolio-model
+    https://docs.alpaca.markets/reference/post-v1-rebalancing-portfolios
     """
 
     name: str
     description: str
     weights: List[Weight]
     cooldown_days: int
-    rebalance_conditions: List[RebalancingConditions]
+    rebalance_conditions: Optional[List[RebalancingConditions]] = None
 
 
 class UpdatePortfolioRequest(NonEmptyRequest):
     """
     Portfolio request update model.
 
-    https://alpaca.markets/docs/api-references/broker-api/rebalancing/#sample-request-1
+    https://docs.alpaca.markets/reference/patch-v1-rebalancing-portfolios-portfolio_id-1
     """
 
     name: Optional[str] = None
@@ -1068,21 +1068,21 @@ class GetPortfoliosRequest(NonEmptyRequest):
     """
     Get portfolios request query parameters.
 
-    https://alpaca.markets/docs/api-references/broker-api/rebalancing/#query-parameters
+    https://docs.alpaca.markets/reference/get-v1-rebalancing-portfolios
     """
 
     name: Optional[str] = None
     description: Optional[str] = None
     symbol: Optional[str] = None
     portfolio_id: Optional[UUID] = None
-    status: Optional[str] = None
+    status: Optional[PortfolioStatus] = None
 
 
 class CreateSubscriptionRequest(NonEmptyRequest):
     """
     Subscription request model.
 
-    https://alpaca.markets/docs/api-references/broker-api/rebalancing/#subscription-model
+    https://docs.alpaca.markets/reference/post-v1-rebalancing-subscriptions-1
     """
 
     account_id: UUID
@@ -1093,7 +1093,7 @@ class GetSubscriptionsRequest(NonEmptyRequest):
     """
     Get subscriptions request query parameters.
 
-    https://alpaca.markets/docs/api-references/broker-api/rebalancing/#request-6
+    https://docs.alpaca.markets/reference/get-v1-rebalancing-subscriptions-1
     """
 
     account_id: Optional[UUID] = None
@@ -1106,7 +1106,7 @@ class CreateRunRequest(NonEmptyRequest):
     """
     Manually creates a rebalancing run.
 
-    https://alpaca.markets/docs/api-references/broker-api/rebalancing/#create-run-manual-rebalancing-event
+    https://docs.alpaca.markets/reference/post-v1-rebalancing-runs
     """
 
     account_id: UUID
@@ -1118,7 +1118,7 @@ class GetRunsRequest(NonEmptyRequest):
     """
     Get runs request query parameters.
 
-    https://alpaca.markets/docs/api-references/broker-api/rebalancing/#query-parameters-2
+    https://docs.alpaca.markets/reference/get-v1-rebalancing-runs
     """
 
     account_id: Optional[UUID] = None

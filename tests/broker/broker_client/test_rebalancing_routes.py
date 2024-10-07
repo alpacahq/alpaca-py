@@ -1,16 +1,18 @@
 from uuid import UUID
+
 from requests_mock import Mocker
+
 from alpaca.broker.client import BrokerClient
 from alpaca.broker.enums import WeightType
-from alpaca.broker.models import Portfolio, Subscription, RebalancingRun
+from alpaca.broker.models import Portfolio, RebalancingRun, Subscription
 from alpaca.broker.requests import (
     CreatePortfolioRequest,
     CreateRunRequest,
     CreateSubscriptionRequest,
     GetPortfoliosRequest,
     GetRunsRequest,
-    UpdatePortfolioRequest,
     GetSubscriptionsRequest,
+    UpdatePortfolioRequest,
 )
 from alpaca.common.enums import BaseURL
 
@@ -568,6 +570,16 @@ def test_get_all_runs(reqmock: Mocker, client: BrokerClient) -> None:
                             }
                         ],
                         "orders": [],
+                        "skipped_orders": [
+                            {
+                                "symbol": "SPY",
+                                "side": "buy",
+                                "notional": "0",
+                                "currency": "USD",
+                                "reason": "ORDER_LESS_THAN_MIN_NOTIONAL",
+                                "reason_details": "order notional value ($0) is less than min-notional set for correspondent ($1)"
+                            }
+                        ],
                         "completed_at": null,
                         "canceled_at": null,
                         "created_at": "2022-04-14T10:46:08.045817Z",
@@ -591,7 +603,7 @@ def test_get_run_by_id(reqmock: Mocker, client: BrokerClient) -> None:
     """Test the get_run_by_id method."""
     run_id = UUID("2ad28f83-796c-4c4d-895e-d360aeb95297")
     reqmock.get(
-        f"{BaseURL.BROKER_SANDBOX.value}/v1/rebalancing/subscriptions/{run_id}",
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/rebalancing/runs/{run_id}",
         text="""
         {
                         "id": "2ad28f83-796c-4c4d-895e-d360aeb95297",
@@ -620,6 +632,16 @@ def test_get_run_by_id(reqmock: Mocker, client: BrokerClient) -> None:
                             }
                         ],
                         "orders": [],
+                        "skipped_orders": [
+                            {
+                                "symbol": "SPY",
+                                "side": "buy",
+                                "notional": "0",
+                                "currency": "USD",
+                                "reason": "ORDER_LESS_THAN_MIN_NOTIONAL",
+                                "reason_details": "order notional value ($0) is less than min-notional set for correspondent ($1)"
+                            }
+                        ],
                         "completed_at": null,
                         "canceled_at": null,
                         "created_at": "2022-04-14T10:46:08.045817Z",

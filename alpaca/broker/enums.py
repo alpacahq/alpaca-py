@@ -106,13 +106,15 @@ class AgreementType(str, Enum):
     """
     The types of agreements that are to be signed by the user
 
-    see https://alpaca.markets/docs/broker/api-references/accounts/accounts/#agreements
+    see https://docs.alpaca.markets/reference/createaccount
     """
 
     MARGIN = "margin_agreement"
     ACCOUNT = "account_agreement"
     CUSTOMER = "customer_agreement"
     CRYPTO = "crypto_agreement"
+    OPTIONS = "options_agreement"
+    CUSTODIAL_CUSTOMER = "custodial_customer_agreement"
 
 
 class DocumentType(str, Enum):

@@ -20,6 +20,7 @@ sys.path.insert(0, os.path.abspath("../"))
 # ref. https://github.com/pydantic/pydantic/discussions/7763#discussioncomment-8417097
 import alpaca.data.models.screener  # noqa # pylint: disable=unused-import
 import alpaca.data.models.news  # noqa # pylint: disable=unused-import
+import alpaca.data.models.corporate_actions  # noqa # pylint: disable=unused-import
 
 # -- Project information -----------------------------------------------------
 

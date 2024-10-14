@@ -8,9 +8,26 @@ class APIError(Exception):
     """
 
     def __init__(self, error, http_error=None):
-        super().__init__(error)
+        detailed_error = {
+            "payload": error,
+        }
+
+        if http_error is not None:
+            if hasattr(http_error, "response"):
+                detailed_error["status_code"] = http_error.response.status_code
+                detailed_error["reason"] = http_error.response.reason
+            if hasattr(http_error, "request"):
+                detailed_error["method"] = http_error.request.method
+                detailed_error["url"] = http_error.request.url
+            # add tips for auth key error
+            if detailed_error["status_code"] == 401:
+                detailed_error[
+                    "tips"
+                ] = "please check your API key and environment (paper/sandbox/live)"
+
         self._error = error
         self._http_error = http_error
+        super().__init__(detailed_error)
 
     @property
     def code(self):

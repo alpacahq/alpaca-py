@@ -1124,3 +1124,7 @@ class GetRunsRequest(NonEmptyRequest):
     account_id: Optional[UUID] = None
     type: Optional[RunType] = None
     limit: Optional[int] = None
+
+
+class CreateOptionExerciseRequest(NonEmptyRequest):
+    commission: Optional[float] = None

@@ -31,6 +31,7 @@ from alpaca.broker.requests import (
     CreateBankTransferRequest,
     CreateBatchJournalRequest,
     CreateJournalRequest,
+    CreateOptionExerciseRequest,
     CreatePlaidRelationshipRequest,
     CreatePortfolioRequest,
     CreateReverseBatchJournalRequest,
@@ -58,7 +59,11 @@ from alpaca.common.constants import (
 from alpaca.common.enums import BaseURL, PaginationType
 from alpaca.common.exceptions import APIError
 from alpaca.common.rest import HTTPResult, RESTClient
-from alpaca.common.utils import validate_symbol_or_asset_id, validate_uuid_id_param
+from alpaca.common.utils import (
+    validate_symbol_or_asset_id,
+    validate_uuid_id_param,
+    validate_symbol_or_contract_id,
+)
 from alpaca.trading.enums import ActivityType
 from alpaca.trading.models import AccountConfiguration as TradeAccountConfiguration
 from alpaca.trading.models import (
@@ -2320,3 +2325,35 @@ class BrokerClient(RESTClient):
         run_id = validate_uuid_id_param(run_id)
 
         self.delete(f"/rebalancing/runs/{run_id}")
+
+    def exercise_options_position_for_account_by_id(
+        self,
+        symbol_or_contract_id: Union[UUID, str],
+        account_id: Union[UUID, str],
+        commission: Optional[float] = None,
+    ) -> None:
+        """
+        This endpoint enables the correspondent to exercise a held option contract for an account, converting it into the underlying asset based on the specified terms.
+        All available held shares of this option contract will be exercised.
+        By default, Alpaca will automatically exercise in-the-money (ITM) contracts at expiry.
+        Exercise requests will be processed immediately once received. Exercise requests submitted outside market hours will be rejected.
+        To cancel an exercise request or to submit a Do-not-exercise (DNE) instruction, please contact our support team.
+
+        Args:
+            account_id (Union[UUID, str]): The Account id you wish to retrieve CIPInfo for
+            symbol_or_contract_id (Union[UUID, str]): Option contract symbol or ID.
+            commission (Optional[float]): The dollar value commission you want to charge the end user.
+
+        Returns:
+            None
+        """
+
+        account_id = validate_uuid_id_param(account_id)
+        symbol_or_contract_id = validate_symbol_or_contract_id(symbol_or_contract_id)
+        req = CreateOptionExerciseRequest(commission=commission)
+
+        params = req.to_request_fields()
+        self.post(
+            f"/trading/accounts/{account_id}/positions/{symbol_or_contract_id}/exercise",
+            params,
+        )

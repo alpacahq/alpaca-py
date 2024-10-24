@@ -940,3 +940,25 @@ def test_update_trade_configuration_for_account_validates_id(
             account_id=334,
             config=config,
         )
+
+
+def test_exercise_options_position_with_symbol_and_commission(
+    reqmock, client: BrokerClient
+) -> None:
+    account_id = "5fc0795e-1f16-40cc-aa90-ede67c39d7a9"
+    symbol_or_contract_id = "SPY240304P00480000"
+
+    reqmock.post(
+        f"/v1/trading/accounts/{account_id}/positions/{symbol_or_contract_id}/exercise",
+        status_code=204,
+    )
+
+    res = client.exercise_options_position_for_account_by_id(
+        symbol_or_contract_id=symbol_or_contract_id,
+        account_id=account_id,
+        commission=0.55,
+    )
+
+    assert reqmock.called_once
+    assert reqmock.request_history[0].qs == {}
+    assert res is None

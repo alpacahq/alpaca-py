@@ -1,19 +1,21 @@
+import datetime
+import ipaddress
 import os.path
 import tempfile
+from datetime import date
 from typing import List
 
 import pytest
 
-from alpaca.broker.requests import UploadDocumentRequest
 from alpaca.broker.client import BrokerClient
-from alpaca.common.constants import BROKER_DOCUMENT_UPLOAD_LIMIT
-from alpaca.broker.enums import (
-    TradeDocumentType,
-    UploadDocumentMimeType,
-    DocumentType,
+from alpaca.broker.enums import DocumentType, TradeDocumentType, UploadDocumentMimeType
+from alpaca.broker.models import TradeDocument, W8BenDocument
+from alpaca.broker.requests import (
+    GetTradeDocumentsRequest,
+    UploadDocumentRequest,
+    UploadW8BenDocumentRequest,
 )
-from alpaca.broker.models import TradeDocument
-from alpaca.broker.requests import GetTradeDocumentsRequest
+from alpaca.common.constants import BROKER_DOCUMENT_UPLOAD_LIMIT
 from alpaca.common.enums import BaseURL
 
 
@@ -98,6 +100,45 @@ def test_upload_documents_to_account(reqmock, client: BrokerClient):
     assert (
         reqmock.request_history[0].text
         == '[{"document_type": "account_approval_letter", "content": "fake base64", "mime_type": "application/pdf"}]'
+    )
+
+
+def test_upload_documents_to_account_w8ben(reqmock, client: BrokerClient):
+    account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
+    reqmock.post(
+        BaseURL.BROKER_SANDBOX.value + f"/v1/accounts/{account_id}/documents/upload",
+        json={},
+        status_code=202,
+    )
+
+    client.upload_documents_to_account(
+        account_id=account_id,
+        document_data=[
+            UploadW8BenDocumentRequest(
+                content_data=W8BenDocument(
+                    country_citizen="JAPAN",
+                    date=date(2022, 2, 28),
+                    date_of_birth=date(1990, 1, 1),
+                    full_name="John Doe",
+                    ip_address=ipaddress.IPv4Address("192.168.0.1"),
+                    permanent_address_city_state="Tokyo",
+                    permanent_address_country="JAPAN",
+                    permanent_address_street="99-99 Miyashita, Shibuya-ku",
+                    revision="October 2021",
+                    signer_full_name="John Doe",
+                    timestamp=datetime.datetime(2022, 2, 28, 15, 0, 0),
+                    foreign_tax_id="123456789",
+                )
+            )
+        ],
+    )
+
+    assert reqmock.called_once
+
+    # TODO: Add a custom reqmock matcher to ensure format of request rather than this static string check
+    assert (
+        reqmock.request_history[0].text
+        == '[{"document_type": "w8ben", "document_sub_type": "Form W-8BEN", "content_data": {"country_citizen": "JAPAN", "date_of_birth": "1990-01-01", "date": "2022-02-28", "full_name": "John Doe", "ip_address": "192.168.0.1", "permanent_address_city_state": "Tokyo", "permanent_address_country": "JAPAN", "permanent_address_street": "99-99 Miyashita, Shibuya-ku", "revision": "October 2021", "signer_full_name": "John Doe", "timestamp": "2022-02-28T15:00:00+00:00", "foreign_tax_id": "123456789"}, "mime_type": "application/json"}]'
     )
 
 

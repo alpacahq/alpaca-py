@@ -61,8 +61,8 @@ from alpaca.common.exceptions import APIError
 from alpaca.common.rest import HTTPResult, RESTClient
 from alpaca.common.utils import (
     validate_symbol_or_asset_id,
-    validate_uuid_id_param,
     validate_symbol_or_contract_id,
+    validate_uuid_id_param,
 )
 from alpaca.trading.enums import ActivityType
 from alpaca.trading.models import AccountConfiguration as TradeAccountConfiguration
@@ -116,6 +116,7 @@ from .requests import (
     OrderRequest,
     UpdateAccountRequest,
     UploadDocumentRequest,
+    UploadW8BenDocumentRequest,
 )
 
 
@@ -414,7 +415,7 @@ class BrokerClient(RESTClient):
     def upload_documents_to_account(
         self,
         account_id: Union[UUID, str],
-        document_data: List[UploadDocumentRequest],
+        document_data: List[Union[UploadDocumentRequest, UploadW8BenDocumentRequest]],
     ) -> None:
         """
         Allows you to upload up to 10 documents at a time for an Account.

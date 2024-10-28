@@ -4,15 +4,6 @@ from uuid import UUID
 
 from pydantic import field_validator, model_validator
 
-from alpaca.broker.models.accounts import (
-    AccountDocument,
-    Agreement,
-    Contact,
-    Disclosures,
-    Identity,
-    TrustedContact,
-)
-from alpaca.broker.models.documents import W8BenDocument
 from alpaca.broker.enums import (
     AccountEntities,
     BankAccountType,
@@ -36,20 +27,93 @@ from alpaca.broker.enums import (
     VisaType,
     WeightType,
 )
-from alpaca.common.models import BaseModel
+from alpaca.broker.models.accounts import (
+    AccountDocument,
+    Agreement,
+    Contact,
+    Disclosures,
+    Identity,
+    TrustedContact,
+)
+from alpaca.broker.models.documents import W8BenDocument
 from alpaca.common.enums import Sort, SupportedCurrencies
-from alpaca.trading.enums import ActivityType, AccountStatus, OrderType, AssetClass
+from alpaca.common.models import BaseModel
 from alpaca.common.requests import NonEmptyRequest
+from alpaca.trading.enums import AccountStatus, ActivityType, AssetClass, OrderType
+from alpaca.trading.requests import LimitOrderRequest as BaseLimitOrderRequest
+from alpaca.trading.requests import MarketOrderRequest as BaseMarketOrderRequest
+from alpaca.trading.requests import OrderRequest as BaseOrderRequest
+from alpaca.trading.requests import StopLimitOrderRequest as BaseStopLimitOrderRequest
+from alpaca.trading.requests import StopOrderRequest as BaseStopOrderRequest
 from alpaca.trading.requests import (
-    OrderRequest as BaseOrderRequest,
-    MarketOrderRequest as BaseMarketOrderRequest,
-    LimitOrderRequest as BaseLimitOrderRequest,
-    StopOrderRequest as BaseStopOrderRequest,
-    StopLimitOrderRequest as BaseStopLimitOrderRequest,
     TrailingStopOrderRequest as BaseTrailingStopOrderRequest,
 )
 
 # ############################## Accounts ################################# #
+
+
+class UploadW8BenDocumentRequest(NonEmptyRequest):
+    """
+    Attributes:
+        content (Optional[str]): A string containing Base64 encoded data to upload. Must be set if `content_data` is not
+          set.
+        content_data (Optional[W8BenDocument]): The data representing a W8BEN document in field form. Must be set if
+          `content` is not set.
+        mime_type (UploadDocumentMimeType): The mime type of the data in `content`, or if using `content_data` must be
+          UploadDocumentMimeType.JSON. If `content_data` is set this will default to JSON
+    """
+
+    # These 2 are purposely undocumented as they should be here for NonEmptyRequest but they shouldn't be touched or
+    # set by users since they always need to be set values
+    document_type: DocumentType
+    document_sub_type: UploadDocumentSubType
+
+    content: Optional[str] = None
+    content_data: Optional[W8BenDocument] = None
+    mime_type: UploadDocumentMimeType
+
+    def __init__(self, **data) -> None:
+        # Always set these to their expected values
+        data["document_type"] = DocumentType.W8BEN
+        data["document_sub_type"] = UploadDocumentSubType.FORM_W8_BEN
+
+        if (
+            "mime_type" not in data
+            and "content_data" in data
+            and data["content_data"] is not None
+        ):
+            data["mime_type"] = UploadDocumentMimeType.JSON
+
+        super().__init__(**data)
+
+    @model_validator(mode="before")
+    def root_validator(cls, values: dict) -> dict:
+        content_is_none = values.get("content", None) is None
+        content_data_is_none = values.get("content_data", None) is None
+
+        if content_is_none and content_data_is_none:
+            raise ValueError(
+                "You must specify one of either the `content` or `content_data` fields"
+            )
+
+        if not content_is_none and not content_data_is_none:
+            raise ValueError(
+                "You can only specify one of either the `content` or `content_data` fields"
+            )
+
+        if values["document_type"] != DocumentType.W8BEN:
+            raise ValueError("document_type must be W8BEN.")
+
+        if values["document_sub_type"] != UploadDocumentSubType.FORM_W8_BEN:
+            raise ValueError("document_sub_type must be FORM_W8_BEN.")
+
+        if (
+            not content_data_is_none
+            and values["mime_type"] != UploadDocumentMimeType.JSON
+        ):
+            raise ValueError("If `content_data` is set then `mime_type` must be JSON")
+
+        return values
 
 
 class CreateAccountRequest(NonEmptyRequest):
@@ -60,7 +124,7 @@ class CreateAccountRequest(NonEmptyRequest):
         identity (Identity): The identity details for the account holder
         disclosures (Disclosures): The account holder's political disclosures
         agreements (List[Agreement]): The agreements the account holder has signed
-        documents (List[AccountDocument]): The documents the account holder has submitted
+        documents (List[Union[AccountDocument, UploadW8BenDocumentRequest]]): The documents the account holder has submitted
         trusted_contact (TrustedContact): The account holder's trusted contact details
     """
 
@@ -68,7 +132,7 @@ class CreateAccountRequest(NonEmptyRequest):
     identity: Identity
     disclosures: Disclosures
     agreements: List[Agreement]
-    documents: Optional[List[AccountDocument]] = None
+    documents: Optional[List[Union[AccountDocument, UploadW8BenDocumentRequest]]] = None
     trusted_contact: Optional[TrustedContact] = None
     currency: Optional[SupportedCurrencies] = None  # None = USD
     enabled_assets: Optional[List[AssetClass]] = None  # None = Default to server
@@ -401,70 +465,6 @@ class UploadDocumentRequest(NonEmptyRequest):
             raise ValueError(
                 "Error please use the UploadW8BenDocument class for uploading W8BEN documents"
             )
-
-        return values
-
-
-class UploadW8BenDocumentRequest(NonEmptyRequest):
-    """
-    Attributes:
-        content (Optional[str]): A string containing Base64 encoded data to upload. Must be set if `content_data` is not
-          set.
-        content_data (Optional[W8BenDocument]): The data representing a W8BEN document in field form. Must be set if
-          `content` is not set.
-        mime_type (UploadDocumentMimeType): The mime type of the data in `content`, or if using `content_data` must be
-          UploadDocumentMimeType.JSON. If `content_data` is set this will default to JSON
-    """
-
-    # These 2 are purposely undocumented as they should be here for NonEmptyRequest but they shouldn't be touched or
-    # set by users since they always need to be set values
-    document_type: DocumentType
-    document_sub_type: UploadDocumentSubType
-
-    content: Optional[str] = None
-    content_data: Optional[W8BenDocument] = None
-    mime_type: UploadDocumentMimeType
-
-    def __init__(self, **data) -> None:
-        # Always set these to their expected values
-        data["document_type"] = DocumentType.W8BEN
-        data["document_sub_type"] = UploadDocumentSubType.FORM_W8_BEN
-
-        if (
-            "mime_type" not in data
-            and "content_data" in data
-            and data["content_data"] is not None
-        ):
-            data["mime_type"] = UploadDocumentMimeType.JSON
-
-        super().__init__(**data)
-
-    @model_validator(mode="before")
-    def root_validator(cls, values: dict) -> dict:
-        content_is_none = values.get("content", None) is None
-        content_data_is_none = values.get("content_data", None) is None
-
-        if content_is_none and content_data_is_none:
-            raise ValueError(
-                "You must specify one of either the `content` or `content_data` fields"
-            )
-
-        if not content_is_none and not content_data_is_none:
-            raise ValueError(
-                "You can only specify one of either the `content` or `content_data` fields"
-            )
-
-        if values["document_type"] != DocumentType.W8BEN:
-            raise ValueError("document_type must be W8BEN.")
-
-        if values["document_sub_type"] != UploadDocumentSubType.FORM_W8_BEN:
-            raise ValueError("document_sub_type must be FORM_W8_BEN.")
-
-        if (
-            not content_data_is_none
-            and values["mime_type"] != UploadDocumentMimeType.JSON
-        ):
-            raise ValueError("If `content_data` is set then `mime_type` must be JSON")
 
         return values
 

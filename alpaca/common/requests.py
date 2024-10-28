@@ -58,7 +58,7 @@ class NonEmptyRequest(BaseModel):
 
             if isinstance(val, IPv4Address):
                 return str(val)
-            
+
             if isinstance(val, IPv6Address):
                 return str(val)
 

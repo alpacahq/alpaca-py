@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from typing import Any
 from uuid import UUID
 
@@ -50,6 +50,9 @@ class NonEmptyRequest(BaseModel):
                 # https://docs.python.org/3/library/datetime.html#determining-if-an-object-is-aware-or-naive
                 if val.tzinfo is None or val.tzinfo.utcoffset(val) is None:
                     val = val.replace(tzinfo=timezone.utc)
+                return val.isoformat()
+
+            if isinstance(val, date):
                 return val.isoformat()
 
             return val

@@ -138,7 +138,7 @@ def test_upload_documents_to_account_w8ben(reqmock, client: BrokerClient):
     # TODO: Add a custom reqmock matcher to ensure format of request rather than this static string check
     assert (
         reqmock.request_history[0].text
-        == '[{"document_type": "w8ben", "document_sub_type": "Form W-8BEN", "content_data": {"country_citizen": "JAPAN", "date_of_birth": "1990-01-01", "date": "2022-02-28", "full_name": "John Doe", "ip_address": "192.168.0.1", "permanent_address_city_state": "Tokyo", "permanent_address_country": "JAPAN", "permanent_address_street": "99-99 Miyashita, Shibuya-ku", "revision": "October 2021", "signer_full_name": "John Doe", "timestamp": "2022-02-28T15:00:00+00:00", "foreign_tax_id": "123456789"}, "mime_type": "application/json"}]'
+        == '[{"document_type": "w8ben", "document_sub_type": "Form W-8BEN", "content_data": {"country_citizen": "JAPAN", "date": "2022-02-28", "date_of_birth": "1990-01-01", "full_name": "John Doe", "ip_address": "192.168.0.1", "permanent_address_city_state": "Tokyo", "permanent_address_country": "JAPAN", "permanent_address_street": "99-99 Miyashita, Shibuya-ku", "revision": "October 2021", "signer_full_name": "John Doe", "timestamp": "2022-02-28T15:00:00+00:00", "foreign_tax_id": "123456789"}, "mime_type": "application/json"}]'
     )
 
 

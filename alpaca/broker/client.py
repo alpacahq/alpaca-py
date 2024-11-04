@@ -161,7 +161,7 @@ class BrokerClient(RESTClient):
         base_url = (
             url_override
             if url_override is not None
-            else BaseURL.BROKER_SANDBOX.value if sandbox else BaseURL.BROKER_PRODUCTION
+            else BaseURL.BROKER_SANDBOX.value if sandbox else BaseURL.BROKER_PRODUCTION.value
         )
 
         super().__init__(

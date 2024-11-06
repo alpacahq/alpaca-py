@@ -1,6 +1,7 @@
 import itertools
 from typing import Any, Dict, List
 
+import numpy as np
 import pandas as pd
 from pandas import DataFrame
 
@@ -28,8 +29,8 @@ class TimeSeriesMixin:
             df = df.set_index(["id"])
         elif "corporate_action_type" in columns:
             # level=0 - corporate_action_type
-            # level=1 - process_date
-            df = df.set_index(["corporate_action_type", "process_date"])
+            df = df.set_index(["corporate_action_type"])
+            df = df.replace({np.nan: None})
         elif set(["symbol", "timestamp"]).issubset(columns):
             # level=0 - symbol
             # level=1 - timestamp

@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Optional, Union
+from typing import Callable, Optional, Union
 
 from alpaca.common.enums import BaseURL
 from alpaca.common.rest import RESTClient
@@ -12,7 +12,6 @@ from alpaca.data.requests import CorporateActionsRequest
 class CorporateActionsClient(RESTClient):
     """
     The REST client for interacting with Alpaca Corporate Actions API endpoints.
-
     """
 
     def __init__(
@@ -24,8 +23,9 @@ class CorporateActionsClient(RESTClient):
         raw_data: bool = False,
         url_override: Optional[str] = None,
     ) -> None:
+        self.get
         """
-        Instantiates a Historical Data Client.
+        Instantiates a Corporate Actions Client.
 
         Args:
             api_key (Optional[str], optional): Alpaca API key. Defaults to None.
@@ -58,9 +58,9 @@ class CorporateActionsClient(RESTClient):
         """
         params = request_params.to_request_fields()
 
-        if request_params.symbols is not None and len(request_params.symbols) > 0:
+        if request_params.symbols:
             params["symbols"] = ",".join(request_params.symbols)
-        if request_params.types is not None and len(request_params.types) > 0:
+        if request_params.types:
             params["types"] = ",".join(request_params.types)
 
         response = self._data_get(
@@ -71,33 +71,19 @@ class CorporateActionsClient(RESTClient):
 
         return CorporateActionsSet(response)
 
+    # TODO: Refactor data_get (common to all historical data queries!)
     def _data_get(
         self,
         path: str,
         limit: Optional[int] = None,
         page_limit: int = 1000,
-        api_version: str = "v1beta1",
+        api_version: str = "v1",
         **kwargs,
     ) -> RawData:
-        """Performs Data API GET requests accounting for pagination. Data in responses are limited to the page_limit,
-        which defaults to 1,000 items. If any more data is requested, the data will be paginated.
-
-        Args:
-            limit (Optional[int]): The maximum number of items to query. Defaults to None.
-            page_limit (Optional[int]): The maximum number of items returned per page - different from limit. Defaults to 1000.
-
-        Returns:
-            RawData: Raw Market data from API
-        """
         params = kwargs
 
-        # data_by_type is in format of
-        #    {
-        #       "type1": [ "data1", "data2", ... ],
-        #       "type2": [ "data1", "data2", ... ],
-        #                ....
-        #    }
-        data_by_type = defaultdict(list)
+        # data is grouped by corporate action type (reverse_splits, forward_splits, etc.)
+        d = defaultdict(list)
 
         total_items = 0
         page_token = None
@@ -117,19 +103,12 @@ class CorporateActionsClient(RESTClient):
 
             response = self.get(path=path, data=params, api_version=api_version)
 
-            d = get_data_from_response(response)
-            [
-                (
-                    data_by_type[ctype].extend(data)
-                    if isinstance(data, list)
-                    else data_by_type[ctype].append(data)
-                )
-                for ctype, data in d.items()
-            ]
+            for ca_type, cas in get_data_from_response(response).items():
+                d[ca_type].extend(cas)
 
             # if we've sent a request with a limit, increment count
             if actual_limit:
-                total_items = sum([len(items) for items in data_by_type.values()])
+                total_items = sum([len(items) for items in d.values()])
 
             page_token = response.get("next_page_token", None)
 
@@ -137,4 +116,4 @@ class CorporateActionsClient(RESTClient):
                 break
 
         # users receive Type dict
-        return dict(data_by_type)
+        return dict(d)

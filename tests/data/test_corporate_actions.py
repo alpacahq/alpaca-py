@@ -1,9 +1,16 @@
 import urllib
-from datetime import date, timezone
+from datetime import date, datetime, timezone
 
 from alpaca.data.enums import CorporateActionsType
 from alpaca.data.historical.corporate_actions import CorporateActionsClient
-from alpaca.data.models.corporate_actions import CorporateActionsSet
+from alpaca.data.models.corporate_actions import (
+    CashDividend,
+    CorporateActionsSet,
+    ForwardSplit,
+    ReverseSplit,
+    StockDividend,
+    UnitSplit,
+)
 from alpaca.data.requests import CorporateActionsRequest
 
 
@@ -21,13 +28,6 @@ def test_get_corporate_actions(
     )
     sort = "asc"
     limit = 1000
-
-    limit2 = 987
-    page_token = (
-        "MDA3Q1ZSMDIwfDIwMjQtMDItMTV8NjBiZjkxYzItMDc0Ni00ZDliLThjOWUtYTgwYmIzMDhmZDkx"
-    )
-    _page_token_in_url = urllib.parse.quote_plus(page_token)
-
     reqmock.get(
         f"https://data.alpaca.markets/v1beta1/corporate-actions?symbols={_symbols_in_url}&types={_types_in_url}&start={_start_in_url}&sort={sort}&limit={limit}",
         text="""
@@ -170,6 +170,11 @@ def test_get_corporate_actions(
 }
         """,
     )
+    limit2 = 987
+    page_token = (
+        "MDA3Q1ZSMDIwfDIwMjQtMDItMTV8NjBiZjkxYzItMDc0Ni00ZDliLThjOWUtYTgwYmIzMDhmZDkx"
+    )
+    _page_token_in_url = urllib.parse.quote_plus(page_token)
     reqmock.get(
         f"https://data.alpaca.markets/v1beta1/corporate-actions?symbols={_symbols_in_url}&types={_types_in_url}&start={_start_in_url}&sort={sort}&limit={limit2}&page_token={_page_token_in_url}",
         text="""
@@ -203,13 +208,56 @@ def test_get_corporate_actions(
 
     assert isinstance(res, CorporateActionsSet)
 
-    assert res["reverse_splits"][0].symbol == "MNTS"
-    assert res["forward_splits"][0].symbol == "SRE"
-    assert res["unit_splits"][0].old_symbol == "TPBAU"
-    assert res["stock_dividends"][0].symbol == "MSBC"
-    assert res["cash_dividends"][0].symbol == "FCF"
-    assert res["cash_dividends"][1].symbol == "ZMTBY"
-    assert res["spin_offs"][0].source_symbol == "JUPW"
+    reverse_split: ReverseSplit = res["reverse_splits"][0]
+    assert reverse_split.symbol == "MNTS"
+    assert reverse_split.new_rate == 1
+    assert reverse_split.old_rate == 50
+    assert reverse_split.ex_date == date(2023, 8, 24)
+    assert reverse_split.process_date == date(2023, 8, 24)
+    assert reverse_split.record_date == date(2023, 8, 24)
+
+    forward_split: ForwardSplit = res["forward_splits"][0]
+    assert forward_split.symbol == "SRE"
+    assert forward_split.new_rate == 2
+    assert forward_split.old_rate == 1
+    assert forward_split.record_date == date(2023, 8, 14)
+    assert forward_split.payable_date == date(2023, 8, 21)
+    assert forward_split.ex_date == date(2023, 8, 22)
+    assert forward_split.process_date == date(2023, 8, 22)
+    assert forward_split.due_bill_redemption_date == date(2023, 8, 23)
+
+    unit_split: UnitSplit = res["unit_splits"][0]
+    assert unit_split.old_symbol == "TPBAU"
+    assert unit_split.alternate_rate == 0.3333
+    assert unit_split.alternate_symbol == "LVROW"
+    assert unit_split.effective_date == date(2023, 3, 1)
+    assert unit_split.new_rate == 1
+    assert unit_split.new_symbol == "LVRO"
+    assert unit_split.old_rate == 1
+    assert unit_split.old_symbol == "TPBAU"
+    assert unit_split.process_date == date(2023, 3, 1)
+
+    stock_dividend: StockDividend = res["stock_dividends"][0]
+    assert stock_dividend.symbol == "MSBC"
+    assert stock_dividend.rate == 0.05
+    assert stock_dividend.payable_date == date(2023, 5, 5)
+    assert stock_dividend.ex_date == date(2023, 5, 19)
+    assert stock_dividend.process_date == date(2023, 5, 19)
+    assert stock_dividend.record_date == date(2023, 5, 22)
+
+    cash_dividend: CashDividend = res["cash_dividends"][0]
+    assert cash_dividend.symbol == "FCF"
+    assert cash_dividend.rate == 0.125
+    assert not cash_dividend.foreign
+    assert not cash_dividend.special
+    assert cash_dividend.ex_date == date(2023, 5, 4)
+    assert cash_dividend.record_date == date(2023, 5, 5)
+    assert cash_dividend.payable_date == date(2023, 5, 19)
+    assert cash_dividend.process_date == date(2023, 5, 19)
+
+    cash_dividend = res["cash_dividends"][1]
+    cash_dividend.symbol == "ZMTBY"
+
     assert res["cash_mergers"][0].acquiree_symbol == "GLOP"
     assert res["stock_mergers"][0].acquirer_symbol == "EXR"
     assert res["stock_and_cash_mergers"][0].acquirer_symbol == "FRBA"
@@ -219,6 +267,6 @@ def test_get_corporate_actions(
     assert res["rights_distributions"][0].source_symbol == "IFN"
     assert res["rights_distributions"][0].new_symbol == "IFN.RTWI"
 
-    assert res.df.index[0] == ("reverse_splits", date(2023, 8, 24))
+    assert res.df.index[0] == "reverse_splits"
 
     assert reqmock.call_count == 2

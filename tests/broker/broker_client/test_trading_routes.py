@@ -2,6 +2,7 @@ import datetime
 from alpaca.broker.client import BrokerClient
 from alpaca.common.enums import BaseURL
 from alpaca.trading.requests import (
+    CancelOrderResponse,
     ClosePositionRequest,
     GetPortfolioHistoryRequest,
 )
@@ -594,3 +595,38 @@ def test_get_portfolio_history_with_filter(reqmock, client: BrokerClient):
         "extended_hours": ["true"],
     }
     assert isinstance(portfolio_history, PortfolioHistory)
+
+
+def test_cancel_orders_for_account(reqmock, client: BrokerClient):
+    account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
+
+    reqmock.delete(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/trading/accounts/{account_id}/orders",
+        text="""
+        [
+            {
+                "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                "status": 200
+            },
+            {
+                "id": "72249bb6-6c89-4ea7-b8cf-73f1a140812b",
+                "status": 404,
+                "body": {"code": 40410000, "message": "order not found"}
+            }
+        ]
+        """,
+    )
+
+    res = client.cancel_orders_for_account(account_id)
+
+    assert reqmock.called_once
+    assert isinstance(res, list)
+    assert isinstance(res[0], CancelOrderResponse)
+    assert res[0].id == UUID("3fa85f64-5717-4562-b3fc-2c963f66afa6")
+    assert res[0].status == 200
+    assert isinstance(res[1], CancelOrderResponse)
+    assert res[1].id == UUID("72249bb6-6c89-4ea7-b8cf-73f1a140812b")
+    assert res[1].status == 404
+    assert res[1].body is not None
+    assert res[1].body["code"] == 40410000
+    assert res[1].body["message"] == "order not found"

@@ -30,7 +30,6 @@ class TimeSeriesMixin:
         elif "corporate_action_type" in columns:
             # level=0 - corporate_action_type
             df = df.set_index(["corporate_action_type"])
-            df = df.replace({np.nan: None})
         elif set(["symbol", "timestamp"]).issubset(columns):
             # level=0 - symbol
             # level=1 - timestamp

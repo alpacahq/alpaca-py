@@ -23,7 +23,6 @@ class CorporateActionsClient(RESTClient):
         raw_data: bool = False,
         url_override: Optional[str] = None,
     ) -> None:
-        self.get
         """
         Instantiates a Corporate Actions Client.
 

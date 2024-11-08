@@ -29,7 +29,7 @@ def test_get_corporate_actions(
     sort = "asc"
     limit = 1000
     reqmock.get(
-        f"https://data.alpaca.markets/v1beta1/corporate-actions?symbols={_symbols_in_url}&types={_types_in_url}&start={_start_in_url}&sort={sort}&limit={limit}",
+        f"https://data.alpaca.markets/v1/corporate-actions?symbols={_symbols_in_url}&types={_types_in_url}&start={_start_in_url}&sort={sort}&limit={limit}",
         text="""
 {
   "corporate_actions": {
@@ -176,7 +176,7 @@ def test_get_corporate_actions(
     )
     _page_token_in_url = urllib.parse.quote_plus(page_token)
     reqmock.get(
-        f"https://data.alpaca.markets/v1beta1/corporate-actions?symbols={_symbols_in_url}&types={_types_in_url}&start={_start_in_url}&sort={sort}&limit={limit2}&page_token={_page_token_in_url}",
+        f"https://data.alpaca.markets/v1/corporate-actions?symbols={_symbols_in_url}&types={_types_in_url}&start={_start_in_url}&sort={sort}&limit={limit2}&page_token={_page_token_in_url}",
         text="""
 {
   "corporate_actions": {

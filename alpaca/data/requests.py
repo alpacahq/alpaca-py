@@ -538,8 +538,7 @@ class NewsRequest(NonEmptyRequest):
     limit (Optional[int]): Limit of news items to be returned for given page.
     include_content (Optional[bool]): Boolean indicator to include content for news articles (if available)
     exclude_contentless (Optional[bool]): Boolean indicator to exclude news articles that do not contain content
-    page_token (Optional[str]): Pagination token to continue from. The value to pass here is returned in specific requests
-        when more data is available than the request limit allows.
+    page_token (Optional[str]): Pagination token to continue from. The value to pass here is returned in specific requests when more data is available than the request limit allows. This should not be used, pagination is handled automatically by the SDK.
     """
 
     start: Optional[datetime] = None

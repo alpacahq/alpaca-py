@@ -495,13 +495,14 @@ def test_get_latest_trade(reqmock, option_client: OptionHistoricalDataClient):
         f"https://data.alpaca.markets/v1beta1/options/trades/latest?symbols={symbol}",
         text="""
     {
-        "symbol": "AAPL240126P00050000",
-        "trade": {
-            "t": "2024-01-24T14:02:09.722539521Z",
-            "x": "A",
-            "p": 0.06,
-            "s": 1,
-            "c": "I"
+        "trades": {
+            "AAPL240126P00050000": {
+                "t": "2024-01-24T14:02:09.722539521Z",
+                "x": "A",
+                "p": 0.06,
+                "s": 1,
+                "c": "I"
+            }
         }
     }
         """,
@@ -532,13 +533,14 @@ def test_get_latest_trade_with_feed(reqmock, option_client: OptionHistoricalData
         f"https://data.alpaca.markets/v1beta1/options/trades/latest?symbols={symbol}&feed=indicative",
         text="""
     {
-        "symbol": "AAPL240126P00050000",
         "trade": {
-            "t": "2024-01-24T14:02:09.722539521Z",
-            "x": "A",
-            "p": 0.06,
-            "s": 1,
-            "c": "I"
+            "AAPL240126P00050000": {
+                "t": "2024-01-24T14:02:09.722539521Z",
+                "x": "A",
+                "p": 0.06,
+                "s": 1,
+                "c": "I"
+            }
         }
     }
         """,
@@ -642,16 +644,17 @@ def test_get_latest_quote(reqmock, option_client: OptionHistoricalDataClient):
         f"https://data.alpaca.markets/v1beta1/options/quotes/latest?symbols={symbol}",
         text="""
     {
-        "symbol": "AAPL240126P00050000",
-        "quote": {
-            "t": "2024-01-24T14:02:43.651613184Z",
-            "ax": "N",
-            "ap": 0.06,
-            "as": 1593,
-            "bx": "N",
-            "bp": 0.05,
-            "bs": 1344,
-            "c": "B"
+        "quotes": {
+            "AAPL240126P00050000": {
+                "t": "2024-01-24T14:02:43.651613184Z",
+                "ax": "N",
+                "ap": 0.06,
+                "as": 1593,
+                "bx": "N",
+                "bp": 0.05,
+                "bs": 1344,
+                "c": "B"
+            }
         }
     }
         """,
@@ -683,16 +686,17 @@ def test_get_latest_quote_with_feed(reqmock, option_client: OptionHistoricalData
         f"https://data.alpaca.markets/v1beta1/options/quotes/latest?symbols={symbol}&feed=indicative",
         text="""
     {
-        "symbol": "AAPL240126P00050000",
-        "quote": {
-            "t": "2024-01-24T14:02:43.651613184Z",
-            "ax": "N",
-            "ap": 0.06,
-            "as": 1593,
-            "bx": "N",
-            "bp": 0.05,
-            "bs": 1344,
-            "c": "B"
+        "quotes": {
+            "AAPL240126P00050000": {
+                "t": "2024-01-24T14:02:43.651613184Z",
+                "ax": "N",
+                "ap": 0.06,
+                "as": 1593,
+                "bx": "N",
+                "bp": 0.05,
+                "bs": 1344,
+                "c": "B"
+            }
         }
     }
         """,

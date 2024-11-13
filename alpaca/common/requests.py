@@ -1,4 +1,5 @@
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
+from ipaddress import IPv4Address, IPv6Address
 from typing import Any
 from uuid import UUID
 
@@ -51,6 +52,15 @@ class NonEmptyRequest(BaseModel):
                 if val.tzinfo is None or val.tzinfo.utcoffset(val) is None:
                     val = val.replace(tzinfo=timezone.utc)
                 return val.isoformat()
+
+            if isinstance(val, date):
+                return val.isoformat()
+
+            if isinstance(val, IPv4Address):
+                return str(val)
+
+            if isinstance(val, IPv6Address):
+                return str(val)
 
             return val
 

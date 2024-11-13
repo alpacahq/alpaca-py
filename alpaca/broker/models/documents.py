@@ -1,4 +1,5 @@
-from datetime import date, datetime
+from datetime import date as datetime_date
+from datetime import datetime
 from ipaddress import IPv4Address, IPv6Address
 from typing import Any, Optional, Union
 from uuid import UUID
@@ -6,7 +7,8 @@ from uuid import UUID
 from pydantic import model_validator
 
 from alpaca.broker.enums import DocumentType, TradeDocumentSubType, TradeDocumentType
-from alpaca.common.models import ModelWithID, ValidateBaseModel as BaseModel
+from alpaca.common.models import ModelWithID
+from alpaca.common.models import ValidateBaseModel as BaseModel
 
 IPAddress = Union[IPv4Address, IPv6Address]
 
@@ -63,7 +65,7 @@ class TradeDocument(ModelWithID):
     name: str
     type: TradeDocumentType
     sub_type: Optional[TradeDocumentSubType] = None
-    date: date
+    date: datetime_date
 
     def __init__(self, **data: Any) -> None:
         if "id" in data and isinstance(data["id"], str):
@@ -80,7 +82,7 @@ class W8BenDocument(BaseModel):
     Represents the information normally contained in a W8BEN document as fields for convenience if you don't
     want to upload a file.
 
-    Please see https://alpaca.markets/docs/api-references/broker-api/accounts/accounts/#international-accounts
+    Please see https://docs.alpaca.markets/docs/international-accounts
     for more information.
 
     TODO: None of the docs or code explain what any of these fields mean. Guessing based on name alone for
@@ -114,8 +116,8 @@ class W8BenDocument(BaseModel):
     """
 
     country_citizen: str
-    date: date
-    date_of_birth: date
+    date: datetime_date
+    date_of_birth: datetime_date
     full_name: str
     ip_address: IPAddress
     permanent_address_city_state: str

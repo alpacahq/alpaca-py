@@ -1,7 +1,9 @@
+from collections import defaultdict
+from collections.abc import Callable
 import time
 import base64
 from abc import ABC
-from typing import Any, List, Optional, Type, Union, Tuple, Iterator
+from typing import Any, Dict, List, Optional, Type, Union, Tuple, Iterator
 
 from pydantic import BaseModel
 from requests import Session
@@ -362,3 +364,75 @@ class RESTClient(ABC):
             )
 
         return api_key, secret_key, oauth_token
+
+    def _get_marketdata(
+        self,
+        path: str,
+        params: Dict[str, Any],
+        page_limit: int = 10_000,
+        no_sub_key: bool = False,
+    ) -> Dict[str, List[Any]]:
+        d = defaultdict(list)
+        limit = params.get("limit")
+        total_items = 0
+        page_token = params.get("page_token")
+
+        while True:
+            actual_limit = None
+
+            # adjusts the limit parameter value if it is over the page_limit
+            if limit:
+                # actual_limit is the adjusted total number of items to query per request
+                actual_limit = min(int(limit) - total_items, page_limit)
+                if actual_limit < 1:
+                    break
+
+            params["limit"] = actual_limit
+            params["page_token"] = page_token
+
+            response = self.get(path=path, data=params)
+
+            for k, v in _get_marketdata_entries(response, no_sub_key).items():
+                if isinstance(v, list):
+                    d[k].extend(v)
+                else:
+                    d[k] = v
+
+            # if we've sent a request with a limit, increment count
+            if actual_limit:
+                total_items = sum([len(items) for items in d.values()])
+
+            page_token = response.get("next_page_token", None)
+            if page_token is None:
+                break
+        return dict(d)
+
+
+def _get_marketdata_entries(response: HTTPResult, no_sub_key: bool) -> RawData:
+    if no_sub_key:
+        return response
+
+    data_keys = {
+        "bar",
+        "bars",
+        "corporate_actions",
+        "news",
+        "orderbook",
+        "orderbooks",
+        "quote",
+        "quotes",
+        "snapshot",
+        "snapshots",
+        "trade",
+        "trades",
+    }
+    selected_keys = data_keys.intersection(response)
+    # Neither of these should ever happen!
+    if selected_keys is None or len(selected_keys) < 1:
+        raise ValueError("The data in response does not match any known keys.")
+    if len(selected_keys) > 1:
+        raise ValueError("The data in response matches multiple known keys.")
+    selected_key = selected_keys.pop()
+    if selected_key == "news":
+        return {"news": response[selected_key]}
+    return response[selected_key]

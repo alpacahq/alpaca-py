@@ -64,11 +64,17 @@ class NonEmptyRequest(BaseModel):
 
             return val
 
+        d = self.model_dump(exclude_none=True)
+        if "symbol_or_symbols" in d:
+            s = d["symbol_or_symbols"]
+            if isinstance(s, list):
+                s = ",".join(s)
+            d["symbols"] = s
+            del d["symbol_or_symbols"]
+
         # pydantic almost has what we need by passing exclude_none to dict() but it returns:
         #  {trusted_contact: {}, contact: {}, identity: None, etc}
         # so we do a simple list comprehension to filter out None and {}
         return {
-            key: map_values(val)
-            for key, val in self.model_dump(exclude_none=True).items()
-            if val and len(str(val)) > 0
+            key: map_values(val) for key, val in d.items() if val and len(str(val)) > 0
         }

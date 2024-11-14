@@ -128,7 +128,7 @@ def test_get_crypto_quotes(reqmock, crypto_client: CryptoHistoricalDataClient):
     assert quoteset.df.index.nlevels == 2
 
 
-def test_get_trades(reqmock, crypto_client: CryptoHistoricalDataClient):
+def test_get_crypto_trades(reqmock, crypto_client: CryptoHistoricalDataClient):
     # test multisymbol request
     symbols = ["BTC/USD", "ETH/USD"]
     start = datetime(2022, 3, 9)
@@ -188,13 +188,14 @@ def test_get_crypto_latest_trade(reqmock, crypto_client: CryptoHistoricalDataCli
         f"https://data.alpaca.markets/v1beta3/crypto/us/latest/trades?symbols={symbol}",
         text="""
     {
-        "symbol": "BTC/USD",
-        "trade": {
-            "t": "2022-03-18T14:03:31.960672Z",
-            "p": 40650,
-            "s": 0.1517,
-            "tks": "B",
-            "i": 26932440
+        "trades": {
+            "BTC/USD": {
+                "t": "2022-03-18T14:03:31.960672Z",
+                "p": 40650,
+                "s": 0.1517,
+                "tks": "B",
+                "i": 26932440
+            }
         }
     }
         """,
@@ -224,13 +225,14 @@ def test_get_crypto_latest_quote(reqmock, crypto_client: CryptoHistoricalDataCli
         f"https://data.alpaca.markets/v1beta3/crypto/us/latest/quotes?symbols={symbol}",
         text="""
     {
-        "symbol": "BTC/USD",
-        "quote": {
-            "t": "2022-03-18T14:03:13.661518592Z",
-            "bp": 40517.08,
-            "bs": 4.0178,
-            "ap": 40765.93,
-            "as": 1.5516
+        "quotes": {
+            "BTC/USD": {
+                "t": "2022-03-18T14:03:13.661518592Z",
+                "bp": 40517.08,
+                "bs": 4.0178,
+                "ap": 40765.93,
+                "as": 1.5516
+            }
         }
     }
         """,

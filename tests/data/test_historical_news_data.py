@@ -52,7 +52,33 @@ def test_get_news(reqmock, news_client: NewsClient):
       "url": "https://"
     }
   ],
-  "next_page_token": "MTcyNDAwMjIyNDAwMDAwMDAwMHw0MDQzMTg4MQ=="
+  "next_page_token": "MTczMDk3MTEwMTAwMDAwMDAwMHw0MTc5OTExNQ=="
+}
+        """,
+    )
+
+    reqmock.get(
+        f"https://data.alpaca.markets/v1beta1/news?symbols={symbols}&start={_start_in_url}&page_token=MTczMDk3MTEwMTAwMDAwMDAwMHw0MTc5OTExNQ==",
+        text="""
+{
+  "news": [
+    {
+      "author": "Benzinga Newsdesk",
+      "content": "",
+      "created_at": "2024-11-07T09:16:41Z",
+      "headline": "Piper Sandler Maintains Neutral on Clearwater Analytics Hldg, Raises Price Target to $28",
+      "id": 41799100,
+      "images": [],
+      "source": "benzinga",
+      "summary": "",
+      "symbols": [
+        "CWAN"
+      ],
+      "updated_at": "2024-11-07T09:16:41Z",
+      "url": "https://www.benzinga.com/news/24/11/41799100/piper-sandler-maintains-neutral-on-clearwater-analytics-hldg-raises-price-target-to-28"
+    }
+  ],
+  "next_page_token": null
 }
         """,
     )
@@ -66,7 +92,8 @@ def test_get_news(reqmock, news_client: NewsClient):
     assert isinstance(newsset, NewsSet)
 
     assert newsset["news"][0].id == 40432158
+    assert newsset["news"][1].id == 41799100
 
     assert newsset.df.index.nlevels == 1
 
-    assert reqmock.called_once
+    assert reqmock.call_count == 2

@@ -2,10 +2,7 @@ import urllib.parse
 from datetime import datetime, timezone
 from typing import Dict
 
-import pytest
-
 from alpaca.common.enums import Sort
-from alpaca.common.exceptions import APIError
 from alpaca.data import Bar, Quote, Snapshot, Trade
 from alpaca.data.enums import DataFeed, Exchange
 from alpaca.data.historical import StockHistoricalDataClient
@@ -33,10 +30,11 @@ def test_get_bars(reqmock, stock_client: StockHistoricalDataClient):
         start.replace(tzinfo=timezone.utc).isoformat()
     )
     reqmock.get(
-        f"https://data.alpaca.markets/v2/stocks/{symbol}/bars?start={_start_in_url}&timeframe={timeframe}&limit={limit}",
+        f"https://data.alpaca.markets/v2/stocks/bars?symbols=AAPL&start={_start_in_url}&timeframe={timeframe}&limit={limit}",
         text="""
-    {
-        "bars": [
+{
+    "bars": {
+        "AAPL": [
             {
                 "t": "2022-02-01T05:00:00Z",
                 "o": 174,
@@ -57,10 +55,10 @@ def test_get_bars(reqmock, stock_client: StockHistoricalDataClient):
                 "n": 675034,
                 "vw": 174.941288
             }
-        ],
-        "symbol": "AAPL",
-        "next_page_token": "QUFQTHxEfDIwMjItMDItMDJUMDU6MDA6MDAuMDAwMDAwMDAwWg=="
-    }
+        ]
+    },
+    "next_page_token": "QUFQTHxEfDIwMjItMDItMDJUMDU6MDA6MDAuMDAwMDAwMDAwWg=="
+}
         """,
     )
     request = StockBarsRequest(
@@ -89,10 +87,11 @@ def test_get_bars_desc(reqmock, stock_client: StockHistoricalDataClient):
     )
     _end_in_url = urllib.parse.quote_plus(end.replace(tzinfo=timezone.utc).isoformat())
     reqmock.get(
-        f"https://data.alpaca.markets/v2/stocks/{symbol}/bars?start={_start_in_url}&end={_end_in_url}&timeframe={timeframe}&limit={limit}&sort=desc",
+        f"https://data.alpaca.markets/v2/stocks/bars?symbols={symbol}&start={_start_in_url}&end={_end_in_url}&timeframe={timeframe}&limit={limit}&sort=desc",
         text="""
-    {
-        "bars": [
+{
+    "bars": {
+        "TSLA": [
             {
                 "c": 240.5,
                 "h": 245.33,
@@ -123,10 +122,10 @@ def test_get_bars_desc(reqmock, stock_client: StockHistoricalDataClient):
                 "v": 104668716,
                 "vw": 244.197325
             }
-        ],
-        "next_page_token": "VFNMQXxEfDc1Mjc3NTc2MzYwMDAwMDAwMDA=",
-        "symbol": "TSLA"
-    }
+        ]
+    },
+    "next_page_token": "VFNMQXxEfDc1Mjc3NTc2MzYwMDAwMDAwMDA="
+}
         """,
     )
     request = StockBarsRequest(
@@ -222,12 +221,11 @@ def test_get_bars_single_empty_response(
         start.replace(tzinfo=timezone.utc).isoformat()
     )
     reqmock.get(
-        f"https://data.alpaca.markets/v2/stocks/{symbol}/bars?start={_start_in_url}&timeframe={timeframe}&limit={limit}",
+        f"https://data.alpaca.markets/v2/stocks/bars?symbols={symbol}&start={_start_in_url}&timeframe={timeframe}&limit={limit}",
         text="""
     {
-        "bars": null,
-        "next_page_token": null,
-        "symbol": "AAPL"
+        "bars": {},
+        "next_page_token": null
     }
         """,
     )
@@ -238,7 +236,7 @@ def test_get_bars_single_empty_response(
 
     assert isinstance(barset, BarSet)
 
-    assert barset.dict() == {"AAPL": []}
+    assert len(barset.dict()) == 0
 
     assert len(barset.df) == 0
 
@@ -290,10 +288,11 @@ def test_get_quotes(reqmock, stock_client: StockHistoricalDataClient):
     )
 
     reqmock.get(
-        f"https://data.alpaca.markets/v2/stocks/{symbol}/quotes?start={_start_in_url}&limit={limit}",
+        f"https://data.alpaca.markets/v2/stocks/quotes?symbols={symbol}&start={_start_in_url}&limit={limit}",
         text="""
-    {
-        "quotes": [
+{
+    "quotes": {
+        "AAPL": [
             {
                 "t": "2022-03-09T09:00:00.000059Z",
                 "ax": "K",
@@ -320,10 +319,10 @@ def test_get_quotes(reqmock, stock_client: StockHistoricalDataClient):
                 ],
                 "z": "C"
             }
-        ],
-        "symbol": "AAPL",
-        "next_page_token": "QUFQTHwyMDIyLTAzLTA5VDA5OjAwOjAwLjAwMDA1OTAwMFp8Q0ZEQUU5QTg="
-    }
+        ]
+    },
+    "next_page_token": "QUFQTHwyMDIyLTAzLTA5VDA5OjAwOjAwLjAwMDA1OTAwMFp8Q0ZEQUU5QTg="
+}
         """,
     )
     request = StockQuotesRequest(symbol_or_symbols=symbol, start=start, limit=limit)
@@ -409,40 +408,6 @@ def test_multisymbol_quotes(reqmock, stock_client: StockHistoricalDataClient):
     assert reqmock.called_once
 
 
-def test_get_quotes_single_empty_response(
-    reqmock, stock_client: StockHistoricalDataClient
-):
-    symbol = "AAPL"
-    start = datetime(2022, 3, 9)
-    limit = 2
-
-    _start_in_url = urllib.parse.quote_plus(
-        start.replace(tzinfo=timezone.utc).isoformat()
-    )
-
-    reqmock.get(
-        f"https://data.alpaca.markets/v2/stocks/{symbol}/quotes?start={_start_in_url}&limit={limit}",
-        text="""
-    {
-        "next_page_token": null,
-        "quotes": null,
-        "symbol": "AAPL"
-    }
-        """,
-    )
-    request = StockQuotesRequest(symbol_or_symbols=symbol, start=start, limit=limit)
-
-    quoteset = stock_client.get_stock_quotes(request_params=request)
-
-    assert isinstance(quoteset, QuoteSet)
-
-    assert quoteset.dict() == {"AAPL": []}
-
-    assert len(quoteset.df) == 0
-
-    assert reqmock.called_once
-
-
 def test_get_quotes_multi_empty_response(
     reqmock, stock_client: StockHistoricalDataClient
 ):
@@ -487,10 +452,11 @@ def test_get_trades(reqmock, stock_client: StockHistoricalDataClient):
     )
 
     reqmock.get(
-        f"https://data.alpaca.markets/v2/stocks/{symbol}/trades?start={_start_in_url}&limit={limit}&asof=2022-03-09",
+        f"https://data.alpaca.markets/v2/stocks/trades?symbols=AAPL&start={_start_in_url}&limit={limit}&asof=2022-03-09",
         text="""
-    {
-        "trades": [
+{
+    "trades": {
+        "AAPL": [
             {
                 "t": "2022-03-09T05:00:02.183Z",
                 "x": "D",
@@ -517,10 +483,10 @@ def test_get_trades(reqmock, stock_client: StockHistoricalDataClient):
                 "i": 168,
                 "z": "C"
             }
-        ],
-        "symbol": "AAPL",
-        "next_page_token": "QUFQTHwyMDIyLTAzLTA5VDA1OjAwOjE2LjkxMDAwMDAwMFp8RHwwOTIyMzM3MjAzNjg1NDc3NTk3Ng=="
-    }
+        ]
+    },
+    "next_page_token": "QUFQTHwyMDIyLTAzLTA5VDA1OjAwOjE2LjkxMDAwMDAwMFp8RHwwOTIyMzM3MjAzNjg1NDc3NTk3Ng=="
+}
         """,
     )
 
@@ -610,41 +576,6 @@ def test_multisymbol_get_trades(reqmock, stock_client: StockHistoricalDataClient
     assert reqmock.called_once
 
 
-def test_get_trades_single_empty_response(
-    reqmock, stock_client: StockHistoricalDataClient
-):
-    symbol = "AAPL"
-    start = datetime(2022, 3, 9)
-    limit = 2
-
-    _start_in_url = urllib.parse.quote_plus(
-        start.replace(tzinfo=timezone.utc).isoformat()
-    )
-
-    reqmock.get(
-        f"https://data.alpaca.markets/v2/stocks/{symbol}/trades?start={_start_in_url}&limit={limit}",
-        text="""
-    {
-        "next_page_token": null,
-        "trades": null,
-        "symbol": "AAPL"
-    }
-        """,
-    )
-
-    request = StockTradesRequest(symbol_or_symbols=symbol, start=start, limit=limit)
-
-    tradeset = stock_client.get_stock_trades(request_params=request)
-
-    assert isinstance(tradeset, TradeSet)
-
-    assert tradeset.dict() == {"AAPL": []}
-
-    assert len(tradeset.df) == 0
-
-    assert reqmock.called_once
-
-
 def test_get_trades_multi_empty_response(
     reqmock, stock_client: StockHistoricalDataClient
 ):
@@ -684,11 +615,11 @@ def test_get_latest_trade(reqmock, stock_client: StockHistoricalDataClient):
     symbol = "AAPL"
 
     reqmock.get(
-        f"https://data.alpaca.markets/v2/stocks/{symbol}/trades/latest?feed=IEX",
+        f"https://data.alpaca.markets/v2/stocks/trades/latest?symbols=AAPL&feed=IEX",
         text="""
-    {
-        "symbol": "AAPL",
-        "trade": {
+{
+    "trades": {
+        "AAPL": {
             "t": "2022-03-18T14:02:09.722539521Z",
             "x": "D",
             "p": 161.2958,
@@ -700,6 +631,7 @@ def test_get_latest_trade(reqmock, stock_client: StockHistoricalDataClient):
             "z": "C"
         }
     }
+}
         """,
     )
     request = StockLatestTradeRequest(symbol_or_symbols=symbol, feed=DataFeed.IEX)
@@ -778,32 +710,6 @@ def test_get_latest_trade_multi_not_found(
     symbol = "AAPL"
 
     reqmock.get(
-        f"https://data.alpaca.markets/v2/stocks/{symbol}/trades/latest?&feed=IEX",
-        text="""
-    {
-        "next_page_token": null
-        "trade": null,
-        "symbol": "AAPL"
-    }
-        """,
-    )
-    request = StockLatestTradeRequest(symbol_or_symbols=symbol, feed=DataFeed.IEX)
-
-    trade = stock_client.get_stock_latest_trade(request_params=request)
-
-    assert isinstance(trade, Dict)
-
-    assert trade == {}
-
-    assert reqmock.called_once
-
-
-def test_get_latest_trade_multi_not_found(
-    reqmock, stock_client: StockHistoricalDataClient
-):
-    symbol = "AAPL"
-
-    reqmock.get(
         f"https://data.alpaca.markets/v2/stocks/trades/latest?symbols={symbol}&feed=IEX",
         text="""
     {
@@ -827,11 +733,11 @@ def test_get_latest_quote(reqmock, stock_client: StockHistoricalDataClient):
     symbol = "AAPL"
 
     reqmock.get(
-        f"https://data.alpaca.markets/v2/stocks/{symbol}/quotes/latest",
+        f"https://data.alpaca.markets/v2/stocks/quotes/latest?symbols=AAPL",
         text="""
-    {
-        "symbol": "AAPL",
-        "quote": {
+{
+    "quotes": {
+        "AAPL": {
             "t": "2022-03-18T14:02:43.651613184Z",
             "ax": "P",
             "ap": 161.11,
@@ -845,6 +751,7 @@ def test_get_latest_quote(reqmock, stock_client: StockHistoricalDataClient):
             "z": "C"
         }
     }
+}
         """,
     )
 
@@ -862,34 +769,6 @@ def test_get_latest_quote(reqmock, stock_client: StockHistoricalDataClient):
     assert quote.bid_size == 2
 
     assert quote.bid_exchange == "K"
-
-    assert reqmock.called_once
-
-
-def test_get_latest_quote_single_empty_response(
-    reqmock, stock_client: StockHistoricalDataClient
-):
-    # Test single symbol request
-    symbol = "AAPL"
-
-    reqmock.get(
-        f"https://data.alpaca.markets/v2/stocks/{symbol}/quotes/latest",
-        text="""
-    {
-        "next_page_token": null,
-        "quote": null,
-        "symbol": "AAPL"
-    }
-        """,
-    )
-
-    request = StockLatestQuoteRequest(symbol_or_symbols=symbol)
-
-    quote = stock_client.get_stock_latest_quote(request)
-
-    assert isinstance(quote, Dict)
-
-    assert quote == {}
 
     assert reqmock.called_once
 
@@ -924,10 +803,10 @@ def test_get_snapshot(reqmock, stock_client: StockHistoricalDataClient):
     symbol = "AAPL"
 
     reqmock.get(
-        f"https://data.alpaca.markets/v2/stocks/{symbol}/snapshot",
+        f"https://data.alpaca.markets/v2/stocks/snapshots?symbols=AAPL",
         text="""
-    {
-        "symbol": "AAPL",
+{
+    "AAPL": {
         "latestTrade": {
             "t": "2022-03-18T14:33:58.448432206Z",
             "x": "D",
@@ -983,6 +862,7 @@ def test_get_snapshot(reqmock, stock_client: StockHistoricalDataClient):
             "vw": 159.425082
         }
     }
+}
         """,
     )
 
@@ -1005,45 +885,6 @@ def test_get_snapshot(reqmock, stock_client: StockHistoricalDataClient):
     assert reqmock.called_once
 
 
-def test_get_snapshot_single_empty_response(
-    reqmock, stock_client: StockHistoricalDataClient
-):
-    symbol = "AAPL"
-
-    reqmock.get(
-        f"https://data.alpaca.markets/v2/stocks/{symbol}/snapshot",
-        text="""
-    {
-        "symbol": "AAPL",
-        "latestTrade": null,
-        "latestQuote": null,
-        "minuteBar": null,
-        "dailyBar": null,
-        "prevDailyBar": null
-    }
-        """,
-    )
-
-    request = StockSnapshotRequest(symbol_or_symbols=symbol)
-
-    snapshot = stock_client.get_stock_snapshot(request)
-
-    assert isinstance(snapshot, Dict)
-
-    assert "AAPL" in snapshot
-
-    assert snapshot["AAPL"].model_dump() == {
-        "daily_bar": None,
-        "latest_quote": None,
-        "latest_trade": None,
-        "minute_bar": None,
-        "previous_daily_bar": None,
-        "symbol": "AAPL",
-    }
-
-    assert reqmock.called_once
-
-
 def test_get_snapshot_multi_empty_response(
     reqmock, stock_client: StockHistoricalDataClient
 ):
@@ -1056,7 +897,7 @@ def test_get_snapshot_multi_empty_response(
         """,
     )
 
-    request = StockSnapshotRequest(symbol_or_symbols=[symbol])
+    request = StockSnapshotRequest(symbol_or_symbols=symbol)
 
     snapshots = stock_client.get_stock_snapshot(request)
 
@@ -1070,21 +911,22 @@ def test_get_snapshot_multi_empty_response(
 def test_stock_latest_bar(reqmock, stock_client: StockHistoricalDataClient):
     symbol = "SPY"
     reqmock.get(
-        f"https://data.alpaca.markets/v2/stocks/{symbol}/bars/latest",
+        f"https://data.alpaca.markets/v2/stocks/bars/latest?symbols=SPY",
         text="""
-        {
-            "symbol": "SPY",
-            "bar": {
-                "t": "2022-07-26T20:50:00Z",
-                "o": 392.18,
-                "h": 392.18,
-                "l": 392.18,
-                "c": 392.18,
-                "v": 2100,
-                "n": 2,
-                "vw": 392.18
-            }
+{
+    "bars": {
+        "SPY": {
+            "t": "2022-07-26T20:50:00Z",
+            "o": 392.18,
+            "h": 392.18,
+            "l": 392.18,
+            "c": 392.18,
+            "v": 2100,
+            "n": 2,
+            "vw": 392.18
         }
+    }
+}
     """,
     )
 
@@ -1147,31 +989,6 @@ def test_multi_stock_latest_bar(reqmock, stock_client: StockHistoricalDataClient
     assert isinstance(bar, Bar)
 
     assert bar.open == 392.18
-
-    assert reqmock.called_once
-
-
-def test_stock_latest_bar_single_empty_response(
-    reqmock, stock_client: StockHistoricalDataClient
-):
-    symbol = "SPY"
-    reqmock.get(
-        f"https://data.alpaca.markets/v2/stocks/{symbol}/bars/latest",
-        text="""
-        {
-            "symbol": "SPY",
-            "bar": null
-        }
-    """,
-    )
-
-    request = StockLatestBarRequest(symbol_or_symbols=symbol)
-
-    bar = stock_client.get_stock_latest_bar(request)
-
-    assert isinstance(bar, Dict)
-
-    assert bar == {}
 
     assert reqmock.called_once
 

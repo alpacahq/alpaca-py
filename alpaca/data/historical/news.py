@@ -51,11 +51,11 @@ class NewsClient(RESTClient):
 
         Args:
             request_params (NewsRequest): The request params to filter the news data"""
-        response = self.get(
-            path="/news",
-            data=request_params.to_request_fields(),
+        raw_news = self._get_marketdata(
+            path=f"/news",
+            params=request_params.to_request_fields(),
         )
         if self._use_raw_data:
-            return response
+            return raw_news
 
-        return NewsSet(response)
+        return NewsSet(raw_news)

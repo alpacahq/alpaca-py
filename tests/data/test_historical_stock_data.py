@@ -2,10 +2,7 @@ import urllib.parse
 from datetime import datetime, timezone
 from typing import Dict
 
-import pytest
-
 from alpaca.common.enums import Sort
-from alpaca.common.exceptions import APIError
 from alpaca.data import Bar, Quote, Snapshot, Trade
 from alpaca.data.enums import DataFeed, Exchange
 from alpaca.data.historical import StockHistoricalDataClient
@@ -703,32 +700,6 @@ def test_get_multisymbol_latest_trade(reqmock, stock_client: StockHistoricalData
     assert trade.size == 100
 
     assert trade.exchange == Exchange.D
-
-    assert reqmock.called_once
-
-
-def test_get_latest_trade_multi_not_found(
-    reqmock, stock_client: StockHistoricalDataClient
-):
-    symbol = "AAPL"
-
-    reqmock.get(
-        f"https://data.alpaca.markets/v2/stocks/{symbol}/trades/latest?&feed=IEX",
-        text="""
-    {
-        "next_page_token": null
-        "trade": null,
-        "symbol": "AAPL"
-    }
-        """,
-    )
-    request = StockLatestTradeRequest(symbol_or_symbols=symbol, feed=DataFeed.IEX)
-
-    trade = stock_client.get_stock_latest_trade(request_params=request)
-
-    assert isinstance(trade, Dict)
-
-    assert trade == {}
 
     assert reqmock.called_once
 

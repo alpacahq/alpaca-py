@@ -365,10 +365,10 @@ class RESTClient(ABC):
 
         return api_key, secret_key, oauth_token
 
-    def get_marketdata(
+    def _get_marketdata(
         self,
         path: str,
-        params: Dict[str, Any] = None,
+        params: Dict[str, Any],
         page_limit: int = 10_000,
         no_sub_key: bool = False,
     ) -> Dict[str, List[Any]]:
@@ -426,10 +426,13 @@ def _get_marketdata_entries(response: HTTPResult, no_sub_key: bool) -> RawData:
         "trade",
         "trades",
     }
-    selected_key = data_keys.intersection(response)
-    if selected_key is None or len(selected_key) < 1:
+    selected_keys = data_keys.intersection(response)
+    # Neither of these should ever happen!
+    if selected_keys is None or len(selected_keys) < 1:
         raise ValueError("The data in response does not match any known keys.")
-    selected_key = selected_key.pop()
+    if len(selected_keys) > 1:
+        raise ValueError("The data in response matches multiple known keys.")
+    selected_key = selected_keys.pop()
     if selected_key == "news":
         return {"news": response[selected_key]}
     return response[selected_key]

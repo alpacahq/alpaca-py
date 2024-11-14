@@ -85,7 +85,7 @@ class OptionHistoricalDataClient(RESTClient):
         """
 
         # paginated get request for market data api
-        raw_bars = self.get_marketdata(
+        raw_bars = self._get_marketdata(
             path=f"/options/bars",
             params=request_params.to_request_fields(),
         )
@@ -123,7 +123,7 @@ class OptionHistoricalDataClient(RESTClient):
         Returns:
             Union[Dict[str, Quote], RawData]: The latest quote in raw or wrapped format
         """
-        raw_latest_quotes = self.get_marketdata(
+        raw_latest_quotes = self._get_marketdata(
             path=f"/options/quotes/latest",
             params=request_params.to_request_fields(),
         )
@@ -144,7 +144,7 @@ class OptionHistoricalDataClient(RESTClient):
         Returns:
             Union[Dict[str, Quote], RawData]: The latest quote in raw or wrapped format
         """
-        raw_latest_trades = self.get_marketdata(
+        raw_latest_trades = self._get_marketdata(
             path=f"/options/trades/latest",
             params=request_params.to_request_fields(),
         )
@@ -165,7 +165,7 @@ class OptionHistoricalDataClient(RESTClient):
         Returns:
             Union[TradeSet, RawData]: The trade data either in raw or wrapped form
         """
-        raw_trades = self.get_marketdata(
+        raw_trades = self._get_marketdata(
             path=f"/options/trades",
             params=request_params.to_request_fields(),
         )
@@ -187,7 +187,7 @@ class OptionHistoricalDataClient(RESTClient):
         Returns:
             Union[Dict[str, OptionsSnapshot], RawData]: The snapshot data either in raw or wrapped form
         """
-        raw_snapshots = self.get_marketdata(
+        raw_snapshots = self._get_marketdata(
             path=f"/options/snapshots",
             params=request_params.to_request_fields(),
         )
@@ -213,7 +213,7 @@ class OptionHistoricalDataClient(RESTClient):
         params = request_params.to_request_fields()
         del params["underlying_symbol"]
 
-        raw_snapshots = self.get_marketdata(
+        raw_snapshots = self._get_marketdata(
             path=f"/options/snapshots/{request_params.underlying_symbol}",
             params=params,
         )

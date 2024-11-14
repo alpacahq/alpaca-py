@@ -60,7 +60,7 @@ class CorporateActionsClient(RESTClient):
         if request_params.types:
             params["types"] = ",".join(request_params.types)
 
-        response = self.get_marketdata(
+        response = self._get_marketdata(
             path="/corporate-actions",
             params=params,
             page_limit=1000,

@@ -91,7 +91,7 @@ class CryptoHistoricalDataClient(RESTClient):
         """
 
         # paginated get request for crypto market data api
-        raw_bars = self.get_marketdata(
+        raw_bars = self._get_marketdata(
             path=f"/crypto/{feed.value}/bars",
             params=request_params.to_request_fields(),
         )
@@ -115,7 +115,7 @@ class CryptoHistoricalDataClient(RESTClient):
         """
 
         # paginated get request for market data api
-        raw_quotes = self.get_marketdata(
+        raw_quotes = self._get_marketdata(
             path=f"/crypto/{feed.value}/quotes",
             params=request_params.to_request_fields(),
         )
@@ -140,7 +140,7 @@ class CryptoHistoricalDataClient(RESTClient):
         """
 
         # paginated get request for market data api
-        raw_trades = self.get_marketdata(
+        raw_trades = self._get_marketdata(
             path=f"/crypto/{feed.value}/trades",
             params=request_params.to_request_fields(),
         )
@@ -163,7 +163,7 @@ class CryptoHistoricalDataClient(RESTClient):
             Union[Dict[str, Trade], RawData]: The latest trade in raw or wrapped format
         """
 
-        raw_trades = self.get_marketdata(
+        raw_trades = self._get_marketdata(
             path=f"/crypto/{feed.value}/latest/trades",
             params=request_params.to_request_fields(),
         )
@@ -186,7 +186,7 @@ class CryptoHistoricalDataClient(RESTClient):
             Union[Dict[str, Quote], RawData]: The latest quote in raw or wrapped format
         """
 
-        raw_quotes = self.get_marketdata(
+        raw_quotes = self._get_marketdata(
             path=f"/crypto/{feed.value}/latest/quotes",
             params=request_params.to_request_fields(),
         )
@@ -209,7 +209,7 @@ class CryptoHistoricalDataClient(RESTClient):
             Union[Dict[str, Bar], RawData]: The latest bar in raw or wrapped format
         """
 
-        raw_bars = self.get_marketdata(
+        raw_bars = self._get_marketdata(
             path=f"/crypto/{feed.value}/latest/bars",
             params=request_params.to_request_fields(),
         )
@@ -235,7 +235,7 @@ class CryptoHistoricalDataClient(RESTClient):
             Union[Dict[str, Orderbook], RawData]: The orderbook data either in raw or wrapped form.
         """
 
-        raw_orderbooks = self.get_marketdata(
+        raw_orderbooks = self._get_marketdata(
             path=f"/crypto/{feed.value}/latest/orderbooks",
             params=request_params.to_request_fields(),
         )
@@ -259,7 +259,7 @@ class CryptoHistoricalDataClient(RESTClient):
             Union[SnapshotSet, RawData]: The snapshot data either in raw or wrapped form
         """
 
-        raw_snapshots = self.get_marketdata(
+        raw_snapshots = self._get_marketdata(
             path=f"/crypto/{feed.value}/snapshots",
             params=request_params.to_request_fields(),
         )

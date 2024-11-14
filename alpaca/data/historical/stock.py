@@ -84,7 +84,7 @@ class StockHistoricalDataClient(RESTClient):
         Returns:
             Union[BarSet, RawData]: The bar data either in raw or wrapped form
         """
-        raw_bars = self.get_marketdata(
+        raw_bars = self._get_marketdata(
             path="/stocks/bars",
             params=request_params.to_request_fields(),
         )
@@ -105,7 +105,7 @@ class StockHistoricalDataClient(RESTClient):
         Returns:
             Union[QuoteSet, RawData]: The quote data either in raw or wrapped form
         """
-        raw_quotes = self.get_marketdata(
+        raw_quotes = self._get_marketdata(
             path="/stocks/quotes",
             params=request_params.to_request_fields(),
         )
@@ -126,7 +126,7 @@ class StockHistoricalDataClient(RESTClient):
         Returns:
             Union[TradeSet, RawData]: The trade data either in raw or wrapped form
         """
-        raw_trades = self.get_marketdata(
+        raw_trades = self._get_marketdata(
             path="/stocks/trades",
             params=request_params.to_request_fields(),
         )
@@ -147,7 +147,7 @@ class StockHistoricalDataClient(RESTClient):
         Returns:
             Union[Dict[str, Trade], RawData]: The latest trade in raw or wrapped format
         """
-        raw_latest_trades = self.get_marketdata(
+        raw_latest_trades = self._get_marketdata(
             path="/stocks/trades/latest",
             params=request_params.to_request_fields(),
         )
@@ -168,7 +168,7 @@ class StockHistoricalDataClient(RESTClient):
         Returns:
             Union[Dict[str, Quote], RawData]: The latest quote in raw or wrapped format
         """
-        raw_latest_quotes = self.get_marketdata(
+        raw_latest_quotes = self._get_marketdata(
             path="/stocks/quotes/latest",
             params=request_params.to_request_fields(),
         )
@@ -189,7 +189,7 @@ class StockHistoricalDataClient(RESTClient):
         Returns:
             Union[Dict[str, Bar], RawData]: The latest minute bar in raw or wrapped format
         """
-        raw_latest_bars = self.get_marketdata(
+        raw_latest_bars = self._get_marketdata(
             path="/stocks/bars/latest",
             params=request_params.to_request_fields(),
         )
@@ -211,7 +211,7 @@ class StockHistoricalDataClient(RESTClient):
         Returns:
             Union[SnapshotSet, RawData]: The snapshot data either in raw or wrapped form
         """
-        raw_snapshots = self.get_marketdata(
+        raw_snapshots = self._get_marketdata(
             path="/stocks/snapshots",
             params=request_params.to_request_fields(),
             no_sub_key=True,

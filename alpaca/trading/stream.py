@@ -1,11 +1,12 @@
-import json
-import queue
-from typing import Optional, Dict, Callable, Union
 import asyncio
-import websockets
+import json
 import logging
+import queue
+from typing import Callable, Dict, Optional, Union
 
+import websockets
 from pydantic import BaseModel
+from websockets.legacy import client as websockets_legacy
 
 from alpaca.common import RawData
 from alpaca.common.enums import BaseURL
@@ -38,7 +39,9 @@ class TradingStream:
         self._endpoint = (
             url_override
             if url_override
-            else BaseURL.TRADING_STREAM_PAPER if paper else BaseURL.TRADING_STREAM_LIVE
+            else BaseURL.TRADING_STREAM_PAPER
+            if paper
+            else BaseURL.TRADING_STREAM_LIVE
         )
         self._ws = None
         self._running = False
@@ -56,7 +59,9 @@ class TradingStream:
             self._websocket_params = websocket_params
 
     async def _connect(self):
-        self._ws = await websockets.connect(self._endpoint, **self._websocket_params)
+        self._ws = await websockets_legacy.connect(
+            self._endpoint, **self._websocket_params
+        )
 
     async def _auth(self):
         await self._ws.send(

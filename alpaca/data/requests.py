@@ -133,9 +133,9 @@ class OptionBarsRequest(BaseBarsRequest):
 
     Attributes:
         symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
-        timeframe (TimeFrame): The period over which the bars should be aggregated. (i.e. 5 Min bars, 1 Day bars)
-        start (Optional[datetime]): The beginning of the time interval for desired data. Timezone naive inputs assumed to be in UTC.
-        end (Optional[datetime]): The end of the time interval for desired data. Defaults to now. Timezone naive inputs assumed to be in UTC.
+        timeframe (TimeFrame): The length of time (also known as time interval) for which each Bar represents (i.e. 5 Min bars, 1 Day bars).
+        start (Optional[datetime]): The beginning of the time period for desired data. Timezone naive inputs assumed to be in UTC.
+        end (Optional[datetime]): The end of the time period for desired data. Defaults to now. Timezone naive inputs assumed to be in UTC.
         limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
         sort (Optional[Sort]): The chronological order of response based on the timestamp. Defaults to ASC.
     """

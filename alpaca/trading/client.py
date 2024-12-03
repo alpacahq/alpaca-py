@@ -345,7 +345,6 @@ class TradingClient(RESTClient):
             f"/positions/{symbol_or_contract_id}/exercise",
         )
 
-
     # ############################## Portfolio ################################# #
 
     def get_portfolio_history(

@@ -79,6 +79,7 @@ class GetPortfolioHistoryRequest(NonEmptyRequest):
     extended_hours: Optional[bool] = None
     cashflow_types: Optional[str] = None
 
+
 class GetCalendarRequest(NonEmptyRequest):
     """
     Represents the optional filtering you can do when requesting a Calendar object

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pytest
 from msgpack.ext import Timestamp
@@ -232,3 +232,18 @@ async def test_dispatch(ws_client: DataStream, timestamp: Timestamp):
     assert len(articles_b) == 1
     assert len(articles_star) == 2
     assert articles_star[1].headline == "c"
+
+
+@pytest.mark.parametrize("duration_seconds", [(1), (2), (3)])
+def test_run(ws_client: DataStream, duration_seconds: int) -> None:
+    """Testing for different durations.
+
+    Parameters:
+    -----------
+    ws_client (DataStream): DataStream to test.
+    duration_seconds (int): Duration to test.
+    """
+    start_time = datetime.now()
+    duration = timedelta(seconds=duration_seconds)
+    ws_client.run(duration)
+    assert round((datetime.now() - start_time).total_seconds()) >= duration_seconds

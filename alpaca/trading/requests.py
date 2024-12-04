@@ -58,16 +58,26 @@ class GetPortfolioHistoryRequest(NonEmptyRequest):
           week, M for month and A for year. Defaults to 1M.
         timeframe (Optional[str]): The resolution of time window. 1Min, 5Min, 15Min, 1H, or 1D. If omitted, 1Min for
           less than 7 days period, 15Min for less than 30 days, or otherwise 1D.
+        intraday_reporting (Optional[str]): this specfies which timestamps to return data points
+        start (Optional[datetime]): The timestamp the data is returned starting from in RFC3339 format (including timezone specification).
+        pnl_reset (Optional[str]): efines how we are calculating the baseline values for Profit And Loss (pnl) for queries with timeframe less than 1D (intraday queries).
+        end (Optional[datetime]): The timestamp the data is returned up to in RFC3339 format (including timezone specification).
         date_end (Optional[date]): The date the data is returned up to. Defaults to the current market date (rolls over
           at the market open if extended_hours is false, otherwise at 7am ET).
         extended_hours (Optional[bool]): If true, include extended hours in the result. This is effective only for
           timeframe less than 1D.
+        cashflow_types (Optional[str]): The cashflow activities to include in the report
     """
 
     period: Optional[str] = None
     timeframe: Optional[str] = None
+    intraday_reporting: Optional[str] = None
+    start: Optional[datetime] = None
+    pnl_reset: Optional[str] = None
+    end: Optional[datetime] = None
     date_end: Optional[date] = None
     extended_hours: Optional[bool] = None
+    cashflow_types: Optional[str] = None
 
 
 class GetCalendarRequest(NonEmptyRequest):

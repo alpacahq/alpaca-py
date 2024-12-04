@@ -17,6 +17,7 @@ from alpaca.trading.requests import (
     ClosePositionRequest,
     GetAssetsRequest,
     GetOptionContractsRequest,
+    GetPortfolioHistoryRequest,
     OrderRequest,
     GetOrdersRequest,
     ReplaceOrderRequest,
@@ -31,6 +32,7 @@ from alpaca.trading.models import (
     OptionContract,
     OptionContractsResponse,
     Order,
+    PortfolioHistory,
     Position,
     ClosePositionResponse,
     Asset,
@@ -342,6 +344,32 @@ class TradingClient(RESTClient):
         self.post(
             f"/positions/{symbol_or_contract_id}/exercise",
         )
+
+    # ############################## Portfolio ################################# #
+
+    def get_portfolio_history(
+        self,
+        history_filter: Optional[GetPortfolioHistoryRequest] = None,
+    ) -> Union[PortfolioHistory, RawData]:
+        """
+        Gets the portfolio history statistics for an account.
+
+        Args:
+            account_id (Union[UUID, str]): The ID of the Account to get the portfolio history for.
+            history_filter: The various portfolio history request parameters.
+
+        Returns:
+            PortfolioHistory: The portfolio history statistics for the account.
+        """
+        response = self.get(
+            f"/account/portfolio/history",
+            history_filter.to_request_fields() if history_filter else {},
+        )
+
+        if self._use_raw_data:
+            return response
+
+        return PortfolioHistory(**response)
 
     # ############################## Assets ################################# #
 

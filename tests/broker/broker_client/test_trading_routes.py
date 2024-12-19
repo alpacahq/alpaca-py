@@ -260,6 +260,7 @@ def test_close_all_positions_for_account(reqmock, client: BrokerClient):
                     "trail_percent": null,
                     "trail_price": null,
                     "hwm": null,
+                    "position_intent": "buy_to_open",
                     "subtag": null,
                     "source": null
                 }
@@ -336,6 +337,7 @@ def test_close_position_for_account_with_id(reqmock, client: BrokerClient):
               "trail_percent": null,
               "trail_price": null,
               "hwm": null,
+              "position_intent": "buy_to_open",
               "commission": 1.25
             }}
         """,
@@ -389,6 +391,7 @@ def test_close_position_for_account_with_symbol(reqmock, client: BrokerClient):
               "trail_percent": null,
               "trail_price": null,
               "hwm": null,
+              "position_intent": "buy_to_open",
               "commission": 1.25
             }}
         """,
@@ -442,6 +445,7 @@ def test_close_position_for_account_with_qty(reqmock, client: BrokerClient):
           "trail_percent": null,
           "trail_price": null,
           "hwm": null,
+          "position_intent": "buy_to_open",
           "commission": 1.25
         }
     """,
@@ -495,6 +499,7 @@ def test_close_position_for_account_with_percentage(reqmock, client: BrokerClien
           "trail_percent": null,
           "trail_price": null,
           "hwm": null,
+          "position_intent": "buy_to_open",
           "commission": 1.25
         }
     """,

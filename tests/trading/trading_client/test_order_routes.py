@@ -61,6 +61,7 @@ def test_market_order(reqmock, trading_client):
           "trail_percent": null,
           "trail_price": null,
           "hwm": null,
+          "position_intent": "buy_to_open",
           "commission": 1.25
         }
         """,
@@ -115,7 +116,8 @@ def test_get_orders(reqmock, trading_client: TradingClient):
                 "extended_hours": true,
                 "trail_percent": null,
                 "trail_price": null,
-                "hwm": "string"
+                "hwm": "string",
+                "position_intent": "buy_to_open"
             }
         ]
         """,
@@ -168,6 +170,7 @@ def test_get_order_by_id(reqmock, trading_client: TradingClient):
         "trail_percent": null,
         "trail_price": null,
         "hwm": null,
+        "position_intent": "buy_to_open",
         "commission": 1.25
     }
     """,
@@ -219,6 +222,7 @@ def test_get_order_by_client_id(reqmock, trading_client: TradingClient):
         "trail_percent": null,
         "trail_price": null,
         "hwm": null,
+        "position_intent": "buy_to_open",
         "commission": 1.25
     }
     """,
@@ -268,6 +272,7 @@ def test_replace_order(reqmock, trading_client: TradingClient):
         "trail_percent": null,
         "trail_price": null,
         "hwm": null,
+        "position_intent": "buy_to_open",
         "commission": 1.25
     }
     """,
@@ -423,6 +428,7 @@ def test_limit_order(reqmock, trading_client):
           "trail_percent": null,
           "trail_price": null,
           "hwm": null,
+          "position_intent": "buy_to_open",
           "commission": 1.25
         }
         """,
@@ -540,8 +546,8 @@ def test_order_position_intent(reqmock, trading_client: TradingClient):
           "trail_percent": null,
           "trail_price": null,
           "hwm": null,
-          "commission": 1.25,
-          "position_intent": "buy_to_open"
+          "position_intent": "buy_to_open",
+          "commission": 1.25
         }
         """,
     )
@@ -597,6 +603,7 @@ def test_order_position_intent(reqmock, trading_client: TradingClient):
           "trail_percent": null,
           "trail_price": null,
           "hwm": null,
+          "position_intent": "sell_to_open",
           "commission": 1.25
         }
         """,

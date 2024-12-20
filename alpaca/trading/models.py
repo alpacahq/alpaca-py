@@ -205,7 +205,7 @@ class Order(ModelWithID):
         trail_percent (Optional[str]): The percent value away from the high water mark for trailing stop orders.
         trail_price (Optional[str]): The dollar value away from the high water mark for trailing stop orders.
         hwm (Optional[str]): The highest (lowest) market price seen since the trailing stop order was submitted.
-        position_intent  (PositionIntent): Represents the desired position strategy.
+        position_intent  (Optional[PositionIntent]): Represents the desired position strategy.
     """
 
     client_order_id: str
@@ -239,7 +239,7 @@ class Order(ModelWithID):
     trail_percent: Optional[str] = None
     trail_price: Optional[str] = None
     hwm: Optional[str] = None
-    position_intent: PositionIntent
+    position_intent: Optional[PositionIntent] = None
 
     def __init__(self, **data: Any) -> None:
         if "order_class" not in data or data["order_class"] == "":

@@ -4,6 +4,7 @@ from alpaca.trading.enums import (
     OrderClass,
     OrderSide,
     OrderType,
+    PositionIntent,
     TimeInForce,
 )
 
@@ -72,4 +73,5 @@ def create_dummy_order() -> Order:
         trail_percent=None,
         trail_price=None,
         hwm=None,
+        position_intent=PositionIntent.BUY_TO_OPEN,
     )

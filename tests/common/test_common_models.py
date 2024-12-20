@@ -15,6 +15,7 @@ from alpaca.trading.enums import (
     AssetExchange,
     OrderType,
     OrderClass,
+    PositionIntent,
     TimeInForce,
     OrderSide,
     PositionSide,
@@ -173,6 +174,7 @@ def test_order_legs():
         trail_percent=None,
         trail_price=None,
         hwm=None,
+        position_intent=PositionIntent.BUY_TO_OPEN,
     )
 
     assert isinstance(order_with_legs.legs, list)

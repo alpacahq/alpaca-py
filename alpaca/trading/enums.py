@@ -318,6 +318,7 @@ class CorporateActionDateType(str, Enum):
 class TradeEvent(str, Enum):
     FILL = "fill"
     CANCELED = "canceled"
+    PENDING_NEW = "pending_new"
     NEW = "new"
     PARTIAL_FILL = "partial_fill"
 

@@ -116,8 +116,7 @@ def test_get_orders(reqmock, trading_client: TradingClient):
                 "extended_hours": true,
                 "trail_percent": null,
                 "trail_price": null,
-                "hwm": "string",
-                "position_intent": "buy_to_open"
+                "hwm": "string"
             }
         ]
         """,

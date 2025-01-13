@@ -12,7 +12,7 @@ class Bar(BaseModel):
 
     Attributes:
         symbol (str): The ticker identifier for the security whose data forms the bar.
-        timestamp (datetime): The closing timestamp of the bar.
+        timestamp (datetime): The opening timestamp of the bar.
         open (float): The opening price of the interval.
         high (float): The high price during the interval.
         low (float): The low price during the interval.

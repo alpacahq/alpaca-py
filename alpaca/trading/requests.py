@@ -165,6 +165,22 @@ class StopLossRequest(NonEmptyRequest):
     stop_price: float
     limit_price: Optional[float] = None
 
+class OrderLegRequest(NonEmptyRequest):
+    """
+    Used for providing details for a leg of a multi-leg order.
+
+    Attributes:
+        symbol (str): The symbol identifier for the asset being traded.
+        ratio_qty (float): The proportional quantity of this leg in relation to the overall multi-leg order quantity.
+        side (Optional[OrderSide]): Represents the side this order was on.
+        position_intent (Optional[PositionIntent]): Represents the position strategy for this leg.
+    """
+
+    symbol: str
+    ratio_qty: float
+    side: Optional[OrderSide] = None
+    position_intent: Optional[PositionIntent] = None
+
 
 class GetOrdersRequest(NonEmptyRequest):
     """Contains data for submitting a request to retrieve orders.
@@ -267,6 +283,7 @@ class OrderRequest(NonEmptyRequest):
         extended_hours (Optional[float]): Whether the order can be executed during regular market hours.
         client_order_id (Optional[str]): A string to identify which client submitted the order.
         order_class (Optional[OrderClass]): The class of the order. Simple orders have no other legs.
+        legs (Optional[List[OrderLegRequest]]): For multi-leg option orders, the legs of the order. At most 4 legs are allowed.
         take_profit (Optional[TakeProfitRequest]): For orders with multiple legs, an order to exit a profitable trade.
         stop_loss (Optional[StopLossRequest]): For orders with multiple legs, an order to exit a losing trade.
         position_intent (Optional[PositionIntent]): An enum to indicate the desired position strategy: BTO, BTC, STO, STC.
@@ -281,6 +298,7 @@ class OrderRequest(NonEmptyRequest):
     order_class: Optional[OrderClass] = None
     extended_hours: Optional[bool] = None
     client_order_id: Optional[str] = None
+    legs: Optional[List[OrderLegRequest]] = None
     take_profit: Optional[TakeProfitRequest] = None
     stop_loss: Optional[StopLossRequest] = None
     position_intent: Optional[PositionIntent] = None
@@ -294,6 +312,10 @@ class OrderRequest(NonEmptyRequest):
             raise ValueError("At least one of qty or notional must be provided")
         elif qty_set and notional_set:
             raise ValueError("Both qty and notional can not be set.")
+
+        if "legs" in values:
+            if len(values["legs"]) > 4:
+                raise ValueError("At most 4 legs are allowed.")
 
         return values
 

@@ -107,11 +107,14 @@ class OrderClass(str, Enum):
     The order classes supported by Alpaca vary based on the order's security type.
     The following provides a comprehensive breakdown of the supported order classes for each category:
     - Equity trading: simple (or ""), oco, oto, bracket.
-    - Options trading: simple (or "").
+    - Options trading:
+        - simple (or "").
+        - mleg (required for multi-leg complex option strategies)
     - Crypto trading: simple (or "").
     """
 
     SIMPLE = "simple"
+    MLEG = "mleg"
     BRACKET = "bracket"
     OCO = "oco"
     OTO = "oto"

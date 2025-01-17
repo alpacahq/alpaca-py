@@ -19,7 +19,7 @@ from alpaca.trading.requests import (
     GetOrdersRequest,
     LimitOrderRequest,
     MarketOrderRequest,
-    OrderLegRequest,
+    OptionLegRequest,
     ReplaceOrderRequest,
     StopLossRequest,
     TakeProfitRequest,
@@ -627,33 +627,38 @@ def test_order_position_intent(reqmock, trading_client: TradingClient):
 
 
 def test_mleg_request_validation() -> None:
-    symbols = ["AAPL250117P00200000",
-               "AAPL250117P00250000",
-               "AAPL250117P00300000",
-               "AAPL250117P00350000",
-               "AAPL250117P00400000"]
+    symbols = [
+        "AAPL250117P00200000",
+        "AAPL250117P00250000",
+        "AAPL250117P00300000",
+        "AAPL250117P00350000",
+        "AAPL250117P00400000",
+    ]
 
     def kwargs_as_string(**kwargs):
         return ", ".join([f"{k}={v}" for k, v in kwargs.items()])
 
     def order_request_factory(is_market: bool):
         if is_market:
+
             def factory(warn_validated: bool = True, **kwargs):
-                o = MarketOrderRequest(
-                    **kwargs
-                )
+                o = MarketOrderRequest(**kwargs)
                 if warn_validated:
-                    warnings.warn(f"MarketOrderRequest({kwargs_as_string(**kwargs)}) passed validation!")
+                    warnings.warn(
+                        f"MarketOrderRequest({kwargs_as_string(**kwargs)}) passed validation!"
+                    )
                 return o
+
         else:
+
             def factory(warn_validated: bool = True, **kwargs):
-                o = LimitOrderRequest(
-                    limit_price=1,
-                    **kwargs
-                )
+                o = LimitOrderRequest(limit_price=1, **kwargs)
                 if warn_validated:
-                    warnings.warn(f"LimitOrderRequest({kwargs_as_string(**kwargs)}) passed validation!")
+                    warnings.warn(
+                        f"LimitOrderRequest({kwargs_as_string(**kwargs)}) passed validation!"
+                    )
                 return o
+
         return factory
 
     for is_mkt in [True, False]:
@@ -661,12 +666,16 @@ def test_mleg_request_validation() -> None:
 
         # Good requests
         for sym_index in range(2, 5):
-            o_req(warn_validated=False,
-                  qty=1,
-                  time_in_force=TimeInForce.DAY,
-                  order_class=OrderClass.MLEG,
-                  legs=[OrderLegRequest(symbol=symbol, ratio_qty=1, side=OrderSide.BUY) for symbol in
-                        symbols[:sym_index]])
+            o_req(
+                warn_validated=False,
+                qty=1,
+                time_in_force=TimeInForce.DAY,
+                order_class=OrderClass.MLEG,
+                legs=[
+                    OptionLegRequest(symbol=symbol, ratio_qty=1, side=OrderSide.BUY)
+                    for symbol in symbols[:sym_index]
+                ],
+            )
 
         # Bad requests
         with pytest.raises(ValueError):
@@ -674,8 +683,15 @@ def test_mleg_request_validation() -> None:
             o_req(
                 time_in_force=TimeInForce.DAY,
                 order_class=OrderClass.MLEG,
-                legs=[OrderLegRequest(symbol=symbols[0], ratio_qty=1, side=OrderSide.BUY),
-                      OrderLegRequest(symbol=symbols[1], ratio_qty=1, side=OrderSide.SELL)])
+                legs=[
+                    OptionLegRequest(
+                        symbol=symbols[0], ratio_qty=1, side=OrderSide.BUY
+                    ),
+                    OptionLegRequest(
+                        symbol=symbols[1], ratio_qty=1, side=OrderSide.SELL
+                    ),
+                ],
+            )
 
         with pytest.raises(ValueError):
             # Too few legs
@@ -683,7 +699,10 @@ def test_mleg_request_validation() -> None:
                 qty=1,
                 time_in_force=TimeInForce.DAY,
                 order_class=OrderClass.MLEG,
-                legs=[OrderLegRequest(symbol=symbols[0], ratio_qty=1, side=OrderSide.BUY)])
+                legs=[
+                    OptionLegRequest(symbol=symbols[0], ratio_qty=1, side=OrderSide.BUY)
+                ],
+            )
 
         with pytest.raises(ValueError):
             # Too many legs
@@ -691,15 +710,15 @@ def test_mleg_request_validation() -> None:
                 qty=1,
                 time_in_force=TimeInForce.DAY,
                 order_class=OrderClass.MLEG,
-                legs=[OrderLegRequest(symbol=symbol, ratio_qty=1, side=OrderSide.BUY)
-                      for symbol in symbols])
+                legs=[
+                    OptionLegRequest(symbol=symbol, ratio_qty=1, side=OrderSide.BUY)
+                    for symbol in symbols
+                ],
+            )
 
         with pytest.raises(ValueError):
             # Missing legs
-            o_req(
-                qty=1,
-                time_in_force=TimeInForce.DAY,
-                order_class=OrderClass.MLEG)
+            o_req(qty=1, time_in_force=TimeInForce.DAY, order_class=OrderClass.MLEG)
 
         with pytest.raises(ValueError):
             # Repeated symbols across legs
@@ -707,12 +726,22 @@ def test_mleg_request_validation() -> None:
                 qty=1,
                 time_in_force=TimeInForce.DAY,
                 order_class=OrderClass.MLEG,
-                legs=[OrderLegRequest(symbol=symbols[0], ratio_qty=1, side=OrderSide.BUY),
-                      OrderLegRequest(symbol=symbols[0], ratio_qty=1, side=OrderSide.SELL)])
+                legs=[
+                    OptionLegRequest(
+                        symbol=symbols[0], ratio_qty=1, side=OrderSide.BUY
+                    ),
+                    OptionLegRequest(
+                        symbol=symbols[0], ratio_qty=1, side=OrderSide.SELL
+                    ),
+                ],
+            )
 
         with pytest.raises(ValueError):
             # Legs in non-MLEG order
             o_req(
                 qty=1,
                 time_in_force=TimeInForce.DAY,
-                legs=[OrderLegRequest(symbol=symbols[0], ratio_qty=1, side=OrderSide.BUY)])
+                legs=[
+                    OptionLegRequest(symbol=symbols[0], ratio_qty=1, side=OrderSide.BUY)
+                ],
+            )

@@ -275,7 +275,9 @@ class Order(ModelWithID):
             if "_is_sub_mleg" not in data or not data["_is_sub_mleg"]:
                 if "legs" not in data or data["legs"] == "":
                     raise ValueError("legs is required for mleg orders")
-                if data["legs"] is not None: # it is possible when querying individual legs that this is None
+                if (
+                    data["legs"] is not None
+                ):  # it is possible when querying individual legs that this is None
                     if len(data["legs"]) < 1:
                         raise ValueError("legs must have at least one order")
                     for leg in data["legs"]:

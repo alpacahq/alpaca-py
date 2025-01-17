@@ -76,5 +76,7 @@ class NonEmptyRequest(BaseModel):
         #  {trusted_contact: {}, contact: {}, identity: None, etc}
         # so we do a simple list comprehension to filter out None and {}
         return {
-            key: map_values(val) for key, val in d.items() if val is not None and len(str(val)) > 0
+            key: map_values(val)
+            for key, val in d.items()
+            if val is not None and val != {} and len(str(val)) > 0
         }

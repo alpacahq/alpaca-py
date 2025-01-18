@@ -240,6 +240,7 @@ class Order(ModelWithID):
     trail_price: Optional[str] = None
     hwm: Optional[str] = None
     position_intent: Optional[PositionIntent] = None
+    ratio_qty: Optional[Union[str, float]] = None
 
     # internal to the SDK
     _is_sub_mleg: bool = False

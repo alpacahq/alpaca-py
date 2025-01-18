@@ -240,6 +240,7 @@ class Order(ModelWithID):
     trail_price: Optional[str] = None
     hwm: Optional[str] = None
     position_intent: Optional[PositionIntent] = None
+    ratio_qty: Optional[Union[str, float]] = None
 
     # internal to the SDK
     _is_sub_mleg: bool = False
@@ -536,9 +537,9 @@ class TradeAccount(ModelWithID):
           (inclusive of today)
         options_buying_power (Optional[str]): Your buying power for options trading
         options_approved_level (Optional[int]): The options trading level that was approved for this account.
-          0=disabled, 1=Covered Call/Cash-Secured Put, 2=Long Call/Put, 3=Multi-leg.
+          0=disabled, 1=Covered Call/Cash-Secured Put, 2=Long Call/Put, 3=Spreads/Straddles.
         options_trading_level (Optional[int]): The effective options trading level of the account. This is the minimum between account options_approved_level and account configurations max_options_trading_level.
-          0=disabled, 1=Covered Call/Cash-Secured Put, 2=Long, 3=Multi-leg.
+          0=disabled, 1=Covered Call/Cash-Secured Put, 2=Long, 3=Spreads/Straddles.
     """
 
     account_number: str
@@ -589,7 +590,7 @@ class AccountConfiguration(BaseModel):
         suspend_trade (bool): If true Account becomes unable to submit new orders
         trade_confirm_email (TradeConfirmationEmail): Controls whether Trade confirmation emails are sent.
         ptp_no_exception_entry (bool): If set to true then Alpaca will accept orders for PTP symbols with no exception. Default is false.
-        max_options_trading_level (Optional[int]): The desired maximum options trading level. 0=disabled, 1=Covered Call/Cash-Secured Put, 2=Long Call/Put, 3=Multi-leg.
+        max_options_trading_level (Optional[int]): The desired maximum options trading level. 0=disabled, 1=Covered Call/Cash-Secured Put, 2=Long Call/Put, 3=Spreads/Straddles.
     """
 
     dtbp_check: DTBPCheck

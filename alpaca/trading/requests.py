@@ -280,7 +280,7 @@ class OrderRequest(NonEmptyRequest):
             Required for mleg order class.
         notional (Optional[float]): The base currency value of the shares to trade. For stocks, only works with MarketOrders.
             **Does not work with qty**.
-        side (Optional[OrderSide]): Whether the order will buy or sell the asset. Required for all order classes other than mleg.
+        side (Optional[OrderSide]): Whether the order will buy or sell the asset. Either side or position_intent is required for all order classes other than mleg.
         type (OrderType): The execution logic type of the order (market, limit, etc).
         time_in_force (TimeInForce): The expiration logic of the order.
         extended_hours (Optional[float]): Whether the order can be executed during regular market hours.

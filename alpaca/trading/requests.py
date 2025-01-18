@@ -188,7 +188,9 @@ class OptionLegRequest(NonEmptyRequest):
         position_intent = values.get("position_intent", None)
 
         if side is None and position_intent is None:
-            raise ValueError("at least one of side or position_intent must be provided for OptionLegRequest")
+            raise ValueError(
+                "at least one of side or position_intent must be provided for OptionLegRequest"
+            )
 
         return values
 
@@ -296,7 +298,7 @@ class OrderRequest(NonEmptyRequest):
         extended_hours (Optional[float]): Whether the order can be executed during regular market hours.
         client_order_id (Optional[str]): A string to identify which client submitted the order.
         order_class (Optional[OrderClass]): The class of the order. Simple orders have no other legs.
-        legs (Optional[Union[List[OptionLegRequest], List[OrderRequest]]]): For multi-leg option orders, the legs of the order If specified (must contain at least 2 but no more than 4 legs for options).
+        legs (Optional[List[OptionLegRequest]]): For multi-leg option orders, the legs of the order If specified (must contain at least 2 but no more than 4 legs for options).
             Otherwise, for equities, a list of individual orders.
         take_profit (Optional[TakeProfitRequest]): For orders with multiple legs, an order to exit a profitable trade.
         stop_loss (Optional[StopLossRequest]): For orders with multiple legs, an order to exit a losing trade.
@@ -312,7 +314,7 @@ class OrderRequest(NonEmptyRequest):
     order_class: Optional[OrderClass] = None
     extended_hours: Optional[bool] = None
     client_order_id: Optional[str] = None
-    legs: Optional[Union[List[OptionLegRequest], List["OrderRequest"]]] = None
+    legs: Optional[List[OptionLegRequest]] = None
     take_profit: Optional[TakeProfitRequest] = None
     stop_loss: Optional[StopLossRequest] = None
     position_intent: Optional[PositionIntent] = None
@@ -372,7 +374,7 @@ class MarketOrderRequest(OrderRequest):
         extended_hours (Optional[float]): Whether the order can be executed during regular market hours.
         client_order_id (Optional[str]): A string to identify which client submitted the order.
         order_class (Optional[OrderClass]): The class of the order. Simple orders have no other legs.
-        legs (Optional[Union[List[OptionLegRequest], List[OrderRequest]]]): For multi-leg option orders, the legs of the order. At most 4 legs are allowed for options.
+        legs (Optional[List[OptionLegRequest]]): For multi-leg option orders, the legs of the order. At most 4 legs are allowed for options.
         take_profit (Optional[TakeProfitRequest]): For orders with multiple legs, an order to exit a profitable trade.
         stop_loss (Optional[StopLossRequest]): For orders with multiple legs, an order to exit a losing trade.
         position_intent (Optional[PositionIntent]): An enum to indicate the desired position strategy: BTO, BTC, STO, STC.
@@ -399,7 +401,7 @@ class StopOrderRequest(OrderRequest):
         extended_hours (Optional[float]): Whether the order can be executed during regular market hours.
         client_order_id (Optional[str]): A string to identify which client submitted the order.
         order_class (Optional[OrderClass]): The class of the order. Simple orders have no other legs.
-        legs (Optional[Union[List[OptionLegRequest], List[OrderRequest]]]): For multi-leg option orders, the legs of the order. At most 4 legs are allowed for options.
+        legs (Optional[List[OptionLegRequest]]): For multi-leg option orders, the legs of the order. At most 4 legs are allowed for options.
         take_profit (Optional[TakeProfitRequest]): For orders with multiple legs, an order to exit a profitable trade.
         stop_loss (Optional[StopLossRequest]): For orders with multiple legs, an order to exit a losing trade.
         stop_price (float): The price at which the stop order is converted to a market order or a stop limit
@@ -430,7 +432,7 @@ class LimitOrderRequest(OrderRequest):
         extended_hours (Optional[float]): Whether the order can be executed during regular market hours.
         client_order_id (Optional[str]): A string to identify which client submitted the order.
         order_class (Optional[OrderClass]): The class of the order. Simple orders have no other legs.
-        legs (Optional[Union[List[OptionLegRequest], List[OrderRequest]]]): For multi-leg option orders, the legs of the order. At most 4 legs are allowed for options.
+        legs (Optional[List[OptionLegRequest]]): For multi-leg option orders, the legs of the order. At most 4 legs are allowed for options.
         take_profit (Optional[TakeProfitRequest]): For orders with multiple legs, an order to exit a profitable trade.
         stop_loss (Optional[StopLossRequest]): For orders with multiple legs, an order to exit a losing trade.
         limit_price (Optional[float]): The worst fill price for a limit or stop limit order. For the mleg order class, this
@@ -472,7 +474,7 @@ class StopLimitOrderRequest(OrderRequest):
         extended_hours (Optional[float]): Whether the order can be executed during regular market hours.
         client_order_id (Optional[str]): A string to identify which client submitted the order.
         order_class (Optional[OrderClass]): The class of the order. Simple orders have no other legs.
-        legs (Optional[Union[List[OptionLegRequest], List[OrderRequest]]]): For multi-leg option orders, the legs of the order. At most 4 legs are allowed for options.
+        legs (Optional[List[OptionLegRequest]]): For multi-leg option orders, the legs of the order. At most 4 legs are allowed for options.
         take_profit (Optional[TakeProfitRequest]): For orders with multiple legs, an order to exit a profitable trade.
         stop_loss (Optional[StopLossRequest]): For orders with multiple legs, an order to exit a losing trade.
         stop_price (float): The price at which the stop order is converted to a market order or a stop limit
@@ -507,7 +509,7 @@ class TrailingStopOrderRequest(OrderRequest):
         extended_hours (Optional[float]): Whether the order can be executed during regular market hours.
         client_order_id (Optional[str]): A string to identify which client submitted the order.
         order_class (Optional[OrderClass]): The class of the order. Simple orders have no other legs.
-        legs (Optional[Union[List[OptionLegRequest], List[OrderRequest]]]): For multi-leg option orders, the legs of the order. At most 4 legs are allowed for options.
+        legs (Optional[List[OptionLegRequest]]): For multi-leg option orders, the legs of the order. At most 4 legs are allowed for options.
         take_profit (Optional[TakeProfitRequest]): For orders with multiple legs, an order to exit a profitable trade.
         stop_loss (Optional[StopLossRequest]): For orders with multiple legs, an order to exit a losing trade.
         trail_price (Optional[float]): The absolute price difference by which the trailing stop will trail.

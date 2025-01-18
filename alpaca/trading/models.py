@@ -536,7 +536,7 @@ class TradeAccount(ModelWithID):
           (inclusive of today)
         options_buying_power (Optional[str]): Your buying power for options trading
         options_approved_level (Optional[int]): The options trading level that was approved for this account.
-          0=disabled, 1=Covered Call/Cash-Secured Put, 2=Long Call/Put, 3=Multi-leg.
+          0=disabled, 1=Covered Call/Cash-Secured Put, 2=Long Call/Put, 3=Spreads/Straddles.
         options_trading_level (Optional[int]): The effective options trading level of the account. This is the minimum between account options_approved_level and account configurations max_options_trading_level.
           0=disabled, 1=Covered Call/Cash-Secured Put, 2=Long, 3=Multi-leg.
     """

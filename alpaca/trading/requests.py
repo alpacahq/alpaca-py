@@ -182,6 +182,16 @@ class OptionLegRequest(NonEmptyRequest):
     side: Optional[OrderSide] = None
     position_intent: Optional[PositionIntent] = None
 
+    @model_validator(mode="before")
+    def root_validator(cls, values: dict) -> dict:
+        side = values.get("side", None)
+        position_intent = values.get("position_intent", None)
+
+        if side is None and position_intent is None:
+            raise ValueError("at least one of side or position_intent must be provided for OptionLegRequest")
+
+        return values
+
 
 class GetOrdersRequest(NonEmptyRequest):
     """Contains data for submitting a request to retrieve orders.

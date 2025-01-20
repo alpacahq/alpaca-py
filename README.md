@@ -271,3 +271,4 @@ We have put together some examples in jupyter notebooks so that you can start de
 * [Stocks](https://github.com/alpacahq/alpaca-py/blob/master/examples/stocks-trading-basic.ipynb)
 * [Options](https://github.com/alpacahq/alpaca-py/blob/master/examples/options-trading-basic.ipynb)
 * [Crypto](https://github.com/alpacahq/alpaca-py/blob/master/examples/crypto-trading-basic.ipynb)
+* [Multi-Leg Options](https://github.com/alpacahq/alpaca-py/blob/master/examples/options-trading-mleg.ipynb)

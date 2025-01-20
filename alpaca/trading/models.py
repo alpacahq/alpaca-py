@@ -206,6 +206,7 @@ class Order(ModelWithID):
         trail_price (Optional[str]): The dollar value away from the high water mark for trailing stop orders.
         hwm (Optional[str]): The highest (lowest) market price seen since the trailing stop order was submitted.
         position_intent  (Optional[PositionIntent]): Represents the desired position strategy.
+        ratio_qty (Optional[str]): The proportional quantity of this leg in relation to the overall multi-leg order quantity.
     """
 
     client_order_id: str
@@ -242,9 +243,6 @@ class Order(ModelWithID):
     position_intent: Optional[PositionIntent] = None
     ratio_qty: Optional[Union[str, float]] = None
 
-    # internal to the SDK
-    _is_sub_mleg: bool = False
-
     def __init__(self, **data: Any) -> None:
         if "order_class" not in data or data["order_class"] == "":
             data["order_class"] = OrderClass.SIMPLE
@@ -255,37 +253,7 @@ class Order(ModelWithID):
             if k in data and data[k] == "":
                 data[k] = None
 
-        if "_is_sub_mleg" not in data:
-            data["_is_sub_mleg"] = False
-
         super().__init__(**data)
-
-    @model_validator(mode="before")
-    def root_validator(cls, data: dict) -> dict:
-        # Check non-mleg requirements
-        if data["order_class"] != OrderClass.MLEG:
-            if "asset_id" not in data or data["asset_id"] == "":
-                raise ValueError("asset_id is required for non-mleg orders")
-            if "asset_class" not in data or data["asset_class"] == "":
-                raise ValueError("asset_class is required for non-mleg orders")
-            if "side" not in data or data["side"] == "":
-                raise ValueError("side is required for non-mleg orders")
-
-        else:
-            # Check mleg requirements
-            if "_is_sub_mleg" not in data or not data["_is_sub_mleg"]:
-                if "legs" not in data or data["legs"] == "":
-                    raise ValueError("legs is required for mleg orders")
-                if (
-                    data["legs"] is not None
-                ):  # it is possible when querying individual legs that this is None
-                    if len(data["legs"]) < 1:
-                        raise ValueError("legs must have at least one order")
-                    for leg in data["legs"]:
-                        leg["_is_sub_mleg"] = True
-
-        return data
-
 
 class FailedClosePositionDetails(BaseModel):
     """API response for failed close position request.

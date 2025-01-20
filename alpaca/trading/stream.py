@@ -19,7 +19,7 @@ class TradingStream:
     """
     This is a WebSocket client which allows you to streaming data from your trading account.
 
-    Learn more here: https://alpaca.markets/docs/api-references/trading-api/streaming/
+    Learn more here: https://docs.alpaca.markets/docs/websocket-streaming
 
     If using paper keys, make sure to set ``paper`` to True when instantiating the client.
     """
@@ -30,12 +30,12 @@ class TradingStream:
         secret_key: str,
         paper: bool = True,
         raw_data: bool = False,
-        url_override: str = None,
+        url_override: Optional[str] = None,
         websocket_params: Optional[Dict] = None,
     ):
         self._api_key = api_key
         self._secret_key = secret_key
-        self._trade_updates_handler = None
+        self._trade_updates_handler: Optional[Callable] = None
         self._endpoint = (
             url_override
             if url_override
@@ -45,7 +45,7 @@ class TradingStream:
         self._running = False
         self._loop = None
         self._raw_data = raw_data
-        self._stop_stream_queue = queue.Queue()
+        self._stop_stream_queue: queue.Queue = queue.Queue()
         self._should_run = True
         self._websocket_params = {
             "ping_interval": 10,
@@ -65,11 +65,9 @@ class TradingStream:
         await self._ws.send(
             json.dumps(
                 {
-                    "action": "authenticate",
-                    "data": {
-                        "key_id": self._api_key,
-                        "secret_key": self._secret_key,
-                    },
+                    "action": "auth",
+                    "key": self._api_key,
+                    "secret": self._secret_key,
                 }
             )
         )
@@ -201,7 +199,7 @@ class TradingStream:
 
     def stop(self) -> None:
         """Stops the websocket connection."""
-        if self._loop.is_running():
+        if self._loop is not None and self._loop.is_running():
             asyncio.run_coroutine_threadsafe(self.stop_ws(), self._loop).result()
 
     def run(self) -> None:

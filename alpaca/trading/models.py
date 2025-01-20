@@ -294,6 +294,7 @@ class PortfolioHistory(BaseModel):
         profit_loss_pct (List[Optional[float]]): Profit/loss in percentage from the base value.
         base_value (float): Basis in dollar of the profit loss calculation.
         timeframe (str): Time window size of each data element.
+        cashflow (Dict[ActivityType, List[float]]): Cash flow amounts per activity type, if any.
     """
 
     timestamp: List[int]
@@ -302,6 +303,7 @@ class PortfolioHistory(BaseModel):
     profit_loss_pct: List[Optional[float]]
     base_value: float
     timeframe: str
+    cashflow: Dict[ActivityType, List[float]] = {}
 
 
 class Watchlist(ModelWithID):

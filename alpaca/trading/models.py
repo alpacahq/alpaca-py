@@ -255,6 +255,7 @@ class Order(ModelWithID):
 
         super().__init__(**data)
 
+
 class FailedClosePositionDetails(BaseModel):
     """API response for failed close position request.
 

@@ -1,0 +1,187 @@
+```python
+import pandas as pd
+import numpy as np
+import joblib
+import time
+from datetime import datetime, timedelta
+from sklearn.ensemble import RandomForestClassifier
+from alpaca_trade_api import REST, TimeFrame
+import yfinance as yf
+from scipy.stats import norm
+from math import exp, sqrt, log
+
+# Alpaca API credentials
+ALPACA_API_KEY = 'PK4WEA2GHS9401EDUC5L' # Your Alpaca API Key
+ALPACA_API_SECRET = 'd99biKkHZknQN3QjgBQt1kKEEwiugxUuh' # Your Alpaca API Secret
+ALPACA_BASE_URL = 'https://paper-api.alpaca.markets'
+
+# Initialize Alpaca API
+alpaca = REST(ALPACA_API_KEY, ALPACA_API_SECRET, ALPACA_BASE_URL, api_version='v2')
+
+# Load the trained model
+model = joblib.load('multi_stock_risk_return_model.pkl')
+
+# Define stocks to monitor
+symbols = ['MSTU', 'MARA', 'SPY', 'AAPL', 'AMD', 'NVDA', 'TSLA', 'PLTR', 'AMZN']
+
+# Function to calculate implied volatility using the Black-Scholes model
+def implied_volatility(S, K, T, r, C):
+def option_price(sigma):
+d1 = (log(S / K) + (r + 0.5 * sigma ** 2) * T) / (sigma * sqrt(T))
+d2 = d1 - sigma * sqrt(T)
+return S * norm.cdf(d1) - K * exp(-r * T) * norm.cdf(d2) - C
+
+sigma = 0.2
+for i in range(100):
+price = option_price(sigma)
+vega = S * norm.pdf((log(S / K) + (r + 0.5 * sigma ** 2) * T) / (sigma * sqrt(T))) * sqrt(T)
+sigma -= price / vega
+if abs(price) < 1e-5:
+return sigma
+
+return None
+
+# Function to calculate Delta and Gamma
+def calculate_delta_gamma(S, K, T, r, C, sigma):
+d1 = (log(S / K) + (r + 0.5 * sigma ** 2) * T) / (sigma * sqrt(T))
+delta = norm.cdf(d1)
+gamma = norm.pdf(d1) / (S * sigma * sqrt(T))
+return delta, gamma
+
+# Function to fetch historical data and calculate features
+def fetch_and_calculate_features(symbol):
+data = yf.download(symbol, start='2020-01-01', end=datetime.now().strftime('%Y-%m-%d'))
+data['Symbol'] = symbol
+
+# Calculate features
+data['5_day_MA'] = data['Close'].rolling(window=5).mean()
+data['10_day_MA'] = data['Close'].rolling(window=10).mean()
+data['50_day_MA'] = data['Close'].rolling(window=50).mean() # 50-day moving average
+data['200_day_MA'] = data['Close'].rolling(window=200).mean()
+data['Returns'] = data['Close'].pct_change()
+data['Volatility'] = data['Returns'].rolling(window=5).std()
+
+# Alligator Indicator
+data['Jaw'] = data['Close'].rolling(window=13).mean().shift(-8)
+data['Teeth'] = data['Close'].rolling(window=8).mean().shift(-5)
+data['Lips'] = data['Close'].rolling(window=5).mean().shift(-3)
+
+data.dropna(inplace=True)
+
+return data
+
+# Function to calculate time to the next Friday
+def days_until_next_friday():
+today = datetime.now()
+days_ahead = 4 - today.weekday() # 4 is Friday
+if days_ahead < 0: # Target next week's Friday
+days_ahead += 7
+return days_ahead
+
+# Function to fetch options data and calculate implied volatility
+def fetch_options_data(symbol):
+stock = yf.Ticker(symbol)
+options = stock.options
+options_data = []
+
+# Calculate days until next Friday for time to expiration
+T = days_until_next_friday() / 365.0 # Convert to years
+
+for expiration in options:
+option_chain = stock.option_chain(expiration)
+for call in option_chain.calls.itertuples():
+S = stock.history(period='1d')['Close'][-1]
+iv = implied_volatility(S, call.strike, T, 0.01, call.lastPrice)
+delta, gamma = calculate_delta_gamma(S, call.strike, T, 0.01, call.lastPrice, iv)
+options_data.append({
+'Strike': call.strike,
+'Last Price': call.lastPrice,
+'Bid': call.bid,
+'Ask': call.ask,
+'Expiration': expiration,
+'Type': 'Call',
+'Implied Volatility': iv,
+'Delta': delta,
+'Gamma': gamma
+})
+for put in option_chain.puts.itertuples():
+S = stock.history(period='1d')['Close'][-1]
+iv = implied_volatility(S, put.strike, T, 0.01, put.lastPrice)
+delta, gamma = calculate_delta_gamma(S, put.strike, T, 0.01, put.lastPrice, iv)
+options_data.append({
+'Strike': put.strike,
+'Last Price': put.lastPrice,
+'Bid': put.bid,
+'Ask': put.ask,
+'Expiration': expiration,
+'Type': 'Put',
+'Implied Volatility': iv,
+'Delta': delta,
+'Gamma': gamma
+})
+
+return pd.DataFrame(options_data)
+
+# Function to check for trade opportunities and predict price
+def check_for_trade_opportunity(symbol, data):
+latest_data = data.iloc[-1:]
+
+# Prepare feature set for prediction
+features = latest_data[['5_day_MA', '10_day_MA', '50_day_MA', '200_day_MA', 'Volume', 'Volatility', 'Jaw', 'Teeth', 'Lips']]
+
+# Make prediction
+prediction = model.predict(features)
+
+if prediction[0] == 1: # If high return opportunity detected
+current_price = latest_data['Close'].values[0]
+predicted_price = current_price * 1.02 # Example: Predicting a 2% gain
+
+# Calculate time until predicted price is reached
+volatility = latest_data['Volatility'].values[0]
+if volatility > 0:
+time_until_reach = int(2 / volatility)
+alert_time = datetime.now() + timedelta(minutes=time_until_reach)
+
+print(f'High return opportunity detected for {symbol} at {datetime.now()}')
+print(f'Predicted price: {predicted_price:.2f}, Estimated time until reached: {time_until_reach} minutes')
+print(f'Alert time: {alert_time.strftime("%Y-%m-%d %H:%M:%S")}')
+
+# Fetch and analyze options data
+options_data = fetch_options_data(symbol)
+filtered_options = options_data[(options_data['Strike'] >= current_price * 0.95) &
+(options_data['Strike'] <= current_price * 1.05)]
+
+if not filtered_options.empty:
+print(f'Potential options for {symbol}:')
+print(filtered_options)
+else:
+print(f'No suitable options found for {symbol}.')
+
+# Real-time monitoring loop
+if __name__ == '__main__':
+# Dictionary to hold historical data for each symbol
+historical_data = {}
+
+# Fetch historical data for all symbols
+for symbol in symbols:
+historical_data[symbol] = fetch_and_calculate_features(symbol)
+
+while True:
+for symbol in symbols:
+barset = alpaca.get_barset(symbol, TimeFrame.Minute, limit=1)
+latest_bar = barset[symbol][0]
+
+new_row = {
+'Close': latest_bar.c,
+'Volume': latest_bar.v,
+'Symbol': symbol,
+'Date': latest_bar.t
+}
+historical_data[symbol] = historical_data[symbol].append(new_row, ignore_index=True)
+
+historical_data[symbol] = fetch_and_calculate_features(symbol)
+
+check_for_trade_opportunity(symbol, historical_data[symbol])
+
+time.sleep(60)
+```

@@ -249,7 +249,15 @@ class Order(ModelWithID):
 
         # mleg responses will give ''s that will need to be converted to None
         # to avoid validation errors from pydantic
-        for k in ["asset_id", "symbol", "asset_class", "side", "type", "order_type"]:
+        for k in [
+            "asset_id",
+            "symbol",
+            "asset_class",
+            "side",
+            "position_intent",
+            "type",
+            "order_type",
+        ]:
             if k in data and data[k] == "":
                 data[k] = None
 

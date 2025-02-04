@@ -177,6 +177,7 @@ class Order(ModelWithID):
         submitted_at (datetime): Timestamp when the order was submitted.
         filled_at (Optional[datetime]): Timestamp when the order was filled.
         expired_at (Optional[datetime]): Timestamp when the order expired at.
+        expires_at (Optional[datetime]): An auto cancel request will be triggered after this timestamp.
         canceled_at (Optional[datetime]): Timestamp when the order was canceled.
         failed_at (Optional[datetime]): Timestamp when the order failed at.
         replaced_at (Optional[datetime]): Timestamp when the order was replaced by a new order.
@@ -215,6 +216,7 @@ class Order(ModelWithID):
     submitted_at: datetime
     filled_at: Optional[datetime] = None
     expired_at: Optional[datetime] = None
+    expires_at: Optional[datetime] = None
     canceled_at: Optional[datetime] = None
     failed_at: Optional[datetime] = None
     replaced_at: Optional[datetime] = None

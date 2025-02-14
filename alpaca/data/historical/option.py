@@ -139,10 +139,10 @@ class OptionHistoricalDataClient(RESTClient):
         """Retrieves the latest trade for an option symbol or list of option symbols.
 
         Args:
-            request_params (OptionLatestQuoteRequest): The request object for retrieving the latest quote data.
+            request_params (OptionLatestTradeRequest): The request object for retrieving the latest trade data.
 
         Returns:
-            Union[Dict[str, Quote], RawData]: The latest quote in raw or wrapped format
+            Union[Dict[str, Trade], RawData]: The latest trade in raw or wrapped format
         """
         raw_latest_trades = self._get_marketdata(
             path=f"/options/trades/latest",

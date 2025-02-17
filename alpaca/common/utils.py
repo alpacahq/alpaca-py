@@ -87,3 +87,35 @@ def tz_aware(dt: datetime) -> bool:
 
     """
     return dt.tzinfo is not None and dt.tzinfo.utcoffset(dt) is not None
+
+
+def iso_to_unix(iso_str):
+    """
+    Convert an ISO 8601 formatted timestamp to a Unix timestamp in milliseconds.
+
+    Args:
+        iso_str (str): The ISO 8601 timestamp string to be converted. It can be in one of the following formats:
+                       - "YYYY-MM-DDTHH:MM:SSZ" (UTC)
+                       - "YYYY-MM-DDTHH:MM:SS+/-hh:mm" (with a timezone offset)
+                       - "YYYY-MM-DDTHH:MM:SS" (UTC, assumed)
+
+    Returns:
+        int: The corresponding Unix timestamp in milliseconds.
+
+    Raises:
+        ValueError: If the input string is not in a valid ISO 8601 format.
+    """
+    try:
+        # Handle 'Z' by replacing it with '+00:00' for UTC (ISO 8601 format)
+        if iso_str.endswith("Z"):
+            iso_str = iso_str.replace("Z", "+00:00")
+
+        # Parse the datetime string to a datetime object, handling any offset
+        dt = datetime.fromisoformat(iso_str)
+
+        # Return Unix timestamp in milliseconds
+        return int(dt.timestamp() * 1000)
+
+    except ValueError as e:
+        # If parsing fails, raise a clear error message
+        raise ValueError(f"Invalid timestamp format: {iso_str}") from e

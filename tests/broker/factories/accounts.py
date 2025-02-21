@@ -1,4 +1,6 @@
 from typing import List
+
+from alpaca.broker import Account
 from alpaca.trading.enums import DTBPCheck, PDTCheck
 from alpaca.trading.models import AccountConfiguration as TradeAccountConfiguration
 
@@ -142,4 +144,22 @@ def create_dummy_trade_account_configuration() -> TradeAccountConfiguration:
         suspend_trade=False,
         trade_confirm_email="all",
         ptp_no_exception_entry=False,
+    )
+
+
+def create_dummy_account() -> Account:
+    """
+    Create a basic account instance with prefilled data
+
+    Returns:
+        Account: a prefilled Account instance for testing
+    """
+
+    return Account(
+        id="2d6cab28-c5d1-4ff8-91c6-b6404a9ee114",
+        account_number="551081356",
+        status="ACTIVE",
+        currency="USD",
+        last_equity="0",
+        created_at="2024-07-10T18:35:52.244506Z",
     )

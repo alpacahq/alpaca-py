@@ -68,6 +68,12 @@ StopLossRequest
 .. autoclass:: alpaca.trading.requests.StopLossRequest
 
 
+OptionLegRequest
+----------------
+
+.. autoclass:: alpaca.trading.requests.OptionLegRequest
+
+
 ClosePositionRequest
 --------------------
 

@@ -361,6 +361,7 @@ class TransferStatus(str, Enum):
     REJECTED = "REJECTED"
     CANCELED = "CANCELED"
     APPROVED = "APPROVED"
+    SETTLED = "SETTLED"
     COMPLETE = "COMPLETE"
     RETURNED = "RETURNED"
 

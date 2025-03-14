@@ -5,4 +5,5 @@ Open them in Google Colab to jumpstart your development journey!
 
 | Notebooks                                       |                                                                                    Open in Google Colab                                                                                    |
 |:------------------------------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
-| [Crypto](crypto/crypto-trading-basic.ipynb)            | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/alpacahq/alpaca-py/blob/master/examples/crypto/crypto-trading-basic.ipynb)  |
+| [Crypto](crypto-trading-basic.ipynb)            | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/alpacahq/alpaca-py/blob/master/examples/crypto/crypto-trading-basic.ipynb)  |
+|:------------------------------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|

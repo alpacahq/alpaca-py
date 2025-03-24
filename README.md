@@ -262,13 +262,13 @@ For more details, please refer to [our documentation page for options trading](h
 
 There is an example jupyter notebook to explain methods of alpaca-py for options trading.
 
-* [jupyter notebook: options trading basic example with alpaca-py](https://github.com/alpacahq/alpaca-py/blob/master/examples/options-trading-basic.ipynb)
+* [jupyter notebook: options trading basic example with alpaca-py](https://github.com/alpacahq/alpaca-py/blob/master/examples/options/options-trading-basic.ipynb)
 
 ### Jupyter Notebook Library <a name="colab-library"></a>
 
-We have put together some examples in jupyter notebooks so that you can start developing today with alpaca-py right away!
+Explore examples for stocks, options, and crypto using alpaca-py. Notebooks for each asset class are provided in their respective directories!
 
-* [Stocks](https://github.com/alpacahq/alpaca-py/blob/master/examples/stocks-trading-basic.ipynb)
-* [Options](https://github.com/alpacahq/alpaca-py/blob/master/examples/options-trading-basic.ipynb)
-* [Crypto](https://github.com/alpacahq/alpaca-py/blob/master/examples/crypto-trading-basic.ipynb)
-* [Multi-Leg Options](https://github.com/alpacahq/alpaca-py/blob/master/examples/options-trading-mleg.ipynb)
+* [Stocks](https://github.com/alpacahq/alpaca-py/blob/master/examples/stocks/README.md)
+* [Crypto](https://github.com/alpacahq/alpaca-py/blob/master/examples/crypto/README.md)
+* [Options](https://github.com/alpacahq/alpaca-py/blob/master/examples/options/README.md)
+* [Multi-Leg Options](https://github.com/alpacahq/alpaca-py/blob/master/examples/options/README.md)

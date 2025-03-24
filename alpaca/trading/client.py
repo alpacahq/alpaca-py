@@ -222,7 +222,7 @@ class TradingClient(RESTClient):
             order_id (Union[UUID, str]): The unique uuid identifier of the order being cancelled.
 
         Returns:
-            CancelOrderResponse: The HTTP response from the cancel request.
+            None
         """
         order_id = validate_uuid_id_param(order_id, "order_id")
 

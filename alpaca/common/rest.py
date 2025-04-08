@@ -425,6 +425,7 @@ def _get_marketdata_entries(response: HTTPResult, no_sub_key: bool) -> RawData:
         "snapshots",
         "trade",
         "trades",
+        "auctions",
     }
     selected_keys = data_keys.intersection(response)
     # Neither of these should ever happen!

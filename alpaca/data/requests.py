@@ -58,7 +58,12 @@ class BaseTimeseriesDataRequest(NonEmptyRequest):
             data["end"] = data["end"].astimezone(pytz.utc).replace(tzinfo=None)
 
         super().__init__(**data)
+        
+# ############################## Auctions ################################# #
 
+class StockAuctionsRequest(BaseTimeseriesDataRequest):
+    feed: Optional[DataFeed] = None
+    asof: Optional[str] = None
 
 # ############################## Bars ################################# #
 

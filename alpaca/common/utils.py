@@ -33,7 +33,7 @@ def validate_uuid_id_param(
 
 
 def validate_symbol_or_asset_id(
-    symbol_or_asset_id: Union[UUID, str]
+    symbol_or_asset_id: Union[UUID, str],
 ) -> Union[UUID, str]:
     """
     A helper function to eliminate duplicate checks of symbols or asset ids.
@@ -55,7 +55,7 @@ def validate_symbol_or_asset_id(
 
 
 def validate_symbol_or_contract_id(
-    symbol_or_contract_id: Union[UUID, str]
+    symbol_or_contract_id: Union[UUID, str],
 ) -> Union[UUID, str]:
     """
     A helper function to eliminate duplicate checks of symbols or contract id.

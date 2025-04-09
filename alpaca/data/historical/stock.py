@@ -19,7 +19,7 @@ from alpaca.data.requests import (
     StockQuotesRequest,
     StockSnapshotRequest,
     StockTradesRequest,
-    StockAuctionsRequest
+    StockAuctionsRequest,
 )
 
 
@@ -72,7 +72,7 @@ class StockHistoricalDataClient(RESTClient):
             sandbox=sandbox,
             raw_data=raw_data,
         )
-        
+
     def get_stock_auction(self, request_params: StockAuctionsRequest):
         """Returns auction data for an equity or list of equities over a given time period.
 
@@ -86,10 +86,10 @@ class StockHistoricalDataClient(RESTClient):
             path="/stocks/auctions",
             params=request_params.to_request_fields(),
         )
-        
+
         if self._use_raw_data:
             return raw_auctions
-        
+
         return AuctionSet(raw_auctions)
 
     def get_stock_bars(

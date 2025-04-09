@@ -82,3 +82,11 @@ TRADE_CORRECTION_MAPPING: Dict[str, str] = {
     "cc": "corrected_conditions",
     "z": "tape",
 }
+
+AUCTION_MAPPING: Dict[str, str] = {
+    "c": "condition",
+    "p": "price",
+    "s": "size",
+    "t": "timestamp",
+    "x": "exchange",
+}

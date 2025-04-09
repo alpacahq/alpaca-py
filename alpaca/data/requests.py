@@ -60,6 +60,14 @@ class BaseTimeseriesDataRequest(NonEmptyRequest):
         super().__init__(**data)
 
 
+# ############################## Auctions ################################# #
+
+
+class StockAuctionsRequest(BaseTimeseriesDataRequest):
+    feed: Optional[DataFeed] = None
+    asof: Optional[str] = None
+
+
 # ############################## Bars ################################# #
 
 

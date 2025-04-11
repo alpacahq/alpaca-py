@@ -378,7 +378,7 @@ class RESTClient(ABC):
         page_token = params.get("page_token")
 
         while True:
-            actual_limit = None
+            actual_limit = page_limit
 
             # adjusts the limit parameter value if it is over the page_limit
             if limit:

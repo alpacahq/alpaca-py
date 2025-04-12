@@ -73,7 +73,7 @@ class StockHistoricalDataClient(RESTClient):
             raw_data=raw_data,
         )
 
-    def get_stock_auction(self, request_params: StockAuctionsRequest):
+    def get_stock_auctions(self, request_params: StockAuctionsRequest):
         """Returns auction data for an equity or list of equities over a given time period.
 
         Args:

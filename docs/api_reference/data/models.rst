@@ -3,6 +3,18 @@ Models
 ======
 
 
+Auction
+-------
+
+.. autoclass:: alpaca.data.models.auctions.Auction
+
+
+AuctionSet
+----------
+
+.. autoclass:: alpaca.data.models.auctions.AuctionSet
+
+
 Bar
 ---
 

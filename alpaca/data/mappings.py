@@ -89,4 +89,5 @@ AUCTION_MAPPING: Dict[str, str] = {
     "s": "size",
     "t": "timestamp",
     "x": "exchange",
+    "at": "auction_type",
 }

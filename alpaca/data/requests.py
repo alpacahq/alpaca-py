@@ -64,6 +64,21 @@ class BaseTimeseriesDataRequest(NonEmptyRequest):
 
 
 class StockAuctionsRequest(BaseTimeseriesDataRequest):
+    """
+    The request model for retrieving auction data for stocks.
+
+    See BaseTimeseriesDataRequest for more information on available parameters.
+
+    Attributes:
+        symbol_or_symbols (Union[str, List[str]]): The ticker identifier or list of ticker identifiers.
+        start (Optional[datetime]): The beginning of the time interval for desired data. Timezone naive inputs assumed to be in UTC.
+        end (Optional[datetime]): The end of the time interval for desired data. Defaults to now. Timezone naive inputs assumed to be in UTC.
+        limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
+        feed (Optional[DataFeed]): The stock data feed to retrieve from.
+        sort (Optional[Sort]): The chronological order of response based on the timestamp. Defaults to ASC.
+        asof (Optional[str]): The asof date of the queried stock symbol(s) in YYYY-MM-DD format.
+    """
+
     feed: Optional[DataFeed] = None
     asof: Optional[str] = None
 

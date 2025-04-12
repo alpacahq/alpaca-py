@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 from alpaca.common.models import ValidateBaseModel as BaseModel
 from alpaca.common.types import RawData
@@ -12,6 +12,12 @@ class Auction(BaseModel):
 
     Attributes:
         symbol (str): The ticker identifier for the security whose data forms the bar.
+        timestamp (datetime): The timestamp of the auction.
+        condition (str): The condition of the auction.
+        price (float): The price of the auction.
+        size (float): The size of the auction.
+        exchange (str): The exchange of the auction.
+        auction_type (str): The type of auction. OPEN or CLOSE.
 
     """
 
@@ -21,6 +27,7 @@ class Auction(BaseModel):
     price: float
     size: float
     exchange: str
+    auction_type: str
 
     def __init__(self, symbol: str, raw_data: RawData) -> None:
         """Instantiates an auction
@@ -69,8 +76,14 @@ class AuctionSet(BaseDataSet, TimeSeriesMixin):
                     o = auction.get("o")
 
                     if c is not None:
+                        for close_auction in c:
+                            if close_auction:
+                                close_auction["at"] = "CLOSE"
                         auction_data.extend(c)
                     if o is not None:
+                        for open_auction in o:
+                            if open_auction:
+                                open_auction["at"] = "OPEN"
                         auction_data.extend(o)
 
                 parsed_auctions[symbol] = [

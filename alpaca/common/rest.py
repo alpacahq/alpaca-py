@@ -376,10 +376,11 @@ class RESTClient(ABC):
         limit = params.get("limit")
         total_items = 0
         page_token = params.get("page_token")
+        actual_limit: Optional[int] = page_limit
+        if path.endswith("/latest") or path.endswith("/snapshots"):
+            actual_limit = None
 
         while True:
-            actual_limit = page_limit
-
             # adjusts the limit parameter value if it is over the page_limit
             if limit:
                 # actual_limit is the adjusted total number of items to query per request

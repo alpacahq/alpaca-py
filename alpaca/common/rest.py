@@ -370,6 +370,7 @@ class RESTClient(ABC):
         path: str,
         params: Dict[str, Any],
         page_limit: int = 10_000,
+        page_size: Optional[int] = None,
         no_sub_key: bool = False,
     ) -> Dict[str, List[Any]]:
         d = defaultdict(list)
@@ -379,6 +380,8 @@ class RESTClient(ABC):
 
         while True:
             actual_limit = None
+            if page_size:
+                actual_limit = min(page_size, page_limit)
 
             # adjusts the limit parameter value if it is over the page_limit
             if limit:

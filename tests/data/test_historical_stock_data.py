@@ -161,7 +161,7 @@ def test_multisymbol_get_bars(reqmock, stock_client: StockHistoricalDataClient):
     _end_in_url = urllib.parse.quote_plus(end.replace(tzinfo=timezone.utc).isoformat())
 
     reqmock.get(
-        f"https://data.alpaca.markets/v2/stocks/bars?timeframe={timeframe}&start={_start_in_url}&end={_end_in_url}&symbols={_symbols_in_url}",
+        f"https://data.alpaca.markets/v2/stocks/bars?timeframe={timeframe}&start={_start_in_url}&end={_end_in_url}&symbols={_symbols_in_url}&limit=10000",
         text="""
     {
         "bars": {
@@ -352,7 +352,7 @@ def test_multisymbol_quotes(reqmock, stock_client: StockHistoricalDataClient):
     )
 
     reqmock.get(
-        f"https://data.alpaca.markets/v2/stocks/quotes?start={_start_in_url}&symbols={_symbols_in_url}&asof=-",
+        f"https://data.alpaca.markets/v2/stocks/quotes?start={_start_in_url}&symbols={_symbols_in_url}&asof=-&limit=10000",
         text="""
     {
         "quotes": {
@@ -519,7 +519,7 @@ def test_multisymbol_get_trades(reqmock, stock_client: StockHistoricalDataClient
     )
 
     reqmock.get(
-        f"https://data.alpaca.markets/v2/stocks/trades?start={_start_in_url}&symbols={_symbols_in_url}",
+        f"https://data.alpaca.markets/v2/stocks/trades?start={_start_in_url}&symbols={_symbols_in_url}&limit=10000",
         text="""
     {
         "trades": {
@@ -650,6 +650,7 @@ def test_get_latest_trade(reqmock, stock_client: StockHistoricalDataClient):
     assert trade.exchange == Exchange.D
 
     assert reqmock.called_once
+    assert "limit" not in reqmock.last_request.qs
 
 
 def test_get_multisymbol_latest_trade(reqmock, stock_client: StockHistoricalDataClient):
@@ -883,6 +884,7 @@ def test_get_snapshot(reqmock, stock_client: StockHistoricalDataClient):
     assert snapshot.previous_daily_bar.high == 161
 
     assert reqmock.called_once
+    assert "limit" not in reqmock.last_request.qs
 
 
 def test_get_snapshot_multi_empty_response(

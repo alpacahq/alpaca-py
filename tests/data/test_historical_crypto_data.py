@@ -30,7 +30,7 @@ def test_get_crypto_bars(reqmock, crypto_client: CryptoHistoricalDataClient):
     )
     _end_in_url = urllib.parse.quote_plus(end.replace(tzinfo=timezone.utc).isoformat())
     reqmock.get(
-        f"https://data.alpaca.markets/v1beta3/crypto/us/bars?timeframe={timeframe}&start={_start_in_url}&end={_end_in_url}&symbols={_symbols_in_url}",
+        f"https://data.alpaca.markets/v1beta3/crypto/us/bars?timeframe={timeframe}&start={_start_in_url}&end={_end_in_url}&symbols={_symbols_in_url}&limit=10000",
         text="""
     {
         "bars": {
@@ -89,7 +89,7 @@ def test_get_crypto_quotes(reqmock, crypto_client: CryptoHistoricalDataClient):
     )
     _end_in_url = urllib.parse.quote_plus(end.replace(tzinfo=timezone.utc).isoformat())
     reqmock.get(
-        f"https://data.alpaca.markets/v1beta3/crypto/us/quotes?start={_start_in_url}&end={_end_in_url}&symbols={_symbols_in_url}",
+        f"https://data.alpaca.markets/v1beta3/crypto/us/quotes?start={_start_in_url}&end={_end_in_url}&symbols={_symbols_in_url}&limit=10000",
         text="""
     {
     "quotes": {
@@ -139,7 +139,7 @@ def test_get_crypto_trades(reqmock, crypto_client: CryptoHistoricalDataClient):
     )
 
     reqmock.get(
-        f"https://data.alpaca.markets/v1beta3/crypto/us/trades?start={_start_in_url}&symbols={_symbols_in_url}",
+        f"https://data.alpaca.markets/v1beta3/crypto/us/trades?start={_start_in_url}&symbols={_symbols_in_url}&limit=10000",
         text="""
     {
         "trades": {
@@ -215,6 +215,7 @@ def test_get_crypto_latest_trade(reqmock, crypto_client: CryptoHistoricalDataCli
     assert trade.size == 0.1517
 
     assert reqmock.called_once
+    assert "limit" not in reqmock.last_request.qs
 
 
 def test_get_crypto_latest_quote(reqmock, crypto_client: CryptoHistoricalDataClient):

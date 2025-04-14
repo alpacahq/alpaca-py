@@ -86,10 +86,16 @@ class AuctionSet(BaseDataSet, TimeSeriesMixin):
                                 open_auction["at"] = "OPEN"
                         auction_data.extend(o)
 
-                parsed_auctions[symbol] = [
+                auction_data = [
                     Auction(symbol, auction)
                     for auction in auction_data
                     if auction is not None
                 ]
+
+                auction_data = sorted(
+                    auction_data, key=lambda auction: auction.timestamp, reverse=False
+                )
+
+                parsed_auctions[symbol] = auction_data
 
         super().__init__(data=parsed_auctions)

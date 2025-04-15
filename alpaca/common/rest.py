@@ -374,22 +374,19 @@ class RESTClient(ABC):
         no_sub_key: bool = False,
     ) -> Dict[str, List[Any]]:
         d = defaultdict(list)
+        # Missing page_size indicates that we should not set a limit (e.g. for latest endpoints)
+        actual_limit = min(page_size, page_limit) if page_size else None
         limit = params.get("limit")
         total_items = 0
         page_token = params.get("page_token")
 
         while True:
-            actual_limit = None
-            if page_size:
-                actual_limit = min(page_size, page_limit)
-
             # adjusts the limit parameter value if it is over the page_limit
             if limit:
                 # actual_limit is the adjusted total number of items to query per request
                 actual_limit = min(int(limit) - total_items, page_limit)
                 if actual_limit < 1:
                     break
-
             params["limit"] = actual_limit
             params["page_token"] = page_token
 

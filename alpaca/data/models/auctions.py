@@ -3,6 +3,7 @@ from typing import Dict, List
 
 from alpaca.common.models import ValidateBaseModel as BaseModel
 from alpaca.common.types import RawData
+from alpaca.common.enums import Sort
 from alpaca.data.mappings import AUCTION_MAPPING
 from alpaca.data.models.base import BaseDataSet, TimeSeriesMixin
 
@@ -56,13 +57,13 @@ class AuctionSet(BaseDataSet, TimeSeriesMixin):
 
     data: Dict[str, List[Auction]] = {}
 
-    def __init__(self, raw_data: RawData) -> None:
+    def __init__(self, raw_data: RawData, sort: Sort) -> None:
         """A collection of Auctions.
 
         Args:
             raw_data (RawData): The collection of raw auction data from API keyed by Symbol.
+            sort (Sort): The sort order of the auctions.
         """
-
         parsed_auctions = {}
 
         raw_auctions = raw_data
@@ -75,27 +76,33 @@ class AuctionSet(BaseDataSet, TimeSeriesMixin):
                     c = auction.get("c")
                     o = auction.get("o")
 
-                    if c is not None:
-                        for close_auction in c:
-                            if close_auction:
-                                close_auction["at"] = "CLOSE"
-                        auction_data.extend(c)
-                    if o is not None:
-                        for open_auction in o:
-                            if open_auction:
-                                open_auction["at"] = "OPEN"
-                        auction_data.extend(o)
+                    if sort == Sort.DESC:
+                        if c is not None:
+                            for close_auction in c:
+                                if close_auction:
+                                    close_auction["at"] = "CLOSE"
+                            auction_data.extend(c)
+                        if o is not None:
+                            for open_auction in o:
+                                if open_auction:
+                                    open_auction["at"] = "OPEN"
+                            auction_data.extend(o)
+                    else:  # NOTE: None and ASC are the same
+                        if o is not None:
+                            for open_auction in o:
+                                if open_auction:
+                                    open_auction["at"] = "OPEN"
+                            auction_data.extend(o)
+                        if c is not None:
+                            for close_auction in c:
+                                if close_auction:
+                                    close_auction["at"] = "CLOSE"
+                            auction_data.extend(c)
 
-                auction_data = [
+                parsed_auctions[symbol] = [
                     Auction(symbol, auction)
                     for auction in auction_data
                     if auction is not None
                 ]
-
-                auction_data = sorted(
-                    auction_data, key=lambda auction: auction.timestamp, reverse=False
-                )
-
-                parsed_auctions[symbol] = auction_data
 
         super().__init__(data=parsed_auctions)

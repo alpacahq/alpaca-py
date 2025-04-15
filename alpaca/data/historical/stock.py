@@ -90,7 +90,7 @@ class StockHistoricalDataClient(RESTClient):
         if self._use_raw_data:
             return raw_auctions
 
-        return AuctionSet(raw_auctions)
+        return AuctionSet(raw_auctions, request_params.sort)
 
     def get_stock_bars(
         self, request_params: StockBarsRequest

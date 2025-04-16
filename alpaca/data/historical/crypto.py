@@ -94,6 +94,7 @@ class CryptoHistoricalDataClient(RESTClient):
         raw_bars = self._get_marketdata(
             path=f"/crypto/{feed.value}/bars",
             params=request_params.to_request_fields(),
+            page_size=10_000,
         )
 
         if self._use_raw_data:
@@ -118,6 +119,7 @@ class CryptoHistoricalDataClient(RESTClient):
         raw_quotes = self._get_marketdata(
             path=f"/crypto/{feed.value}/quotes",
             params=request_params.to_request_fields(),
+            page_size=10_000,
         )
 
         if self._use_raw_data:
@@ -143,6 +145,7 @@ class CryptoHistoricalDataClient(RESTClient):
         raw_trades = self._get_marketdata(
             path=f"/crypto/{feed.value}/trades",
             params=request_params.to_request_fields(),
+            page_size=10_000,
         )
 
         if self._use_raw_data:

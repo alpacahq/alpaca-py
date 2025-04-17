@@ -15,6 +15,12 @@ StockBarsRequest
 .. autoclass:: alpaca.data.requests.StockBarsRequest
 
 
+StockAuctionsRequest
+--------------------
+
+.. autoclass:: alpaca.data.requests.StockAuctionsRequest
+
+
 StockQuotesRequest
 ------------------
 

@@ -192,6 +192,8 @@ class OptionHistoricalDataClient(RESTClient):
         raw_snapshots = self._get_marketdata(
             path=f"/options/snapshots",
             params=request_params.to_request_fields(),
+            page_limit=1000,
+            page_size=1000,
         )
 
         if self._use_raw_data:
@@ -218,6 +220,8 @@ class OptionHistoricalDataClient(RESTClient):
         raw_snapshots = self._get_marketdata(
             path=f"/options/snapshots/{request_params.underlying_symbol}",
             params=params,
+            page_limit=1000,
+            page_size=1000,
         )
 
         if self._use_raw_data:

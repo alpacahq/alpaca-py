@@ -780,7 +780,7 @@ def test_get_snapshot(reqmock, option_client: OptionHistoricalDataClient):
     symbol = "AAPL240126P00050000"
 
     reqmock.get(
-        f"https://data.alpaca.markets/v1beta1/options/snapshots?symbols={symbol}",
+        f"https://data.alpaca.markets/v1beta1/options/snapshots?symbols={symbol}&limit=1000",
         text="""
     {
         "snapshots": {
@@ -845,7 +845,7 @@ def test_get_snapshot_latest_quote_only(
     symbol = "AAPL240126P00050000"
 
     reqmock.get(
-        f"https://data.alpaca.markets/v1beta1/options/snapshots?symbols={symbol}",
+        f"https://data.alpaca.markets/v1beta1/options/snapshots?symbols={symbol}&limit=1000",
         text="""
     {
         "snapshots": {
@@ -889,7 +889,7 @@ def test_get_snapshot_with_feed(reqmock, option_client: OptionHistoricalDataClie
     symbol = "AAPL240126P00050000"
 
     reqmock.get(
-        f"https://data.alpaca.markets/v1beta1/options/snapshots?symbols={symbol}&feed=indicative",
+        f"https://data.alpaca.markets/v1beta1/options/snapshots?symbols={symbol}&feed=indicative&limit=1000",
         text="""
     {
         "snapshots": {
@@ -956,7 +956,7 @@ def test_get_snapshot_single_empty_response(
     symbol = "AAPL240126P00050000"
 
     reqmock.get(
-        f"https://data.alpaca.markets/v1beta1/options/snapshots?symbols={symbol}",
+        f"https://data.alpaca.markets/v1beta1/options/snapshots?symbols={symbol}&limit=1000",
         text="""
     {
         "snapshots":{}
@@ -981,7 +981,7 @@ def test_get_snapshot_multi_empty_response(
     symbol = "AAPL240126P00050000"
 
     reqmock.get(
-        f"https://data.alpaca.markets/v1beta1/options/snapshots?symbols={symbol}",
+        f"https://data.alpaca.markets/v1beta1/options/snapshots?symbols={symbol}&limit=1000",
         text="""
     {
         "snapshots":{}

@@ -987,8 +987,8 @@ class GetEventsRequest(NonEmptyRequest):
     id: Optional[str] = None
     since: Optional[Union[date, str]] = None
     until: Optional[Union[date, str]] = None
-    since_id: Optional[int] = None
-    until_id: Optional[int] = None
+    since_id: Optional[Union[int, str]] = None
+    until_id: Optional[Union[int, str]] = None
 
 
 # ############################## Rebalancing ################################# #

@@ -1895,12 +1895,18 @@ class BrokerClient(RESTClient):
         for event in client.events():
             yield event.data
 
-    def get_trade_events(self, filter: Optional[GetEventsRequest] = None) -> Iterator:
+    def get_trade_events(
+        self,
+        filter: Optional[GetEventsRequest] = None,
+        api_version: Optional[str] = None,
+    ) -> Iterator:
         """
         Subscribes to SSE stream for trade events.
 
         Args:
             filter: The arguments for filtering the events stream.
+            api_version: The API version for the endpoint.
+                If None, the value specified when the BrokerClient instance was created is used.
 
         Returns:
             Iterator: Yields events as they arrive
@@ -1910,7 +1916,9 @@ class BrokerClient(RESTClient):
         if filter:
             params = filter.to_request_fields()
 
-        url = self._base_url + "/" + self._api_version + "/events/trades"
+        url = (
+            self._base_url + "/" + (api_version or self._api_version) + "/events/trades"
+        )
 
         response = self._session.get(
             url=url,

@@ -88,6 +88,7 @@ class OptionHistoricalDataClient(RESTClient):
         raw_bars = self._get_marketdata(
             path=f"/options/bars",
             params=request_params.to_request_fields(),
+            page_size=10_000,
         )
 
         if self._use_raw_data:
@@ -168,6 +169,7 @@ class OptionHistoricalDataClient(RESTClient):
         raw_trades = self._get_marketdata(
             path=f"/options/trades",
             params=request_params.to_request_fields(),
+            page_size=10_000,
         )
 
         if self._use_raw_data:
@@ -190,6 +192,8 @@ class OptionHistoricalDataClient(RESTClient):
         raw_snapshots = self._get_marketdata(
             path=f"/options/snapshots",
             params=request_params.to_request_fields(),
+            page_limit=1000,
+            page_size=1000,
         )
 
         if self._use_raw_data:
@@ -216,6 +220,8 @@ class OptionHistoricalDataClient(RESTClient):
         raw_snapshots = self._get_marketdata(
             path=f"/options/snapshots/{request_params.underlying_symbol}",
             params=params,
+            page_limit=1000,
+            page_size=1000,
         )
 
         if self._use_raw_data:

@@ -54,6 +54,8 @@ class NewsClient(RESTClient):
         raw_news = self._get_marketdata(
             path=f"/news",
             params=request_params.to_request_fields(),
+            page_limit=50,
+            page_size=50,
         )
         if self._use_raw_data:
             return raw_news

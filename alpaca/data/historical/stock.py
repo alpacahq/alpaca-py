@@ -87,6 +87,7 @@ class StockHistoricalDataClient(RESTClient):
         raw_bars = self._get_marketdata(
             path="/stocks/bars",
             params=request_params.to_request_fields(),
+            page_size=10_000,
         )
 
         if self._use_raw_data:
@@ -108,6 +109,7 @@ class StockHistoricalDataClient(RESTClient):
         raw_quotes = self._get_marketdata(
             path="/stocks/quotes",
             params=request_params.to_request_fields(),
+            page_size=10_000,
         )
 
         if self._use_raw_data:
@@ -129,6 +131,7 @@ class StockHistoricalDataClient(RESTClient):
         raw_trades = self._get_marketdata(
             path="/stocks/trades",
             params=request_params.to_request_fields(),
+            page_size=10_000,
         )
 
         if self._use_raw_data:

@@ -64,6 +64,7 @@ class CorporateActionsClient(RESTClient):
             path="/corporate-actions",
             params=params,
             page_limit=1000,
+            page_size=1000,
         )
         if self._use_raw_data:
             return response

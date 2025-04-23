@@ -18,7 +18,7 @@ def test_get_news(reqmock, news_client: NewsClient):
         start.replace(tzinfo=timezone.utc).isoformat()
     )
     reqmock.get(
-        f"https://data.alpaca.markets/v1beta1/news?symbols={symbols}&start={_start_in_url}&page_token={_next_page_token_in_url}",
+        f"https://data.alpaca.markets/v1beta1/news?symbols={symbols}&start={_start_in_url}&page_token={_next_page_token_in_url}&limit=50",
         text="""
 {
   "news": [
@@ -58,7 +58,7 @@ def test_get_news(reqmock, news_client: NewsClient):
     )
 
     reqmock.get(
-        f"https://data.alpaca.markets/v1beta1/news?symbols={symbols}&start={_start_in_url}&page_token=MTczMDk3MTEwMTAwMDAwMDAwMHw0MTc5OTExNQ==",
+        f"https://data.alpaca.markets/v1beta1/news?symbols={symbols}&start={_start_in_url}&page_token=MTczMDk3MTEwMTAwMDAwMDAwMHw0MTc5OTExNQ==&limit=50",
         text="""
 {
   "news": [

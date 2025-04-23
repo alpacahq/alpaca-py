@@ -14,4 +14,4 @@ Open them in Google Colab to jumpstart your development journey!
 
 | Notebook                                      | Open in Google Colab                                                                                                                                                                         |
 |:----------------------------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
-| [BTC/USD Swing Trade](crypto-btc-usd-swing-trade.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/alpacahq/alpaca-py/blob/master/examples/crypto/crypto-btc-usd-swing-trade.ipynb.ipynb)|
+| [BTC/USD Swing Trade](crypto-btc-usd-swing-trade.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/alpacahq/alpaca-py/blob/master/examples/crypto/crypto-btc-usd-swing-trade.ipynb)|

@@ -59,11 +59,13 @@ class DataFeed(str, Enum):
     Attributes:
         IEX (str): Investor's exchange data feed
         SIP (str): Securities Information Processor feed
+        DELAYED_SIP (str): SIP data with a 15 minute delay
         OTC (str): Over the counter feed
     """
 
     IEX = "iex"
     SIP = "sip"
+    DELAYED_SIP = "delayed_sip"
     OTC = "otc"
 
 

@@ -1,5 +1,6 @@
 import datetime
 import ipaddress
+import logging
 import os.path
 import tempfile
 from datetime import date
@@ -17,6 +18,8 @@ from alpaca.broker.requests import (
 )
 from alpaca.common.constants import BROKER_DOCUMENT_UPLOAD_LIMIT
 from alpaca.common.enums import BaseURL
+
+log = logging.getLogger(__name__)
 
 
 def test_get_trade_documents_for_account(reqmock, client: BrokerClient):
@@ -251,7 +254,7 @@ def test_download_trade_document_for_account_by_id(reqmock, client: BrokerClient
 
     with tempfile.TemporaryDirectory() as tempdir:
         tempname = os.path.join(tempdir, "test.pdf")
-        print(tempname)
+        log.info("keyboard interrupt, bye")
 
         client.download_trade_document_for_account_by_id(
             account_id=account_id, document_id=document_id, file_path=tempname

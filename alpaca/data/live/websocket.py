@@ -7,6 +7,7 @@ from typing import Callable, Dict, List, Optional, Tuple, Union
 import msgpack
 import websockets
 from pydantic import BaseModel
+
 try:
     from websockets.asyncio import client as ws_client
 except ImportError:

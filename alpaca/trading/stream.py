@@ -6,6 +6,7 @@ from typing import Callable, Dict, Optional, Union
 
 import websockets
 from pydantic import BaseModel
+
 try:
     from websockets.asyncio import client as ws_client
 except ImportError:
@@ -60,9 +61,7 @@ class TradingStream:
             self._websocket_params = websocket_params
 
     async def _connect(self):
-        self._ws = await ws_client.connect(
-            self._endpoint, **self._websocket_params
-        )
+        self._ws = await ws_client.connect(self._endpoint, **self._websocket_params)
 
     async def _auth(self):
         await self._ws.send(

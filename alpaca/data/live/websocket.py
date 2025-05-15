@@ -7,7 +7,11 @@ from typing import Callable, Dict, List, Optional, Tuple, Union
 import msgpack
 import websockets
 from pydantic import BaseModel
-from websockets.legacy import client as websockets_legacy
+try:
+    from websockets.asyncio import client as ws_client
+except ImportError:
+    from websockets import client as ws_client
+
 
 from alpaca import __version__
 from alpaca.common.types import RawData
@@ -95,7 +99,7 @@ class DataStream:
         }
 
         log.info(f"connecting to {self._endpoint}")
-        self._ws = await websockets_legacy.connect(
+        self._ws = await ws_client.connect(
             self._endpoint,
             extra_headers=extra_headers,
             **self._websocket_params,

@@ -6,7 +6,10 @@ from typing import Callable, Dict, Optional, Union
 
 import websockets
 from pydantic import BaseModel
-from websockets.legacy import client as websockets_legacy
+try:
+    from websockets.asyncio import client as ws_client
+except ImportError:
+    from websockets import client as ws_client
 
 from alpaca.common import RawData
 from alpaca.common.enums import BaseURL
@@ -57,7 +60,7 @@ class TradingStream:
             self._websocket_params = websocket_params
 
     async def _connect(self):
-        self._ws = await websockets_legacy.connect(
+        self._ws = await ws_client.connect(
             self._endpoint, **self._websocket_params
         )
 

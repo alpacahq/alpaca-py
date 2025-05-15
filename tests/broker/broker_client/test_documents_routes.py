@@ -254,7 +254,7 @@ def test_download_trade_document_for_account_by_id(reqmock, client: BrokerClient
 
     with tempfile.TemporaryDirectory() as tempdir:
         tempname = os.path.join(tempdir, "test.pdf")
-        log.info("keyboard interrupt, bye")
+        log.info(tempname)
 
         client.download_trade_document_for_account_by_id(
             account_id=account_id, document_id=document_id, file_path=tempname

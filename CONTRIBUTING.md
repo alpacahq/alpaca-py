@@ -15,7 +15,7 @@ and will result in us having to ask you to fill out the missing information or c
 > **NOTE** that we can only solve issues with the SDK, if you are trying to report an issue with the API itself, then
 > please open an issue over [here](https://github.com/alpacahq/Alpaca-API) instead.
 
-## How to I contribute code?
+## How do I contribute code?
 
 1. Please fork this repo and create a branch for your changes
 2. Please read the README steps on setting up the dev environment so that things like git pre-commit hooks are run on

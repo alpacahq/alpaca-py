@@ -30,7 +30,7 @@ providing API keys. However, if you do provide API keys, your rate limit will be
 Historical Data
 ---------------
 
-There are 2 historical data clients: ``StockHistoricalDataClient``, ``CryptoHistoricalDataClient``, and ``OptionHistoricalDataClient``.
+There are 3 historical data clients: ``StockHistoricalDataClient``, ``CryptoHistoricalDataClient``, and ``OptionHistoricalDataClient``.
 The crypto data client does not require API keys to use.
 
 

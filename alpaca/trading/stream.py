@@ -209,7 +209,7 @@ class TradingStream:
         try:
             asyncio.run(self._run_forever())
         except KeyboardInterrupt:
-            print("keyboard interrupt, bye")
+            log.info("keyboard interrupt, bye")
             pass
 
     def _ensure_coroutine(self, handler: Callable) -> None:

@@ -365,7 +365,7 @@ class DataStream:
         try:
             asyncio.run(self._run_forever())
         except KeyboardInterrupt:
-            print("keyboard interrupt, bye")
+            log.info("keyboard interrupt, bye")
             pass
         finally:
             self.stop()

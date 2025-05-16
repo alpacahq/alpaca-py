@@ -310,7 +310,7 @@ class PortfolioHistory(BaseModel):
         equity (List[float]): Equity value of the account in dollar amount as of the end of each time window.
         profit_loss (List[float]): Profit/loss in dollar from the base value.
         profit_loss_pct (List[Optional[float]]): Profit/loss in percentage from the base value.
-        base_value (float): Basis in dollar of the profit loss calculation.
+        base_value (Optional[float]): Basis in dollar of the profit loss calculation.
         timeframe (str): Time window size of each data element.
         cashflow (Dict[ActivityType, List[float]]): Cash flow amounts per activity type, if any.
     """
@@ -319,7 +319,7 @@ class PortfolioHistory(BaseModel):
     equity: List[float]
     profit_loss: List[float]
     profit_loss_pct: List[Optional[float]]
-    base_value: float
+    base_value: Optional[float] = None
     timeframe: str
     cashflow: Dict[ActivityType, List[float]] = {}
 

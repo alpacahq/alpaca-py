@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from typing import Optional
 from uuid import UUID
 
@@ -58,6 +58,7 @@ class Journal(ModelWithID):
     transmitter_financial_institution: Optional[str] = None
     transmitter_timestamp: Optional[str] = None
     currency: Optional[SupportedCurrencies] = None
+    created_at: Optional[datetime] = None
 
 
 class BatchJournalResponse(Journal):

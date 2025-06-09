@@ -156,7 +156,8 @@ def main():
     df_trend = None
 
     # remembers whether the market was open in the previous iteration
-    market_open = False
+    clock = trade_client.get_clock()
+    market_open = clock.is_open
 
     # Set tracking signal flags over a predefined window
     global rsi_bounce_bar, macd_cross_bar, rsi_retreat_bar, macd_death_cross_bar, macd_centerline_bar, current_bar_index

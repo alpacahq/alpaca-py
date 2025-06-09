@@ -29,6 +29,10 @@ This project is an example automated trading bot for US equities using Alpaca's 
 - **Order Execution:** Submits market orders, logs to `trade_log.txt`.
 - **Scheduling:** Sleeps until the next scheduled run (e.g., top of the next hour).
 
+## Trading Bot Scheduling Logic
+
+The trading bot implemented in `strategy.py` is designed to execute its main trading logic **once per hour, at the top of each hour**, as long as the market is open. After each cycle, the script calculates the next top of the hour and pauses until that time. This ensures that trading decisions and data fetching are performed on an hourly basis, rather than continuously or at a higher frequency. The script checks the market status before each cycle and will only run while the market is open.
+
 ## Setup
 
 1. **Create the EC2 instance (e.g., Ubuntu) from the AWS EC2 console.**

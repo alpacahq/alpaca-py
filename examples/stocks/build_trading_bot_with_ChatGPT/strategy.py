@@ -1,22 +1,24 @@
 # Import standard library modules
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
+import logging
 import os
 import time
-import logging
-from dotenv import load_dotenv
 
-# Import third-party modules
+# Import third party modules
+from dotenv import load_dotenv
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-
 
 # Import Alpaca modules
+from alpaca.data.historical.stock import (
+    StockHistoricalDataClient,
+    StockLatestTradeRequest,
+)
 from alpaca.data.requests import StockBarsRequest
 from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
 from alpaca.trading.client import TradingClient
-from alpaca.data.historical.stock import StockHistoricalDataClient, StockLatestTradeRequest
 from alpaca.trading.enums import (
     AssetClass,
     AssetStatus,
@@ -26,6 +28,7 @@ from alpaca.trading.enums import (
     TimeInForce,
 )
 from alpaca.trading.requests import LimitOrderRequest, MarketOrderRequest
+
 
 # Set the local timezone
 NY_TZ = ZoneInfo('America/New_York')

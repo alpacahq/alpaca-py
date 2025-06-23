@@ -1,14 +1,15 @@
 # Import standard library modules
-from datetime import datetime, timedelta, timezone
-from zoneinfo import ZoneInfo
 import logging
 import os
 import time
+from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 
 # Import third party modules
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from dotenv import load_dotenv
 
 # Import Alpaca modules
 from alpaca.data.historical.stock import (
@@ -59,8 +60,10 @@ macd_centerline_bar = None
 current_bar_index = 0
 
 # Load environment variables
-API_KEY = os.getenv("ALPACA_API_KEY")
-API_SECRET = os.getenv("ALPACA_SECRET_KEY") 
+# Please safely store your API keys and never commit them to the repository (use .gitignore)
+load_dotenv()
+API_KEY = os.getenv("ALPACA_PAPER_API_KEY")
+API_SECRET = os.getenv("ALPACA_PAPER_SECRET_KEY") 
 PAPER = os.getenv("PAPER", "True")  # Default to paper trading (Returns "True" if PAPER not set)
 trade_api_url = os.getenv("TRADE_API_URL")
 

@@ -6,7 +6,6 @@ import os
 import time
 
 # Import third party modules
-from dotenv import load_dotenv
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -33,7 +32,7 @@ from alpaca.trading.requests import LimitOrderRequest, MarketOrderRequest
 # Set the local timezone
 NY_TZ = ZoneInfo('America/New_York')
 
-# Select the underlying stock (Johnson & Johnson)
+# Select the stock (ProShares UltraPro QQQ)
 underlying_symbol = 'TQQQ'
 
 # Strategy Parameters
@@ -59,12 +58,11 @@ macd_death_cross_bar = None
 macd_centerline_bar = None
 current_bar_index = 0
 
-# Load environment variables from .env file
-load_dotenv(dotenv_path='/home/ubuntu/{new_folder_name}/.env')
+# Load environment variables
 API_KEY = os.getenv("ALPACA_API_KEY")
-API_SECRET = os.getenv("ALPACA_SECRET_KEY")
-PAPER = os.getenv("PAPER")  # Default to paper trading
-trade_api_url = os.get("trade_api_url")
+API_SECRET = os.getenv("ALPACA_SECRET_KEY") 
+PAPER = os.getenv("PAPER", "True")  # Default to paper trading (Returns "True" if PAPER not set)
+trade_api_url = os.getenv("TRADE_API_URL")
 
 if not API_KEY or not API_SECRET:
     raise RuntimeError("Missing Alpaca API credentials in environment variables.")
@@ -149,12 +147,6 @@ def main():
     )
     logging.info("=== Strategy started ===")
 
-    # Initialize variables to track last update times
-    last_main_update = None
-    last_trend_update = None
-    df_main = None
-    df_trend = None
-
     # remembers whether the market was open in the previous iteration
     clock = trade_client.get_clock()
     market_open = clock.is_open
@@ -186,7 +178,7 @@ def main():
         # Detect if the market is closed (e.g., at script start or unexpected state), exit to prevent trading.
         if not clock.is_open:
             logging.info("Market is closed. Exiting.")
-            break
+            exit(0)
         
         # Fetch data
         df_main = fetch_bars(stock_data_client, underlying_symbol, TIMEFRAME_MAIN, days=300)
@@ -257,10 +249,13 @@ def main():
                 )
                 res = trade_client.submit_order(req)
                 logging.info(
-                    "BUY order submitted: %s qty=%d price≈%.2f",
+                    "BUY ORDER SUBMITTED - Symbol: %s | Qty: %d | Est.Price: $%.2f | OrderID: %s | ClientOrderID: %s | SubmittedAt: %s",
                     underlying_symbol,
                     position_size,
-                    current_price
+                    current_price,
+                    res.id,
+                    res.client_order_id,
+                    res.submitted_at
                 )
                 # Reset entry signals
                 rsi_bounce_bar = None
@@ -293,10 +288,13 @@ def main():
                 )
                 res = trade_client.submit_order(req)
                 logging.info(
-                    "SELL order submitted: %s qty=%d price≈%.2f",
+                    "SELL ORDER SUBMITTED - Symbol: %s | Qty: %d | Est.Price: $%.2f | OrderID: %s | ClientOrderID: %s | SubmittedAt: %s",
                     underlying_symbol,
+                    current_qty,
                     current_price,
-                    current_price
+                    res.id,
+                    res.client_order_id,
+                    res.submitted_at
                 )
                 # Reset exit signals
                 rsi_retreat_bar = None

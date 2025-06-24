@@ -64,14 +64,14 @@ current_bar_index = 0
 load_dotenv()
 API_KEY = os.getenv("ALPACA_PAPER_API_KEY")
 API_SECRET = os.getenv("ALPACA_PAPER_SECRET_KEY") 
-PAPER = os.getenv("PAPER", "True")  # Default to paper trading (Returns "True" if PAPER not set)
+ALPACA_PAPER_TRADE = os.getenv("PAPER", "True")  # Default to paper trading (Returns "True" if PAPER not set)
 trade_api_url = os.getenv("TRADE_API_URL")
 
 if not API_KEY or not API_SECRET:
     raise RuntimeError("Missing Alpaca API credentials in environment variables.")
 
 # setup trading clients
-trade_client = TradingClient(api_key=API_KEY, secret_key=API_SECRET, paper=PAPER, url_override=trade_api_url)
+trade_client = TradingClient(api_key=API_KEY, secret_key=API_SECRET, paper=ALPACA_PAPER_TRADE, url_override=trade_api_url)
 stock_data_client = StockHistoricalDataClient(api_key=API_KEY, secret_key=API_SECRET)
 
 # Helper: Pause execution until the specified UTC datetime.

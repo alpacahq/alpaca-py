@@ -34,6 +34,7 @@ from alpaca.broker.enums import (
     TransferTiming,
     JournalEntryType,
 )
+from alpaca.trading.enums import ActivityType
 from tests.broker.factories import create_dummy_w8ben_document
 from uuid import uuid4
 
@@ -95,6 +96,22 @@ def test_get_account_activities_request_validates_date_parameters_for_conflicts(
         req.until = datetime.now()
 
     assert "Cannot set date and until at the same time" in str(e.value)
+
+
+def test_get_account_activities_request_to_request_fields():
+    req = GetAccountActivitiesRequest()
+
+    assert req.to_request_fields() == {}
+
+    req = GetAccountActivitiesRequest(activity_types=[ActivityType.DIV])
+
+    assert req.to_request_fields() == {"activity_types": "DIV"}
+
+    req = GetAccountActivitiesRequest(
+        activity_types=[ActivityType.DIV, ActivityType.DIVNRA]
+    )
+
+    assert req.to_request_fields() == {"activity_types": "DIV,DIVNRA"}
 
 
 def test_trade_document_sub_type_empty_str_to_none():

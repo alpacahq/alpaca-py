@@ -50,7 +50,7 @@ TIMEFRAME_MAIN   = TimeFrameUnit.Hour   # Suggested trading timeframe
 TIMEFRAME_TREND  = TimeFrameUnit.Day    # Trend‑defining timeframe
 
 
-# Set tracking signal glags over a predefined window
+# Set tracking signal lags over a predefined window
 WINDOW_SIZE = 5
 rsi_bounce_bar = None
 macd_cross_bar = None

@@ -64,7 +64,7 @@ current_bar_index = 0
 load_dotenv()
 API_KEY = os.getenv("ALPACA_PAPER_API_KEY")
 API_SECRET = os.getenv("ALPACA_PAPER_SECRET_KEY") 
-ALPACA_PAPER_TRADE = os.getenv("PAPER", "True")  # Default to paper trading (Returns "True" if PAPER not set)
+ALPACA_PAPER_TRADE = os.getenv("ALPACA_PAPER_TRADE", "True")  # Default to paper trading (Returns "True" if ALPACA_PAPER_TRADE not set)
 trade_api_url = os.getenv("TRADE_API_URL")
 
 if not API_KEY or not API_SECRET:

@@ -1,0 +1,7 @@
+numpy
+pandas
+matplotlib
+alpaca-py
+python-dateutil
+pytz
+python-dotenv

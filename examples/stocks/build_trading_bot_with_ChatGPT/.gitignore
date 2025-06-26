@@ -1,0 +1,54 @@
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+#IDE configs
+.idea
+.vscode/
+
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Trading bot generated files
+trade_log.txt
+*.log
+
+# Data files (if any CSV/JSON data gets saved)
+*.csv
+*.json
+data/
+backtest_results/
+
+# Temporary files
+*.tmp
+*.temp
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Backup files
+*.bak
+*.backup
+*~

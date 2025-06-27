@@ -2,7 +2,7 @@ from datetime import date, datetime
 from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
-from pydantic import field_validator, model_validator
+from pydantic import field_serializer, field_validator, model_validator
 
 from alpaca.broker.enums import (
     AccountEntities,
@@ -395,6 +395,11 @@ class GetAccountActivitiesRequest(NonEmptyRequest):
             raise ValueError("Cannot set date and until at the same time")
 
         return values
+
+    @field_serializer("activity_types")
+    def serialize_activity_types(self, activity_types: Optional[List[ActivityType]]):
+        if activity_types:
+            return ",".join([t.value for t in activity_types])
 
 
 # ############################## Documents ################################# #

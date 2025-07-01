@@ -61,12 +61,16 @@ class DataFeed(str, Enum):
         SIP (str): Securities Information Processor feed
         DELAYED_SIP (str): SIP data with a 15 minute delay
         OTC (str): Over the counter feed
+        BOATS (str): Blue Ocean, overnight US trading data
+        OVERNIGHT (str): derived overnight US trading data
     """
 
     IEX = "iex"
     SIP = "sip"
     DELAYED_SIP = "delayed_sip"
     OTC = "otc"
+    BOATS = "boats"
+    OVERNIGHT = "overnight"
 
 
 class Adjustment(str, Enum):

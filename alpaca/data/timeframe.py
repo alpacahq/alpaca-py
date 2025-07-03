@@ -36,7 +36,7 @@ class TimeFrame:
     amount_value: int
     unit_value: TimeFrameUnit
 
-    def __init__(self, amount, unit) -> None:
+    def __init__(self, amount: int, unit: TimeFrameUnit) -> None:
         self.validate_timeframe(amount, unit)
         self.amount_value = amount
         self.unit_value = unit

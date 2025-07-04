@@ -1,5 +1,8 @@
 from datetime import datetime
 
+from alpaca.broker import Account
+from tests.broker.factories import accounts as factory
+
 import pytest
 
 from alpaca.broker.requests import (
@@ -483,3 +486,10 @@ def test_journal_with_amount_and_qty():
         )
 
     assert "Cash journals must contain an amount to transfer." in str(e.value)
+
+
+def test_account_serialization_deserialization():
+    account = factory.create_dummy_account()
+    json_str = account.model_dump_json()
+    account2 = Account.model_validate_json(json_str)
+    assert account2 == account

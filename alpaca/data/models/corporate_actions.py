@@ -1,7 +1,7 @@
 from datetime import date
 from typing import Dict, List, Optional, Union
 
-from alpaca.common.models import ValidateBaseModel as BaseModel
+from alpaca.common.models import ModelWithID as BaseModel
 from alpaca.common.types import RawData
 from alpaca.data.models.base import BaseDataSet, TimeSeriesMixin
 
@@ -9,6 +9,7 @@ from alpaca.data.models.base import BaseDataSet, TimeSeriesMixin
 class ForwardSplit(BaseModel):
     corporate_action_type: str
     symbol: str
+    cusip: str
     new_rate: float
     old_rate: float
     process_date: date
@@ -21,6 +22,8 @@ class ForwardSplit(BaseModel):
 class ReverseSplit(BaseModel):
     corporate_action_type: str
     symbol: str
+    old_cusip: str
+    new_cusip: str
     new_rate: float
     old_rate: float
     process_date: date
@@ -32,10 +35,13 @@ class ReverseSplit(BaseModel):
 class UnitSplit(BaseModel):
     corporate_action_type: str
     old_symbol: str
+    old_cusip: str
     old_rate: float
     new_symbol: str
+    new_cusip: str
     new_rate: float
     alternate_symbol: str
+    alternate_cusip: str
     alternate_rate: float
     process_date: date
     effective_date: date
@@ -45,6 +51,7 @@ class UnitSplit(BaseModel):
 class StockDividend(BaseModel):
     corporate_action_type: str
     symbol: str
+    cusip: str
     rate: float
     process_date: date
     ex_date: date
@@ -55,6 +62,7 @@ class StockDividend(BaseModel):
 class CashDividend(BaseModel):
     corporate_action_type: str
     symbol: str
+    cusip: str
     rate: float
     special: bool
     foreign: bool
@@ -69,12 +77,13 @@ class CashDividend(BaseModel):
 class SpinOff(BaseModel):
     corporate_action_type: str
     source_symbol: str
+    source_cusip: str
     source_rate: float
     new_symbol: str
+    new_cusip: str
     new_rate: float
     process_date: date
     ex_date: date
-    payable_date: Optional[date] = None
     record_date: Optional[date] = None
     payable_date: Optional[date] = None
     due_bill_redemption_date: Optional[date] = None
@@ -83,7 +92,9 @@ class SpinOff(BaseModel):
 class CashMerger(BaseModel):
     corporate_action_type: str
     acquirer_symbol: Optional[str] = None
+    acquirer_cusip: Optional[str] = None
     acquiree_symbol: str
+    acquiree_cusip: str
     rate: float
     process_date: date
     effective_date: date
@@ -93,8 +104,10 @@ class CashMerger(BaseModel):
 class StockMerger(BaseModel):
     corporate_action_type: str
     acquirer_symbol: str
+    acquirer_cusip: str
     acquirer_rate: float
     acquiree_symbol: str
+    acquiree_cusip: str
     acquiree_rate: float
     process_date: date
     effective_date: date
@@ -104,8 +117,10 @@ class StockMerger(BaseModel):
 class StockAndCashMerger(BaseModel):
     corporate_action_type: str
     acquirer_symbol: str
+    acquirer_cusip: str
     acquirer_rate: float
     acquiree_symbol: str
+    acquiree_cusip: str
     acquiree_rate: float
     cash_rate: float
     process_date: date
@@ -116,6 +131,7 @@ class StockAndCashMerger(BaseModel):
 class Redemption(BaseModel):
     corporate_action_type: str
     symbol: str
+    cusip: str
     rate: float
     process_date: date
     payable_date: Optional[date] = None
@@ -124,20 +140,25 @@ class Redemption(BaseModel):
 class NameChange(BaseModel):
     corporate_action_type: str
     old_symbol: str
+    old_cusip: str
     new_symbol: str
+    new_cusip: str
     process_date: date
 
 
 class WorthlessRemoval(BaseModel):
     corporate_action_type: str
     symbol: str
+    cusip: str
     process_date: date
 
 
 class RightsDistribution(BaseModel):
     corporate_action_type: str
     source_symbol: str
+    source_cusip: str
     new_symbol: str
+    new_cusip: str
     rate: float
     process_date: date
     ex_date: date

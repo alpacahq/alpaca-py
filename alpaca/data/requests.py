@@ -561,16 +561,20 @@ class CorporateActionsRequest(NonEmptyRequest):
 
     Attributes:
         symbols (Optional[List[str]]): The list of ticker identifiers.
+        cusips (Optional[List[str]]): The list of CUSIPs.
         types (Optional[List[CorporateActionsType]]): The types of corporate actions to filter by. (default: all types)
         start (Optional[date]): The inclusive start of the interval. Format: YYYY-MM-DD. (default: current day)
         end (Optional[date])): The inclusive end of the interval. Format: YYYY-MM-DD. (default: current day)
+        ids (Optional[List[str]]): The list of corporate action IDs. This parameter is mutually exclusive with all other filters (symbols, types, start, end).
         limit (Optional[int]): Upper limit of number of data points to return. (default: 1000)
         sort (Optional[Sort]): The chronological order of response based on the timestamp. Defaults to ASC.
     """
 
     symbols: Optional[List[str]] = None
+    cusips: Optional[List[str]] = None
     types: Optional[List[CorporateActionsType]] = None
     start: Optional[date] = None
     end: Optional[date] = None
+    ids: Optional[List[str]] = None
     limit: Optional[int] = 1000
     sort: Optional[Sort] = Sort.ASC

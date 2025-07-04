@@ -306,7 +306,7 @@ class PortfolioHistory(BaseModel):
     Contains information about the value of a portfolio over time.
 
     Attributes:
-        timestamp (List[int]): Time of each data element, left-labeled (the beginning of time window).
+        timestamp (List[int]): Time of each data element, right-labeled (the end of the time window).
         equity (List[float]): Equity value of the account in dollar amount as of the end of each time window.
         profit_loss (List[float]): Profit/loss in dollar from the base value.
         profit_loss_pct (List[Optional[float]]): Profit/loss in percentage from the base value.

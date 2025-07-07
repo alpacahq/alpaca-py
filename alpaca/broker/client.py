@@ -1010,6 +1010,20 @@ class BrokerClient(RESTClient):
 
         return BrokerClient._return_paginated_result(iterator, handle_pagination)
 
+    def get_transfers_for_account_page(
+        self,
+        account_id: Union[UUID, str],
+        transfers_filter: Optional[GetTransfersRequest] = None,
+    ) -> List[Transfer]:
+        account_id = validate_uuid_id_param(account_id)
+        request_fields = transfers_filter.to_request_fields() if transfers_filter else {}
+        result = self.get(f"/accounts/{account_id}/transfers", request_fields)
+
+        if self._use_raw_data:
+            return result
+
+        return TypeAdapter(List[Transfer]).validate_python(result)
+
     def _get_transfers_iterator(
         self,
         account_id: UUID,

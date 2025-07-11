@@ -994,35 +994,30 @@ class BrokerClient(RESTClient):
               classes.
         """
         account_id = validate_uuid_id_param(account_id)
-        handle_pagination = BrokerClient._validate_pagination(
+        transfers_filter = transfers_filter if transfers_filter is not None else GetTransfersRequest() #
+
+        # Validate pagination type first. This also sets default to FULL if handle_pagination is None.
+        validated_pagination_type = BrokerClient._validate_pagination(
             max_items_limit, handle_pagination
         )
 
-        iterator = self._get_transfers_iterator(
-            account_id=account_id,
-            transfers_filter=(
-                transfers_filter
-                if transfers_filter is not None
-                else GetTransfersRequest()
-            ),
-            max_items_limit=max_items_limit,
-        )
+        if validated_pagination_type == PaginationType.NONE:
+            # For PaginationType.NONE, make a single request and return the result directly.
+            # This respects the offset and limit set in the transfers_filter.
+            request_fields = transfers_filter.to_request_fields() #
+            response = self.get(f"/accounts/{account_id}/transfers", request_fields) #
 
-        return BrokerClient._return_paginated_result(iterator, handle_pagination)
-
-    def get_transfers_for_account_page(
-        self,
-        account_id: Union[UUID, str],
-        transfers_filter: Optional[GetTransfersRequest] = None,
-    ) -> List[Transfer]:
-        account_id = validate_uuid_id_param(account_id)
-        request_fields = transfers_filter.to_request_fields() if transfers_filter else {}
-        result = self.get(f"/accounts/{account_id}/transfers", request_fields)
-
-        if self._use_raw_data:
-            return result
-
-        return TypeAdapter(List[Transfer]).validate_python(result)
+            if self._use_raw_data:
+                return response
+            return TypeAdapter(List[Transfer]).validate_python(response) #
+        else:
+            # For FULL or ITERATOR, use the existing iterator logic.
+            iterator = self._get_transfers_iterator( #
+                account_id=account_id,
+                transfers_filter=transfers_filter, # Pass the original filter
+                max_items_limit=max_items_limit,
+            )
+            return BrokerClient._return_paginated_result(iterator, validated_pagination_type) 
 
     def _get_transfers_iterator(
         self,

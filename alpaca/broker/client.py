@@ -1019,7 +1019,7 @@ class BrokerClient(RESTClient):
             )
             return BrokerClient._return_paginated_result(iterator, validated_pagination_type) 
 
-    def _get_transfers_iterator(a
+    def _get_transfers_iterator(
         self,
         account_id: UUID,
         transfers_filter: GetTransfersRequest,

@@ -994,7 +994,6 @@ class BrokerClient(RESTClient):
               classes.
         """
         account_id = validate_uuid_id_param(account_id)
-        transfers_filter = transfers_filter if transfers_filter is not None else GetTransfersRequest() #
 
         # Validate pagination type first. This also sets default to FULL if handle_pagination is None.
         validated_pagination_type = BrokerClient._validate_pagination(
@@ -1022,7 +1021,7 @@ class BrokerClient(RESTClient):
     def _get_transfers_iterator(
         self,
         account_id: UUID,
-        transfers_filter: GetTransfersRequest,
+        transfers_filter: GetTransfersaRequest,
         max_items_limit: Optional[int],
     ) -> Iterator[List[Transfer]]:
         """

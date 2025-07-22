@@ -1,12 +1,12 @@
 from typing import List
 
+import pytest
+
 from alpaca.common.enums import BaseURL
-from alpaca.trading.enums import CorporateActionType
-from alpaca.trading.models import (
-    CorporateActionAnnouncement,
-)
-from alpaca.trading.requests import GetCorporateAnnouncementsRequest
 from alpaca.trading.client import TradingClient
+from alpaca.trading.enums import CorporateActionType
+from alpaca.trading.models import CorporateActionAnnouncement
+from alpaca.trading.requests import GetCorporateAnnouncementsRequest
 
 
 def test_get_announcements(reqmock, trading_client: TradingClient):
@@ -71,7 +71,8 @@ def test_get_announcements(reqmock, trading_client: TradingClient):
         ca_types=[ca_types], since=since, until=until
     )
 
-    response = trading_client.get_corporate_announcements(ca_filter)
+    with pytest.deprecated_call():
+        response = trading_client.get_corporate_announcements(ca_filter)
 
     assert reqmock.called_once
     assert isinstance(response, List)

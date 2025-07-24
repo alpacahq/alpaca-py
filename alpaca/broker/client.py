@@ -1003,20 +1003,22 @@ class BrokerClient(RESTClient):
         if validated_pagination_type == PaginationType.NONE:
             # For PaginationType.NONE, make a single request and return the result directly.
             # This respects the offset and limit set in the transfers_filter.
-            request_fields = transfers_filter.to_request_fields() #
-            response = self.get(f"/accounts/{account_id}/transfers", request_fields) #
+            request_fields = transfers_filter.to_request_fields()  #
+            response = self.get(f"/accounts/{account_id}/transfers", request_fields)  #
 
             if self._use_raw_data:
                 return response
-            return TypeAdapter(List[Transfer]).validate_python(response) #
+            return TypeAdapter(List[Transfer]).validate_python(response)  #
         else:
             # For FULL or ITERATOR, use the existing iterator logic.
-            iterator = self._get_transfers_iterator( #
+            iterator = self._get_transfers_iterator(  #
                 account_id=account_id,
-                transfers_filter=transfers_filter, # Pass the original filter
+                transfers_filter=transfers_filter,  # Pass the original filter
                 max_items_limit=max_items_limit,
             )
-            return BrokerClient._return_paginated_result(iterator, validated_pagination_type) 
+            return BrokerClient._return_paginated_result(
+                iterator, validated_pagination_type
+            )
 
     def _get_transfers_iterator(
         self,

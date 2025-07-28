@@ -1,47 +1,47 @@
-from uuid import UUID
-from pydantic import TypeAdapter
 import json
+import warnings
+from typing import List, Optional, Union
+from uuid import UUID
+
+from pydantic import TypeAdapter
 
 from alpaca.common import RawData
+from alpaca.common.enums import BaseURL
+from alpaca.common.rest import RESTClient
 from alpaca.common.utils import (
+    validate_symbol_or_asset_id,
     validate_symbol_or_contract_id,
     validate_uuid_id_param,
-    validate_symbol_or_asset_id,
 )
-from alpaca.common.rest import RESTClient
-from typing import Optional, List, Union
-from alpaca.common.enums import BaseURL
-
-from alpaca.trading.requests import (
-    GetCalendarRequest,
-    ClosePositionRequest,
-    GetAssetsRequest,
-    GetOptionContractsRequest,
-    GetPortfolioHistoryRequest,
-    OrderRequest,
-    GetOrdersRequest,
-    ReplaceOrderRequest,
-    GetOrderByIdRequest,
-    CancelOrderResponse,
-    CreateWatchlistRequest,
-    UpdateWatchlistRequest,
-    GetCorporateAnnouncementsRequest,
-)
-
 from alpaca.trading.models import (
+    AccountConfiguration,
+    Asset,
+    Calendar,
+    Clock,
+    ClosePositionResponse,
+    CorporateActionAnnouncement,
     OptionContract,
     OptionContractsResponse,
     Order,
     PortfolioHistory,
     Position,
-    ClosePositionResponse,
-    Asset,
-    Watchlist,
-    Clock,
-    Calendar,
     TradeAccount,
-    CorporateActionAnnouncement,
-    AccountConfiguration,
+    Watchlist,
+)
+from alpaca.trading.requests import (
+    CancelOrderResponse,
+    ClosePositionRequest,
+    CreateWatchlistRequest,
+    GetAssetsRequest,
+    GetCalendarRequest,
+    GetCorporateAnnouncementsRequest,
+    GetOptionContractsRequest,
+    GetOrderByIdRequest,
+    GetOrdersRequest,
+    GetPortfolioHistoryRequest,
+    OrderRequest,
+    ReplaceOrderRequest,
+    UpdateWatchlistRequest,
 )
 
 
@@ -678,12 +678,23 @@ class TradingClient(RESTClient):
         self, filter: GetCorporateAnnouncementsRequest
     ) -> Union[List[CorporateActionAnnouncement], RawData]:
         """
+        DEPRECATED: Please use the new corporate actions endpoint instead.
+        alpaca.data.historical.corporate_actions.CorporateActionsClient.get_corporate_actions()
+        ref. https://docs.alpaca.markets/reference/corporateactions-1
+
         Returns corporate action announcements data given specified search criteria.
+
         Args:
             filter (GetCorporateAnnouncementsRequest): The parameters to filter the search by.
         Returns:
             List[CorporateActionAnnouncement]: The resulting announcements from the search.
         """
+        warnings.warn(
+            "get_corporate_announcements is deprecated and will be removed in a future version."
+            "Please use alpaca.data.historical.corporate_actions.CorporateActionsClient.get_corporate_actions() instead",
+            DeprecationWarning,
+        )
+
         params = filter.to_request_fields() if filter else {}
 
         if "ca_types" in params and isinstance(params["ca_types"], list):

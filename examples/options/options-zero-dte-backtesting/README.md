@@ -81,7 +81,19 @@ API keys are loaded differently based on the environment:
   - **Google Colab**: Uses [Colab's Secrets feature](https://x.com/GoogleColab/status/1719798406195867814) (set keys in the left sidebar) .
   - **Local IDE (e.g. VS Code, PyCharm)**: Uses environment variables from a `.env` file.
    
+### 3. (For Google Colab Usage) Use Colab's Secrets feature to store environment variables
 
+For Colab usage, you do not need to use an environment file like `.env`.
+  1. Open Google Colab, and go to Secrets.
+  2. Enter the Name (e.g., ALPACA_API_KEY) and Value for each API key. While the Value can be changed, the Name cannot be modified.
+  3. Toggle Notebook access.
+  4. For using them in the notebook, the notebook uses the given code with the name of your API keys.
+      ```python
+      from google.colab import userdata
+      ALPACA_API_KEY = userdata.get("ALPACA_API_KEY")
+      ALPACA_SECRET_KEY = userdata.get("ALPACA_SECRET_KEY")
+      DATABENTO_API_KEY = userdata.get("DATABENTO_API_KEY")
+      ```
 
 ### 3. (For Local IDE Usage) Create and edit a .env file in your project directory to store environment variables
  1. Copy the example environment file in the project root by running this command:
@@ -96,20 +108,6 @@ API keys are loaded differently based on the environment:
     ALPACA_PAPER_TRADE=True
     DATABENTO_API_KEY=your_databento_api_key
     ```
-
-### 3. (For Google Colab Usage) Use Colab's Secrets feature to store environment variables
-
-For Colab usage, you do not need to use an environment file like `.env`.
-  1. Open Google Colab, and go to Secrets.
-  2. Enter the Name (e.g., ALPACA_API_KEY) and Value for each API key. While the Value can be changed, the Name cannot be modified.
-  3. Toggle Notebook access.
-  4. For using them in the notebook, use the given code with the name of your API keys.
-      ```python
-      from google.colab import userdata
-      ALPACA_API_KEY = userdata.get("ALPACA_API_KEY")
-      ALPACA_SECRET_KEY = userdata.get("ALPACA_SECRET_KEY")
-      DATABENTO_API_KEY = userdata.get("DATABENTO_API_KEY")
-      ```
 
 ### 4. Python Dependencies (Optional)
 
@@ -157,7 +155,7 @@ This section outlines the default values for the bull put spread strategy on 0DT
 - **Long Put Delta**: -0.40 to -0.20 (configurable)  
 - **Spread Width**: $2-$4 (configurable)
 - **Expiration**: Same day (0DTE)
-- **Time Window**: 13:30-20:00 UTC (9:30-16:00 ET) for regular market hours
+- **Time Window**: 9:30-16:00 ET for regular market hours (note: 16:15 ET for late close options contracts)
 
 ### Exit Conditions (Priority Order)
 1. **Profit Target**: 50% of credit received by defult (configurable)

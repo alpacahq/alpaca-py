@@ -183,6 +183,7 @@ class TradingStream:
                 log.exception(
                     "error during websocket " "communication: {}".format(str(e))
                 )
+                raise e
             finally:
                 await asyncio.sleep(0.01)
 

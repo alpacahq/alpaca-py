@@ -183,6 +183,7 @@ class AssetClass(str, Enum):
     US_EQUITY = "us_equity"
     US_OPTION = "us_option"
     CRYPTO = "crypto"
+    CRYPTO_PERP = "crypto_perp"
 
 
 class AssetStatus(str, Enum):
@@ -201,6 +202,7 @@ class AssetExchange(str, Enum):
 
     AMEX = "AMEX"
     ARCA = "ARCA"
+    ASCX = "ASCX"
     BATS = "BATS"
     NYSE = "NYSE"
     NASDAQ = "NASDAQ"

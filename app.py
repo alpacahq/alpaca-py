@@ -91,7 +91,7 @@ def submit_order(order: OrderIn, x_api_key: Optional[str] = Header(None)):
 def list_orders(status: str = Query("open"), x_api_key: Optional[str] = Header(None)):
     check_key(x_api_key)
     tc = trading_client()
-    orders = tc.get_orders(status=status)
+    orders = tc.get_orders()
     return [o.model_dump() for o in orders]
 
 @app.get("/v1/orders/{order_id}")
@@ -209,3 +209,4 @@ def get_bars(symbol: str, timeframe: str = Query("1Day"), start: str = Query(...
 @app.get("/openapi.yaml")
 def spec():
     return FileResponse("openapi.yaml")
+

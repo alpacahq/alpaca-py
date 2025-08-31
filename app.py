@@ -1,31 +1,37 @@
 import os
 import re
 from datetime import datetime
-from fastapi import FastAPI, Header, HTTPException, Query
+from typing import List, Optional
+from fastapi import FastAPI, Header, HTTPException, Query, Path
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from alpaca.trading.client import TradingClient
-from alpaca.trading.requests import MarketOrderRequest, LimitOrderRequest
 from alpaca.trading.enums import OrderSide, TimeInForce
+from alpaca.trading.requests import (
+    MarketOrderRequest, LimitOrderRequest,
+    CreateWatchlistRequest, UpdateWatchlistRequest
+)
 from alpaca.data.historical import StockHistoricalDataClient
-from alpaca.data.requests import StockBarsRequest
+from alpaca.data.requests import (
+    StockBarsRequest, StockQuotesRequest, StockTradesRequest
+)
 from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
 
 app = FastAPI(title="Alpaca Wrapper")
 
-def check_key(x_api_key: str | None):
+def check_key(x_api_key: Optional[str]):
     service_key = os.getenv("X_API_KEY")
     if not service_key or x_api_key != service_key:
         raise HTTPException(status_code=401, detail="Invalid API key")
 
-def trading_client():
+def trading_client() -> TradingClient:
     return TradingClient(
         api_key=os.environ["APCA_API_KEY_ID"],
         secret_key=os.environ["APCA_API_SECRET_KEY"],
-        paper=("paper" in os.environ.get("APCA_API_BASE_URL", "")),
+        paper=("paper" in os.environ.get("APCA_API_BASE_URL", ""))
     )
 
-def md_client():
+def md_client() -> StockHistoricalDataClient:
     return StockHistoricalDataClient(
         api_key=os.environ["APCA_API_KEY_ID"],
         secret_key=os.environ["APCA_API_SECRET_KEY"]
@@ -41,12 +47,12 @@ class OrderIn(BaseModel):
     limit_price: float | None = None
 
 def parse_timeframe(tf_str: str) -> TimeFrame:
-    m = re.match(r"^(\d+)([A-Za-z]+)$", tf_str)
+    m = re.match(r"^(\\d+)([A-Za-z]+)$", tf_str)
     if not m:
         raise HTTPException(status_code=400, detail="Invalid timeframe format")
     amount = int(m.group(1))
-    unit_str = m.group(2).lower()
-    unit_map = {
+    unit = m.group(2).lower()
+    units = {
         "min": TimeFrameUnit.Minute,
         "minute": TimeFrameUnit.Minute,
         "hour": TimeFrameUnit.Hour,
@@ -54,37 +60,141 @@ def parse_timeframe(tf_str: str) -> TimeFrame:
         "week": TimeFrameUnit.Week,
         "month": TimeFrameUnit.Month,
     }
-    if unit_str not in unit_map:
+    if unit not in units:
         raise HTTPException(status_code=400, detail="Unsupported timeframe unit")
-    return TimeFrame(amount, unit_map[unit_str])
+    return TimeFrame(amount, units[unit])
 
 @app.get("/healthz")
-def healthz():
-    return {"ok": True}
+def healthz(): return {"ok": True}
 
+# -- Orders
 @app.post("/v1/order")
-def place_order(inp: OrderIn, x_api_key: str | None = Header(None)):
+def submit_order(order: OrderIn, x_api_key: Optional[str] = Header(None)):
     check_key(x_api_key)
     tc = trading_client()
-    side = OrderSide.BUY if inp.side.lower() == "buy" else OrderSide.SELL
-    tif = TimeInForce(inp.time_in_force.upper())
-    if inp.type.lower() == "market":
-        req = MarketOrderRequest(symbol=inp.symbol, qty=inp.qty, notional=inp.notional,
+    side = OrderSide.BUY if order.side.lower() == "buy" else OrderSide.SELL
+    tif = TimeInForce(order.time_in_force.upper())
+    if order.type.lower() == "market":
+        req = MarketOrderRequest(symbol=order.symbol, qty=order.qty, notional=order.notional,
                                  side=side, time_in_force=tif)
-    elif inp.type.lower() == "limit":
-        if inp.limit_price is None:
-            raise HTTPException(status_code=400, detail="limit_price required for limit orders")
-        req = LimitOrderRequest(symbol=inp.symbol, qty=inp.qty, side=side,
-                                time_in_force=tif, limit_price=inp.limit_price)
+    elif order.type.lower() == "limit":
+        if order.limit_price is None:
+            raise HTTPException(400, "limit_price required for limit orders")
+        req = LimitOrderRequest(symbol=order.symbol, qty=order.qty,
+                                side=side, time_in_force=tif, limit_price=order.limit_price)
     else:
-        raise HTTPException(status_code=400, detail="unsupported order type")
-    order = tc.submit_order(order_data=req)
-    return order.model_dump() if hasattr(order, "model_dump") else order.__dict__
+        raise HTTPException(400, "unsupported order type")
+    o = tc.submit_order(order_data=req)
+    return o.model_dump() if hasattr(o, "model_dump") else o.__dict__
+
+@app.get("/v1/orders")
+def list_orders(status: str = Query("open"), x_api_key: Optional[str] = Header(None)):
+    check_key(x_api_key)
+    tc = trading_client()
+    orders = tc.get_orders(status=status)
+    return [o.model_dump() for o in orders]
+
+@app.get("/v1/orders/{order_id}")
+def get_order(order_id: str, x_api_key: Optional[str] = Header(None)):
+    check_key(x_api_key)
+    tc = trading_client()
+    o = tc.get_order_by_id(order_id)
+    return o.model_dump() if hasattr(o, "model_dump") else o.__dict__
+
+@app.delete("/v1/orders/{order_id}")
+def cancel_order(order_id: str, x_api_key: Optional[str] = Header(None)):
+    check_key(x_api_key)
+    tc = trading_client()
+    return tc.cancel_order(order_id)
+
+# -- Account
+@app.get("/v1/account")
+def get_account(x_api_key: Optional[str] = Header(None)):
+    check_key(x_api_key)
+    acct = trading_client().get_account()
+    return acct.model_dump() if hasattr(acct, "model_dump") else acct.__dict__
+
+# -- Positions
+@app.get("/v1/positions")
+def list_positions(x_api_key: Optional[str] = Header(None)):
+    check_key(x_api_key)
+    positions = trading_client().get_all_positions()
+    return [p.model_dump() for p in positions]
+
+@app.get("/v1/positions/{symbol}")
+def get_position(symbol: str, x_api_key: Optional[str] = Header(None)):
+    check_key(x_api_key)
+    pos = trading_client().get_open_position(symbol)
+    return pos.model_dump() if hasattr(pos, "model_dump") else pos.__dict__
+
+@app.delete("/v1/positions/{symbol}")
+def close_position(symbol: str, cancel_orders: bool = Query(False), x_api_key: Optional[str] = Header(None)):
+    check_key(x_api_key)
+    return trading_client().close_position(symbol, cancel_orders=cancel_orders)
+
+@app.delete("/v1/positions")
+def close_all_positions(cancel_orders: bool = Query(False), x_api_key: Optional[str] = Header(None)):
+    check_key(x_api_key)
+    return trading_client().close_all_positions(cancel_orders=cancel_orders)
+
+# -- Watchlists
+@app.get("/v1/watchlists")
+def list_watchlists(x_api_key: Optional[str] = Header(None)):
+    check_key(x_api_key)
+    wls = trading_client().get_watchlists()
+    return [wl.model_dump() for wl in wls]
+
+class WatchlistIn(BaseModel):
+    name: str
+    symbols: List[str]
+
+@app.post("/v1/watchlists")
+def create_watchlist(w: WatchlistIn, x_api_key: Optional[str] = Header(None)):
+    check_key(x_api_key)
+    req = CreateWatchlistRequest(name=w.name, symbols=w.symbols)
+    wl = trading_client().create_watchlist(req)
+    return wl.model_dump()
+
+@app.get("/v1/watchlists/{watchlist_id}")
+def get_watchlist(watchlist_id: str, x_api_key: Optional[str] = Header(None)):
+    check_key(x_api_key)
+    wl = trading_client().get_watchlist(watchlist_id)
+    return wl.model_dump()
+
+@app.put("/v1/watchlists/{watchlist_id}")
+def update_watchlist(watchlist_id: str, w: WatchlistIn, x_api_key: Optional[str] = Header(None)):
+    check_key(x_api_key)
+    req = UpdateWatchlistRequest(name=w.name, symbols=w.symbols)
+    wl = trading_client().update_watchlist(watchlist_id, req)
+    return wl.model_dump()
+
+@app.delete("/v1/watchlists/{watchlist_id}")
+def delete_watchlist(watchlist_id: str, x_api_key: Optional[str] = Header(None)):
+    check_key(x_api_key)
+    return trading_client().delete_watchlist(watchlist_id)
+
+# -- Quotes & Trades (basic market data)
+@app.get("/v1/quotes")
+def get_quotes(symbol: str, start: str, end: str, x_api_key: Optional[str] = Header(None)):
+    check_key(x_api_key)
+    req = StockQuotesRequest(symbol_or_symbols=[symbol],
+                             start=datetime.fromisoformat(start),
+                             end=datetime.fromisoformat(end))
+    quotes = md_client().get_stock_quotes(req)
+    return quotes.df.reset_index().to_dict(orient="records")
+
+@app.get("/v1/trades")
+def get_trades(symbol: str, start: str, end: str, x_api_key: Optional[str] = Header(None)):
+    check_key(x_api_key)
+    req = StockTradesRequest(symbol_or_symbols=[symbol],
+                             start=datetime.fromisoformat(start),
+                             end=datetime.fromisoformat(end))
+    trades = md_client().get_stock_trades(req)
+    return trades.df.reset_index().to_dict(orient="records")
 
 @app.get("/v1/bars")
-def get_bars(symbol: str = Query(...), timeframe: str = Query("1Day"),
-             start: str = Query(...), end: str | None = None,
-             x_api_key: str | None = Header(None)):
+def get_bars(symbol: str, timeframe: str = Query("1Day"), start: str = Query(...),
+             end: Optional[str] = None, x_api_key: Optional[str] = Header(None)):
     check_key(x_api_key)
     tf = parse_timeframe(timeframe)
     req = StockBarsRequest(

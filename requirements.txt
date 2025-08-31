@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+alpaca-py
+pandas
+fastapi
+uvicorn[standard]
+alpaca-py
+pandas
+python-dotenv

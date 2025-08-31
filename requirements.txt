@@ -7,3 +7,5 @@ uvicorn[standard]
 alpaca-py
 pandas
 python-dotenv
+pydantic
+requests

@@ -3,7 +3,7 @@ info:
   title: Alpaca Wrapper
   version: "1.0.0"
 servers:
-  - url: https://YOUR-RAILWAY-DOMAIN.up.railway.app
+  - url: https://literate-potato-production-6d05.up.railway.app
 paths:
   /v1/order:
     post:

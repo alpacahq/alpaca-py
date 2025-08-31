@@ -73,7 +73,7 @@ def submit_order(order: OrderIn, x_api_key: Optional[str] = Header(None)):
     check_key(x_api_key)
     tc = trading_client()
     side = OrderSide.BUY if order.side.lower() == "buy" else OrderSide.SELL
-    tif = TimeInForce(order.time_in_force.upper())
+    tif = TimeInForce(order.time_in_force.lower())
     if order.type.lower() == "market":
         req = MarketOrderRequest(symbol=order.symbol, qty=order.qty, notional=order.notional,
                                  side=side, time_in_force=tif)
@@ -209,4 +209,5 @@ def get_bars(symbol: str, timeframe: str = Query("1Day"), start: str = Query(...
 @app.get("/openapi.yaml")
 def spec():
     return FileResponse("openapi.yaml")
+
 

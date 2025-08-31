@@ -28,16 +28,16 @@ def trading_client():
 def md_client():
     return StockHistoricalDataClient(
         api_key=os.environ["APCA_API_KEY_ID"],
-        secret_key=os.environ["APCA_API_SECRET_KEY"],
+        secret_key=os.environ["APCA_API_SECRET_KEY"]
     )
 
 class OrderIn(BaseModel):
     symbol: str
-    side: str              # buy | sell
+    side: str
     qty: float | None = None
     notional: float | None = None
-    type: str              # market | limit
-    time_in_force: str     # day | gtc | ...
+    type: str
+    time_in_force: str
     limit_price: float | None = None
 
 def parse_timeframe(tf_str: str) -> TimeFrame:
@@ -91,7 +91,7 @@ def get_bars(symbol: str = Query(...), timeframe: str = Query("1Day"),
         symbol_or_symbols=[symbol],
         timeframe=tf,
         start=datetime.fromisoformat(start),
-        end=datetime.fromisoformat(end) if end else None,
+        end=datetime.fromisoformat(end) if end else None
     )
     bars = md_client().get_stock_bars(req)
     return bars.df.reset_index().to_dict(orient="records")

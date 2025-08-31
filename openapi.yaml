@@ -1,0 +1,92 @@
+openapi: 3.1.0
+info:
+  title: Alpaca Wrapper
+  version: "1.0.0"
+servers:
+  - url: https://YOUR-RAILWAY-DOMAIN.up.railway.app
+paths:
+  /v1/order:
+    post:
+      summary: Place order via Alpaca
+      operationId: placeOrder
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderIn'
+      responses:
+        "200":
+          description: Successful response
+  /v1/bars:
+    get:
+      summary: Get historical bars
+      operationId: getBars
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: symbol
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: timeframe
+          in: query
+          required: false
+          schema:
+            type: string
+            default: "1Day"
+        - name: start
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: end
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
+  schemas:
+    OrderIn:
+      type: object
+      required:
+        - symbol
+        - side
+        - type
+        - time_in_force
+      properties:
+        symbol:
+          type: string
+        side:
+          type: string
+          enum: [buy, sell]
+        qty:
+          type: number
+        notional:
+          type: number
+        type:
+          type: string
+          enum: [market, limit]
+        time_in_force:
+          type: string
+        limit_price:
+          type: number

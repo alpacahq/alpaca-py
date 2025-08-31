@@ -47,7 +47,7 @@ class OrderIn(BaseModel):
     limit_price: float | None = None
 
 def parse_timeframe(tf_str: str) -> TimeFrame:
-    m = re.match(r"^(\\d+)([A-Za-z]+)$", tf_str)
+    m = re.match(r'^(\d+)([A-Za-z]+)$', tf_str)
     if not m:
         raise HTTPException(status_code=400, detail="Invalid timeframe format")
     amount = int(m.group(1))

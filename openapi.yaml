@@ -3,7 +3,7 @@ info:
   title: Alpaca Wrapper
   version: "1.0.0"
 servers:
-  - url: https://literate-potato-production-6d05.up.railway.app
+  - url: https://alpaca-py-production.up.railway.app
 paths:
   /v1/order:
     post:
@@ -195,3 +195,5 @@ components:
           type: array
           items: { type: string }
 # redeploy trigger 2025-08-31T15:27:40
+
+

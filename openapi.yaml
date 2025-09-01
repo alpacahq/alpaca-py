@@ -1,3 +1,4 @@
+openapi: "3.1.0"
 $13.1.0
 info:
   title: Alpaca Wrapper
@@ -195,6 +196,7 @@ components:
           type: array
           items: { type: string }
 # redeploy trigger 2025-08-31T15:27:40
+
 
 
 

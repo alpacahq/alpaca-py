@@ -1,0 +1,16 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "Alpaca Wrapper",
+  "name_for_model": "alpaca_wrapper",
+  "description_for_human": "Trade via Alpaca: orders, positions, watchlists, bars/quotes/trades.",
+  "description_for_model": "HTTP API for Alpaca trading and market data. Requires x-api-key header.",
+  "auth": { "type": "none" },
+  "api": {
+    "type": "openapi",
+    "url": "https://alpaca-py-production.up.railway.app/openapi.yaml",
+    "is_user_authenticated": false
+  },
+  "logo_url": "https://alpaca-py-production.up.railway.app/logo.png",
+  "contact_email": "you@example.com",
+  "legal_info_url": "https://alpaca-py-production.up.railway.app/legal"
+}

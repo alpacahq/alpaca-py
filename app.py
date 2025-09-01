@@ -211,3 +211,28 @@ def spec():
     return FileResponse("openapi.yaml")
 
 
+# --- ChatGPT plugin support ---
+from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+
+try:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["https://chat.openai.com"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+except Exception:
+    pass
+
+try:
+    app.mount("/.well-known", StaticFiles(directory=".well-known"), name="wellknown")
+except Exception:
+    pass
+
+@app.get("/openapi.yaml", include_in_schema=False)
+def _openapi_yaml():
+    return FileResponse("openapi.yaml", media_type="text/yaml")
+# --- end plugin support ---

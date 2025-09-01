@@ -236,3 +236,10 @@ except Exception:
 def _openapi_yaml():
     return FileResponse("openapi.yaml", media_type="text/yaml")
 # --- end plugin support ---
+from fastapi.responses import JSONResponse
+import yaml
+@app.get("/openapi.json", include_in_schema=False)
+def _openapi_json():
+    with open("openapi.yaml", "r", encoding="utf-8") as f:
+        spec = yaml.safe_load(f)
+    return JSONResponse(spec)

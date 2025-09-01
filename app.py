@@ -243,3 +243,38 @@ def _openapi_json():
     with open("openapi.yaml", "r", encoding="utf-8") as f:
         spec = yaml.safe_load(f)
     return JSONResponse(spec)
+# --- GPT Actions OpenAPI patch ---
+from fastapi.responses import PlainTextResponse
+from fastapi.openapi.utils import get_openapi
+import yaml
+
+SERVER_URL = 'https://alpaca-py-production.up.railway.app'
+
+def _custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+    schema = get_openapi(
+        title="Alpaca Wrapper",
+        version="1.0.0",
+        routes=app.routes,
+    )
+    # Force OpenAPI 3.1 and a proper base URL for GPT Actions
+    schema["openapi"] = "3.1.0"
+    schema["servers"] = [{"url": SERVER_URL}]
+    # Ensure security scheme exists (so importer sees the header)
+    schema.setdefault("components", {}).setdefault("securitySchemes", {
+        "ApiKeyAuth": {"type": "apiKey", "in": "header", "name": "x-api-key"}
+    })
+    app.openapi_schema = schema
+    return app.openapi_schema
+
+app.openapi = _custom_openapi
+
+# YAML variant of the same runtime schema (for manual checks)
+@app.get("/openapi.yaml", include_in_schema=False)
+def _openapi_yaml():
+    return PlainTextResponse(
+        yaml.safe_dump(app.openapi(), sort_keys=False, allow_unicode=True),
+        media_type="application/yaml"
+    )
+# --- end patch ---

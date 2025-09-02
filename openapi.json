@@ -11,7 +11,7 @@
           "Orders"
         ],
         "summary": "Place Bracket",
-        "operationId": "placeBracketOrder",
+        "operationId": "place_bracket_v1_order_bracket_post",
         "requestBody": {
           "content": {
             "application/json": {
@@ -50,7 +50,7 @@
           "Orders"
         ],
         "summary": "Place Stop",
-        "operationId": "placeStopOrder",
+        "operationId": "place_stop_v1_order_stop_post",
         "requestBody": {
           "content": {
             "application/json": {
@@ -89,7 +89,7 @@
           "Orders"
         ],
         "summary": "Place Trailing",
-        "operationId": "placeTrailingStopOrder",
+        "operationId": "place_trailing_v1_order_trailing_post",
         "requestBody": {
           "content": {
             "application/json": {

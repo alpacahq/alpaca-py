@@ -1,0 +1,204 @@
+$13.1.0
+info:
+  title: Alpaca Wrapper
+  version: "1.0.0"
+servers:
+  - url: https://alpaca-py-production.up.railway.app
+paths:
+  /v1/order:
+    post:
+      summary: Submit a new order
+      operationId: submitOrder
+      security: [{ ApiKeyAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/OrderIn" }
+      responses:
+        "200": { description: Order created }
+  /v1/orders:
+    get:
+      summary: List orders
+      operationId: listOrders
+      security: [{ ApiKeyAuth: [] }]
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema: { type: string, default: open }
+      responses:
+        "200": { description: Orders list }
+  /v1/orders/{order_id}:
+    get:
+      summary: Get order by ID
+      operationId: getOrderById
+      security: [{ ApiKeyAuth: [] }]
+      parameters:
+        - { name: order_id, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Order detail }
+    delete:
+      summary: Cancel order by ID
+      operationId: cancelOrderById
+      security: [{ ApiKeyAuth: [] }]
+      parameters:
+        - { name: order_id, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Order cancelled }
+  /v1/account:
+    get:
+      summary: Get account details
+      operationId: getAccount
+      security: [{ ApiKeyAuth: [] }]
+      responses:
+        "200": { description: Account info }
+  /v1/positions:
+    get:
+      summary: List open positions
+      operationId: listPositions
+      security: [{ ApiKeyAuth: [] }]
+      responses:
+        "200": { description: Positions list }
+    delete:
+      summary: Close all positions
+      operationId: closeAllPositions
+      security: [{ ApiKeyAuth: [] }]
+      parameters:
+        - { name: cancel_orders, in: query, required: false, schema: { type: boolean, default: false } }
+      responses:
+        "200": { description: Positions closed }
+  /v1/positions/{symbol}:
+    get:
+      summary: Get position
+      operationId: getPosition
+      security: [{ ApiKeyAuth: [] }]
+      parameters:
+        - { name: symbol, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Position detail }
+    delete:
+      summary: Close position
+      operationId: closePosition
+      security: [{ ApiKeyAuth: [] }]
+      parameters:
+        - { name: symbol, in: path, required: true, schema: { type: string } }
+        - { name: cancel_orders, in: query, required: false, schema: { type: boolean, default: false } }
+      responses:
+        "200": { description: Position closed }
+  /v1/watchlists:
+    get:
+      summary: List watchlists
+      operationId: listWatchlists
+      security: [{ ApiKeyAuth: [] }]
+      responses:
+        "200": { description: Watchlists list }
+    post:
+      summary: Create watchlist
+      operationId: createWatchlist
+      security: [{ ApiKeyAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WatchlistIn" }
+      responses:
+        "200": { description: Watchlist created }
+  /v1/watchlists/{watchlist_id}:
+    get:
+      summary: Get watchlist
+      operationId: getWatchlist
+      security: [{ ApiKeyAuth: [] }]
+      parameters:
+        - { name: watchlist_id, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Watchlist detail }
+    put:
+      summary: Update watchlist
+      operationId: updateWatchlist
+      security: [{ ApiKeyAuth: [] }]
+      parameters:
+        - { name: watchlist_id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WatchlistIn" }
+      responses:
+        "200": { description: Watchlist updated }
+    delete:
+      summary: Delete watchlist
+      operationId: deleteWatchlist
+      security: [{ ApiKeyAuth: [] }]
+      parameters:
+        - { name: watchlist_id, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Watchlist deleted }
+  /v1/bars:
+    get:
+      summary: Get historical bars
+      operationId: getBars
+      security: [{ ApiKeyAuth: [] }]
+      parameters:
+        - { name: symbol, in: query, required: true, schema: { type: string } }
+        - { name: timeframe, in: query, required: false, schema: { type: string, default: "1Day" } }
+        - { name: start, in: query, required: true, schema: { type: string, format: date-time } }
+        - { name: end, in: query, required: false, schema: { type: string, format: date-time } }
+      responses:
+        "200": { description: Bars list }
+  /v1/quotes:
+    get:
+      summary: Get historical quotes
+      operationId: getQuotes
+      security: [{ ApiKeyAuth: [] }]
+      parameters:
+        - { name: symbol, in: query, required: true, schema: { type: string } }
+        - { name: start, in: query, required: true, schema: { type: string, format: date-time } }
+        - { name: end, in: query, required: true, schema: { type: string, format: date-time } }
+      responses:
+        "200": { description: Quotes list }
+  /v1/trades:
+    get:
+      summary: Get historical trades
+      operationId: getTrades
+      security: [{ ApiKeyAuth: [] }]
+      parameters:
+        - { name: symbol, in: query, required: true, schema: { type: string } }
+        - { name: start, in: query, required: true, schema: { type: string, format: date-time } }
+        - { name: end, in: query, required: true, schema: { type: string, format: date-time } }
+      responses:
+        "200": { description: Trades list }
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
+  schemas:
+    OrderIn:
+      type: object
+      required: [symbol, side, type, time_in_force]
+      properties:
+        symbol: { type: string }
+        side: { type: string, enum: [buy, sell] }
+        qty: { type: number }
+        notional: { type: number }
+        type: { type: string, enum: [market, limit] }
+        time_in_force: { type: string }
+        limit_price: { type: number }
+    WatchlistIn:
+      type: object
+      required: [name, symbols]
+      properties:
+        name: { type: string }
+        symbols:
+          type: array
+          items: { type: string }
+# redeploy trigger 2025-08-31T15:27:40
+
+
+
+
+
+
+

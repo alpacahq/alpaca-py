@@ -1555,7 +1555,7 @@
   },
   "servers": [
     {
-      "url": "https://<your-railway-domain>"
+      "url": "https://alpaca-py-production.up.railway.app"
     }
   ]
 }

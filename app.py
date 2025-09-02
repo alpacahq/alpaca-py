@@ -316,3 +316,7 @@ except Exception:
 # --- end patch ---
 
 
+
+@app.get('/openapi.json', include_in_schema=False)
+def openapi_json():
+    return FileResponse('openapi.json', media_type='application/json')

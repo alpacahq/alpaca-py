@@ -21,7 +21,9 @@ from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
 app = FastAPI(title="Alpaca Wrapper")
 
 
-app.include_router(advanced_orders_router)def check_key(x_api_key: Optional[str]):
+app.include_router(advanced_orders_router)
+
+def check_key(x_api_key: Optional[str]):
     service_key = os.getenv("X_API_KEY")
     if not service_key or x_api_key != service_key:
         raise HTTPException(status_code=401, detail="Invalid API key")
@@ -312,4 +314,5 @@ try:
 except Exception:
     pass
 # --- end patch ---
+
 

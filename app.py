@@ -1,3 +1,4 @@
+from advanced_orders import router as advanced_orders_router
 import os
 import re
 from datetime import datetime
@@ -19,7 +20,8 @@ from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
 
 app = FastAPI(title="Alpaca Wrapper")
 
-def check_key(x_api_key: Optional[str]):
+
+app.include_router(advanced_orders_router)def check_key(x_api_key: Optional[str]):
     service_key = os.getenv("X_API_KEY")
     if not service_key or x_api_key != service_key:
         raise HTTPException(status_code=401, detail="Invalid API key")
@@ -278,3 +280,36 @@ def _openapi_yaml():
         media_type="application/yaml"
     )
 # --- end patch ---
+# --- Actions/OpenAPI serving (do not use FastAPI auto /openapi.json) ---
+import os, yaml
+from fastapi import Header, HTTPException
+from fastapi.responses import JSONResponse, FileResponse, HTMLResponse
+
+# Optional gate separate from Alpaca creds
+PLUGIN_API_KEY = os.getenv("PLUGIN_API_KEY")
+
+def _require_plugin_key(x_api_key: str | None):
+    if PLUGIN_API_KEY and x_api_key != PLUGIN_API_KEY:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+@app.get("/healthz", include_in_schema=False)
+def _healthz(): return {"ok": True}
+
+# Serve your file-based spec (YAML + JSON)
+@app.get("/openapi.yaml", include_in_schema=False)
+def _spec_yaml(): return FileResponse("openapi.yaml", media_type="text/yaml")
+
+@app.get("/openapi.json", include_in_schema=False)
+def _spec_json():
+    with open("openapi.yaml","r",encoding="utf-8") as f:
+        return JSONResponse(yaml.safe_load(f))
+
+# Remove FastAPI's auto /openapi.json to avoid conflicts
+try:
+    app.openapi_url = None
+    app.docs_url = None
+    app.redoc_url = None
+except Exception:
+    pass
+# --- end patch ---
+

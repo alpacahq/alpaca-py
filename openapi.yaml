@@ -921,4 +921,4 @@ components:
       in: header
       name: x-api-key
 servers:
-- url: http://localhost:8000
+- url: https://<your-railway-domain>

@@ -1,29 +1,34 @@
-# Protection Daemon Logic
-
-## Trailing
-- Trigger: near +1R or threshold (+2–3%).
-- Method: trail by fixed % or ATR multiple; never widen.
-- Steps: move to breakeven at +1R → tighten at +5%, +10% gains.
-- Update cadence: no more than once per bar or on milestones.
-- Implementation: modify stop or cancel+recreate; journal adjustment.
-
-## Time-based exits
-- Intraday strategies: flat before close.
-- Swing: max holding window per strategy; close on expiry.
-- Stagnation rule (optional): exit if no progress after N days.
-- Weekends/holidays: user-configurable; default flat if specified.
-
-## Event risk
-- Earnings: close before event unless user overrides.
-- Macro events: tighten or reduce/exit ahead of high-impact releases.
-- Breaking news: severity filter; alert, tighten, or exit if adverse.
-- Always journal reason: exit_reason = time_exit or event_exit.
-
-## Overrides
-- User may disable trailing/time/event rules per trade.
-- Daemon respects overrides; journals the decision.
-
-## Notifications
-- On exits or major adjustments, notify + journal.
-- Minor trailing updates can be silent but are always logged.
-
+# 07-protection-daemon.md
+version: 2025-09-04
+status: canonical
+scope: risk-protection
+contracts:
+  limits:
+    max_position_pct: 10
+    max_daily_loss_pct: 3
+    max_leverage: 2
+    concentration_pct: 30
+    circuit_breakers: ["halted_symbol","extreme_gap"]
+    earnings_hold: "forbid"          # override requires token: OVERRIDE: EARNINGS
+  evaluate:
+    input: {account, positions[], pnl_day, orders[]}
+    output: {pass|fail, breaches:[{rule, current, limit}], fixes:[{action, min_change}]}
+actions:
+  after_fill:
+    - "ensure OCO exists"
+    - "at >= +1R: consider convert SL->trailing"
+    - "stale swing < +0.5R past window: tighten to breakeven or exit"
+    - "event risk: before earnings, close or refuse new swing unless override token present"
+invariants:
+  - journal every adjustment with reason tag
+  - smallest-change fix first
+router:
+  node: risk_check
+  triggers: ["risk","limits","exposure","killswitch","protection","earnings"]
+  prechecks: []
+tests:
+  smoke:
+    - "risk check now" -> "pass/fail with breaches"
+    - "earnings in 2 days" -> "propose close or deny new swing without override"
+changelog:
+  - 2025-09-04: default 'no swing through earnings'; add explicit override token; clarify +1R trail convert

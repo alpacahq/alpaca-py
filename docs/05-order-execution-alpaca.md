@@ -2,9 +2,6 @@
 version: 2025-09-04
 status: canonical
 scope: order-execution
-implementation:
-  mode: "Preview by default; execution must use Alpaca SDK/API outside chat."
-  note: "Examples show payload shapes only. Do NOT invoke live HTTP from chat."
 contracts:
   order:
     schema: {symbol, side, qty|notional, type, time_in_force, stop?, limit?, extended_hours?, client_order_id?}
@@ -27,16 +24,12 @@ prechecks:
   - buying power available
   - position sizing valid
   - no duplicate open order
-examples_ps7_preview_only:
-  place_dry_run_shape: |
+ps7_examples:
+  place_dry_run: |
     $order = @{ symbol="AAPL"; side="buy"; qty=100; type="limit"; time_in_force="day"; limit_price=195; stop_price=190 }
-    $order | ConvertTo-Json -Depth 5   # PREVIEW ONLY
-  cancel_shape: |
-    # PREVIEW ONLY: show intended resource id
-    $cancel = @{ order_id = "<id>" }; $cancel
-execution_paths_outside_chat:
-  sdk: "alpaca-py (TradingClient + OrderRequest types)"
-  rest: "Alpaca Orders API"
+    $order | ConvertTo-Json -Depth 5
+  cancel: |
+    Invoke-RestMethod -Method Delete -Uri "$Alpaca/orders/{order_id}"
 router:
   node: place_order
   triggers: ["buy","sell","short","cover","market","limit","stop","bracket","oco","trailing_stop"]
@@ -46,4 +39,4 @@ tests:
     - "Buy 100 AAPL 195 limit" -> "requires stop; DRY_RUN preview"
     - "Cancel order 123abc" -> "cancel payload preview"
 changelog:
-  - 2025-09-04: make execution preview-only in docs; point to Alpaca SDK/API for real sends
+  - 2025-09-04: reaffirm stop requirement and drift re-confirm

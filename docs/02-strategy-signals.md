@@ -2,9 +2,6 @@
 version: 2025-09-04
 status: canonical
 scope: strategy-signals
-implementation:
-  engine: "classifier_action: congenial-giggle"
-  call_semantics: "Action call only; no direct REST in examples."
 contracts:
   inputs: [symbol, htf:"1d", ltf:"15m", params?]
   outputs: [signal:"long|short|stand_down", confidence:0..1, levels:{entry, stop, targets[]}, notes?]
@@ -17,12 +14,12 @@ params_defaults:
   rsi_len: 14
   min_conf: 0.55
   rvol_15m_min: 1.2
-  rvol_1m_min: 3.0
+  rvol_1m_min: 3.0            # for open_breakout gating
   entry_mode: confirm_15m     # or open_breakout
   a_table_proxy: {rs_12w_vs_SPY_min: 0.10, short_float_min: 0.15}
 strategies:
   pullback_long:
-    htf: ["price > SMA50", "pos_in_5d_range <= 25%", "setup bar closes in top 25%"]
+    htf: ["price > SMA50", "pos_in_5d_range <= 25%", "daily setup bar closes in top 25% of day"]
     ltf_confirm:
       confirm_15m: ["break of prior 15m high", "rvol_15m >= rvol_15m_min"]
       open_breakout: ["break of setup-bar high within first 30m", "rvol_1m >= rvol_1m_min"]
@@ -43,8 +40,8 @@ strategies:
     stop: "above trigger high + buffer"
     targets: ["R=1 then R=2"]
   range:
-    htf: ["defined channel support/resistance"]
-    ltf_confirm: ["reversal at edge", "oscillator turn"]
+    htf: ["defined channel support/resistance (pos_in_range near edges)"]
+    ltf_confirm: ["reversal candle at edge", "oscillator turn"]
     stop: "outside range edge"
     targets: ["mid then opposite edge"]
   news_catalyst:
@@ -54,7 +51,7 @@ strategies:
     targets: ["R-based; respect volatility"]
   rl_blend:
     candidates_from: ["holly_eod", "playbook scans"]
-    gates: ["min_conf", "technical confirm per play"]
+    gates: ["min_conf", "technical confirm per selected play"]
     stop: "per FinRL stop_dist or technical"
     targets: ["per play; default R=2"]
 output_format:
@@ -69,4 +66,4 @@ tests:
     - "Breakout long ATH with open_breakout" -> "requires rvol_1m >= 3.0"
     - "RL blend requires min_conf" -> ">= 0.55 and confirm"
 changelog:
-  - 2025-09-04: tie strategy engine to classifier action and remove raw REST examples
+  - 2025-09-04: add open_breakout path, RVOL gates, setup-bar rules, A-Table proxy & HOLLY candidates

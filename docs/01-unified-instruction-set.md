@@ -1,11 +1,6 @@
-version: 2025-09-04
+version: 2025-09-03
 status: canonical
 scope: global-rules
-integration:
-  classifier_action:
-    name: "congenial-giggle"
-    type: "GPT Action (internal)"
-    note: "Invoke via action interface only; do NOT construct raw HTTP calls here."
 contracts:
   inputs: [request_text, user_mode: PAPER|LIVE, tz?]
   outputs: [decision: {node, triggers}, footer_log, errors?]
@@ -16,7 +11,7 @@ invariants:
   - every trade has a stop; do not widen stops
   - respect buying power, PDT, market hours, exchange rules
   - timestamps include timezone on all data prints
-  - use Finnhub only for live quotes/snapshots (fetched server-side by the action)
+  - use Finnhub only for live quotes/snapshots
   - journaling required: signal, open, adjust, close, error
 sizing:
   risk_tiers: {Tier1: "1.5-2% equity", Tier2: "1%", Tier3: "<=0.5%"}
@@ -46,4 +41,4 @@ tests:
     - "Can we hold through earnings?" -> "forbid unless 'OVERRIDE: EARNINGS'"
     - "Open-breakout mode?" -> "allowed with rvol_1m >= 3.0"
 changelog:
-  - 2025-09-04: align with classifier GPT Action; clarify no raw HTTP invocation from docs
+  - 2025-09-03: add entry_mode toggle; default earnings-hold forbid; A-Table proxy; HOLLY EOD use

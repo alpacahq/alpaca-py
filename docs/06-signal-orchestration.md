@@ -1,31 +1,29 @@
-version: 2025-09-04
+version: 2025-09-03
 status: canonical
 scope: orchestration-ops
-note: "Operational commands are print/preview only; no background execution from chat."
 contracts:
   inputs: {op:"schedule|health|restart|deploy|logs|import_holly_watchlist", target, params?}
   outputs: {status, ts_utc, details?}
 ops:
-  schedule: "configure signal runs (describe plan only)"
-  health: "report heartbeat and last run (query via action-internal metrics only)"
-  restart: "describe steps; do not execute"
-  deploy: "describe steps; do not execute"
-  logs: "summarize recent entries if action exposes them"
-  import_holly_watchlist: "summarize intended import; no direct EOD scraping"
-ps7_and_railway_preview:
+  schedule: "configure signal runs"
+  health: "report heartbeat and last run"
+  restart: "bounce services"
+  deploy: "promote new build"
+  logs: "fetch recent entries"
+  import_holly_watchlist: "pull HOLLY day’s trades after close; de-dup; tag as candidates"
+ps7_and_railway:
   health: |
-    # PREVIEW ONLY: show that we'd call action health, not a raw endpoint
-    "orchestrator: healthy? last_run=..."
+    Invoke-RestMethod -Method Get -Uri "$Orchestrator/health"
   restart: |
-    # PREVIEW ONLY: show Railway commands; do not run
-    "railway up" ; "railway logs --service orchestrator"
+    railway up
+    railway logs --service orchestrator
 router:
   node: automation_ops
   triggers: ["orchestrate","daemon","schedule","monitor","restart","deploy","logs","HOLLY"]
   prechecks: []
 tests:
   smoke:
-    - "import HOLLY watchlist" -> "candidates listed with ts (preview)"
+    - "import HOLLY watchlist" -> "candidates created with ts"
     - "restart orchestrator" -> "print commands only"
 changelog:
-  - 2025-09-04: mark all ops as preview-only; remove fictitious endpoints
+  - 2025-09-03: add HOLLY watchlist import op for EOD planning

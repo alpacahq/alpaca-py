@@ -2,13 +2,16 @@
 version: 2025-09-04
 status: canonical
 scope: market-data
+implementation:
+  source: "Finnhub (fetched server-side by classifier action)"
+  guidance: "Do NOT call Finnhub from the chat layer."
 contracts:
   inputs: {symbol, timeframe, range?}
   outputs: {field:"price|ohlcv|indicator|news|derived", ts_utc, tz:"America/New_York", source:"Finnhub", data}
 tasks:
-  quotes: "Real-time quote endpoint"
-  candles: "OHLCV endpoint with explicit resolution"
-  indicators: "RSI, SMA/EMA, MACD"
+  quotes: "Real-time quote via action"
+  candles: "OHLCV via action with explicit resolution"
+  indicators: "RSI, SMA/EMA, MACD via action"
   peers: "Peer symbols"
   news: "Company news and sentiment"
   earnings: "Earnings calendar"
@@ -34,4 +37,4 @@ tests:
     - "AAPL price" -> "quote with ts and source"
     - "Compute RVOL, ATR, PIR, gap%" -> "derived block present"
 changelog:
-  - 2025-09-04: add derived RVOL/ATR/Gap%/PIR outputs aligned to strategy filters
+  - 2025-09-04: clarify server-side Finnhub calls through action; no direct REST

@@ -2,6 +2,7 @@
 version: 2025-09-04
 status: non-normative
 scope: quick-ref
+note: "For reference only. The classifier action calls Finnhub server-side."
 contracts:
   inputs: {task, symbol?, resolution?, from?, to?}
   outputs: {endpoint, required_params[], example}
@@ -15,7 +16,7 @@ map:
   news: {endpoint:"/company-news", required_params:["symbol","from","to"], example:'GET /company-news?symbol=AAPL&from=YYYY-MM-DD&to=YYYY-MM-DD'}
   earnings: {endpoint:"/calendar/earnings", required_params:["from","to"], example:'GET /calendar/earnings?from=...&to=...'}
 notes:
-  - "Derived metrics (RVOL, ATR, Gap%, PIR) computed from candles/quotes; print tz"
+  - "Derived metrics (RVOL, ATR, Gap%, PIR) are computed in the action from candles/quotes; print tz"
 router:
   node: infra_docs
   triggers: ["Finnhub docs","endpoints","params","examples"]
@@ -25,4 +26,4 @@ tests:
     - "RSI for MSFT 15m" -> "indicator params listed"
     - "Peers for NVDA" -> "endpoint + example"
 changelog:
-  - 2025-09-04: clarify derived metric computation for strategy filters
+  - 2025-09-04: explicitly state reference-only; no direct calls from chat

@@ -1,16 +1,14 @@
-# 03-finrl-integration.md
 version: 2025-09-04
-status: canonical
+status: planned
 scope: finrl-integration
-contracts:
+note: "No live FinRL endpoints exist in this project. Treat the flow below as conceptual."
+concepts:
   train:
-    request: {segment, features[], horizon}
-    method: POST /train
-    response: {model_id, ts_utc}
+    request_shape: {segment, features[], horizon}
+    response_shape: {model_id, ts_utc}
   predict:
-    request: {model_id, symbol}
-    method: GET /predict
-    response: {confidence:0..1, stop_dist, entry_delay}
+    request_shape: {model_id, symbol}
+    response_shape: {confidence:0..1, stop_dist, entry_delay}
 invariants:
   - no code edits from chat
   - model outputs gate entries; do not auto-trade
@@ -18,19 +16,22 @@ invariants:
 candidate_flow:
   inputs: ["playbook scans", "HOLLY EOD list (read-only)"]
   policy: "treat model-positive names as candidates; still require technical + risk checks"
-ps7_examples:
-  train: |
+examples_ps7_preview_only:
+  train_preview: |
+    # PREVIEW ONLY (no endpoint)
     $body = @{ segment="pullback_long"; features=@("rsi","ema50"); horizon=20 } | ConvertTo-Json
-    Invoke-RestMethod -Method Post -Uri $FinRL/train -Body $body -ContentType "application/json"
-  predict: |
-    Invoke-RestMethod -Method Get -Uri "$FinRL/predict?model_id=$mid&symbol=AAPL"
+    $body  # show payload shape; do not POST
+  predict_preview: |
+    # PREVIEW ONLY (no endpoint)
+    $qs = "?model_id=<id>&symbol=AAPL"
+    $qs  # show query shape; do not GET
 router:
   node: backtest_train
   triggers: ["backtest","train","finrl","optimize","walk-forward","tune","predict"]
   prechecks: []
 tests:
   smoke:
-    - "Train pullback segment" -> "model_id returned"
-    - "Predict TSLA" -> "{confidence, stop_dist, entry_delay}"
+    - "Train pullback segment" -> "preview shows model payload"
+    - "Predict TSLA" -> "preview shows query shape"
 changelog:
-  - 2025-09-04: add HOLLY EOD as candidate input to RL_Blend flow
+  - 2025-09-04: mark as planned; replace endpoint calls with preview-only shapes

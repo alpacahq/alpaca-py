@@ -1,4 +1,4 @@
-version: 2025-09-03
+version: 2025-09-04
 status: canonical
 scope: risk-protection
 contracts:
@@ -30,4 +30,4 @@ tests:
     - "risk check now" -> "pass/fail with breaches"
     - "earnings in 2 days" -> "propose close or deny new swing without override"
 changelog:
-  - 2025-09-03: default 'no swing through earnings'; add explicit override token
+  - 2025-09-04: no endpoint calls; logic-only guidance

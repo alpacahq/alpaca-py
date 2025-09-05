@@ -1,5 +1,4 @@
-# 06-signal-orchestration.md
-version: 2025-09-04
+version: 2025-09-03
 status: canonical
 scope: orchestration-ops
 contracts:
@@ -27,4 +26,4 @@ tests:
     - "import HOLLY watchlist" -> "candidates created with ts"
     - "restart orchestrator" -> "print commands only"
 changelog:
-  - 2025-09-04: add HOLLY watchlist import op for EOD planning
+  - 2025-09-03: add HOLLY watchlist import op for EOD planning

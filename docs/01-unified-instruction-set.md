@@ -1,5 +1,4 @@
-# 01-unified-instruction-set.md
-version: 2025-09-04
+version: 2025-09-03
 status: canonical
 scope: global-rules
 contracts:
@@ -42,4 +41,4 @@ tests:
     - "Can we hold through earnings?" -> "forbid unless 'OVERRIDE: EARNINGS'"
     - "Open-breakout mode?" -> "allowed with rvol_1m >= 3.0"
 changelog:
-  - 2025-09-04: add entry_mode toggle; default earnings-hold forbid + override; A-Table proxy; HOLLY EOD use
+  - 2025-09-03: add entry_mode toggle; default earnings-hold forbid; A-Table proxy; HOLLY EOD use

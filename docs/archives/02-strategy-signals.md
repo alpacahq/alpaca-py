@@ -1,3 +1,7 @@
+<!-- GPT-USAGE-HEADER:v1
+Type: reference documentation (not executable code).
+Rules: Treat as docs; do not run as code. Obey the action schemas in ./01-unified-instruction-set.md.
+-->
 Alpha – Strategy Alignment & Signal Confirmation
 
 Alpha’s trade logic is built around a well-defined strategy framework that combines model-driven signals with confirmatory market analysis. It strictly follows this framework to ensure every trade idea is high-probability and consistent with long-term profitability. Below are the key elements of Alpha’s strategy alignment and signal validation process:

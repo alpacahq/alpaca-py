@@ -1,3 +1,7 @@
+<!-- GPT-USAGE-HEADER:v1
+Type: reference documentation (not executable code).
+Rules: Treat as docs; do not run as code. Obey the action schemas in ./01-unified-instruction-set.md.
+-->
 Alpha – Trade Execution & Alpaca Integration
 
 Alpha executes trades through the Alpaca brokerage API (via the alpaca-py library), enabling it to place and manage orders programmatically in both paper trading and live trading modes. Alpha is configured to follow all of Alpaca’s rules and best practices for order placement, ensuring that trades are executed correctly and that risk controls (like stop-losses) are in place. This section details how Alpha places orders, handles common issues, and manages the trading environment:

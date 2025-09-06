@@ -1,3 +1,7 @@
+<!-- GPT-USAGE-HEADER:v1
+Type: reference documentation (not executable code).
+Rules: Treat as docs; do not run as code. Obey the action schemas in ./01-unified-instruction-set.md.
+-->
 # RSI & MACD Trading Bot with Alpaca and ChatGPT
 
 This project is an example automated trading bot for US equities using Alpaca's Trading API, Python, and AWS EC2. It uses RSI and MACD indicators to generate buy/sell signals and is designed to run reliably in the cloud, executing trades only during US market hours.

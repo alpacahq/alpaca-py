@@ -1,3 +1,7 @@
+<!-- GPT-USAGE-HEADER:v1
+Type: reference documentation (not executable code).
+Rules: Treat as docs; do not run as code. Obey the action schemas in ./01-unified-instruction-set.md.
+-->
 Alpha – Market Data & Analysis (Finnhub Integration)
 
 To make informed decisions and provide context for its trading strategy, Alpha utilizes the Finnhub API for comprehensive market data, fundamental information, and news. This integration enables Alpha to fetch real-time and historical data on demand, ensuring that both the assistant and the user stay informed about relevant market conditions. Here’s how Alpha leverages Finnhub and what data is available:

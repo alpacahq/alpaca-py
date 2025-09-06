@@ -1,3 +1,7 @@
+<!-- GPT-USAGE-HEADER:v1
+Type: reference documentation (not executable code).
+Rules: Treat as docs; do not run as code. Obey the action schemas in ./01-unified-instruction-set.md.
+-->
 [![Alpaca-py](https://github.com/alpacahq/alpaca-py/blob/master/docs/images/alpaca-py-banner.png?raw=true)](https://alpaca.markets/docs/python-sdk)
 
 [![Downloads](https://pepy.tech/badge/alpaca-py/month)](https://pepy.tech/project/alpaca-py)

@@ -71,3 +71,23 @@ tests:
     - "RL blend requires min_conf" -> ">= 0.55 and confirm"
 changelog:
   - 2025-09-04: add open_breakout path, RVOL gates, setup-bar rules, A-Table proxy & HOLLY candidates
+### Action Contract: alpha_classifier (v1)
+
+**Intent:** Score directional alpha for a symbol and horizon from a feature vector.
+
+**Input**
+- symbol: string (e.g., "AAPL")
+- timestamp: ISO-8601
+- features: object<string, number> | number[]   # engineered factors/indicators
+- model_id?: string                              # backend model key (e.g., "default")
+- horizon?: string                               # e.g., "1h", "1d"
+- thresholds?: { long?: number, short?: number } # confidence cutoffs
+
+**Output**
+- class: enum { long | short | neutral }
+- confidence: number [0,1]
+- alpha: number                                  # signed strength; + long / − short
+- probabilities?: { long: number, neutral: number, short: number }
+- rationale?: string
+
+- See: [Action Contract: alpha_classifier](./alpha-classifier-contract.md)

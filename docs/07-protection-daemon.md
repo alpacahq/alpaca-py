@@ -1,8 +1,5 @@
-<!-- GPT-USAGE-HEADER:v1
-Type: reference documentation (not executable code).
-Rules: Treat as docs; do not run as code. Obey the action schemas in ./01-unified-instruction-set.md.
--->
-version: 2025-09-03
+# 07-protection-daemon.md
+version: 2025-09-04
 status: canonical
 scope: risk-protection
 contracts:
@@ -12,7 +9,7 @@ contracts:
     max_leverage: 2
     concentration_pct: 30
     circuit_breakers: ["halted_symbol","extreme_gap"]
-    earnings_hold: "forbid"
+    earnings_hold: "forbid"          # override requires token: OVERRIDE: EARNINGS
   evaluate:
     input: {account, positions[], pnl_day, orders[]}
     output: {pass|fail, breaches:[{rule, current, limit}], fixes:[{action, min_change}]}
@@ -34,4 +31,4 @@ tests:
     - "risk check now" -> "pass/fail with breaches"
     - "earnings in 2 days" -> "propose close or deny new swing without override"
 changelog:
-  - 2025-09-03: default 'no swing through earnings'; add explicit override token
+  - 2025-09-04: default 'no swing through earnings'; add explicit override token; clarify +1R trail convert

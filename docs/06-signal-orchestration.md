@@ -1,8 +1,5 @@
-<!-- GPT-USAGE-HEADER:v1
-Type: reference documentation (not executable code).
-Rules: Treat as docs; do not run as code. Obey the action schemas in ./01-unified-instruction-set.md.
--->
-version: 2025-09-03
+# 06-signal-orchestration.md
+version: 2025-09-04
 status: canonical
 scope: orchestration-ops
 contracts:
@@ -30,4 +27,4 @@ tests:
     - "import HOLLY watchlist" -> "candidates created with ts"
     - "restart orchestrator" -> "print commands only"
 changelog:
-  - 2025-09-03: add HOLLY watchlist import op for EOD planning
+  - 2025-09-04: add HOLLY watchlist import op for EOD planning

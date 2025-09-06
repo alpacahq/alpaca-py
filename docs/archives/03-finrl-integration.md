@@ -1,3 +1,7 @@
+<!-- GPT-USAGE-HEADER:v1
+Type: reference documentation (not executable code).
+Rules: Treat as docs; do not run as code. Obey the action schemas in ./01-unified-instruction-set.md.
+-->
 Alpha – Reinforcement Learning Integration & Continuous Improvement
 
 Alpha leverages a dedicated reinforcement learning backend (the FinRL-Actions service) to continuously improve its strategy and adapt to new market data. This integration allows Alpha to learn from each trade and to update its trading parameters for optimal performance. Key aspects of this integration include journaling trade data, training the model, and applying the model’s output for signal refinement:

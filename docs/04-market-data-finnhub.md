@@ -1,5 +1,5 @@
 # 04-market-data-finnhub.md
-version: 2025-09-04
+version: 2025-09-03
 status: canonical
 scope: market-data
 contracts:
@@ -34,4 +34,4 @@ tests:
     - "AAPL price" -> "quote with ts and source"
     - "Compute RVOL, ATR, PIR, gap%" -> "derived block present"
 changelog:
-  - 2025-09-04: add derived RVOL/ATR/Gap%/PIR outputs aligned to strategy filters
+  - 2025-09-03: add derived RVOL/ATR/Gap%/PIR outputs aligned to strategy filters

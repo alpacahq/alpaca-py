@@ -1,5 +1,5 @@
 # 02-strategy-signals.md
-version: 2025-09-04
+version: 2025-09-03
 status: canonical
 scope: strategy-signals
 contracts:
@@ -8,14 +8,15 @@ contracts:
 invariants:
   - two-step: daily setup then 15m confirmation unless entry_mode=open_breakout
   - indicators from Finnhub-derived data; print tz on timestamps
+  - Alpha Classifier combines HTF and LTF analysis to recommend either "long", "short", or "stand_down"
 params_defaults:
   ema_fast: 20
   ema_base: 50
   rsi_len: 14
   min_conf: 0.55
   rvol_15m_min: 1.2
-  rvol_1m_min: 3.0            # for open_breakout gating
-  entry_mode: confirm_15m     # or open_breakout
+  rvol_1m_min: 3.0
+  entry_mode: confirm_15m
   a_table_proxy: {rs_12w_vs_SPY_min: 0.10, short_float_min: 0.15}
 strategies:
   pullback_long:
@@ -26,14 +27,14 @@ strategies:
     stop: "below setup-bar low or ATR(14)*1.2"
     targets: ["R=1", "R=2 default", "runner optional"]
   breakout_long:
-    context: ["ATH preferred → 'blue-sky'"]
+    htf: ["ATH preferred (blue-sky scenario)"]
     ltf_confirm:
       confirm_15m: ["15m ORB break-and-hold", "rvol_15m >= rvol_15m_min"]
       open_breakout: ["opening range break", "rvol_1m >= rvol_1m_min"]
     stop: "below breakout level - buffer"
     targets: ["measured move or R=2"]
   breakdown_short:
-    context: ["ATL preferred → 'abyss'"]
+    htf: ["ATL preferred (abyss scenario)"]
     ltf_confirm:
       confirm_15m: ["15m low break with acceptance"]
       open_breakout: ["opening range breakdown", "rvol_1m >= rvol_1m_min"]
@@ -66,4 +67,4 @@ tests:
     - "Breakout long ATH with open_breakout" -> "requires rvol_1m >= 3.0"
     - "RL blend requires min_conf" -> ">= 0.55 and confirm"
 changelog:
-  - 2025-09-04: add open_breakout path, RVOL gates, setup-bar rules, A-Table proxy & HOLLY candidates
+  - 2025-09-03: add open_breakout path, RVOL gates, setup-bar rules, A-Table proxy & HOLLY candidates

@@ -1,5 +1,5 @@
 # 05-order-execution-alpaca.md
-version: 2025-09-04
+version: 2025-09-03
 status: canonical
 scope: order-execution
 contracts:
@@ -12,6 +12,7 @@ contracts:
   trailing_stop:
     schema: {type:"trailing_stop", trail_percent|trail_price}
 invariants:
+  - orders route via Alpaca brokerage API
   - exactly one of qty or notional
   - refuse orders without a stop
   - DRY_RUN unless "CONFIRM: LIVE"
@@ -39,4 +40,4 @@ tests:
     - "Buy 100 AAPL 195 limit" -> "requires stop; DRY_RUN preview"
     - "Cancel order 123abc" -> "cancel payload preview"
 changelog:
-  - 2025-09-04: reaffirm stop requirement and drift re-confirm
+  - 2025-09-03: no change to schemas; reaffirm stop requirement and drift re-confirm

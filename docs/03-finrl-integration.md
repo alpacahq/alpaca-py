@@ -1,5 +1,5 @@
 # 03-finrl-integration.md
-version: 2025-09-04
+version: 2025-09-03
 status: canonical
 scope: finrl-integration
 contracts:
@@ -33,4 +33,4 @@ tests:
     - "Train pullback segment" -> "model_id returned"
     - "Predict TSLA" -> "{confidence, stop_dist, entry_delay}"
 changelog:
-  - 2025-09-04: add HOLLY EOD as candidate input to RL_Blend flow
+  - 2025-09-03: add HOLLY EOD as candidate input to RL_Blend flow

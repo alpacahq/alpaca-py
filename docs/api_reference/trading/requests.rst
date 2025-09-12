@@ -68,6 +68,12 @@ StopLossRequest
 .. autoclass:: alpaca.trading.requests.StopLossRequest
 
 
+GetOptionContractsRequest
+-------------------------
+
+.. autoclass:: alpaca.trading.requests.GetOptionContractsRequest
+
+
 OptionLegRequest
 ----------------
 

@@ -84,3 +84,16 @@ CorporateActionAnnouncement
 ---------------------------
 
 .. autoclass:: alpaca.trading.models.CorporateActionAnnouncement
+
+
+OptionContract
+--------------
+
+.. autoclass:: alpaca.trading.models.OptionContract
+
+
+OptionContractsResponse
+--------------
+
+.. autoclass:: alpaca.trading.models.OptionContractsResponse
+

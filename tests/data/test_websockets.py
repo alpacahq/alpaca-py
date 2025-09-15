@@ -3,10 +3,13 @@ from datetime import datetime
 import pytest
 from msgpack.ext import Timestamp
 from pytz import utc
+from unittest.mock import AsyncMock, patch
+import asyncio
 
 from alpaca.data.enums import Exchange
 from alpaca.data.models import Bar, Trade, News
 from alpaca.data.live.websocket import DataStream
+from alpaca.data.live.stock import StockDataStream
 from alpaca.data.models import Bar, Trade
 from alpaca.data.models.news import News
 from alpaca.data.models.orderbooks import Orderbook, OrderbookQuote
@@ -232,3 +235,41 @@ async def test_dispatch(ws_client: DataStream, timestamp: Timestamp):
     assert len(articles_b) == 1
     assert len(articles_star) == 2
     assert articles_star[1].headline == "c"
+
+
+@pytest.fixture
+def mock_websocket_connection():
+    mock_conn = AsyncMock()
+    mock_conn.unsubscribe_bars.return_value = AsyncMock()
+    return mock_conn
+
+@pytest.mark.asyncio
+@patch('alpaca_trade_api.stream.asyncio.wait_for')
+async def test_unsubscribe_timeout(mock_wait_for, mock_websocket_connection):
+    """
+    Test para verificar que el unsubscribe falla con un TimeoutError.
+    """
+    # Configura el mock para que simule un timeout
+    mock_wait_for.side_effect = asyncio.TimeoutError
+
+    # Instancia de la clase que vamos a probar
+    # Aquí se utiliza la clase con tu corrección, que ahora tiene un 'timeout'
+    stream = StockDataStream(
+        api_key='mock_key',
+        secret_key='mock_secret',
+        url_override='mock_url',
+        timeout=5  # Tu corrección
+    )
+    stream._ws = mock_websocket_connection
+
+    # Variables de prueba
+    handler = AsyncMock()
+    symbol = "TSLA"
+
+    # Llama al método que debe fallar
+    with pytest.raises(asyncio.TimeoutError):
+        await stream.unsubscribe_bars(handler, symbol)
+
+    # Opcional: Verifica que el método se llamó correctamente
+    mock_wait_for.assert_called_once()
+    mock_websocket_connection.unsubscribe_bars.assert_called_once_with(handler, [symbol])

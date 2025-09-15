@@ -17,6 +17,7 @@ class NewsDataStream(DataStream):
         raw_data: bool = False,
         websocket_params: Optional[Dict] = None,
         url_override: Optional[str] = None,
+        timeout=5
     ) -> None:
         """
         Instantiates a WebSocket client for accessing live news.
@@ -39,6 +40,7 @@ class NewsDataStream(DataStream):
             secret_key=secret_key,
             raw_data=raw_data,
             websocket_params=websocket_params,
+            timeout=timeout
         )
 
     def subscribe_news(

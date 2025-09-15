@@ -37,6 +37,7 @@ class DataStream:
         secret_key: str,
         raw_data: bool = False,
         websocket_params: Optional[Dict] = None,
+        timeout=5
     ) -> None:
         """Creates a new DataStream instance.
 
@@ -77,6 +78,7 @@ class DataStream:
             "ping_timeout": 180,
             "max_queue": 1024,
         }
+        self._timeout = timeout
 
         if websocket_params:
             self._websocket_params = websocket_params
@@ -277,7 +279,7 @@ class DataStream:
         if self._running:
             asyncio.run_coroutine_threadsafe(
                 self._send_subscribe_msg(), self._loop
-            ).result()
+            ).result(timeout=self._timeout)
 
     async def _send_subscribe_msg(self) -> None:
         msg = defaultdict(list)
@@ -297,7 +299,7 @@ class DataStream:
         if self._running:
             asyncio.run_coroutine_threadsafe(
                 self._send_unsubscribe_msg(channel, symbols), self._loop
-            ).result()
+            ).result(timeout=self._timeout)
         for symbol in symbols:
             del self._handlers[channel][symbol]
 
@@ -374,7 +376,7 @@ class DataStream:
         """Stops the websocket connection."""
         if self._loop.is_running():
             asyncio.run_coroutine_threadsafe(self.stop_ws(), self._loop).result(
-                timeout=5
+                timeout=self._timeout
             )
 
     def _ensure_coroutine(self, handler: Callable) -> None:

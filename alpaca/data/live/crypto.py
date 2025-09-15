@@ -22,6 +22,7 @@ class CryptoDataStream(DataStream):
         feed: CryptoFeed = CryptoFeed.US,
         url_override: Optional[str] = None,
         websocket_params: Optional[Dict] = None,
+        timeout=5
     ) -> None:
         """
         Instantiates a WebSocket client for accessing live cryptocurrency data.
@@ -45,6 +46,7 @@ class CryptoDataStream(DataStream):
             secret_key=secret_key,
             raw_data=raw_data,
             websocket_params=websocket_params,
+            timeout=timeout
         )
 
     def subscribe_trades(

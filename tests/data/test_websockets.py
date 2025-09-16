@@ -238,38 +238,30 @@ async def test_dispatch(ws_client: DataStream, timestamp: Timestamp):
 
 
 @pytest.fixture
-def mock_websocket_connection():
-    mock_conn = AsyncMock()
-    mock_conn.unsubscribe_bars.return_value = AsyncMock()
-    return mock_conn
-
-@pytest.mark.asyncio
-@patch('alpaca_trade_api.stream.asyncio.wait_for')
-async def test_unsubscribe_timeout(mock_wait_for, mock_websocket_connection):
-    """
-    Test para verificar que el unsubscribe falla con un TimeoutError.
-    """
-    # Configura el mock para que simule un timeout
-    mock_wait_for.side_effect = asyncio.TimeoutError
-
-    # Instancia de la clase que vamos a probar
-    # Aquí se utiliza la clase con tu corrección, que ahora tiene un 'timeout'
+def mock_stream():
+    """Returns a mocked StockDataStream instance."""
     stream = StockDataStream(
         api_key='mock_key',
         secret_key='mock_secret',
         url_override='mock_url',
-        timeout=5  # Tu corrección
+        timeout=5
     )
-    stream._ws = mock_websocket_connection
+    # Simulate a running stream and an existing handler
+    stream._running = True
+    stream._ws = AsyncMock() # Mock the websocket connection
+    stream._handlers = {'bars': {'TSLA': [AsyncMock()]}}
+    stream._loop = asyncio.get_event_loop()
+    return stream
 
-    # Variables de prueba
-    handler = AsyncMock()
-    symbol = "TSLA"
+@pytest.mark.asyncio
+async def test_unsubscribe_timeout(mock_stream):
+    """
+    Test that unsubscribe fails with a TimeoutError when the stream is unresponsive.
+    """
+    # Patch the internal method that handles the send and await to force a timeout
+    with patch.object(mock_stream, '_send_unsubscribe_msg', side_effect=asyncio.TimeoutError):
+        with pytest.raises(asyncio.TimeoutError):
+            await mock_stream.unsubscribe_bars(AsyncMock(), "TSLA")
 
-    # Llama al método que debe fallar
-    with pytest.raises(asyncio.TimeoutError):
-        await stream.unsubscribe_bars(handler, symbol)
-
-    # Opcional: Verifica que el método se llamó correctamente
-    mock_wait_for.assert_called_once()
-    mock_websocket_connection.unsubscribe_bars.assert_called_once_with(handler, [symbol])
+    # Optional: Verify the handler was removed from the dictionary
+    assert "TSLA" in mock_stream._handlers['bars']

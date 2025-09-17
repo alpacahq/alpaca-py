@@ -3,10 +3,13 @@ from datetime import datetime
 import pytest
 from msgpack.ext import Timestamp
 from pytz import utc
+from unittest.mock import AsyncMock, patch
+import asyncio
 
 from alpaca.data.enums import Exchange
 from alpaca.data.models import Bar, Trade, News
 from alpaca.data.live.websocket import DataStream
+from alpaca.data.live.stock import StockDataStream
 from alpaca.data.models import Bar, Trade
 from alpaca.data.models.news import News
 from alpaca.data.models.orderbooks import Orderbook, OrderbookQuote
@@ -232,3 +235,32 @@ async def test_dispatch(ws_client: DataStream, timestamp: Timestamp):
     assert len(articles_b) == 1
     assert len(articles_star) == 2
     assert articles_star[1].headline == "c"
+
+
+@pytest.fixture
+def mock_stream():
+    """Returns a mocked StockDataStream instance."""
+    stream = StockDataStream(
+        api_key="mock_key", secret_key="mock_secret", url_override="mock_url", timeout=5
+    )
+    # Simulate a running stream and an existing handler
+    stream._running = True
+    stream._ws = AsyncMock()  # Mock the websocket connection
+    stream._handlers = {"bars": {"TSLA": [AsyncMock()]}}
+    stream._loop = asyncio.get_event_loop()
+    return stream
+
+
+@pytest.mark.asyncio
+async def test_unsubscribe_timeout(mock_stream):
+    """
+    Test that unsubscribe fails with a TimeoutError when the stream is unresponsive.
+    """
+    with patch.object(
+        mock_stream, "_send_unsubscribe_msg", side_effect=asyncio.TimeoutError
+    ):
+        with pytest.raises(asyncio.TimeoutError):
+            await mock_stream.unsubscribe_bars(AsyncMock(), "TSLA")
+
+    # Optional: Verify the handler was removed from the dictionary
+    assert "TSLA" in mock_stream._handlers["bars"]

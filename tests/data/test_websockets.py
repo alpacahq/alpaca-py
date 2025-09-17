@@ -241,27 +241,26 @@ async def test_dispatch(ws_client: DataStream, timestamp: Timestamp):
 def mock_stream():
     """Returns a mocked StockDataStream instance."""
     stream = StockDataStream(
-        api_key='mock_key',
-        secret_key='mock_secret',
-        url_override='mock_url',
-        timeout=5
+        api_key="mock_key", secret_key="mock_secret", url_override="mock_url", timeout=5
     )
     # Simulate a running stream and an existing handler
     stream._running = True
-    stream._ws = AsyncMock() # Mock the websocket connection
-    stream._handlers = {'bars': {'TSLA': [AsyncMock()]}}
+    stream._ws = AsyncMock()  # Mock the websocket connection
+    stream._handlers = {"bars": {"TSLA": [AsyncMock()]}}
     stream._loop = asyncio.get_event_loop()
     return stream
+
 
 @pytest.mark.asyncio
 async def test_unsubscribe_timeout(mock_stream):
     """
     Test that unsubscribe fails with a TimeoutError when the stream is unresponsive.
     """
-    # Patch the internal method that handles the send and await to force a timeout
-    with patch.object(mock_stream, '_send_unsubscribe_msg', side_effect=asyncio.TimeoutError):
+    with patch.object(
+        mock_stream, "_send_unsubscribe_msg", side_effect=asyncio.TimeoutError
+    ):
         with pytest.raises(asyncio.TimeoutError):
             await mock_stream.unsubscribe_bars(AsyncMock(), "TSLA")
 
     # Optional: Verify the handler was removed from the dictionary
-    assert "TSLA" in mock_stream._handlers['bars']
+    assert "TSLA" in mock_stream._handlers["bars"]

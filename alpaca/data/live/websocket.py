@@ -37,7 +37,7 @@ class DataStream:
         secret_key: str,
         raw_data: bool = False,
         websocket_params: Optional[Dict] = None,
-        timeout=5
+        timeout=5,
     ) -> None:
         """Creates a new DataStream instance.
 

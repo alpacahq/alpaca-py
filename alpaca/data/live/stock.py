@@ -22,7 +22,7 @@ class StockDataStream(DataStream):
         feed: DataFeed = DataFeed.IEX,
         websocket_params: Optional[Dict] = None,
         url_override: Optional[str] = None,
-        timeout=5
+        timeout=5,
     ) -> None:
         """
         Instantiates a WebSocket client for accessing live stock data.
@@ -53,7 +53,7 @@ class StockDataStream(DataStream):
             secret_key=secret_key,
             raw_data=raw_data,
             websocket_params=websocket_params,
-            timeout=timeout
+            timeout=timeout,
         )
 
     def subscribe_trades(

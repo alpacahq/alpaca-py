@@ -14,7 +14,7 @@ from alpaca.broker.requests import (
     GetSubscriptionsRequest,
     UpdatePortfolioRequest,
 )
-from alpaca.common.enums import BaseURL
+from alpaca.common.enums import BaseURL, PaginationType
 
 
 def test_create_portfolio(reqmock: Mocker, client: BrokerClient) -> None:
@@ -401,6 +401,25 @@ def test_get_all_subscriptions(reqmock: Mocker, client: BrokerClient) -> None:
     assert reqmock.called_once
     assert len(response) > 0
     assert isinstance(response[0], Subscription)
+
+
+def test_get_all_subscriptions_empty_no_pagination(
+    reqmock: Mocker, client: BrokerClient
+) -> None:
+    """Test the get_all_subscriptions method."""
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/rebalancing/subscriptions",
+        text="""{
+            "subscriptions": [],
+            "next_page_token": null
+        }""",
+    )
+    response = client.get_all_subscriptions(
+        filter=GetSubscriptionsRequest(), handle_pagination=PaginationType.NONE
+    )
+
+    assert reqmock.called_once
+    assert len(response) == 0
 
 
 def test_get_subscription_by_id(reqmock: Mocker, client: BrokerClient) -> None:

@@ -324,7 +324,10 @@ class RESTClient(ABC):
         """
         if handle_pagination == PaginationType.NONE:
             # user wants no pagination, so just do a single page
-            return next(iterator)
+            try:
+                return next(iterator)
+            except StopIteration:
+                return []
         elif handle_pagination == PaginationType.FULL:
             # the iterator returns "pages", so we use chain to flatten them all into 1 list
             return list(chain.from_iterable(iterator))

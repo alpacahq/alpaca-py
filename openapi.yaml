@@ -2,6 +2,9 @@ openapi: 3.1.0
 info:
   title: Alpaca Wrapper
   version: 1.0.0
+servers:
+  - url: https://alpaca-py-production.up.railway.app
+    description: Production deployment
 paths:
   /v1/order/bracket:
     post:

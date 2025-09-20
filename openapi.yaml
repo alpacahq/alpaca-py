@@ -1,11 +1,21 @@
 openapi: 3.1.0
 jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
+
+# Align top-level keys at the root to ensure the document remains valid.
 info:
   title: Alpaca Wrapper
   version: 1.0.1
+
+# The server definition must point at the deployed domain that serves the
+# manifest and schema files consumed by custom GPTs.
 servers:
   - url: https://alpaca-py-production.up.railway.app
     description: Production deployment
+
+# Require the ApiKeyAuth security scheme by default.  Operations that should
+# remain publicly accessible explicitly override this with `security: []`.
+security:
+  - ApiKeyAuth: []
 paths:
   /v1/order/bracket:
     post:
@@ -83,6 +93,7 @@ paths:
     get:
       summary: Healthz
       operationId: healthz
+      security: []
       responses:
         '200':
           description: Successful Response
@@ -93,13 +104,6 @@ paths:
     post:
       summary: Submit Order
       operationId: submitOrder
-      parameters:
-      - name: x-api-key
-        in: header
-        required: false
-        schema:
-          type: string
-          title: X-Api-Key
       requestBody:
         required: true
         content:
@@ -134,12 +138,6 @@ paths:
           - all
           default: open
           title: Status
-      - name: x-api-key
-        in: header
-        required: false
-        schema:
-          type: string
-          title: X-Api-Key
       responses:
         '200':
           description: Successful Response
@@ -163,12 +161,6 @@ paths:
         schema:
           type: string
           title: Order Id
-      - name: x-api-key
-        in: header
-        required: false
-        schema:
-          type: string
-          title: X-Api-Key
       responses:
         '200':
           description: Successful Response
@@ -192,12 +184,6 @@ paths:
         schema:
           type: string
           title: Order Id
-      - name: x-api-key
-        in: header
-        required: false
-        schema:
-          type: string
-          title: X-Api-Key
       responses:
         '204':
           description: Order cancelled
@@ -205,13 +191,6 @@ paths:
     get:
       summary: Get Account
       operationId: getAccount
-      parameters:
-      - name: x-api-key
-        in: header
-        required: false
-        schema:
-          type: string
-          title: X-Api-Key
       responses:
         '200':
           description: Successful Response
@@ -228,13 +207,6 @@ paths:
     get:
       summary: List Positions
       operationId: listPositions
-      parameters:
-      - name: x-api-key
-        in: header
-        required: false
-        schema:
-          type: string
-          title: X-Api-Key
       responses:
         '200':
           description: Successful Response
@@ -258,12 +230,6 @@ paths:
           type: boolean
           default: false
           title: Cancel Orders
-      - name: x-api-key
-        in: header
-        required: false
-        schema:
-          type: string
-          title: X-Api-Key
       responses:
         '200':
           description: Successful Response
@@ -287,12 +253,6 @@ paths:
         schema:
           type: string
           title: Symbol
-      - name: x-api-key
-        in: header
-        required: false
-        schema:
-          type: string
-          title: X-Api-Key
       responses:
         '200':
           description: Successful Response
@@ -322,12 +282,6 @@ paths:
           type: boolean
           default: false
           title: Cancel Orders
-      - name: x-api-key
-        in: header
-        required: false
-        schema:
-          type: string
-          title: X-Api-Key
       responses:
         '200':
           description: Successful Response
@@ -344,13 +298,6 @@ paths:
     get:
       summary: List Watchlists
       operationId: list_watchlists_v1_watchlists_get
-      parameters:
-      - name: x-api-key
-        in: header
-        required: false
-        schema:
-          type: string
-          title: X-Api-Key
       responses:
         '200':
           description: Successful Response
@@ -366,13 +313,6 @@ paths:
     post:
       summary: Create Watchlist
       operationId: create_watchlist_v1_watchlists_post
-      parameters:
-      - name: x-api-key
-        in: header
-        required: false
-        schema:
-          type: string
-          title: X-Api-Key
       requestBody:
         required: true
         content:
@@ -402,12 +342,6 @@ paths:
         schema:
           type: string
           title: Watchlist Id
-      - name: x-api-key
-        in: header
-        required: false
-        schema:
-          type: string
-          title: X-Api-Key
       responses:
         '200':
           description: Successful Response
@@ -430,12 +364,6 @@ paths:
         schema:
           type: string
           title: Watchlist Id
-      - name: x-api-key
-        in: header
-        required: false
-        schema:
-          type: string
-          title: X-Api-Key
       requestBody:
         required: true
         content:
@@ -464,12 +392,6 @@ paths:
         schema:
           type: string
           title: Watchlist Id
-      - name: x-api-key
-        in: header
-        required: false
-        schema:
-          type: string
-          title: X-Api-Key
       responses:
         '200':
           description: Successful Response
@@ -505,12 +427,6 @@ paths:
         schema:
           type: string
           title: End
-      - name: x-api-key
-        in: header
-        required: false
-        schema:
-          type: string
-          title: X-Api-Key
       responses:
         '200':
           description: Successful Response
@@ -546,12 +462,6 @@ paths:
         schema:
           type: string
           title: End
-      - name: x-api-key
-        in: header
-        required: false
-        schema:
-          type: string
-          title: X-Api-Key
       responses:
         '200':
           description: Successful Response
@@ -596,12 +506,6 @@ paths:
           - type: string
           - type: 'null'
           title: End
-      - name: x-api-key
-        in: header
-        required: false
-        schema:
-          type: string
-          title: X-Api-Key
       responses:
         '200':
           description: Successful Response
@@ -618,6 +522,7 @@ paths:
     get:
       summary: Spec
       operationId: spec_openapi_yaml_get
+      security: []
       responses:
         '200':
           description: Successful Response
@@ -886,6 +791,4 @@ components:
       type: apiKey
       in: header
       name: x-api-key
-servers:
-- url: https://alpaca-py-production.up.railway.app
 

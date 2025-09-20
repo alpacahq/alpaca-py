@@ -4,7 +4,7 @@ import re
 from datetime import datetime
 from typing import List, Optional
 from fastapi import FastAPI, Header, HTTPException, Query, Path
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel
 from alpaca.trading.client import TradingClient
 from alpaca.trading.enums import OrderSide, TimeInForce
@@ -105,11 +105,19 @@ def get_order(order_id: str, x_api_key: Optional[str] = Header(None)):
     o = tc.get_order_by_id(order_id)
     return o.model_dump() if hasattr(o, "model_dump") else o.__dict__
 
-@app.delete("/v1/orders/{order_id}")
+@app.delete(
+    "/v1/orders/{order_id}",
+    status_code=204,
+    summary="Cancel order",
+    response_description="Order cancelled",
+)
 def cancel_order(order_id: str, x_api_key: Optional[str] = Header(None)):
     check_key(x_api_key)
     tc = trading_client()
-    return tc.cancel_order(order_id)
+    tc.cancel_order(order_id)
+
+    # The decorator defines a 204 status code, so simply return an empty response.
+    return Response(status_code=204)
 
 # -- Account
 @app.get("/v1/account")

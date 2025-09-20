@@ -180,7 +180,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
     delete:
-      summary: Cancel Order
+      summary: Cancel order
       operationId: cancel_order_v1_orders__order_id__delete
       parameters:
       - name: order_id
@@ -198,11 +198,8 @@ paths:
           - type: 'null'
           title: X-Api-Key
       responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
+        '204':
+          description: Order cancelled
         '422':
           description: Validation Error
           content:

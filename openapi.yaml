@@ -1,7 +1,8 @@
 openapi: 3.1.0
+jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
 info:
   title: Alpaca Wrapper
-  version: 1.0.0
+  version: 1.0.1
 servers:
   - url: https://alpaca-py-production.up.railway.app
     description: Production deployment
@@ -120,13 +121,17 @@ paths:
   /v1/orders:
     get:
       summary: List Orders
-      operationId: listOrders
+      operationId: listOrders_v1
       parameters:
       - name: status
         in: query
         required: false
         schema:
           type: string
+          enum:
+          - open
+          - closed
+          - all
           default: open
           title: Status
       - name: x-api-key
@@ -149,8 +154,8 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
   /v1/orders/{order_id}:
     get:
-      summary: Get Order
-      operationId: getOrder
+      summary: Get order by ID
+      operationId: getOrderById_v1
       parameters:
       - name: order_id
         in: path
@@ -176,9 +181,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /v2/orders/{order_id}:
     delete:
-      summary: Cancel order
-      operationId: cancelOrder
+      summary: Cancel order by ID
+      operationId: cancelOrderById_v2
       parameters:
       - name: order_id
         in: path
@@ -195,12 +201,6 @@ paths:
       responses:
         '204':
           description: Order cancelled
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
   /v1/account:
     get:
       summary: Get Account

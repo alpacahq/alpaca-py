@@ -81,7 +81,7 @@ paths:
   /healthz:
     get:
       summary: Healthz
-      operationId: healthz_healthz_get
+      operationId: healthz
       responses:
         '200':
           description: Successful Response
@@ -91,15 +91,13 @@ paths:
   /v1/order:
     post:
       summary: Submit Order
-      operationId: submit_order_v1_order_post
+      operationId: submitOrder
       parameters:
       - name: x-api-key
         in: header
         required: false
         schema:
-          anyOf:
-          - type: string
-          - type: 'null'
+          type: string
           title: X-Api-Key
       requestBody:
         required: true
@@ -122,7 +120,7 @@ paths:
   /v1/orders:
     get:
       summary: List Orders
-      operationId: list_orders_v1_orders_get
+      operationId: listOrders
       parameters:
       - name: status
         in: query
@@ -135,9 +133,7 @@ paths:
         in: header
         required: false
         schema:
-          anyOf:
-          - type: string
-          - type: 'null'
+          type: string
           title: X-Api-Key
       responses:
         '200':
@@ -154,7 +150,7 @@ paths:
   /v1/orders/{order_id}:
     get:
       summary: Get Order
-      operationId: get_order_v1_orders__order_id__get
+      operationId: getOrder
       parameters:
       - name: order_id
         in: path
@@ -166,9 +162,7 @@ paths:
         in: header
         required: false
         schema:
-          anyOf:
-          - type: string
-          - type: 'null'
+          type: string
           title: X-Api-Key
       responses:
         '200':
@@ -184,7 +178,7 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
     delete:
       summary: Cancel order
-      operationId: cancel_order_v1_orders__order_id__delete
+      operationId: cancelOrder
       parameters:
       - name: order_id
         in: path
@@ -196,9 +190,7 @@ paths:
         in: header
         required: false
         schema:
-          anyOf:
-          - type: string
-          - type: 'null'
+          type: string
           title: X-Api-Key
       responses:
         '204':
@@ -212,15 +204,13 @@ paths:
   /v1/account:
     get:
       summary: Get Account
-      operationId: get_account_v1_account_get
+      operationId: getAccount
       parameters:
       - name: x-api-key
         in: header
         required: false
         schema:
-          anyOf:
-          - type: string
-          - type: 'null'
+          type: string
           title: X-Api-Key
       responses:
         '200':
@@ -237,15 +227,13 @@ paths:
   /v1/positions:
     get:
       summary: List Positions
-      operationId: list_positions_v1_positions_get
+      operationId: listPositions
       parameters:
       - name: x-api-key
         in: header
         required: false
         schema:
-          anyOf:
-          - type: string
-          - type: 'null'
+          type: string
           title: X-Api-Key
       responses:
         '200':
@@ -261,7 +249,7 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
     delete:
       summary: Close All Positions
-      operationId: close_all_positions_v1_positions_delete
+      operationId: closeAllPositions
       parameters:
       - name: cancel_orders
         in: query
@@ -274,9 +262,7 @@ paths:
         in: header
         required: false
         schema:
-          anyOf:
-          - type: string
-          - type: 'null'
+          type: string
           title: X-Api-Key
       responses:
         '200':
@@ -293,7 +279,7 @@ paths:
   /v1/positions/{symbol}:
     get:
       summary: Get Position
-      operationId: get_position_v1_positions__symbol__get
+      operationId: getPosition
       parameters:
       - name: symbol
         in: path
@@ -305,9 +291,7 @@ paths:
         in: header
         required: false
         schema:
-          anyOf:
-          - type: string
-          - type: 'null'
+          type: string
           title: X-Api-Key
       responses:
         '200':
@@ -323,7 +307,7 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
     delete:
       summary: Close Position
-      operationId: close_position_v1_positions__symbol__delete
+      operationId: closePosition
       parameters:
       - name: symbol
         in: path
@@ -342,9 +326,7 @@ paths:
         in: header
         required: false
         schema:
-          anyOf:
-          - type: string
-          - type: 'null'
+          type: string
           title: X-Api-Key
       responses:
         '200':
@@ -367,9 +349,7 @@ paths:
         in: header
         required: false
         schema:
-          anyOf:
-          - type: string
-          - type: 'null'
+          type: string
           title: X-Api-Key
       responses:
         '200':
@@ -391,9 +371,7 @@ paths:
         in: header
         required: false
         schema:
-          anyOf:
-          - type: string
-          - type: 'null'
+          type: string
           title: X-Api-Key
       requestBody:
         required: true
@@ -428,9 +406,7 @@ paths:
         in: header
         required: false
         schema:
-          anyOf:
-          - type: string
-          - type: 'null'
+          type: string
           title: X-Api-Key
       responses:
         '200':
@@ -458,9 +434,7 @@ paths:
         in: header
         required: false
         schema:
-          anyOf:
-          - type: string
-          - type: 'null'
+          type: string
           title: X-Api-Key
       requestBody:
         required: true
@@ -494,9 +468,7 @@ paths:
         in: header
         required: false
         schema:
-          anyOf:
-          - type: string
-          - type: 'null'
+          type: string
           title: X-Api-Key
       responses:
         '200':
@@ -537,9 +509,7 @@ paths:
         in: header
         required: false
         schema:
-          anyOf:
-          - type: string
-          - type: 'null'
+          type: string
           title: X-Api-Key
       responses:
         '200':
@@ -580,9 +550,7 @@ paths:
         in: header
         required: false
         schema:
-          anyOf:
-          - type: string
-          - type: 'null'
+          type: string
           title: X-Api-Key
       responses:
         '200':
@@ -632,9 +600,7 @@ paths:
         in: header
         required: false
         schema:
-          anyOf:
-          - type: string
-          - type: 'null'
+          type: string
           title: X-Api-Key
       responses:
         '200':

@@ -38,7 +38,7 @@
     "risk": {
       "type": "object",
       "properties": {
-        "perTradePct": { "type": "number" },
+        "perTradePct": { "type": "number", "default": 0.02 },
         "rr": { "type": "number" }
       },
       "additionalProperties": false

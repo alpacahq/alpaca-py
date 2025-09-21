@@ -20,7 +20,7 @@ Purpose: deterministic, machine-readable playbook for the trading assistant. The
 2) **Earnings proximity**: block new swing entries if next earnings < **48h**; if 48–72h and user insists, size at **0.5×**.  
 3) **Quote staleness**: use price only if provider timestamp age ≤ **10s**; otherwise refresh before sizing/limits.  
 4) **EXT rules**: no brackets/trailing in extended hours; use **limit + Day + extended** only.  
-5) **Risk skeleton**: per‑trade risk ≤ **1% equity**; per‑name exposure ≤ **20%**; daily loss halt **−5%**.
+5) **Risk skeleton**: per‑trade risk ≤ **2% equity** (default); per‑name exposure ≤ **20% equity**; daily loss halt **−5%**.
 
 ---
 
@@ -275,5 +275,6 @@ If a symbol **nearly** meets criteria but fails one or more minimums, **do not s
 
 ## Implementation Hints
 
-- Keep human text concise; produce a **`trade_preview` JSON** alongside human preview for any simulated plan.  
+- Keep human text concise; produce a **`trade_preview` JSON** alongside human preview for any simulated plan.
+- Default **per‑trade risk = 2% of equity** unless the user specifies otherwise.
 - If **any** gate fails (classifier, earnings window, session rules, quote TTL, order validation), **fail closed** and provide the next precise step (e.g., add to watchlist, refresh quote, switch to RTH).

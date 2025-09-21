@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FinRL Schemas",
+  "type": "object",
+  "properties": {
+    "finrl_job": {
+      "type": "object",
+      "properties": {
+        "service": { "type": "string", "enum": ["finrl"] },
+        "kind": { "type": "string", "enum": ["train", "backtest", "batch"] },
+        "mode": { "type": "string", "enum": ["local", "remote"] },
+        "job_id": { "type": "string" },
+        "requested": {
+          "type": "object",
+          "description": "The original request payload. It may include symbols, journal_data, date ranges and hyperparameters.",
+          "additionalProperties": true
+        }
+      },
+      "required": ["service", "kind", "mode", "job_id", "requested"],
+      "additionalProperties": false
+    },
+    "finrl_metrics": {
+      "type": "object",
+      "properties": {
+        "service": { "type": "string", "enum": ["finrl"] },
+        "kind": { "type": "string", "enum": ["predict", "backtest"] },
+        "mode": { "type": "string", "enum": ["local", "remote"] },
+        "symbol": { "type": "string" },
+        "window": {
+          "type": "object",
+          "properties": {
+            "start": { "type": "string", "format": "date" },
+            "end": { "type": "string", "format": "date" }
+          },
+          "required": ["start", "end"],
+          "additionalProperties": false
+        },
+        "metrics": {
+          "type": "object",
+          "description": "A set of performance metrics. Additional metrics may be present depending on configuration.",
+          "properties": {
+            "total_reward": { "type": "number" },
+            "sharpe": { "type": "number" },
+            "win_rate": { "type": "number" },
+            "max_drawdown": { "type": "number" }
+          },
+          "additionalProperties": true
+        },
+        "trade": {
+          "type": "object",
+          "description": "Present only in local predictions. Remote predictions omit this field.",
+          "properties": {
+            "entry": {
+              "type": "object",
+              "properties": {
+                "date": { "type": "string", "format": "date" },
+                "price": { "type": "number" }
+              },
+              "required": ["date", "price"],
+              "additionalProperties": false
+            },
+            "exit": {
+              "type": "object",
+              "properties": {
+                "date": { "type": "string", "format": "date" },
+                "price": { "type": "number" }
+              },
+              "required": ["date", "price"],
+              "additionalProperties": false
+            }
+          },
+          "required": ["entry", "exit"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["service", "kind", "mode", "symbol", "window", "metrics"],
+      "additionalProperties": false
+    },
+    "finrl_signal": {
+      "type": "object",
+      "properties": {
+        "service": { "type": "string", "enum": ["finrl"] },
+        "kind": { "type": "string", "enum": ["signal"] },
+        "symbol": { "type": "string" },
+        "version": { "type": "string" },
+        "interval": { "type": "string" },
+        "side": { "type": "string", "enum": ["buy", "sell", "none"] },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "required": ["service", "kind", "symbol", "version", "interval", "side", "confidence"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["finrl_job", "finrl_metrics", "finrl_signal"],
+  "additionalProperties": false
+}

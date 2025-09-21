@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "JournalEntry",
+  "type": "object",
+  "properties": {
+    "ts": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 timestamp of the entry"
+    },
+    "mode": {
+      "type": "string",
+      "enum": ["DRY_RUN", "LIVE"],
+      "description": "Execution mode at the time of the action"
+    },
+    "route": {
+      "type": "string",
+      "enum": ["alpaca", "finnhub", "classifier", "finrl", "internal", "journal", "none"],
+      "description": "The target service used for this action"
+    },
+    "action": {
+      "type": "string",
+      "description": "Canonical action name (e.g. order.create, quote.get, finrl.train)"
+    },
+    "symbol": {
+      "type": "string",
+      "description": "Primary symbol involved in the action"
+    },
+    "qty": {
+      "type": "number",
+      "description": "Quantity of shares or contracts"
+    },
+    "avg_price": {
+      "type": "number",
+      "description": "Average fill price or preview price"
+    },
+    "sl": {
+      "type": ["number", "null"],
+      "description": "Stop-loss price if applicable"
+    },
+    "tp": {
+      "type": ["number", "null"],
+      "description": "Take-profit price if applicable"
+    },
+    "override": {
+      "type": ["string", "null"],
+      "description": "A human-readable note indicating which risk limit or policy was overridden, if any"
+    },
+    "notes": {
+      "type": ["string", "null"],
+      "description": "Additional context or commentary associated with the action"
+    }
+  },
+  "required": ["ts", "mode", "route", "action", "symbol", "qty", "avg_price"],
+  "additionalProperties": false
+}

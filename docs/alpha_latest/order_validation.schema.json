@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OrderValidation",
+  "type": "object",
+  "properties": {
+    "ok": { "type": "boolean" },
+    "order_intent": {
+      "type": "object",
+      "properties": {
+        "action": { "type": "string", "enum": ["buy","sell"] },
+        "symbol": { "type": "string" },
+        "qty": { "type": "number" },
+        "type": { "type": "string", "enum": ["market","limit","stop","stop_limit"] },
+        "price": { "type": ["number","null"] },
+        "stop_price": { "type": ["number","null"] },
+        "tif": { "type": "string", "enum": ["day","gtc"] },
+        "session": { "type": "string", "enum": ["RTH","EXT"] }
+      },
+      "required": ["action","symbol","qty","type","tif","session"],
+      "additionalProperties": false
+    },
+    "reasons": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "required": ["ok","order_intent","reasons"],
+  "additionalProperties": false
+}

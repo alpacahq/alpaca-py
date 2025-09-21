@@ -43,8 +43,24 @@
       },
       "additionalProperties": false
     },
+    "data_freshness": {
+      "type": "object",
+      "properties": {
+        "quote_asof": { "type": "string", "format": "date-time" },
+        "quote_ttl_s": { "type": "integer", "default": 10 },
+        "quote_ttl_ok": { "type": "boolean" },
+        "balances_asof": { "type": "string", "format": "date-time" },
+        "balances_ttl_s": { "type": "integer", "default": 10 },
+        "balances_ttl_ok": { "type": "boolean" },
+        "positions_asof": { "type": "string", "format": "date-time" },
+        "positions_ttl_s": { "type": "integer", "default": 10 },
+        "positions_ttl_ok": { "type": "boolean" }
+      },
+      "required": ["quote_asof","quote_ttl_ok","balances_asof","balances_ttl_ok","positions_asof","positions_ttl_ok"],
+      "additionalProperties": false
+    },
     "assumptions": { "type": "array", "items": { "type": "string" } }
   },
-  "required": ["mode","action","symbol","qty","order"],
+  "required": ["mode","action","symbol","qty","order","data_freshness"],
   "additionalProperties": false
 }

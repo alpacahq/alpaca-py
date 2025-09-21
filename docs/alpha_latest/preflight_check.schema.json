@@ -3,6 +3,43 @@
   "title": "PreflightCheck",
   "type": "object",
   "properties": {
+    "ttl": {
+      "type": "object",
+      "properties": {
+        "quote": {
+          "type": "object",
+          "properties": {
+            "asof": { "type": "string", "format": "date-time" },
+            "ttl_s": { "type": "integer", "default": 10 },
+            "ok": { "type": "boolean" }
+          },
+          "required": ["asof","ok"],
+          "additionalProperties": false
+        },
+        "balances": {
+          "type": "object",
+          "properties": {
+            "asof": { "type": "string", "format": "date-time" },
+            "ttl_s": { "type": "integer", "default": 10 },
+            "ok": { "type": "boolean" }
+          },
+          "required": ["asof","ok"],
+          "additionalProperties": false
+        },
+        "positions": {
+          "type": "object",
+          "properties": {
+            "asof": { "type": "string", "format": "date-time" },
+            "ttl_s": { "type": "integer", "default": 10 },
+            "ok": { "type": "boolean" }
+          },
+          "required": ["asof","ok"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["quote","balances","positions"],
+      "additionalProperties": false
+    },
     "balances": {
       "type": "object",
       "properties": {
@@ -42,6 +79,6 @@
       }
     }
   },
-  "required": ["balances","positions","market_session","violations"],
+  "required": ["ttl","balances","positions","market_session","violations"],
   "additionalProperties": false
 }

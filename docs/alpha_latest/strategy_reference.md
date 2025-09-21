@@ -16,11 +16,15 @@ Purpose: deterministic, machine-readable playbook for the trading assistant. The
 - **Levels**: Prior swing highs/lows, daily/weekly range edges, and VWAP.
 
 **Pre‑conditions (apply to all plays):**
-1) **Classifier gate**: proceed only if `score ≥ 0.70` and `label ∈ {StrongBuy, Buy}`; otherwise **PASS** and add to watchlist with reason.  
-2) **Earnings proximity**: block new swing entries if next earnings < **48h**; if 48–72h and user insists, size at **0.5×**.  
-3) **Quote staleness**: use price only if provider timestamp age ≤ **10s**; otherwise refresh before sizing/limits.  
-4) **EXT rules**: no brackets/trailing in extended hours; use **limit + Day + extended** only.  
-5) **Risk skeleton**: per‑trade risk ≤ **2% equity** (default); per‑name exposure ≤ **20% equity**; daily loss halt **−5%**.
+**Classifier gate (embedded):**
+- Proceed only if `score ≥ 0.70` **and** `label ∈ {StrongBuy, Buy}`.
+- If gate fails: **PASS** (no simulate/live) and create a `watchlist_entry {strategy, symbol, reason, added_ts}`.
+- Re‑check when RVOL/PIR/news materially change.
+
+1) **Earnings proximity**: block new swing entries if next earnings < **48h**; if 48–72h and user insists, size at **0.5×**.
+2) **Quote staleness**: use price only if provider timestamp age ≤ **10s**; otherwise refresh before sizing/limits.
+3) **EXT rules**: no brackets/trailing in extended hours; use **limit + Day + extended** only.
+4) **Risk skeleton**: per‑trade risk ≤ **2% equity** (default); per‑name exposure ≤ **20%**; daily loss halt **−5%**.
 
 ---
 

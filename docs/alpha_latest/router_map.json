@@ -1,0 +1,63 @@
+{
+  "version": "2025-09-20",
+  "default": "none",
+  "targets": [
+    "alpaca",
+    "finnhub",
+    "classifier",
+    "finrl",
+    "internal",
+    "journal",
+    "none"
+  ],
+  "aliases": {
+    "q": "quote.get",
+    "quote": "quote.get",
+    "ord.new": "order.create",
+    "ord.mod": "order.modify",
+    "ord.cancel": "order.cancel",
+    "bracket.RTH": "order.create.bracket.rth",
+    "trail.RTH": "order.create.trailing.rth",
+    "limit.EXT": "order.create.limit.ext",
+    "acct/pos": "account.position",
+    "status": "order.status",
+    "cls": "classifier.score",
+    "classifier": "classifier.score",
+    "rl": "finrl.train",
+    "train": "finrl.train",
+    "predict": "finrl.predict",
+    "backtest": "finrl.backtest",
+    "signal": "finrl.signal",
+    "risk": "finrl.risk",
+    "runAll": "finrl.runAll",
+    "status.finrl": "finrl.status",
+    "jobs": "finrl.jobs",
+    "journal": "journal.entry",
+    "drift": "metrics.drift",
+    "strat": "internal.strategy",
+    "risk.limit": "internal.risk",
+    "compliance": "internal.compliance"
+  },
+  "rules": [
+    { "pattern": "^quote\\.", "route": "finnhub", "priority": 100 },
+    { "pattern": "^order\\.", "route": "alpaca", "priority": 100 },
+    { "pattern": "^account\\.", "route": "alpaca", "priority": 100 },
+    { "pattern": "^(train|predict|backtest|signal|risk|runAll|jobs|status\\.finrl)", "route": "finrl", "priority": 90 },
+    { "pattern": "^classifier\\.", "route": "classifier", "priority": 80 },
+    { "pattern": "^metrics\\.drift", "route": "internal", "priority": 70 },
+    { "pattern": "^internal\\.", "route": "internal", "priority": 60 },
+    { "pattern": "^journal\\.", "route": "journal", "priority": 60 }
+  ],
+  "tests": [
+    { "in": "ord.new", "expect": "alpaca" },
+    { "in": "q", "expect": "finnhub" },
+    { "in": "train", "expect": "finrl" },
+    { "in": "predict", "expect": "finrl" },
+    { "in": "backtest", "expect": "finrl" },
+    { "in": "risk.limit", "expect": "internal" },
+    { "in": "metrics.drift", "expect": "internal" },
+    { "in": "classifier", "expect": "classifier" },
+    { "in": "journal", "expect": "journal" },
+    { "in": "unknown.command", "expect": "none" }
+  ]
+}

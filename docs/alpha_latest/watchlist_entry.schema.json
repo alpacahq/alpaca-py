@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "WatchlistEntry",
+  "type": "object",
+  "properties": {
+    "strategy": { "type": "string" },
+    "symbol": { "type": "string" },
+    "reason": { "type": "string" },
+    "added_ts": { "type": "string", "format": "date-time" }
+  },
+  "required": ["strategy","symbol","reason","added_ts"],
+  "additionalProperties": false
+}

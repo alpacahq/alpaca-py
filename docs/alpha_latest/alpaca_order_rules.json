@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AlpacaOrderRules",
+  "type": "object",
+  "properties": {
+    "allowed_order_types": { "type": "array", "items": { "type": "string" }, "default": ["market","limit","stop","stop_limit"] },
+    "allowed_time_in_force": { "type": "array", "items": { "type": "string" }, "default": ["day","gtc"] },
+    "rth": {
+      "type": "object",
+      "properties": {
+        "brackets_allowed": { "type": "boolean", "default": true },
+        "trailing_allowed": { "type": "boolean", "default": true }
+      },
+      "additionalProperties": false
+    },
+    "ext": {
+      "type": "object",
+      "properties": {
+        "supported_order_types": { "type": "array", "items": { "type": "string" }, "default": ["limit"] },
+        "brackets_allowed": { "type": "boolean", "default": false },
+        "trailing_allowed": { "type": "boolean", "default": false },
+        "tif": { "type": "string", "enum": ["day"] }
+      },
+      "additionalProperties": false
+    },
+    "price_rules": {
+      "type": "object",
+      "properties": {
+        "limit_requires_price": { "type": "boolean", "default": true },
+        "stop_requires_stop_price": { "type": "boolean", "default": true },
+        "stop_limit_requires_both": { "type": "boolean", "default": true }
+      },
+      "additionalProperties": false
+    },
+    "quantity_rules": {
+      "type": "object",
+      "properties": {
+        "min_qty": { "type": "number", "default": 1 },
+        "integer_only": { "type": "boolean", "default": true }
+      },
+      "additionalProperties": false
+    },
+    "idempotency": {
+      "type": "object",
+      "properties": {
+        "client_order_id_required_for_retries": { "type": "boolean", "default": true }
+      },
+      "additionalProperties": false
+    }
+  },
+  "required": ["allowed_order_types","allowed_time_in_force","rth","ext","price_rules","quantity_rules","idempotency"],
+  "additionalProperties": false
+}

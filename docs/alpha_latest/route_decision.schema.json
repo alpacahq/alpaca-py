@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RouteDecision",
+  "type": "object",
+  "properties": {
+    "target": { "type": "string", "enum": ["alpaca","finnhub","classifier","finrl","internal","journal","none"] },
+    "resolvedAlias": { "type": "string" },
+    "fallback": { "type": "boolean", "default": false },
+    "reason": { "type": "string" }
+  },
+  "required": ["target","resolvedAlias"],
+  "additionalProperties": false
+}

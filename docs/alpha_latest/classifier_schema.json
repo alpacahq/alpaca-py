@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AlphaClassifierOutput",
+  "type": "object",
+  "properties": {
+    "score": { "type": "number", "minimum": 0, "maximum": 1 },
+    "label": { "type": "string", "enum": ["StrongBuy","Buy","Neutral","Sell","StrongSell"] },
+    "features": {
+      "type": "object",
+      "properties": {
+        "trend": { "type": "number" },
+        "rvol": { "type": "number" },
+        "pir": { "type": "number" },
+        "atr": { "type": "number" },
+        "rsi": { "type": "number" },
+        "news_flags": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    },
+    "rationale": { "type": "string" }
+  },
+  "required": ["score","label"],
+  "additionalProperties": false
+}

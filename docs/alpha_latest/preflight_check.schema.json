@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PreflightCheck",
+  "type": "object",
+  "properties": {
+    "balances": {
+      "type": "object",
+      "properties": {
+        "equity": { "type": "number" },
+        "buying_power": { "type": "number" },
+        "cash": { "type": "number" }
+      },
+      "required": ["equity","buying_power","cash"],
+      "additionalProperties": false
+    },
+    "positions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "symbol": { "type": "string" },
+          "qty": { "type": "number" },
+          "avg_price": { "type": "number" }
+        },
+        "required": ["symbol","qty","avg_price"],
+        "additionalProperties": false
+      }
+    },
+    "earnings_proximity_hours": { "type": "number" },
+    "market_session": { "type": "string", "enum": ["RTH","EXT","CLOSED","HALTED"] },
+    "violations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string" },
+          "message": { "type": "string" },
+          "blocking": { "type": "boolean" }
+        },
+        "required": ["code","message","blocking"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["balances","positions","market_session","violations"],
+  "additionalProperties": false
+}

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MoveExplanation",
+  "type": "object",
+  "properties": {
+    "symbol": { "type": "string" },
+    "magnitude_pct": { "type": "number" },
+    "catalysts": { "type": "array", "items": { "type": "string" } },
+    "timeframe": { "type": "string", "enum": ["intraday","session","multi-day"] },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "suggestion": { "type": "string" }
+  },
+  "required": ["symbol","magnitude_pct","timeframe","confidence"],
+  "additionalProperties": false
+}

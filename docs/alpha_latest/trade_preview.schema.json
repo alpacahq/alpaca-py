@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TradePreview",
+  "type": "object",
+  "properties": {
+    "mode": { "type": "string", "enum": ["DRY_RUN","LIVE"] },
+    "action": { "type": "string", "enum": ["buy","sell"] },
+    "symbol": { "type": "string" },
+    "qty": { "type": "number" },
+    "order": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["limit","market","stop","stop_limit"] },
+        "price": { "type": ["number","null"] },
+        "tif": { "type": "string", "enum": ["day","gtc"] },
+        "session": { "type": "string", "enum": ["RTH","EXT"] }
+      },
+      "required": ["type","tif","session"],
+      "additionalProperties": false
+    },
+    "exits": {
+      "type": "object",
+      "properties": {
+        "stop": { "type": ["number","null"] },
+        "target": { "type": ["number","null"] },
+        "trailing": {
+          "type": "object",
+          "properties": {
+            "type": { "type": "string", "enum": ["percent","price"] },
+            "value": { "type": ["number","null"] }
+          },
+          "required": ["type","value"],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "risk": {
+      "type": "object",
+      "properties": {
+        "perTradePct": { "type": "number" },
+        "rr": { "type": "number" }
+      },
+      "additionalProperties": false
+    },
+    "assumptions": { "type": "array", "items": { "type": "string" } }
+  },
+  "required": ["mode","action","symbol","qty","order"],
+  "additionalProperties": false
+}

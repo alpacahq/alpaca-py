@@ -38,6 +38,10 @@
     "risk.limit": "internal.risk",
     "compliance": "internal.compliance"
   },
+  "order.*": {
+    "route": "alpaca",
+    "operationId": "order_create"
+  },
   "rules": [
     { "pattern": "^quote\\.", "route": "finnhub", "priority": 100 },
     { "pattern": "^order\\.", "route": "alpaca", "priority": 100 },

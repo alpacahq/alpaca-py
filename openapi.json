@@ -1624,7 +1624,8 @@
               "market",
               "limit",
               "stop",
-              "stop_limit"
+              "stop_limit",
+              "trailing_stop"
             ]
           },
           "time_in_force": {
@@ -1645,6 +1646,26 @@
             ]
           },
           "stop_price": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "trail_price": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "trail_percent": {
             "anyOf": [
               {
                 "type": "number"

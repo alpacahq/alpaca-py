@@ -19,8 +19,10 @@ security:
 paths:
   /v2/orders:
     post:
-      summary: Create Order
-      operationId: order_create
+      summary: Create order (Alpaca REST)
+      operationId: order.create
+      security:
+        - ApiKeyAuth: []
       requestBody:
         required: true
         content:
@@ -30,9 +32,6 @@ paths:
       responses:
         '200':
           description: Order accepted
-          content:
-            application/json:
-              schema: {}
         '4XX':
           description: Client error
         '5XX':
@@ -550,6 +549,11 @@ paths:
             application/json:
               schema: {}
 components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
   schemas:
     CreateOrder:
       type: object
@@ -557,7 +561,6 @@ components:
       required:
         - symbol
         - side
-        - qty
         - type
         - time_in_force
       properties:
@@ -567,6 +570,9 @@ components:
           type: string
           enum: [buy, sell]
         qty:
+          type: number
+          minimum: 1
+        notional:
           type: number
           minimum: 1
         type:
@@ -608,6 +614,33 @@ components:
         extended_hours:
           type: boolean
           default: false
+      oneOf:
+        - required: [qty]
+          not:
+            required: [notional]
+        - required: [notional]
+          not:
+            required: [qty]
+      allOf:
+        - if:
+            properties:
+              type:
+                const: trailing_stop
+          then:
+            oneOf:
+              - required: [trail_price]
+              - required: [trail_percent]
+            properties:
+              limit_price:
+                nullable: true
+              stop_price:
+                nullable: true
+        - if:
+            properties:
+              order_class:
+                const: bracket
+          then:
+            required: [take_profit, stop_loss]
     BracketOrderBody:
       properties:
         symbol:

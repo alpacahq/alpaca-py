@@ -20,7 +20,8 @@ paths:
   /v2/orders:
     post:
       summary: Create order (Alpaca REST)
-      operationId: order.create
+      operationId: order_create
+      x-canonical-operation: order.create
       security:
         - ApiKeyAuth: []
       requestBody:

@@ -571,7 +571,7 @@ components:
           minimum: 1
         type:
           type: string
-          enum: [market, limit, stop, stop_limit]
+          enum: [market, limit, stop, stop_limit, trailing_stop]
         time_in_force:
           type: string
           enum: [day, gtc]
@@ -579,6 +579,12 @@ components:
           type: number
           nullable: true
         stop_price:
+          type: number
+          nullable: true
+        trail_price:
+          type: number
+          nullable: true
+        trail_percent:
           type: number
           nullable: true
         order_class:

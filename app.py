@@ -209,6 +209,22 @@ def cancel_order(order_id: str, x_api_key: Optional[str] = Header(None)):
     # The decorator defines a 204 status code, so simply return an empty response.
     return Response(status_code=204)
 
+
+# v2 alias for cancelling orders to match OpenAPI spec
+@app.delete(
+    "/v2/orders/{order_id}",
+    status_code=204,
+    summary="Cancel order by ID",
+    response_description="Order cancelled",
+)
+def cancel_order_by_id_v2(order_id: str, x_api_key: Optional[str] = Header(None)):
+    """Cancel an order by ID for the v2 API. Mirrors /v1/orders/{order_id}."""
+
+    check_key(x_api_key)
+    tc = trading_client()
+    tc.cancel_order(order_id)
+    return Response(status_code=204)
+
 # -- Account
 @app.get("/v1/account")
 def get_account(x_api_key: Optional[str] = Header(None)):

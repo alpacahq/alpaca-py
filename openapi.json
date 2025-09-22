@@ -1098,7 +1098,8 @@
     "/v2/orders": {
       "post": {
         "summary": "Create Order",
-        "operationId": "order.create",
+        "operationId": "order_create",
+        "x-canonical-operation": "order.create",
         "security": [
           {
             "ApiKeyAuth": []

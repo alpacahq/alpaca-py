@@ -216,8 +216,9 @@ def cancel_order(order_id: str, x_api_key: Optional[str] = Header(None)):
     status_code=204,
     summary="Cancel order by ID",
     response_description="Order cancelled",
+    operationId="cancelOrderById_v2",
 )
-def cancel_order_by_id_v2(order_id: str, x_api_key: Optional[str] = Header(None)):
+def cancelOrderById_v2(order_id: str, x_api_key: Optional[str] = Header(None)):
     """Cancel an order by ID for the v2 API. Mirrors /v1/orders/{order_id}."""
 
     check_key(x_api_key)

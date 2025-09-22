@@ -1126,11 +1126,68 @@
               }
             }
           },
-          "4XX": {
-            "description": "Client error"
+          "401": {
+            "description": "Unauthorized (missing/invalid keys)"
           },
-          "5XX": {
+          "422": {
+            "description": "Validation Error"
+          },
+          "500": {
             "description": "Server error"
+          }
+        }
+      }
+    },
+    "/v2/account": {
+      "get": {
+        "summary": "Get Account",
+        "operationId": "account.get",
+        "security": [
+          {
+            "alpacaKey": []
+          },
+          {
+            "alpacaSecret": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Account",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/v2/positions": {
+      "get": {
+        "summary": "List Positions",
+        "operationId": "positions.list",
+        "security": [
+          {
+            "alpacaKey": []
+          },
+          {
+            "alpacaSecret": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Positions",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
           }
         }
       }
@@ -1564,7 +1621,7 @@
             ]
           },
           "qty": {
-            "type": "number",
+            "type": "integer",
             "minimum": 1
           },
           "type": {
@@ -1584,12 +1641,16 @@
             ]
           },
           "limit_price": {
-            "type": "number",
-            "nullable": true
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "stop_price": {
-            "type": "number",
-            "nullable": true
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "order_class": {
             "type": "string",
@@ -1625,6 +1686,12 @@
           "extended_hours": {
             "type": "boolean",
             "default": false
+          },
+          "client_order_id": {
+            "type": [
+              "string",
+              "null"
+            ]
           }
         }
       },

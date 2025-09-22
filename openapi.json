@@ -1656,23 +1656,15 @@
             ]
           },
           "trail_price": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
+            "type": [
+              "number",
+              "null"
             ]
           },
           "trail_percent": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
+            "type": [
+              "number",
+              "null"
             ]
           },
           "order_class": {
@@ -1716,7 +1708,40 @@
               "null"
             ]
           }
-        }
+        },
+        "allOf": [
+          {
+            "oneOf": [
+              {
+                "required": [
+                  "trail_price"
+                ]
+              },
+              {
+                "required": [
+                  "trail_percent"
+                ]
+              }
+            ],
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "trailing_stop"
+                }
+              }
+            },
+            "then": {
+              "not": {
+                "required": [
+                  "limit_price",
+                  "stop_price",
+                  "take_profit",
+                  "stop_loss"
+                ]
+              }
+            }
+          }
+        ]
       },
       "ValidationError": {
         "properties": {
@@ -1784,6 +1809,11 @@
   "servers": [
     {
       "url": "https://alpaca-py-production.up.railway.app"
+    }
+  ],
+  "security": [
+    {
+      "ApiKeyAuth": []
     }
   ]
 }

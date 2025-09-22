@@ -9,8 +9,11 @@ from pydantic import BaseModel
 from alpaca.trading.client import TradingClient
 from alpaca.trading.enums import OrderSide, TimeInForce
 from alpaca.trading.requests import (
-    MarketOrderRequest, LimitOrderRequest,
-    CreateWatchlistRequest, UpdateWatchlistRequest
+    MarketOrderRequest,
+    LimitOrderRequest,
+    StopOrderRequest,
+    CreateWatchlistRequest,
+    UpdateWatchlistRequest
 )
 from alpaca.data.historical import StockHistoricalDataClient
 from alpaca.data.requests import (
@@ -49,6 +52,24 @@ class OrderIn(BaseModel):
     type: str
     time_in_force: str
     limit_price: float | None = None
+
+
+class CreateOrder(BaseModel):
+    symbol: str
+    side: str
+    qty: float | None = None
+    notional: float | None = None
+    type: str
+    time_in_force: str
+    limit_price: float | None = None
+    stop_price: float | None = None
+    order_class: str | None = None
+    take_profit: dict | None = None
+    stop_loss: dict | None = None
+    extended_hours: bool | None = None
+    trail_price: float | None = None
+    trail_percent: float | None = None
+    client_order_id: str | None = None
 
 def parse_timeframe(tf_str: str) -> TimeFrame:
     m = re.match(r'^(\d+)([A-Za-z]+)$', tf_str)
@@ -89,6 +110,75 @@ def submit_order(order: OrderIn, x_api_key: Optional[str] = Header(None)):
     else:
         raise HTTPException(400, "unsupported order type")
     o = tc.submit_order(order_data=req)
+    return o.model_dump() if hasattr(o, "model_dump") else o.__dict__
+
+
+@app.post("/v2/orders")
+def order_create(order: CreateOrder, x_api_key: Optional[str] = Header(None)):
+    """
+    Implements /v2/orders endpoint defined in openapi spec.
+    Supports simple market, limit and stop orders.
+    For bracket, stop-loss/limit combos, or trailing stops use the v1 endpoints.
+    """
+
+    check_key(x_api_key)
+
+    if (
+        order.order_class
+        or order.take_profit
+        or order.stop_loss
+        or order.trail_price
+        or order.trail_percent
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Use /v1/order/bracket, /v1/order/stop, or /v1/order/trailing for bracket, stop or trailing orders.",
+        )
+
+    side = OrderSide.BUY if order.side.lower() == "buy" else OrderSide.SELL
+    tif = TimeInForce(order.time_in_force.lower())
+
+    if order.type.lower() == "market":
+        req = MarketOrderRequest(
+            symbol=order.symbol,
+            qty=order.qty,
+            notional=order.notional,
+            side=side,
+            time_in_force=tif,
+            client_order_id=order.client_order_id,
+        )
+    elif order.type.lower() == "limit":
+        if order.limit_price is None:
+            raise HTTPException(
+                status_code=400, detail="limit_price required for limit orders"
+            )
+        req = LimitOrderRequest(
+            symbol=order.symbol,
+            qty=order.qty,
+            notional=order.notional,
+            side=side,
+            time_in_force=tif,
+            limit_price=order.limit_price,
+            client_order_id=order.client_order_id,
+        )
+    elif order.type.lower() == "stop":
+        if order.stop_price is None:
+            raise HTTPException(
+                status_code=400, detail="stop_price required for stop orders"
+            )
+        req = StopOrderRequest(
+            symbol=order.symbol,
+            qty=order.qty,
+            notional=order.notional,
+            side=side,
+            time_in_force=tif,
+            stop_price=order.stop_price,
+            client_order_id=order.client_order_id,
+        )
+    else:
+        raise HTTPException(status_code=400, detail="unsupported order type")
+
+    o = trading_client().submit_order(order_data=req)
     return o.model_dump() if hasattr(o, "model_dump") else o.__dict__
 
 @app.get("/v1/orders")

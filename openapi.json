@@ -1101,10 +1101,7 @@
         "operationId": "order.create",
         "security": [
           {
-            "alpacaKey": []
-          },
-          {
-            "alpacaSecret": []
+            "ApiKeyAuth": []
           }
         ],
         "requestBody": {
@@ -1126,13 +1123,10 @@
               }
             }
           },
-          "401": {
-            "description": "Unauthorized (missing/invalid keys)"
+          "4XX": {
+            "description": "Client error"
           },
-          "422": {
-            "description": "Validation Error"
-          },
-          "500": {
+          "5XX": {
             "description": "Server error"
           }
         }
@@ -1621,7 +1615,7 @@
             ]
           },
           "qty": {
-            "type": "integer",
+            "type": "number",
             "minimum": 1
           },
           "type": {
@@ -1641,15 +1635,23 @@
             ]
           },
           "limit_price": {
-            "type": [
-              "number",
-              "null"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
             ]
           },
           "stop_price": {
-            "type": [
-              "number",
-              "null"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
             ]
           },
           "order_class": {

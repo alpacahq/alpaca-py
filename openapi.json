@@ -1098,7 +1098,15 @@
     "/v2/orders": {
       "post": {
         "summary": "Create Order",
-        "operationId": "order_create",
+        "operationId": "order.create",
+        "security": [
+          {
+            "alpacaKey": []
+          },
+          {
+            "alpacaSecret": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -1145,6 +1153,18 @@
     }
   },
   "components": {
+    "securitySchemes": {
+      "alpacaKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "APCA-API-KEY-ID"
+      },
+      "alpacaSecret": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "APCA-API-SECRET-KEY"
+      }
+    },
     "schemas": {
       "BracketOrderBody": {
         "properties": {

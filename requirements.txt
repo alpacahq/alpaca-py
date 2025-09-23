@@ -2,6 +2,7 @@ fastapi
 uvicorn[standard]
 alpaca-py
 pandas
+aiohttp
 fastapi
 uvicorn[standard]
 alpaca-py

@@ -6,6 +6,7 @@ from typing import List, Optional
 from fastapi import FastAPI, Header, HTTPException, Query, Path
 from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel
+from alpaca.common.exceptions import APIError
 from alpaca.trading.client import TradingClient
 from alpaca.trading.enums import OrderSide, TimeInForce
 from alpaca.trading.requests import (
@@ -20,6 +21,7 @@ from alpaca.data.requests import (
     StockBarsRequest, StockQuotesRequest, StockTradesRequest
 )
 from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
+from alpaca_client import AlpacaClient
 
 app = FastAPI(title="Alpaca Wrapper")
 
@@ -32,11 +34,7 @@ def check_key(x_api_key: Optional[str]):
         raise HTTPException(status_code=401, detail="Invalid API key")
 
 def trading_client() -> TradingClient:
-    return TradingClient(
-        api_key=os.environ["APCA_API_KEY_ID"],
-        secret_key=os.environ["APCA_API_SECRET_KEY"],
-        paper=("paper" in os.environ.get("APCA_API_BASE_URL", ""))
-    )
+    return AlpacaClient.from_env().client
 
 def md_client() -> StockHistoricalDataClient:
     return StockHistoricalDataClient(
@@ -233,8 +231,11 @@ def cancelOrderById_v2(order_id: str, x_api_key: Optional[str] = Header(None)):
 @app.get("/v1/account")
 def get_account(x_api_key: Optional[str] = Header(None)):
     check_key(x_api_key)
-    acct = trading_client().get_account()
-    return acct.model_dump() if hasattr(acct, "model_dump") else acct.__dict__
+    client = AlpacaClient.from_env()
+    try:
+        return client.get_account()
+    except APIError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
 
 # -- Positions
 @app.get("/v1/positions")

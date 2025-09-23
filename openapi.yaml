@@ -12,32 +12,53 @@ security:
 paths:
   /v2/orders:
     post:
-      summary: Create Order
-      operationId: order_create
-      parameters:
-      - name: x-api-key
-        in: header
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: X-Api-Key
-      security:
-        - ApiKeyAuth: []
+      summary: Submit Order
+      operationId: submitOrder
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateOrder'
+              $ref: '#/components/schemas/OrderIn'
       responses:
         '200':
-          description: Order accepted
-        '4XX':
-          description: Client error
-        '5XX':
-          description: Server error
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    get:
+      summary: List Orders
+      operationId: listOrders_v1
+      parameters:
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - open
+          - closed
+          - all
+          default: open
+          title: Status
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /v1/order/bracket:
     post:
       tags:
@@ -121,57 +142,7 @@ paths:
           content:
             application/json:
               schema: {}
-  /v1/order:
-    post:
-      summary: Submit Order
-      operationId: submitOrder
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/OrderIn'
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /v1/orders:
-    get:
-      summary: List Orders
-      operationId: listOrders_v1
-      parameters:
-      - name: status
-        in: query
-        required: false
-        schema:
-          type: string
-          enum:
-          - open
-          - closed
-          - all
-          default: open
-          title: Status
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /v1/orders/{order_id}:
+  /v2/orders/{order_id}:
     get:
       summary: Get order by ID
       operationId: getOrderById_v1
@@ -194,7 +165,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
-  /v2/orders/{order_id}:
     delete:
       summary: Cancel order by ID
       operationId: cancelOrderById_v2
@@ -205,14 +175,14 @@ paths:
         schema:
           type: string
           title: Order Id
-      - name: x-api-key
+      - name: APCA-API-KEY-ID
         in: header
         required: false
         schema:
           anyOf:
           - type: string
           - type: 'null'
-          title: X-Api-Key
+          title: APCA-API-KEY-ID
       responses:
         '204':
           description: Order cancelled
@@ -222,7 +192,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
-  /v1/account:
+  /v2/account:
     get:
       summary: Get Account
       operationId: getAccount
@@ -238,7 +208,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
-  /v1/positions:
+  /v2/positions:
     get:
       summary: List Positions
       operationId: listPositions
@@ -277,7 +247,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
-  /v1/positions/{symbol}:
+  /v2/positions/{symbol}:
     get:
       summary: Get Position
       operationId: getPosition
@@ -329,7 +299,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
-  /v1/watchlists:
+  /v2/watchlists:
     get:
       summary: List Watchlists
       operationId: list_watchlists_v1_watchlists_get
@@ -366,7 +336,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
-  /v1/watchlists/{watchlist_id}:
+  /v2/watchlists/{watchlist_id}:
     get:
       summary: Get Watchlist
       operationId: get_watchlist_v1_watchlists__watchlist_id__get
@@ -569,7 +539,9 @@ components:
     ApiKeyAuth:
       type: apiKey
       in: header
-      name: x-api-key
+      # Alpaca’s trading API uses APCA-API-KEY-ID for authentication.
+      # (APCA-API-SECRET-KEY must be supplied as a second header.)
+      name: APCA-API-KEY-ID
   schemas:
     CreateOrder:
       type: object
@@ -924,5 +896,7 @@ components:
     ApiKeyAuth:
       type: apiKey
       in: header
-      name: x-api-key
+      # Alpaca’s trading API uses APCA-API-KEY-ID for authentication.
+      # (APCA-API-SECRET-KEY must be supplied as a second header.)
+      name: APCA-API-KEY-ID
 

@@ -3,7 +3,8 @@ import os
 import re
 from datetime import datetime
 from typing import List, Optional
-from fastapi import FastAPI, Header, HTTPException, Query, Path
+import aiohttp
+from fastapi import FastAPI, Header, HTTPException, Query
 from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel
 from alpaca.common.exceptions import APIError
@@ -23,15 +24,35 @@ from alpaca.data.requests import (
 from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
 from alpaca_client import AlpacaClient
 
-app = FastAPI(title="Alpaca Wrapper")
+ALPACA_API_BASE_URL = os.getenv("ALPACA_API_BASE_URL", "https://api.alpaca.markets")
+ALPACA_KEY_ID = os.getenv("ALPACA_KEY_ID") or os.getenv("APCA_API_KEY_ID")
+ALPACA_SECRET_KEY = os.getenv("ALPACA_SECRET_KEY") or os.getenv("APCA_API_SECRET_KEY")
+GATEWAY_API_KEY = os.getenv("GATEWAY_API_KEY") or os.getenv("X_API_KEY")
+
+app = FastAPI(title="Alpaca Wrapper", version="1.0.3")
+
+
+def _require_gateway_key(x_api_key: Optional[str]):
+    if GATEWAY_API_KEY and x_api_key != GATEWAY_API_KEY:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+
+def _alpaca_headers():
+    key_id = ALPACA_KEY_ID or os.getenv("APCA_API_KEY_ID")
+    secret_key = ALPACA_SECRET_KEY or os.getenv("APCA_API_SECRET_KEY")
+    if not (key_id and secret_key):
+        raise HTTPException(status_code=500, detail="Upstream credentials not configured")
+    return {
+        "APCA-API-KEY-ID": key_id,
+        "APCA-API-SECRET-KEY": secret_key,
+    }
 
 
 app.include_router(advanced_orders_router)
 
+
 def check_key(x_api_key: Optional[str]):
-    service_key = os.getenv("X_API_KEY")
-    if not service_key or x_api_key != service_key:
-        raise HTTPException(status_code=401, detail="Invalid API key")
+    _require_gateway_key(x_api_key)
 
 def trading_client() -> TradingClient:
     return AlpacaClient.from_env().client
@@ -112,72 +133,127 @@ def submit_order(order: OrderIn, x_api_key: Optional[str] = Header(None)):
 
 
 @app.post("/v2/orders")
-def order_create(order: CreateOrder, x_api_key: Optional[str] = Header(None)):
-    """
-    Implements /v2/orders endpoint defined in openapi spec.
-    Supports simple market, limit and stop orders.
-    For bracket, stop-loss/limit combos, or trailing stops use the v1 endpoints.
-    """
+async def order_create(
+    order: CreateOrder, x_api_key: Optional[str] = Header(None, alias="x-api-key")
+):
+    _require_gateway_key(x_api_key)
+    payload = (
+        order.model_dump(exclude_none=True)
+        if hasattr(order, "model_dump")
+        else order.dict(exclude_none=True)
+    )
+    async with aiohttp.ClientSession(headers=_alpaca_headers()) as session:
+        async with session.post(f"{ALPACA_API_BASE_URL}/v2/orders", json=payload) as r:
+            body = await r.text()
+            if r.status >= 400:
+                raise HTTPException(status_code=r.status, detail=body)
+            return await r.json()
 
-    check_key(x_api_key)
 
-    if (
-        order.order_class
-        or order.take_profit
-        or order.stop_loss
-        or order.trail_price
-        or order.trail_percent
-    ):
-        raise HTTPException(
-            status_code=400,
-            detail="Use /v1/order/bracket, /v1/order/stop, or /v1/order/trailing for bracket, stop or trailing orders.",
-        )
+@app.get("/v2/account")
+async def account_get(x_api_key: Optional[str] = Header(None, alias="x-api-key")):
+    _require_gateway_key(x_api_key)
+    async with aiohttp.ClientSession(headers=_alpaca_headers()) as session:
+        async with session.get(f"{ALPACA_API_BASE_URL}/v2/account") as r:
+            body = await r.text()
+            if r.status >= 400:
+                raise HTTPException(status_code=r.status, detail=body)
+            return await r.json()
 
-    side = OrderSide.BUY if order.side.lower() == "buy" else OrderSide.SELL
-    tif = TimeInForce(order.time_in_force.lower())
 
-    if order.type.lower() == "market":
-        req = MarketOrderRequest(
-            symbol=order.symbol,
-            qty=order.qty,
-            notional=order.notional,
-            side=side,
-            time_in_force=tif,
-            client_order_id=order.client_order_id,
-        )
-    elif order.type.lower() == "limit":
-        if order.limit_price is None:
-            raise HTTPException(
-                status_code=400, detail="limit_price required for limit orders"
-            )
-        req = LimitOrderRequest(
-            symbol=order.symbol,
-            qty=order.qty,
-            notional=order.notional,
-            side=side,
-            time_in_force=tif,
-            limit_price=order.limit_price,
-            client_order_id=order.client_order_id,
-        )
-    elif order.type.lower() == "stop":
-        if order.stop_price is None:
-            raise HTTPException(
-                status_code=400, detail="stop_price required for stop orders"
-            )
-        req = StopOrderRequest(
-            symbol=order.symbol,
-            qty=order.qty,
-            notional=order.notional,
-            side=side,
-            time_in_force=tif,
-            stop_price=order.stop_price,
-            client_order_id=order.client_order_id,
-        )
-    else:
-        raise HTTPException(status_code=400, detail="unsupported order type")
+@app.get("/v2/orders")
+async def orders_list(
+    status: Optional[str] = Query(None),
+    x_api_key: Optional[str] = Header(None, alias="x-api-key"),
+):
+    _require_gateway_key(x_api_key)
+    params = {"status": status} if status else None
+    async with aiohttp.ClientSession(headers=_alpaca_headers()) as session:
+        async with session.get(
+            f"{ALPACA_API_BASE_URL}/v2/orders", params=params
+        ) as r:
+            body = await r.text()
+            if r.status >= 400:
+                raise HTTPException(status_code=r.status, detail=body)
+            return await r.json()
 
-    o = trading_client().submit_order(order_data=req)
-    return o.model_dump() if hasattr(o, "model_dump") else o.__dict__
+
+@app.get("/v2/orders/{order_id}")
+async def orders_get_by_id(
+    order_id: str, x_api_key: Optional[str] = Header(None, alias="x-api-key")
+):
+    _require_gateway_key(x_api_key)
+    async with aiohttp.ClientSession(headers=_alpaca_headers()) as session:
+        async with session.get(
+            f"{ALPACA_API_BASE_URL}/v2/orders/{order_id}"
+        ) as r:
+            body = await r.text()
+            if r.status >= 400:
+                raise HTTPException(status_code=r.status, detail=body)
+            return await r.json()
+
+
+@app.get("/v2/positions")
+async def positions_list_v2(
+    x_api_key: Optional[str] = Header(None, alias="x-api-key")
+):
+    _require_gateway_key(x_api_key)
+    async with aiohttp.ClientSession(headers=_alpaca_headers()) as session:
+        async with session.get(f"{ALPACA_API_BASE_URL}/v2/positions") as r:
+            body = await r.text()
+            if r.status >= 400:
+                raise HTTPException(status_code=r.status, detail=body)
+            return await r.json()
+
+
+@app.get("/v2/positions/{symbol}")
+async def positions_get(
+    symbol: str, x_api_key: Optional[str] = Header(None, alias="x-api-key")
+):
+    _require_gateway_key(x_api_key)
+    async with aiohttp.ClientSession(headers=_alpaca_headers()) as session:
+        async with session.get(
+            f"{ALPACA_API_BASE_URL}/v2/positions/{symbol}"
+        ) as r:
+            body = await r.text()
+            if r.status >= 400:
+                raise HTTPException(status_code=r.status, detail=body)
+            return await r.json()
+
+
+@app.delete("/v2/positions")
+async def positions_close_all(
+    cancel_orders: bool = Query(False),
+    x_api_key: Optional[str] = Header(None, alias="x-api-key"),
+):
+    _require_gateway_key(x_api_key)
+    params = {"cancel_orders": str(cancel_orders).lower()}
+    async with aiohttp.ClientSession(headers=_alpaca_headers()) as session:
+        async with session.delete(
+            f"{ALPACA_API_BASE_URL}/v2/positions", params=params
+        ) as r:
+            body = await r.text()
+            if r.status >= 400:
+                raise HTTPException(status_code=r.status, detail=body)
+            return await r.json()
+
+
+@app.delete("/v2/positions/{symbol}")
+async def positions_close(
+    symbol: str,
+    cancel_orders: bool = Query(False),
+    x_api_key: Optional[str] = Header(None, alias="x-api-key"),
+):
+    _require_gateway_key(x_api_key)
+    params = {"cancel_orders": str(cancel_orders).lower()}
+    async with aiohttp.ClientSession(headers=_alpaca_headers()) as session:
+        async with session.delete(
+            f"{ALPACA_API_BASE_URL}/v2/positions/{symbol}", params=params
+        ) as r:
+            body = await r.text()
+            if r.status >= 400:
+                raise HTTPException(status_code=r.status, detail=body)
+            return await r.json()
 
 @app.get("/v1/orders")
 def list_orders(status: str = Query("open"), x_api_key: Optional[str] = Header(None)):
@@ -217,14 +293,19 @@ def cancel_order(order_id: str, x_api_key: Optional[str] = Header(None)):
     # FastAPI uses snake_case for the OpenAPI operation_id parameter
     operation_id="cancelOrderById_v2",
 )
-def cancelOrderById_v2(order_id: str, x_api_key: Optional[str] = Header(None)):
+async def cancelOrderById_v2(
+    order_id: str, x_api_key: Optional[str] = Header(None, alias="x-api-key")
+):
     """Cancel an order by ID for the v2 API. Mirrors /v1/orders/{order_id}."""
 
-    check_key(x_api_key)
-    tc = trading_client()
-    # Use the correct client method to target DELETE /v2/orders/{order_id}
-    tc.cancel_order_by_id(order_id)
-    # Return 204 No Content on success
+    _require_gateway_key(x_api_key)
+    async with aiohttp.ClientSession(headers=_alpaca_headers()) as session:
+        async with session.delete(
+            f"{ALPACA_API_BASE_URL}/v2/orders/{order_id}"
+        ) as r:
+            if r.status >= 400:
+                body = await r.text()
+                raise HTTPException(status_code=r.status, detail=body)
     return Response(status_code=204)
 
 # -- Account

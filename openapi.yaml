@@ -1,31 +1,30 @@
 openapi: 3.1.0
 info:
-  title: Alpaca Trading & Market Data (Direct)
-  version: "1.0.0"
+  title: Alpaca Trading API (Live)
+  version: "1.0.1"
 servers:
   - url: https://api.alpaca.markets
-    description: Live Trading API
-  - url: https://paper-api.alpaca.markets
-    description: Paper Trading API
-security:
-  - APCAKeyID: []
-    APCASecretKey: []
 paths:
   /v2/orders:
     post:
       summary: Submit a new order
-      operationId: submitOrder
+      operationId: ordersCreate
+      security: [{ ApiKeyAuth: [] }]
+      parameters:
+        - $ref: "#/components/parameters/AlpacaSecret"
       requestBody:
         required: true
         content:
           application/json:
             schema: { $ref: "#/components/schemas/OrderIn" }
       responses:
-        "201": { description: Order created }
+        "200": { description: Order created }
     get:
       summary: List orders
-      operationId: listOrders
+      operationId: ordersList
+      security: [{ ApiKeyAuth: [] }]
       parameters:
+        - $ref: "#/components/parameters/AlpacaSecret"
         - name: status
           in: query
           required: false
@@ -35,49 +34,65 @@ paths:
   /v2/orders/{order_id}:
     get:
       summary: Get order by ID
-      operationId: getOrderById
+      operationId: ordersGetById
+      security: [{ ApiKeyAuth: [] }]
       parameters:
+        - $ref: "#/components/parameters/AlpacaSecret"
         - { name: order_id, in: path, required: true, schema: { type: string } }
       responses:
         "200": { description: Order detail }
     delete:
       summary: Cancel order
-      operationId: cancelOrderById
+      operationId: ordersCancelById
+      security: [{ ApiKeyAuth: [] }]
       parameters:
+        - $ref: "#/components/parameters/AlpacaSecret"
         - { name: order_id, in: path, required: true, schema: { type: string } }
       responses:
         "204": { description: Order cancelled }
   /v2/account:
     get:
       summary: Get account details
-      operationId: getAccount
+      operationId: accountGet
+      security: [{ ApiKeyAuth: [] }]
+      parameters:
+        - $ref: "#/components/parameters/AlpacaSecret"
       responses:
         "200": { description: Account info }
   /v2/positions:
     get:
       summary: List open positions
-      operationId: listPositions
+      operationId: positionsList
+      security: [{ ApiKeyAuth: [] }]
+      parameters:
+        - $ref: "#/components/parameters/AlpacaSecret"
       responses:
         "200": { description: Positions list }
     delete:
       summary: Close all positions
-      operationId: closeAllPositions
+      operationId: positionsCloseAll
+      security: [{ ApiKeyAuth: [] }]
       parameters:
+        - $ref: "#/components/parameters/AlpacaSecret"
         - { name: cancel_orders, in: query, required: false, schema: { type: boolean, default: false } }
       responses:
         "200": { description: Positions closed }
   /v2/positions/{symbol}:
     get:
       summary: Get position
-      operationId: getPosition
+      operationId: positionsGet
+      security: [{ ApiKeyAuth: [] }]
       parameters:
+        - $ref: "#/components/parameters/AlpacaSecret"
         - { name: symbol, in: path, required: true, schema: { type: string } }
       responses:
         "200": { description: Position detail }
     delete:
       summary: Close position
-      operationId: closePosition
+      operationId: positionsClose
+      security: [{ ApiKeyAuth: [] }]
       parameters:
+        - $ref: "#/components/parameters/AlpacaSecret"
         - { name: symbol, in: path, required: true, schema: { type: string } }
         - { name: cancel_orders, in: query, required: false, schema: { type: boolean, default: false } }
       responses:
@@ -85,12 +100,18 @@ paths:
   /v2/watchlists:
     get:
       summary: List watchlists
-      operationId: listWatchlists
+      operationId: watchlistsList
+      security: [{ ApiKeyAuth: [] }]
+      parameters:
+        - $ref: "#/components/parameters/AlpacaSecret"
       responses:
         "200": { description: Watchlists list }
     post:
       summary: Create watchlist
-      operationId: createWatchlist
+      operationId: watchlistsCreate
+      security: [{ ApiKeyAuth: [] }]
+      parameters:
+        - $ref: "#/components/parameters/AlpacaSecret"
       requestBody:
         required: true
         content:
@@ -101,15 +122,19 @@ paths:
   /v2/watchlists/{watchlist_id}:
     get:
       summary: Get watchlist
-      operationId: getWatchlist
+      operationId: watchlistsGet
+      security: [{ ApiKeyAuth: [] }]
       parameters:
+        - $ref: "#/components/parameters/AlpacaSecret"
         - { name: watchlist_id, in: path, required: true, schema: { type: string } }
       responses:
         "200": { description: Watchlist detail }
     put:
       summary: Update watchlist
-      operationId: updateWatchlist
+      operationId: watchlistsUpdate
+      security: [{ ApiKeyAuth: [] }]
       parameters:
+        - $ref: "#/components/parameters/AlpacaSecret"
         - { name: watchlist_id, in: path, required: true, schema: { type: string } }
       requestBody:
         required: true
@@ -120,58 +145,26 @@ paths:
         "200": { description: Watchlist updated }
     delete:
       summary: Delete watchlist
-      operationId: deleteWatchlist
+      operationId: watchlistsDelete
+      security: [{ ApiKeyAuth: [] }]
       parameters:
+        - $ref: "#/components/parameters/AlpacaSecret"
         - { name: watchlist_id, in: path, required: true, schema: { type: string } }
       responses:
         "200": { description: Watchlist deleted }
-  /v2/stocks/{symbol}/bars:
-    servers: [{ url: https://data.alpaca.markets }]
-    get:
-      summary: Get historical bars
-      operationId: getBars
-      parameters:
-        - { name: symbol, in: path, required: true, schema: { type: string } }
-        - { name: timeframe, in: query, required: true, schema: { type: string, example: "1Day" } }
-        - { name: start, in: query, required: true, schema: { type: string, format: date-time } }
-        - { name: end, in: query, required: false, schema: { type: string, format: date-time } }
-        - { name: limit, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 10000 } }
-      responses:
-        "200": { description: Bars list }
-  /v2/stocks/{symbol}/quotes:
-    servers: [{ url: https://data.alpaca.markets }]
-    get:
-      summary: Get historical quotes
-      operationId: getQuotes
-      parameters:
-        - { name: symbol, in: path, required: true, schema: { type: string } }
-        - { name: start, in: query, required: true, schema: { type: string, format: date-time } }
-        - { name: end, in: query, required: true, schema: { type: string, format: date-time } }
-        - { name: limit, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 10000 } }
-      responses:
-        "200": { description: Quotes list }
-  /v2/stocks/{symbol}/trades:
-    servers: [{ url: https://data.alpaca.markets }]
-    get:
-      summary: Get historical trades
-      operationId: getTrades
-      parameters:
-        - { name: symbol, in: path, required: true, schema: { type: string } }
-        - { name: start, in: query, required: true, schema: { type: string, format: date-time } }
-        - { name: end, in: query, required: true, schema: { type: string, format: date-time } }
-        - { name: limit, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 10000 } }
-      responses:
-        "200": { description: Trades list }
 components:
   securitySchemes:
-    APCAKeyID:
+    ApiKeyAuth:
       type: apiKey
       in: header
       name: APCA-API-KEY-ID
-    APCASecretKey:
-      type: apiKey
-      in: header
+  parameters:
+    AlpacaSecret:
       name: APCA-API-SECRET-KEY
+      in: header
+      required: true
+      description: Alpaca API secret header required by Trading API
+      schema: { type: string }
   schemas:
     OrderIn:
       type: object
@@ -182,8 +175,11 @@ components:
         qty: { type: number }
         notional: { type: number }
         type: { type: string, enum: [market, limit, stop, stop_limit] }
-        time_in_force: { type: string }
+        time_in_force: { type: string, enum: [day, gtc] }
         limit_price: { type: number }
+        stop_price: { type: number }
+        client_order_id: { type: string }
+        extended_hours: { type: boolean, default: false }
     WatchlistIn:
       type: object
       required: [name, symbols]

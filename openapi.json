@@ -1099,7 +1099,6 @@
       "post": {
         "summary": "Create Order",
         "operationId": "order_create",
-        "x-canonical-operation": "order.create",
         "security": [
           {
             "ApiKeyAuth": []
@@ -1130,7 +1129,25 @@
           "5XX": {
             "description": "Server error"
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
+          }
+        ]
       }
     },
     "/v2/account": {
@@ -1202,10 +1219,63 @@
           }
         }
       }
+    },
+    "/v2/orders/{order_id}": {
+      "delete": {
+        "summary": "Cancel order by ID",
+        "operationId": "cancelOrderById_v2",
+        "parameters": [
+          {
+            "name": "order_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Order Id"
+            }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Order cancelled"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-api-key"
+      },
       "alpacaKey": {
         "type": "apiKey",
         "in": "header",
@@ -1797,13 +1867,6 @@
           "symbols"
         ],
         "title": "WatchlistIn"
-      }
-    },
-    "securitySchemes": {
-      "ApiKeyAuth": {
-        "type": "apiKey",
-        "in": "header",
-        "name": "x-api-key"
       }
     }
   },

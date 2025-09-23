@@ -1,16 +1,10 @@
 openapi: 3.1.0
-jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
-
-# Align top-level keys at the root to ensure the document remains valid.
 info:
   title: Alpaca Wrapper
   version: 1.0.1
 
-# The server definition must point at the deployed domain that serves the
-# manifest and schema files consumed by custom GPTs.
 servers:
   - url: https://alpaca-py-production.up.railway.app
-    description: Production deployment
 
 # Require the ApiKeyAuth security scheme by default.  Operations that should
 # remain publicly accessible explicitly override this with `security: []`.
@@ -21,7 +15,6 @@ paths:
     post:
       summary: Create order (Alpaca REST)
       operationId: order_create
-      x-canonical-operation: order.create
       security:
         - ApiKeyAuth: []
       requestBody:
@@ -583,17 +576,21 @@ components:
           type: string
           enum: [day, gtc]
         limit_price:
-          type: number
-          nullable: true
+          anyOf:
+            - type: number
+            - type: 'null'
         stop_price:
-          type: number
-          nullable: true
+          anyOf:
+            - type: number
+            - type: 'null'
         trail_price:
-          type: number
-          nullable: true
+          anyOf:
+            - type: number
+            - type: 'null'
         trail_percent:
-          type: number
-          nullable: true
+          anyOf:
+            - type: number
+            - type: 'null'
         order_class:
           type: string
           enum: [simple, bracket, oco, oto]

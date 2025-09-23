@@ -1,9 +1,9 @@
 openapi: 3.1.0
 info:
   title: Alpaca Trading API (Live)
-  version: 1.1.0
+  version: 1.1.1
 servers:
-  # Call your Railway wrapper (it forwards to Alpaca live)
+  # Use your Railway wrapper; keep a single server to avoid multi-server import warnings.
   - url: https://alpaca-py-production.up.railway.app
 
 # Apply auth to all operations (one scheme only)
@@ -131,6 +131,7 @@ paths:
   /v2/watchlists:
     get:
       summary: List watchlists
+      tags: [watchlists]
       operationId: watchlistsList
       # auth via top-level security
       responses:
@@ -138,6 +139,7 @@ paths:
           description: Watchlists list
     post:
       summary: Create watchlist
+      tags: [watchlists]
       operationId: watchlistsCreate
       # auth via top-level security
       requestBody:
@@ -152,6 +154,7 @@ paths:
   /v2/watchlists/{watchlist_id}:
     get:
       summary: Get watchlist
+      tags: [watchlists]
       operationId: watchlistsGet
       # auth via top-level security
       parameters:
@@ -165,6 +168,7 @@ paths:
           description: Watchlist detail
     put:
       summary: Update watchlist
+      tags: [watchlists]
       operationId: watchlistsUpdate
       # auth via top-level security
       parameters:
@@ -184,6 +188,7 @@ paths:
           description: Watchlist updated
     delete:
       summary: Delete watchlist
+      tags: [watchlists]
       operationId: watchlistsDelete
       # auth via top-level security
       parameters:

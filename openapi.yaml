@@ -1,902 +1,194 @@
 openapi: 3.1.0
-
 info:
-  title: Alpaca Wrapper
-  version: 1.0.1
-
+  title: Alpaca Trading & Market Data (Direct)
+  version: "1.0.0"
 servers:
-  - url: https://alpaca-py-production.up.railway.app
-
+  - url: https://api.alpaca.markets
+    description: Live Trading API
+  - url: https://paper-api.alpaca.markets
+    description: Paper Trading API
 security:
-  - ApiKeyAuth: []
+  - APCAKeyID: []
+    APCASecretKey: []
 paths:
   /v2/orders:
     post:
-      summary: Submit Order
+      summary: Submit a new order
       operationId: submitOrder
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              $ref: '#/components/schemas/OrderIn'
+            schema: { $ref: "#/components/schemas/OrderIn" }
       responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
+        "201": { description: Order created }
     get:
-      summary: List Orders
-      operationId: listOrders_v1
+      summary: List orders
+      operationId: listOrders
       parameters:
-      - name: status
-        in: query
-        required: false
-        schema:
-          type: string
-          enum:
-          - open
-          - closed
-          - all
-          default: open
-          title: Status
+        - name: status
+          in: query
+          required: false
+          schema: { type: string, default: open }
       responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /v1/order/bracket:
-    post:
-      tags:
-      - Orders
-      summary: Place Bracket
-      operationId: placeBracketOrder
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/BracketOrderBody'
-        required: true
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /v1/order/stop:
-    post:
-      tags:
-      - Orders
-      summary: Place Stop
-      operationId: placeStopOrder
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/StopOrderBody'
-        required: true
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /v1/order/trailing:
-    post:
-      tags:
-      - Orders
-      summary: Place Trailing
-      operationId: placeTrailingStopOrder
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TrailingOrderBody'
-        required: true
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /healthz:
-    get:
-      summary: Healthz
-      operationId: healthz
-      security: []
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
+        "200": { description: Orders list }
   /v2/orders/{order_id}:
     get:
       summary: Get order by ID
-      operationId: getOrderById_v1
+      operationId: getOrderById
       parameters:
-      - name: order_id
-        in: path
-        required: true
-        schema:
-          type: string
-          title: Order Id
+        - { name: order_id, in: path, required: true, schema: { type: string } }
       responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
+        "200": { description: Order detail }
     delete:
-      summary: Cancel order by ID
-      operationId: cancelOrderById_v2
+      summary: Cancel order
+      operationId: cancelOrderById
       parameters:
-      - name: order_id
-        in: path
-        required: true
-        schema:
-          type: string
-          title: Order Id
-      - name: APCA-API-KEY-ID
-        in: header
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: APCA-API-KEY-ID
+        - { name: order_id, in: path, required: true, schema: { type: string } }
       responses:
-        '204':
-          description: Order cancelled
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
+        "204": { description: Order cancelled }
   /v2/account:
     get:
-      summary: Get Account
+      summary: Get account details
       operationId: getAccount
       responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
+        "200": { description: Account info }
   /v2/positions:
     get:
-      summary: List Positions
+      summary: List open positions
       operationId: listPositions
       responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
+        "200": { description: Positions list }
     delete:
-      summary: Close All Positions
+      summary: Close all positions
       operationId: closeAllPositions
       parameters:
-      - name: cancel_orders
-        in: query
-        required: false
-        schema:
-          type: boolean
-          default: false
-          title: Cancel Orders
+        - { name: cancel_orders, in: query, required: false, schema: { type: boolean, default: false } }
       responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
+        "200": { description: Positions closed }
   /v2/positions/{symbol}:
     get:
-      summary: Get Position
+      summary: Get position
       operationId: getPosition
       parameters:
-      - name: symbol
-        in: path
-        required: true
-        schema:
-          type: string
-          title: Symbol
+        - { name: symbol, in: path, required: true, schema: { type: string } }
       responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
+        "200": { description: Position detail }
     delete:
-      summary: Close Position
+      summary: Close position
       operationId: closePosition
       parameters:
-      - name: symbol
-        in: path
-        required: true
-        schema:
-          type: string
-          title: Symbol
-      - name: cancel_orders
-        in: query
-        required: false
-        schema:
-          type: boolean
-          default: false
-          title: Cancel Orders
+        - { name: symbol, in: path, required: true, schema: { type: string } }
+        - { name: cancel_orders, in: query, required: false, schema: { type: boolean, default: false } }
       responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
+        "200": { description: Position closed }
   /v2/watchlists:
     get:
-      summary: List Watchlists
-      operationId: list_watchlists_v1_watchlists_get
+      summary: List watchlists
+      operationId: listWatchlists
       responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
+        "200": { description: Watchlists list }
     post:
-      summary: Create Watchlist
-      operationId: create_watchlist_v1_watchlists_post
+      summary: Create watchlist
+      operationId: createWatchlist
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              $ref: '#/components/schemas/WatchlistIn'
+            schema: { $ref: "#/components/schemas/WatchlistIn" }
       responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
+        "200": { description: Watchlist created }
   /v2/watchlists/{watchlist_id}:
     get:
-      summary: Get Watchlist
-      operationId: get_watchlist_v1_watchlists__watchlist_id__get
+      summary: Get watchlist
+      operationId: getWatchlist
       parameters:
-      - name: watchlist_id
-        in: path
-        required: true
-        schema:
-          type: string
-          title: Watchlist Id
+        - { name: watchlist_id, in: path, required: true, schema: { type: string } }
       responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
+        "200": { description: Watchlist detail }
     put:
-      summary: Update Watchlist
-      operationId: update_watchlist_v1_watchlists__watchlist_id__put
+      summary: Update watchlist
+      operationId: updateWatchlist
       parameters:
-      - name: watchlist_id
-        in: path
-        required: true
-        schema:
-          type: string
-          title: Watchlist Id
+        - { name: watchlist_id, in: path, required: true, schema: { type: string } }
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              $ref: '#/components/schemas/WatchlistIn'
+            schema: { $ref: "#/components/schemas/WatchlistIn" }
       responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
+        "200": { description: Watchlist updated }
     delete:
-      summary: Delete Watchlist
-      operationId: delete_watchlist_v1_watchlists__watchlist_id__delete
+      summary: Delete watchlist
+      operationId: deleteWatchlist
       parameters:
-      - name: watchlist_id
-        in: path
-        required: true
-        schema:
-          type: string
-          title: Watchlist Id
+        - { name: watchlist_id, in: path, required: true, schema: { type: string } }
       responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /v1/quotes:
+        "200": { description: Watchlist deleted }
+  /v2/stocks/{symbol}/bars:
+    servers: [{ url: https://data.alpaca.markets }]
     get:
-      summary: Get Quotes
-      operationId: get_quotes_v1_quotes_get
+      summary: Get historical bars
+      operationId: getBars
       parameters:
-      - name: symbol
-        in: query
-        required: true
-        schema:
-          type: string
-          title: Symbol
-      - name: start
-        in: query
-        required: true
-        schema:
-          type: string
-          title: Start
-      - name: end
-        in: query
-        required: true
-        schema:
-          type: string
-          title: End
+        - { name: symbol, in: path, required: true, schema: { type: string } }
+        - { name: timeframe, in: query, required: true, schema: { type: string, example: "1Day" } }
+        - { name: start, in: query, required: true, schema: { type: string, format: date-time } }
+        - { name: end, in: query, required: false, schema: { type: string, format: date-time } }
+        - { name: limit, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 10000 } }
       responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /v1/trades:
+        "200": { description: Bars list }
+  /v2/stocks/{symbol}/quotes:
+    servers: [{ url: https://data.alpaca.markets }]
     get:
-      summary: Get Trades
-      operationId: get_trades_v1_trades_get
+      summary: Get historical quotes
+      operationId: getQuotes
       parameters:
-      - name: symbol
-        in: query
-        required: true
-        schema:
-          type: string
-          title: Symbol
-      - name: start
-        in: query
-        required: true
-        schema:
-          type: string
-          title: Start
-      - name: end
-        in: query
-        required: true
-        schema:
-          type: string
-          title: End
+        - { name: symbol, in: path, required: true, schema: { type: string } }
+        - { name: start, in: query, required: true, schema: { type: string, format: date-time } }
+        - { name: end, in: query, required: true, schema: { type: string, format: date-time } }
+        - { name: limit, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 10000 } }
       responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /v1/bars:
+        "200": { description: Quotes list }
+  /v2/stocks/{symbol}/trades:
+    servers: [{ url: https://data.alpaca.markets }]
     get:
-      summary: Get Bars
-      operationId: get_bars_v1_bars_get
+      summary: Get historical trades
+      operationId: getTrades
       parameters:
-      - name: symbol
-        in: query
-        required: true
-        schema:
-          type: string
-          title: Symbol
-      - name: timeframe
-        in: query
-        required: false
-        schema:
-          type: string
-          default: 1Day
-          title: Timeframe
-      - name: start
-        in: query
-        required: true
-        schema:
-          type: string
-          title: Start
-      - name: end
-        in: query
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: End
+        - { name: symbol, in: path, required: true, schema: { type: string } }
+        - { name: start, in: query, required: true, schema: { type: string, format: date-time } }
+        - { name: end, in: query, required: true, schema: { type: string, format: date-time } }
+        - { name: limit, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 10000 } }
       responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /openapi.yaml:
-    get:
-      summary: Spec
-      operationId: spec_openapi_yaml_get
-      security: []
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
+        "200": { description: Trades list }
 components:
   securitySchemes:
-    ApiKeyAuth:
+    APCAKeyID:
       type: apiKey
       in: header
-      # Alpaca’s trading API uses APCA-API-KEY-ID for authentication.
-      # (APCA-API-SECRET-KEY must be supplied as a second header.)
       name: APCA-API-KEY-ID
+    APCASecretKey:
+      type: apiKey
+      in: header
+      name: APCA-API-SECRET-KEY
   schemas:
-    CreateOrder:
-      type: object
-      additionalProperties: false
-      required:
-        - symbol
-        - side
-        - type
-        - time_in_force
-      properties:
-        symbol:
-          type: string
-        side:
-          type: string
-          enum: [buy, sell]
-        qty:
-          type: number
-          minimum: 1
-        notional:
-          type: number
-          minimum: 1
-        type:
-          type: string
-          enum: [market, limit, stop, stop_limit, trailing_stop]
-        time_in_force:
-          type: string
-          enum: [day, gtc]
-        limit_price:
-          anyOf:
-            - type: number
-            - type: 'null'
-        stop_price:
-          anyOf:
-            - type: number
-            - type: 'null'
-        trail_price:
-          anyOf:
-            - type: number
-            - type: 'null'
-        trail_percent:
-          anyOf:
-            - type: number
-            - type: 'null'
-        order_class:
-          type: string
-          enum: [simple, bracket, oco, oto]
-          default: simple
-        take_profit:
-          type: object
-          additionalProperties: false
-          properties:
-            limit_price:
-              type: number
-        stop_loss:
-          type: object
-          additionalProperties: false
-          properties:
-            stop_price:
-              type: number
-            limit_price:
-              type: number
-        extended_hours:
-          type: boolean
-          default: false
-      oneOf:
-        - required: [qty]
-          not:
-            required: [notional]
-        - required: [notional]
-          not:
-            required: [qty]
-      allOf:
-        - if:
-            properties:
-              type:
-                const: trailing_stop
-          then:
-            oneOf:
-              - required: [trail_price]
-              - required: [trail_percent]
-            properties:
-              limit_price:
-                anyOf:
-                  - type: number
-                  - type: 'null'
-              stop_price:
-                anyOf:
-                  - type: number
-                  - type: 'null'
-        - if:
-            properties:
-              order_class:
-                const: bracket
-          then:
-            required: [take_profit, stop_loss]
-    BracketOrderBody:
-      properties:
-        symbol:
-          type: string
-          title: Symbol
-        side:
-          type: string
-          title: Side
-        type:
-          type: string
-          enum:
-          - market
-          - limit
-          title: Type
-          default: market
-        qty:
-          anyOf:
-          - type: number
-          - type: 'null'
-          title: Qty
-        notional:
-          anyOf:
-          - type: number
-          - type: 'null'
-          title: Notional
-        limit_price:
-          anyOf:
-          - type: number
-          - type: 'null'
-          title: Limit Price
-        time_in_force:
-          type: string
-          title: Time In Force
-          default: day
-        order_class:
-          type: string
-          const: bracket
-          title: Order Class
-          default: bracket
-        take_profit:
-          $ref: '#/components/schemas/TakeProfit'
-        stop_loss:
-          $ref: '#/components/schemas/StopLoss'
-        extended_hours:
-          anyOf:
-          - type: boolean
-          - type: 'null'
-          title: Extended Hours
-          default: false
-        client_order_id:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Client Order Id
-      type: object
-      required:
-      - symbol
-      - side
-      - take_profit
-      - stop_loss
-      title: BracketOrderBody
-    HTTPValidationError:
-      properties:
-        detail:
-          items:
-            $ref: '#/components/schemas/ValidationError'
-          type: array
-          title: Detail
-      type: object
-      title: HTTPValidationError
     OrderIn:
-      properties:
-        symbol:
-          type: string
-          title: Symbol
-        side:
-          type: string
-          title: Side
-        qty:
-          anyOf:
-          - type: number
-          - type: 'null'
-          title: Qty
-        notional:
-          anyOf:
-          - type: number
-          - type: 'null'
-          title: Notional
-        type:
-          type: string
-          title: Type
-        time_in_force:
-          type: string
-          title: Time In Force
-        limit_price:
-          anyOf:
-          - type: number
-          - type: 'null'
-          title: Limit Price
       type: object
-      required:
-      - symbol
-      - side
-      - type
-      - time_in_force
-      title: OrderIn
-    StopLoss:
+      required: [symbol, side, type, time_in_force]
       properties:
-        stop_price:
-          type: number
-          title: Stop Price
-        limit_price:
-          anyOf:
-          - type: number
-          - type: 'null'
-          title: Limit Price
-      type: object
-      required:
-      - stop_price
-      title: StopLoss
-    StopOrderBody:
-      properties:
-        symbol:
-          type: string
-          title: Symbol
-        side:
-          type: string
-          title: Side
-        qty:
-          anyOf:
-          - type: number
-          - type: 'null'
-          title: Qty
-        notional:
-          anyOf:
-          - type: number
-          - type: 'null'
-          title: Notional
-        time_in_force:
-          type: string
-          title: Time In Force
-          default: day
-        stop_price:
-          type: number
-          title: Stop Price
-        extended_hours:
-          anyOf:
-          - type: boolean
-          - type: 'null'
-          title: Extended Hours
-          default: false
-        client_order_id:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Client Order Id
-      type: object
-      required:
-      - symbol
-      - side
-      - stop_price
-      title: StopOrderBody
-    TakeProfit:
-      properties:
-        limit_price:
-          type: number
-          title: Limit Price
-      type: object
-      required:
-      - limit_price
-      title: TakeProfit
-    TrailingOrderBody:
-      properties:
-        symbol:
-          type: string
-          title: Symbol
-        side:
-          type: string
-          title: Side
-        qty:
-          anyOf:
-          - type: number
-          - type: 'null'
-          title: Qty
-        notional:
-          anyOf:
-          - type: number
-          - type: 'null'
-          title: Notional
-        time_in_force:
-          type: string
-          title: Time In Force
-          default: day
-        trail_price:
-          anyOf:
-          - type: number
-          - type: 'null'
-          title: Trail Price
-        trail_percent:
-          anyOf:
-          - type: number
-          - type: 'null'
-          title: Trail Percent
-        extended_hours:
-          anyOf:
-          - type: boolean
-          - type: 'null'
-          title: Extended Hours
-          default: false
-        client_order_id:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Client Order Id
-      type: object
-      required:
-      - symbol
-      - side
-      title: TrailingOrderBody
-    ValidationError:
-      properties:
-        loc:
-          items:
-            anyOf:
-            - type: string
-            - type: integer
-          type: array
-          title: Location
-        msg:
-          type: string
-          title: Message
-        type:
-          type: string
-          title: Error Type
-      type: object
-      required:
-      - loc
-      - msg
-      - type
-      title: ValidationError
+        symbol: { type: string }
+        side: { type: string, enum: [buy, sell] }
+        qty: { type: number }
+        notional: { type: number }
+        type: { type: string, enum: [market, limit, stop, stop_limit] }
+        time_in_force: { type: string }
+        limit_price: { type: number }
     WatchlistIn:
-      properties:
-        name:
-          type: string
-          title: Name
-        symbols:
-          items:
-            type: string
-          type: array
-          title: Symbols
       type: object
-      required:
-      - name
-      - symbols
-      title: WatchlistIn
-  securitySchemes:
-    ApiKeyAuth:
-      type: apiKey
-      in: header
-      # Alpaca’s trading API uses APCA-API-KEY-ID for authentication.
-      # (APCA-API-SECRET-KEY must be supplied as a second header.)
-      name: APCA-API-KEY-ID
-
+      required: [name, symbols]
+      properties:
+        name: { type: string }
+        symbols:
+          type: array
+          items: { type: string }

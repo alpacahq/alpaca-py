@@ -1,10 +1,12 @@
 openapi: 3.1.0
+# removed unsupported jsonSchemaDialect (not allowed by Actions importer)
 info:
   title: Alpaca Wrapper
   version: 1.0.1
 
 servers:
   - url: https://alpaca-py-production.up.railway.app
+    # removed description to avoid extra keys
 
 # Require the ApiKeyAuth security scheme by default.  Operations that should
 # remain publicly accessible explicitly override this with `security: []`.
@@ -15,6 +17,7 @@ paths:
     post:
       summary: Create order (Alpaca REST)
       operationId: order_create
+      # removed vendor-specific x-canonical-operation (not understood by importer)
       security:
         - ApiKeyAuth: []
       requestBody:

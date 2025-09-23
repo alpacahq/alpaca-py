@@ -216,7 +216,10 @@ def cancel_order(order_id: str, x_api_key: Optional[str] = Header(None)):
     status_code=204,
     summary="Cancel order by ID",
     response_description="Order cancelled",
-    operationId="cancelOrderById_v2",
+    # FastAPI expects `operation_id` (with underscore).
+    # This ensures the router generates the correct OpenAPI operationId
+    # and prevents a TypeError on startup.
+    operation_id="cancelOrderById_v2",
 )
 def cancelOrderById_v2(order_id: str, x_api_key: Optional[str] = Header(None)):
     """Cancel an order by ID for the v2 API. Mirrors /v1/orders/{order_id}."""

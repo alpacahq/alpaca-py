@@ -1,226 +1,247 @@
 openapi: 3.1.0
 info:
-  title: Alpaca Trading API (Live)
-  version: 1.0.2
+  title: Alpaca Trading API (Live via Railway Proxy)
+  version: 1.1.0
 servers:
-  - url: https://api.alpaca.markets
+  # Use your deployed proxy so clients only need ONE API key header.
+  - url: https://alpaca-py-production.up.railway.app
+security:
+  - ApiKeyAuth: []
 paths:
   /v2/orders:
     post:
       summary: Submit a new order
       operationId: ordersCreate
-      security: [{ ApiKeyAuth: [] }]
-      parameters:
-        - name: APCA-API-SECRET-KEY
-          in: header
-          required: true
-          description: Alpaca API secret header required by Trading API
-          schema: { type: string }
+      # Auth is applied globally via top-level 'security'
+      # (remove per-operation secret header; importer ignores it)
       requestBody:
         required: true
         content:
           application/json:
-            schema: { $ref: "#/components/schemas/OrderIn" }
+            schema:
+              $ref: "#/components/schemas/OrderIn"
       responses:
-        "200": { description: Order created }
+        "200":
+          description: Order created
     get:
       summary: List orders
       operationId: ordersList
-      security: [{ ApiKeyAuth: [] }]
+      # no per-op header params
       parameters:
-        - name: APCA-API-SECRET-KEY
-          in: header
-          required: true
-          schema: { type: string }
         - name: status
           in: query
           required: false
-          schema: { type: string, default: open }
+          schema:
+            type: string
+            default: open
       responses:
-        "200": { description: Orders list }
+        "200":
+          description: Orders list
   /v2/orders/{order_id}:
     get:
       summary: Get order by ID
       operationId: ordersGetById
-      security: [{ ApiKeyAuth: [] }]
       parameters:
-        - name: APCA-API-SECRET-KEY
-          in: header
+        - name: order_id
+          in: path
           required: true
-          schema: { type: string }
-        - { name: order_id, in: path, required: true, schema: { type: string } }
+          schema:
+            type: string
       responses:
-        "200": { description: Order detail }
+        "200":
+          description: Order detail
     delete:
       summary: Cancel order
       operationId: ordersCancelById
-      security: [{ ApiKeyAuth: [] }]
       parameters:
-        - name: APCA-API-SECRET-KEY
-          in: header
+        - name: order_id
+          in: path
           required: true
-          schema: { type: string }
-        - { name: order_id, in: path, required: true, schema: { type: string } }
+          schema:
+            type: string
       responses:
-        "204": { description: Order cancelled }
+        "204":
+          description: Order cancelled
   /v2/account:
     get:
       summary: Get account details
       operationId: accountGet
-      security: [{ ApiKeyAuth: [] }]
-      parameters:
-        - name: APCA-API-SECRET-KEY
-          in: header
-          required: true
-          schema: { type: string }
+      # no per-op header params
       responses:
-        "200": { description: Account info }
+        "200":
+          description: Account info
   /v2/positions:
     get:
       summary: List open positions
       operationId: positionsList
-      security: [{ ApiKeyAuth: [] }]
-      parameters:
-        - name: APCA-API-SECRET-KEY
-          in: header
-          required: true
-          schema: { type: string }
+      # no per-op header params
       responses:
-        "200": { description: Positions list }
+        "200":
+          description: Positions list
     delete:
       summary: Close all positions
       operationId: positionsCloseAll
-      security: [{ ApiKeyAuth: [] }]
       parameters:
-        - name: APCA-API-SECRET-KEY
-          in: header
-          required: true
-          schema: { type: string }
-        - { name: cancel_orders, in: query, required: false, schema: { type: boolean, default: false } }
+        - name: cancel_orders
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
       responses:
-        "200": { description: Positions closed }
+        "200":
+          description: Positions closed
   /v2/positions/{symbol}:
     get:
       summary: Get position
       operationId: positionsGet
-      security: [{ ApiKeyAuth: [] }]
       parameters:
-        - name: APCA-API-SECRET-KEY
-          in: header
+        - name: symbol
+          in: path
           required: true
-          schema: { type: string }
-        - { name: symbol, in: path, required: true, schema: { type: string } }
+          schema:
+            type: string
       responses:
-        "200": { description: Position detail }
+        "200":
+          description: Position detail
     delete:
       summary: Close position
       operationId: positionsClose
-      security: [{ ApiKeyAuth: [] }]
       parameters:
-        - name: APCA-API-SECRET-KEY
-          in: header
+        - name: symbol
+          in: path
           required: true
-          schema: { type: string }
-        - { name: symbol, in: path, required: true, schema: { type: string } }
-        - { name: cancel_orders, in: query, required: false, schema: { type: boolean, default: false } }
+          schema:
+            type: string
+        - name: cancel_orders
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
       responses:
-        "200": { description: Position closed }
+        "200":
+          description: Position closed
   /v2/watchlists:
     get:
       summary: List watchlists
       operationId: watchlistsList
-      security: [{ ApiKeyAuth: [] }]
-      parameters:
-        - name: APCA-API-SECRET-KEY
-          in: header
-          required: true
-          schema: { type: string }
+      # no per-op header params
       responses:
-        "200": { description: Watchlists list }
+        "200":
+          description: Watchlists list
     post:
       summary: Create watchlist
       operationId: watchlistsCreate
-      security: [{ ApiKeyAuth: [] }]
-      parameters:
-        - name: APCA-API-SECRET-KEY
-          in: header
-          required: true
-          schema: { type: string }
+      # no per-op header params
       requestBody:
         required: true
         content:
           application/json:
-            schema: { $ref: "#/components/schemas/WatchlistIn" }
+            schema:
+              $ref: "#/components/schemas/WatchlistIn"
       responses:
-        "200": { description: Watchlist created }
+        "200":
+          description: Watchlist created
   /v2/watchlists/{watchlist_id}:
     get:
       summary: Get watchlist
       operationId: watchlistsGet
-      security: [{ ApiKeyAuth: [] }]
       parameters:
-        - name: APCA-API-SECRET-KEY
-          in: header
+        - name: watchlist_id
+          in: path
           required: true
-          schema: { type: string }
-        - { name: watchlist_id, in: path, required: true, schema: { type: string } }
+          schema:
+            type: string
       responses:
-        "200": { description: Watchlist detail }
+        "200":
+          description: Watchlist detail
     put:
       summary: Update watchlist
       operationId: watchlistsUpdate
-      security: [{ ApiKeyAuth: [] }]
       parameters:
-        - name: APCA-API-SECRET-KEY
-          in: header
+        - name: watchlist_id
+          in: path
           required: true
-          schema: { type: string }
-        - { name: watchlist_id, in: path, required: true, schema: { type: string } }
+          schema:
+            type: string
       requestBody:
         required: true
         content:
           application/json:
-            schema: { $ref: "#/components/schemas/WatchlistIn" }
+            schema:
+              $ref: "#/components/schemas/WatchlistIn"
       responses:
-        "200": { description: Watchlist updated }
+        "200":
+          description: Watchlist updated
     delete:
       summary: Delete watchlist
       operationId: watchlistsDelete
-      security: [{ ApiKeyAuth: [] }]
       parameters:
-        - name: APCA-API-SECRET-KEY
-          in: header
+        - name: watchlist_id
+          in: path
           required: true
-          schema: { type: string }
-        - { name: watchlist_id, in: path, required: true, schema: { type: string } }
+          schema:
+            type: string
       responses:
-        "200": { description: Watchlist deleted }
+        "200":
+          description: Watchlist deleted
 components:
   securitySchemes:
     ApiKeyAuth:
       type: apiKey
       in: header
-      name: APCA-API-KEY-ID
+      name: X-API-Key
   schemas:
     OrderIn:
       type: object
-      required: [symbol, side, type, time_in_force]
+      required:
+        - symbol
+        - side
+        - type
+        - time_in_force
       properties:
-        symbol: { type: string }
-        side: { type: string, enum: [buy, sell] }
-        qty: { type: number }
-        notional: { type: number }
-        type: { type: string, enum: [market, limit, stop, stop_limit] }
-        time_in_force: { type: string, enum: [day, gtc] }
-        limit_price: { type: number }
-        stop_price: { type: number }
-        client_order_id: { type: string }
-        extended_hours: { type: boolean, default: false }
+        symbol:
+          type: string
+        side:
+          type: string
+          enum:
+            - buy
+            - sell
+        qty:
+          type: number
+        notional:
+          type: number
+        type:
+          type: string
+          enum:
+            - market
+            - limit
+            - stop
+            - stop_limit
+        time_in_force:
+          type: string
+          enum:
+            - day
+            - gtc
+        limit_price:
+          type: number
+        stop_price:
+          type: number
+        client_order_id:
+          type: string
+        extended_hours:
+          type: boolean
+          default: false
     WatchlistIn:
       type: object
-      required: [name, symbols]
+      required:
+        - name
+        - symbols
       properties:
-        name: { type: string }
+        name:
+          type: string
         symbols:
           type: array
-          items: { type: string }
+          items:
+            type: string

@@ -7,16 +7,22 @@ info:
 servers:
   - url: https://alpaca-py-production.up.railway.app
 
-# Require the ApiKeyAuth security scheme by default.  Operations that should
-# remain publicly accessible explicitly override this with `security: []`.
 security:
   - ApiKeyAuth: []
 paths:
   /v2/orders:
     post:
-      summary: Create order (Alpaca REST)
+      summary: Create Order
       operationId: order_create
-      # (no vendor extension)
+      parameters:
+      - name: x-api-key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Api-Key
       security:
         - ApiKeyAuth: []
       requestBody:
@@ -199,9 +205,23 @@ paths:
         schema:
           type: string
           title: Order Id
+      - name: x-api-key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Api-Key
       responses:
         '204':
           description: Order cancelled
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /v1/account:
     get:
       summary: Get Account

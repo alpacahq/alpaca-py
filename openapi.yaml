@@ -1,10 +1,12 @@
 openapi: 3.1.0
 info:
-  title: Alpaca Trading API (Live via Wrapper)
-  version: 1.0.3
+  title: Alpaca Trading API (Live)
+  version: 1.1.0
 servers:
-  # Use your deployed proxy so clients only need ONE API key header.
+  # Call your Railway wrapper (it forwards to Alpaca live)
   - url: https://alpaca-py-production.up.railway.app
+
+# Apply auth to all operations (one scheme only)
 security:
   - ApiKeyAuth: []
 paths:
@@ -12,8 +14,7 @@ paths:
     post:
       summary: Submit a new order
       operationId: ordersCreate
-      # Auth is applied globally via top-level 'security'
-      # (remove per-operation secret header; importer ignores it)
+      # auth via top-level security
       requestBody:
         required: true
         content:
@@ -26,7 +27,7 @@ paths:
     get:
       summary: List orders
       operationId: ordersList
-      # no per-op header params
+      # auth via top-level security
       parameters:
         - name: status
           in: query
@@ -41,6 +42,7 @@ paths:
     get:
       summary: Get order by ID
       operationId: ordersGetById
+      # auth via top-level security
       parameters:
         - name: order_id
           in: path
@@ -53,6 +55,7 @@ paths:
     delete:
       summary: Cancel order
       operationId: ordersCancelById
+      # auth via top-level security
       parameters:
         - name: order_id
           in: path
@@ -66,7 +69,7 @@ paths:
     get:
       summary: Get account details
       operationId: accountGet
-      # no per-op header params
+      # auth via top-level security
       responses:
         "200":
           description: Account info
@@ -74,13 +77,14 @@ paths:
     get:
       summary: List open positions
       operationId: positionsList
-      # no per-op header params
+      # auth via top-level security
       responses:
         "200":
           description: Positions list
     delete:
       summary: Close all positions
       operationId: positionsCloseAll
+      # auth via top-level security
       parameters:
         - name: cancel_orders
           in: query
@@ -95,6 +99,7 @@ paths:
     get:
       summary: Get position
       operationId: positionsGet
+      # auth via top-level security
       parameters:
         - name: symbol
           in: path
@@ -107,6 +112,7 @@ paths:
     delete:
       summary: Close position
       operationId: positionsClose
+      # auth via top-level security
       parameters:
         - name: symbol
           in: path
@@ -126,14 +132,14 @@ paths:
     get:
       summary: List watchlists
       operationId: watchlistsList
-      # no per-op header params
+      # auth via top-level security
       responses:
         "200":
           description: Watchlists list
     post:
       summary: Create watchlist
       operationId: watchlistsCreate
-      # no per-op header params
+      # auth via top-level security
       requestBody:
         required: true
         content:
@@ -147,6 +153,7 @@ paths:
     get:
       summary: Get watchlist
       operationId: watchlistsGet
+      # auth via top-level security
       parameters:
         - name: watchlist_id
           in: path
@@ -159,6 +166,7 @@ paths:
     put:
       summary: Update watchlist
       operationId: watchlistsUpdate
+      # auth via top-level security
       parameters:
         - name: watchlist_id
           in: path
@@ -177,6 +185,7 @@ paths:
     delete:
       summary: Delete watchlist
       operationId: watchlistsDelete
+      # auth via top-level security
       parameters:
         - name: watchlist_id
           in: path
@@ -195,44 +204,50 @@ components:
   schemas:
     OrderIn:
       type: object
-      required:
-        - symbol
-        - side
-        - type
-        - time_in_force
+      required: [symbol, side, type, time_in_force]
       properties:
         symbol:
           type: string
         side:
           type: string
-          enum:
-            - buy
-            - sell
-        qty:
-          type: number
-        notional:
-          type: number
+          enum: [buy, sell]
         type:
           type: string
-          enum:
-            - market
-            - limit
-            - stop
-            - stop_limit
+          enum: [market, limit, stop, stop_limit, trailing_stop]
         time_in_force:
           type: string
-          enum:
-            - day
-            - gtc
-        limit_price:
-          type: number
-        stop_price:
-          type: number
+          enum: [day, gtc, opg, cls, ioc, fok]
+        qty:         { type: number }
+        notional:    { type: number }
+        limit_price: { type: number }
+        stop_price:  { type: number }
         client_order_id:
           type: string
         extended_hours:
           type: boolean
           default: false
+        order_class:
+          type: string
+          enum: [simple, bracket, oco, oto]
+        take_profit:
+          type: object
+          properties:
+            limit_price: { type: number }
+          required: [limit_price]
+          additionalProperties: false
+        stop_loss:
+          type: object
+          properties:
+            stop_price:  { type: number }
+            limit_price: { type: number }
+          required: [stop_price]
+          additionalProperties: false
+        trail_price:   { type: number }
+        trail_percent: { type: number }
+      additionalProperties: false
+      oneOf:
+        - required: [qty]
+        - required: [notional]
     WatchlistIn:
       type: object
       required:

@@ -1,11 +1,12 @@
 from advanced_orders import router as advanced_orders_router
+import json
 import os
 import re
 from datetime import datetime
 from typing import List, Optional
 import aiohttp
 from fastapi import FastAPI, Header, HTTPException, Query
-from fastapi.responses import FileResponse, Response
+from fastapi.responses import FileResponse, JSONResponse, Response
 from pydantic import BaseModel
 from alpaca.common.exceptions import APIError
 from alpaca.trading.client import TradingClient
@@ -89,6 +90,12 @@ class CreateOrder(BaseModel):
     trail_price: float | None = None
     trail_percent: float | None = None
     client_order_id: str | None = None
+
+
+class WatchlistIn(BaseModel):
+    name: str
+    symbols: List[str]
+
 
 def parse_timeframe(tf_str: str) -> TimeFrame:
     m = re.match(r'^(\d+)([A-Za-z]+)$', tf_str)
@@ -255,6 +262,98 @@ async def positions_close(
                 raise HTTPException(status_code=r.status, detail=body)
             return await r.json()
 
+
+async def _proxy_alpaca_request(
+    method: str,
+    path: str,
+    x_api_key: Optional[str],
+    payload: dict | None = None,
+):
+    _require_gateway_key(x_api_key)
+    async with aiohttp.ClientSession(headers=_alpaca_headers()) as session:
+        async with session.request(
+            method,
+            f"{ALPACA_API_BASE_URL}{path}",
+            json=payload,
+        ) as response:
+            status = response.status
+            content_type = response.headers.get("Content-Type") or ""
+            text = await response.text()
+            if status >= 400:
+                raise HTTPException(status_code=status, detail=text)
+            if status == 204 or not text:
+                return Response(status_code=status)
+            if "application/json" in content_type.lower():
+                try:
+                    data = json.loads(text)
+                except json.JSONDecodeError:
+                    return Response(
+                        status_code=status,
+                        content=text,
+                        media_type=content_type or "text/plain",
+                    )
+                return JSONResponse(status_code=status, content=data)
+            return Response(
+                status_code=status,
+                content=text,
+                media_type=content_type or "text/plain",
+            )
+
+
+@app.get("/v2/watchlists")
+async def watchlists_list_v2(
+    x_api_key: Optional[str] = Header(None, alias="x-api-key")
+):
+    return await _proxy_alpaca_request("GET", "/v2/watchlists", x_api_key)
+
+
+@app.post("/v2/watchlists")
+async def watchlists_create_v2(
+    watchlist: WatchlistIn,
+    x_api_key: Optional[str] = Header(None, alias="x-api-key"),
+):
+    return await _proxy_alpaca_request(
+        "POST",
+        "/v2/watchlists",
+        x_api_key,
+        payload=watchlist.model_dump(),
+    )
+
+
+@app.get("/v2/watchlists/{watchlist_id}")
+async def watchlists_get_v2(
+    watchlist_id: str,
+    x_api_key: Optional[str] = Header(None, alias="x-api-key"),
+):
+    return await _proxy_alpaca_request(
+        "GET", f"/v2/watchlists/{watchlist_id}", x_api_key
+    )
+
+
+@app.put("/v2/watchlists/{watchlist_id}")
+async def watchlists_update_v2(
+    watchlist_id: str,
+    watchlist: WatchlistIn,
+    x_api_key: Optional[str] = Header(None, alias="x-api-key"),
+):
+    return await _proxy_alpaca_request(
+        "PUT",
+        f"/v2/watchlists/{watchlist_id}",
+        x_api_key,
+        payload=watchlist.model_dump(),
+    )
+
+
+@app.delete("/v2/watchlists/{watchlist_id}")
+async def watchlists_delete_v2(
+    watchlist_id: str,
+    x_api_key: Optional[str] = Header(None, alias="x-api-key"),
+):
+    return await _proxy_alpaca_request(
+        "DELETE", f"/v2/watchlists/{watchlist_id}", x_api_key
+    )
+
+
 @app.get("/v1/orders")
 def list_orders(status: str = Query("open"), x_api_key: Optional[str] = Header(None)):
     check_key(x_api_key)
@@ -347,10 +446,6 @@ def list_watchlists(x_api_key: Optional[str] = Header(None)):
     check_key(x_api_key)
     wls = trading_client().get_watchlists()
     return [wl.model_dump() for wl in wls]
-
-class WatchlistIn(BaseModel):
-    name: str
-    symbols: List[str]
 
 @app.post("/v1/watchlists")
 def create_watchlist(w: WatchlistIn, x_api_key: Optional[str] = Header(None)):

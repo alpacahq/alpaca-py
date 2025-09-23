@@ -216,9 +216,7 @@ def cancel_order(order_id: str, x_api_key: Optional[str] = Header(None)):
     status_code=204,
     summary="Cancel order by ID",
     response_description="Order cancelled",
-    # FastAPI expects `operation_id` (with underscore).
-    # This ensures the router generates the correct OpenAPI operationId
-    # and prevents a TypeError on startup.
+    # FastAPI uses snake_case for the OpenAPI operation_id parameter
     operation_id="cancelOrderById_v2",
 )
 def cancelOrderById_v2(order_id: str, x_api_key: Optional[str] = Header(None)):
@@ -226,7 +224,9 @@ def cancelOrderById_v2(order_id: str, x_api_key: Optional[str] = Header(None)):
 
     check_key(x_api_key)
     tc = trading_client()
-    tc.cancel_order(order_id)
+    # Use the correct client method to target DELETE /v2/orders/{order_id}
+    tc.cancel_order_by_id(order_id)
+    # Return 204 No Content on success
     return Response(status_code=204)
 
 # -- Account

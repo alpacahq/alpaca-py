@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
-  title: Alpaca Trading API (Live via Railway Proxy)
-  version: 1.1.0
+  title: Alpaca Trading API (Live via Wrapper)
+  version: 1.0.3
 servers:
   # Use your deployed proxy so clients only need ONE API key header.
   - url: https://alpaca-py-production.up.railway.app
@@ -191,7 +191,7 @@ components:
     ApiKeyAuth:
       type: apiKey
       in: header
-      name: X-API-Key
+      name: x-api-key
   schemas:
     OrderIn:
       type: object

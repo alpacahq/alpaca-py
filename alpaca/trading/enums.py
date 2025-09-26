@@ -319,11 +319,18 @@ class CorporateActionDateType(str, Enum):
 
 
 class TradeEvent(str, Enum):
-    FILL = "fill"
+    ACCEPTED = "accepted"
     CANCELED = "canceled"
-    PENDING_NEW = "pending_new"
+    EXPIRED = "expired"
+    FILL = "fill"
     NEW = "new"
     PARTIAL_FILL = "partial_fill"
+    PENDING_CANCEL = "pending_cancel"
+    PENDING_NEW = "pending_new"
+    PENDING_REPLACE = "pending_replace"
+    REJECTED = "rejected"
+    REPLACED = "replaced"
+    RESTATED = "restated"
 
 
 class QueryOrderStatus(str, Enum):

@@ -1,12 +1,22 @@
-from alpaca.trading.enums import OrderSide, OrderType, TimeInForce, OrderClass
-from alpaca.trading.requests import (
-    MarketOrderRequest,
-    TrailingStopOrderRequest,
-    LimitOrderRequest,
-    OptionLegRequest,
-)
-import pytest
+import uuid
 import warnings
+
+import pytest
+
+from alpaca.trading.enums import (
+    OrderClass,
+    OrderSide,
+    OrderType,
+    TimeInForce,
+    TradeEvent,
+)
+from alpaca.trading.models import TradeUpdate
+from alpaca.trading.requests import (
+    LimitOrderRequest,
+    MarketOrderRequest,
+    OptionLegRequest,
+    TrailingStopOrderRequest,
+)
 
 
 def test_has_qty_or_notional_but_not_both():
@@ -204,3 +214,26 @@ def test_mleg_options() -> None:
                     OptionLegRequest(symbol=symbols[0], ratio_qty=1, side=OrderSide.BUY)
                 ],
             )
+
+
+def test_trade_update_events() -> None:
+    base = {
+        "timestamp": "2025-01-01T11:11:11.123456Z",
+        "event": "accepted",
+        "order": {
+            "id": uuid.uuid4(),
+            "client_order_id": "123",
+            "created_at": "2025-01-01T11:11:11.123456Z",
+            "updated_at": "2025-01-01T11:11:11.123456Z",
+            "submitted_at": "2025-01-01T11:11:11.123456Z",
+            "order_class": "simple",
+            "time_in_force": "day",
+            "status": "accepted",
+            "extended_hours": False,
+        },
+    }
+
+    for event in TradeEvent:
+        msg = base.copy()
+        msg["event"] = event
+        TradeUpdate(**msg)

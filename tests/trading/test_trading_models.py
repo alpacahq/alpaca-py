@@ -215,6 +215,7 @@ def test_mleg_options() -> None:
                 ],
             )
 
+
 def test_trade_update_events() -> None:
     base = {
         "timestamp": "2025-01-01T11:11:11.123456Z",
@@ -229,7 +230,7 @@ def test_trade_update_events() -> None:
             "time_in_force": "day",
             "status": "accepted",
             "extended_hours": False,
-        }
+        },
     }
 
     for event in TradeEvent:

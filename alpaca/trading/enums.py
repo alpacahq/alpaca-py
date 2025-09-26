@@ -332,6 +332,7 @@ class TradeEvent(str, Enum):
     REPLACED = "replaced"
     RESTATED = "restated"
 
+
 class QueryOrderStatus(str, Enum):
     OPEN = "open"
     CLOSED = "closed"

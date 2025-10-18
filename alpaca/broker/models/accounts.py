@@ -1,10 +1,12 @@
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
 from pydantic import TypeAdapter, ValidationInfo, field_validator, model_validator
 
 from alpaca.broker.enums import (
+    AccountSubType,
+    AccountType,
     AgreementType,
     ClearingBroker,
     EmploymentStatus,
@@ -234,6 +236,8 @@ class Account(ModelWithID):
     Attributes:
         id (str): The account uuid used to reference this account
         account_number (str): A more human friendly identifier for this account
+        account_type (Optional[Union[AccountType, str]]): The type of account
+        account_sub_type (Optional[Union[AccountSubType, str]]): The sub type of account
         status (AccountStatus): The approval status of this account
         crypto_status (Optional[AccountStatus]): The crypto trading status. Only present if crypto trading is enabled.
         kyc_results (Optional[KycResult]): Hold information about the result of KYC.
@@ -249,6 +253,8 @@ class Account(ModelWithID):
     """
 
     account_number: str
+    account_type: Optional[Union[AccountType, str]] = None
+    account_sub_type: Optional[Union[AccountSubType, str]] = None
     status: AccountStatus
     crypto_status: Optional[AccountStatus] = None
     kyc_results: Optional[KycResults] = None
@@ -266,6 +272,8 @@ class Account(ModelWithID):
         super().__init__(
             id=(UUID(response["id"])),
             account_number=(response["account_number"]),
+            account_type=response.get("account_type", None),
+            account_sub_type=response.get("account_sub_type", None),
             status=(response["status"]),
             crypto_status=(
                 response["crypto_status"] if "crypto_status" in response else None

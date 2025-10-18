@@ -6,6 +6,8 @@ from pydantic import field_serializer, field_validator, model_validator
 
 from alpaca.broker.enums import (
     AccountEntities,
+    AccountSubType,
+    AccountType,
     BankAccountType,
     CalendarSubType,
     DocumentType,
@@ -120,6 +122,8 @@ class CreateAccountRequest(NonEmptyRequest):
     """Class used to format data necessary for making a request to create a brokerage account
 
     Attributes:
+        account_type (Optional[AccountType]): The type of account
+        account_sub_type (Optional[AccountSubType]): The sub type of account
         contact (Contact): The contact details for the account holder
         identity (Identity): The identity details for the account holder
         disclosures (Disclosures): The account holder's political disclosures
@@ -128,6 +132,8 @@ class CreateAccountRequest(NonEmptyRequest):
         trusted_contact (TrustedContact): The account holder's trusted contact details
     """
 
+    account_type: Optional[Union[AccountType, str]] = None
+    account_sub_type: Optional[Union[AccountSubType, str]] = None
     contact: Contact
     identity: Identity
     disclosures: Disclosures

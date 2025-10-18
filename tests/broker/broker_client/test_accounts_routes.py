@@ -7,7 +7,7 @@ from uuid import UUID
 import pytest
 
 from alpaca.broker.client import BrokerClient
-from alpaca.broker.enums import AccountEntities
+from alpaca.broker.enums import AccountEntities, AccountSubType, AccountType
 from alpaca.broker.models import Account, Contact, Identity, TradeAccount
 from alpaca.broker.requests import (
     CreateAccountRequest,
@@ -123,9 +123,125 @@ def test_create_account(reqmock, client: BrokerClient):
     returned_account = client.create_account(create_data)
 
     assert reqmock.called_once
+    request_body = reqmock.request_history[0].json()
+    assert "account_type" not in request_body
+    assert "account_sub_type" not in request_body
     assert type(returned_account) == Account
     assert returned_account.id == UUID(created_id)
     assert returned_account.kyc_results is None
+    assert returned_account.account_type == AccountType.TRADING
+    assert returned_account.account_sub_type is None
+
+
+def test_create_ira_account(reqmock, client: BrokerClient):
+    created_id = "0d969814-40d6-4b2b-99ac-2e37427f1ad2"
+
+    reqmock.post(
+        "https://broker-api.sandbox.alpaca.markets/v1/accounts",
+        text="""
+        {
+          "id": "0d969814-40d6-4b2b-99ac-2e37427f1ad2",
+          "account_number": "682389557",
+          "status": "SUBMITTED",
+          "crypto_status": "INACTIVE",
+          "currency": "USD",
+          "last_equity": "0",
+          "created_at": "2022-04-12T17:24:31.30283Z",
+          "contact": {
+            "email_address": "cool_alpaca@example.com",
+            "phone_number": "555-666-7788",
+            "street_address": [
+              "20 N San Mateo Dr"
+            ],
+            "unit": "Apt 1A",
+            "city": "San Mateo",
+            "state": "CA",
+            "postal_code": "94401"
+          },
+          "identity": {
+            "given_name": "John",
+            "family_name": "Doe",
+            "middle_name": "Smith",
+            "date_of_birth": "1990-01-01",
+            "tax_id_type": "USA_SSN",
+            "country_of_citizenship": "USA",
+            "country_of_birth": "USA",
+            "country_of_tax_residence": "USA",
+            "funding_source": [
+              "employment_income"
+            ],
+            "visa_type": null,
+            "visa_expiration_date": null,
+            "date_of_departure_from_usa": null,
+            "permanent_resident": null
+          },
+          "disclosures": {
+            "is_control_person": false,
+            "is_affiliated_exchange_or_finra": false,
+            "is_politically_exposed": false,
+            "immediate_family_exposed": false,
+            "is_discretionary": false
+          },
+          "agreements": [
+            {
+              "agreement": "margin_agreement",
+              "signed_at": "2020-09-11T18:09:33Z",
+              "ip_address": "185.13.21.99",
+              "revision": "16.2021.05"
+            },
+            {
+              "agreement": "account_agreement",
+              "signed_at": "2020-09-11T18:13:44Z",
+              "ip_address": "185.13.21.99",
+              "revision": "16.2021.05"
+            },
+            {
+              "agreement": "customer_agreement",
+              "signed_at": "2020-09-11T18:13:44Z",
+              "ip_address": "185.13.21.99",
+              "revision": "16.2021.05"
+            },
+            {
+              "agreement": "crypto_agreement",
+              "signed_at": "2020-09-11T18:13:44Z",
+              "ip_address": "185.13.21.99",
+              "revision": "04.2021.10"
+            }
+          ],
+          "trusted_contact": {
+            "given_name": "Jane",
+            "family_name": "Doe",
+            "email_address": "jane.doe@example.com"
+          },
+          "account_type": "ira",
+          "account_sub_type": "traditional",
+          "trading_configurations": null
+        }
+        """,
+    )
+
+    create_data = CreateAccountRequest(
+        account_type=AccountType.IRA,
+        account_sub_type=AccountSubType.TRADITIONAL,
+        agreements=factory.create_dummy_agreements(),
+        contact=factory.create_dummy_contact(),
+        disclosures=factory.create_dummy_disclosures(),
+        documents=factory.create_dummy_account_documents(),
+        identity=factory.create_dummy_identity(),
+        trusted_contact=factory.create_dummy_trusted_contact(),
+    )
+
+    returned_account = client.create_account(create_data)
+
+    assert reqmock.called_once
+    request_body = reqmock.request_history[0].json()
+    assert request_body["account_type"] == "ira"
+    assert request_body["account_sub_type"] == "traditional"
+    assert type(returned_account) == Account
+    assert returned_account.id == UUID(created_id)
+    assert returned_account.kyc_results is None
+    assert returned_account.account_type == AccountType.IRA
+    assert returned_account.account_sub_type == AccountSubType.TRADITIONAL
 
 
 def test_create_lct_account(reqmock, client: BrokerClient):
@@ -231,10 +347,15 @@ def test_create_lct_account(reqmock, client: BrokerClient):
     returned_account = client.create_account(create_data)
 
     assert reqmock.called_once
+    request_body = reqmock.request_history[0].json()
+    assert "account_type" not in request_body
+    assert "account_sub_type" not in request_body
     assert type(returned_account) == Account
     assert returned_account.id == UUID(created_id)
     assert returned_account.currency == currency
     assert returned_account.kyc_results is None
+    assert returned_account.account_type == "trading"
+    assert returned_account.account_sub_type is None
 
 
 def test_get_account(reqmock, client: BrokerClient):

@@ -93,7 +93,6 @@ OptionContract
 
 
 OptionContractsResponse
---------------
+-----------------------
 
 .. autoclass:: alpaca.trading.models.OptionContractsResponse
-

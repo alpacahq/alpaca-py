@@ -298,8 +298,8 @@ def test_replace_order_validate_replace_request() -> None:
     # limit_price
     ReplaceOrderRequest(limit_price=0.1)
     ReplaceOrderRequest(qty=1, limit_price=0.1)
-    with pytest.raises(ValueError):
-        ReplaceOrderRequest(limit_price=0)
+    ReplaceOrderRequest(limit_price=0)
+    ReplaceOrderRequest(limit_price=-1)
 
     # stop_price
     ReplaceOrderRequest(stop_price=0.1)

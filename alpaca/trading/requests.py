@@ -257,8 +257,6 @@ class ReplaceOrderRequest(NonEmptyRequest):
 
         if (qty is not None) and (qty <= 0):
             raise ValueError("qty must be greater than 0")
-        if (limit_price is not None) and (limit_price <= 0):
-            raise ValueError("limit_price must be greater than 0")
         if (stop_price is not None) and (stop_price <= 0):
             raise ValueError("stop_price must be greater than 0")
         if (trail is not None) and (trail <= 0):

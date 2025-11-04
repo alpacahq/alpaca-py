@@ -34,6 +34,7 @@ class TaxIdType(str, Enum):
     """
 
     USA_SSN = "USA_SSN"
+    USA_ITIN = "USA_ITIN"
     ARG_AR_CUIT = "ARG_AR_CUIT"
     AUS_TFN = "AUS_TFN"
     AUS_ABN = "AUS_ABN"
@@ -70,6 +71,11 @@ class TaxIdType(str, Enum):
     SWE_TAX_ID = "SWE_TAX_ID"
     URY_RUT = "URY_RUT"
     VEN_RIF = "VEN_RIF"
+    NATIONAL_ID = "NATIONAL_ID"
+    PASSPORT = "PASSPORT"
+    PERMANENT_RESIDENT = "PERMANENT_RESIDENT"
+    DRIVER_LICENSE = "DRIVER_LICENSE"
+    OTHER_GOV_ID = "OTHER_GOV_ID"
     NOT_SPECIFIED = "NOT_SPECIFIED"
 
 

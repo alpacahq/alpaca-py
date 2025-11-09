@@ -1,0 +1,116 @@
+# ===============================
+# STEP 1: Install Required Packages
+# ===============================
+!pip install alpaca-trade-api pandas numpy scikit-learn xgboost ta joblib
+
+# ===============================
+# STEP 2: Import Libraries
+# ===============================
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import StandardScaler
+from xgboost import XGBClassifier
+import ta
+import datetime as dt
+import joblib
+from alpaca_trade_api.rest import REST, TimeFrame
+
+# ===============================
+# STEP 3: Set Your Alpaca API Keys
+# ===============================
+API_KEY = "PK6DAVYRXZCAKKX2QRLL3T3DFS"
+API_SECRET = "7fp1sTD8hnXZ7bLS3PkZuN8hzjD8pTiwvYeY382XfLcU"
+BASE_URL = "https://paper-api.alpaca.markets"  # Paper trading endpoint
+
+
+api = REST(API_KEY, API_SECRET, base_url=BASE_URL)
+
+# ===============================
+# STEP 4: Define Penny Stock Tickers
+# ===============================
+# You can add more low-priced stocks (<$5) here
+tickers = ["GNS", "COSM", "SOBR", "CYN", "CEI"]
+
+# ===============================
+# STEP 5: Fetch Historical Data
+# ===============================
+def get_data(symbol):
+    end_date = dt.datetime.now()
+    start_date = end_date - dt.timedelta(days=180)
+    bars = api.get_bars(symbol, TimeFrame.Day, start=start_date, end=end_date).df
+    return bars
+
+data = {t: get_data(t) for t in tickers}
+
+# ===============================
+# STEP 6: Feature Engineering
+# ===============================
+def build_features(df):
+    df['rsi'] = ta.momentum.RSIIndicator(df['close'], 14).rsi()
+    df['ema9'] = ta.trend.EMAIndicator(df['close'], 9).ema_indicator()
+    df['ema20'] = ta.trend.EMAIndicator(df['close'], 20).ema_indicator()
+    df['vol_ratio'] = df['volume'] / df['volume'].rolling(20).mean()
+    df['momentum'] = df['close'] / df['ema20'] - 1
+    df['target'] = (df['close'].shift(-2) / df['close'] - 1 > 0.08).astype(int)
+    return df.dropna()
+
+processed = {t: build_features(df) for t, df in data.items()}
+
+# ===============================
+# STEP 7: Train AI Model
+# ===============================
+combined = pd.concat(processed.values())
+features = ['rsi','ema9','ema20','vol_ratio','momentum']
+X = combined[features]
+y = combined['target']
+
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+model = XGBClassifier(n_estimators=300, learning_rate=0.05, max_depth=5)
+model.fit(X_scaled, y)
+
+# Save model for later use
+joblib.dump(model, '/content/xgb_model.pkl')
+joblib.dump(scaler, '/content/scaler.pkl')
+
+# ===============================
+# STEP 8: Generate Trading Signals
+# ===============================
+def generate_signals():
+    signals = []
+    for t in tickers:
+        df = build_features(get_data(t))
+        X_today = scaler.transform(df[features].iloc[-1:].values)
+        prob = model.predict_proba(X_today)[0][1]
+        price = df['close'].iloc[-1]
+        if prob > 0.7 and df['vol_ratio'].iloc[-1] > 2 and price < 5:
+            signals.append((t, price, prob))
+    return signals
+
+signals = generate_signals()
+print("Today's trade candidates:", signals)
+
+# ===============================
+# STEP 9: Execute Paper Trades
+# ===============================
+for symbol, price, prob in signals:
+    qty = int(200 / price)  # small position
+    api.submit_order(
+        symbol=symbol,
+        qty=qty,
+        side='buy',
+        type='market',
+        time_in_force='day',
+        order_class='bracket',
+        take_profit={'limit_price': round(price * 1.20, 2)},
+        stop_loss={'stop_price': round(price * 0.93, 2)}
+    )
+    print(f"Bought {qty} shares of {symbol} @ {price}, prob={prob:.2f}")
+
+# ===============================
+# STEP 10: Check Your Paper Trading Account
+# ===============================
+positions = api.list_positions()
+for pos in positions:
+    print(f"{pos.qty} shares of {pos.symbol} at {pos.avg_entry_price}")

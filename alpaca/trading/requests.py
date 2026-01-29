@@ -8,6 +8,7 @@ from alpaca.common.enums import Sort
 from alpaca.common.models import ModelWithID
 from alpaca.common.requests import NonEmptyRequest
 from alpaca.trading.enums import (
+    ActivityType,
     AssetClass,
     AssetExchange,
     AssetStatus,
@@ -611,3 +612,57 @@ class GetOptionContractsRequest(NonEmptyRequest):
 
     limit: Optional[int] = None
     page_token: Optional[str] = None
+
+
+class GetAccountActivitiesRequest(NonEmptyRequest):
+    """
+    Represents the filtering values you can specify when getting AccountActivities.
+
+    Please see https://docs.alpaca.markets/reference/getaccountactivities for more information.
+
+    Attributes:
+        activity_types (Optional[List[ActivityType]]): A list of ActivityType's to filter results down to.
+        category (Optional[str]): The activity category. Cannot be used with 'activity_types' parameter.
+            Valid values are 'trade_activity' or 'non_trade_activity'.
+        date (Optional[date]): Filter activities by the activity date. Both formats YYYY-MM-DD and
+            YYYY-MM-DDTHH:MM:SSZ are supported.
+        until (Optional[datetime]): Get activities created before this date. Both formats YYYY-MM-DD and
+            YYYY-MM-DDTHH:MM:SSZ are supported.
+        after (Optional[datetime]): Get activities created after this date. Both formats YYYY-MM-DD and
+            YYYY-MM-DDTHH:MM:SSZ are supported.
+        direction (Optional[Sort]): The chronological order of response based on the activity datetime.
+            Defaults to desc.
+        page_size (Optional[int]): The maximum number of entries to return in the response.
+            Defaults to 100, maximum is 100.
+        page_token (Optional[str]): Token used for pagination. Provide the ID of the last activity from
+            the last page to retrieve the next set of results.
+    """
+
+    activity_types: Optional[List[ActivityType]] = None
+    category: Optional[str] = None
+    date: Optional[Union[date, datetime]] = None
+    until: Optional[datetime] = None
+    after: Optional[datetime] = None
+    direction: Optional[Sort] = None
+    page_size: Optional[int] = None
+    page_token: Optional[str] = None
+
+    @model_validator(mode="before")
+    def root_validator(cls, values: dict) -> dict:
+        activity_types = values.get("activity_types", None)
+        category = values.get("category", None)
+
+        if activity_types is not None and category is not None:
+            raise ValueError(
+                "Cannot specify both 'activity_types' and 'category' parameters."
+            )
+
+        if category is not None and category not in [
+            "trade_activity",
+            "non_trade_activity",
+        ]:
+            raise ValueError(
+                "category must be one of 'trade_activity' or 'non_trade_activity'."
+            )
+
+        return values

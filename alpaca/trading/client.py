@@ -13,25 +13,30 @@ from alpaca.common.utils import (
     validate_symbol_or_contract_id,
     validate_uuid_id_param,
 )
+from alpaca.trading.enums import ActivityType
 from alpaca.trading.models import (
     AccountConfiguration,
     Asset,
+    BaseActivity,
     Calendar,
     Clock,
     ClosePositionResponse,
     CorporateActionAnnouncement,
+    NonTradeActivity,
     OptionContract,
     OptionContractsResponse,
     Order,
     PortfolioHistory,
     Position,
     TradeAccount,
+    TradeActivity,
     Watchlist,
 )
 from alpaca.trading.requests import (
     CancelOrderResponse,
     ClosePositionRequest,
     CreateWatchlistRequest,
+    GetAccountActivitiesRequest,
     GetAssetsRequest,
     GetCalendarRequest,
     GetCorporateAnnouncementsRequest,
@@ -511,6 +516,93 @@ class TradingClient(RESTClient):
             return response
 
         return AccountConfiguration(**response)
+
+    # ############################## ACCOUNT ACTIVITIES ################################# #
+
+    def get_account_activities(
+        self,
+        activity_filter: Optional[GetAccountActivitiesRequest] = None,
+    ) -> Union[List[BaseActivity], RawData]:
+        """
+        Returns account activity entries for a specific type of activity.
+
+        The return type of this function is List[BaseActivity] however the list will contain concrete instances of one
+        of the child classes of BaseActivity, either TradeActivity or NonTradeActivity. It can be a mixed list depending
+        on what filtering criteria you pass through `activity_filter`.
+
+        Args:
+            activity_filter (Optional[GetAccountActivitiesRequest]): The various filtering fields you can specify to
+              restrict results.
+
+        Returns:
+            Union[List[BaseActivity], RawData]: A list of BaseActivity child classes (TradeActivity or NonTradeActivity).
+        """
+        params = activity_filter.to_request_fields() if activity_filter else {}
+
+        # Convert activity_types list to comma-separated string if present
+        if "activity_types" in params and isinstance(params["activity_types"], list):
+            params["activity_types"] = ",".join(
+                [
+                    at.value if isinstance(at, ActivityType) else at
+                    for at in params["activity_types"]
+                ]
+            )
+
+        response = self.get("/account/activities", params)
+
+        if self._use_raw_data:
+            return response
+
+        return [self._parse_activity(activity) for activity in response]
+
+    def get_account_activities_by_type(
+        self,
+        activity_type: ActivityType,
+        activity_filter: Optional[GetAccountActivitiesRequest] = None,
+    ) -> Union[List[BaseActivity], RawData]:
+        """
+        Returns account activity entries for a specific type of activity.
+
+        Args:
+            activity_type (ActivityType): The type of activity to retrieve.
+            activity_filter (Optional[GetAccountActivitiesRequest]): The various filtering fields you can specify to
+              restrict results.
+
+        Returns:
+            Union[List[BaseActivity], RawData]: A list of BaseActivity child classes (TradeActivity or NonTradeActivity).
+        """
+        params = activity_filter.to_request_fields() if activity_filter else {}
+
+        response = self.get(f"/account/activities/{activity_type.value}", params)
+
+        if self._use_raw_data:
+            return response
+
+        return [self._parse_activity(activity) for activity in response]
+
+    @staticmethod
+    def _parse_activity(data: dict) -> Union[TradeActivity, NonTradeActivity]:
+        """
+        Parse raw activity data into the appropriate Activity type.
+
+        Args:
+            data (dict): A dict of raw data to convert into an Activity instance.
+
+        Returns:
+            Union[TradeActivity, NonTradeActivity]: The parsed activity instance.
+
+        Raises:
+            ValueError: If `data` doesn't contain an `activity_type` field.
+        """
+        if "activity_type" not in data or data["activity_type"] is None:
+            raise ValueError(
+                "Failed parsing raw activity data, `activity_type` is not present in fields"
+            )
+
+        if ActivityType.is_str_trade_activity(data["activity_type"]):
+            return TypeAdapter(TradeActivity).validate_python(data)
+        else:
+            return TypeAdapter(NonTradeActivity).validate_python(data)
 
     # ############################## WATCHLIST ################################# #
 

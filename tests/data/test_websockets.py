@@ -1,5 +1,6 @@
 import asyncio
 from datetime import datetime
+from unittest.mock import AsyncMock
 
 import pytest
 from msgpack.ext import Timestamp
@@ -254,7 +255,7 @@ async def test_run_forever_handles_timeout_without_traceback(
 
 
 @pytest.mark.asyncio
-async def test_run_forever_handles_cancelled_error_gracefully(
+async def test_run_forever_reraises_cancelled_error_and_cleans_up(
     ws_client: DataStream, caplog
 ):
     ws_client._handlers["trades"]["AAPL"] = object()
@@ -263,8 +264,12 @@ async def test_run_forever_handles_cancelled_error_gracefully(
         raise asyncio.CancelledError()
 
     ws_client._start_ws = _start_ws_cancelled
+    ws_client.close = AsyncMock()
 
     with caplog.at_level("INFO"):
-        await ws_client._run_forever()
+        with pytest.raises(asyncio.CancelledError):
+            await ws_client._run_forever()
 
+    ws_client.close.assert_awaited_once()
+    assert ws_client._running is False
     assert "data websocket task cancelled" in caplog.text

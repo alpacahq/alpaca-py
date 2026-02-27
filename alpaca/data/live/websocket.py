@@ -363,7 +363,7 @@ class DataStream:
                 await self.close()
                 self._running = False
                 log.info("data websocket task cancelled")
-                return
+                raise
             except Exception as e:
                 log.exception(f"error during websocket communication: {str(e)}")
             finally:

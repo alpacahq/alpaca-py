@@ -351,9 +351,7 @@ class DataStream:
             except (asyncio.TimeoutError, TimeoutError) as te:
                 await self.close()
                 self._running = False
-                log.warning(
-                    "data websocket timeout, restarting connection: " + str(te)
-                )
+                log.warning("data websocket timeout, restarting connection: " + str(te))
             except ValueError as ve:
                 if "insufficient subscription" in str(ve):
                     await self.close()

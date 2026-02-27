@@ -348,6 +348,12 @@ class DataStream:
                 await self.close()
                 self._running = False
                 log.warning("data websocket error, restarting connection: " + str(wse))
+            except (asyncio.TimeoutError, TimeoutError) as te:
+                await self.close()
+                self._running = False
+                log.warning(
+                    "data websocket timeout, restarting connection: " + str(te)
+                )
             except ValueError as ve:
                 if "insufficient subscription" in str(ve):
                     await self.close()
@@ -355,6 +361,11 @@ class DataStream:
                     log.exception(f"error during websocket communication: {str(ve)}")
                     return
                 log.exception(f"error during websocket communication: {str(ve)}")
+            except asyncio.CancelledError:
+                await self.close()
+                self._running = False
+                log.info("data websocket task cancelled")
+                return
             except Exception as e:
                 log.exception(f"error during websocket communication: {str(e)}")
             finally:

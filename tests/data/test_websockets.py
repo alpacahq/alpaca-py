@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime
 
 import pytest
@@ -232,3 +233,38 @@ async def test_dispatch(ws_client: DataStream, timestamp: Timestamp):
     assert len(articles_b) == 1
     assert len(articles_star) == 2
     assert articles_star[1].headline == "c"
+
+
+@pytest.mark.asyncio
+async def test_run_forever_handles_timeout_without_traceback(
+    ws_client: DataStream, caplog
+):
+    ws_client._handlers["trades"]["AAPL"] = object()
+
+    async def _start_ws_timeout_once():
+        ws_client._should_run = False
+        raise TimeoutError("connect timeout")
+
+    ws_client._start_ws = _start_ws_timeout_once
+
+    with caplog.at_level("WARNING"):
+        await ws_client._run_forever()
+
+    assert "data websocket timeout, restarting connection" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_run_forever_handles_cancelled_error_gracefully(
+    ws_client: DataStream, caplog
+):
+    ws_client._handlers["trades"]["AAPL"] = object()
+
+    async def _start_ws_cancelled():
+        raise asyncio.CancelledError()
+
+    ws_client._start_ws = _start_ws_cancelled
+
+    with caplog.at_level("INFO"):
+        await ws_client._run_forever()
+
+    assert "data websocket task cancelled" in caplog.text

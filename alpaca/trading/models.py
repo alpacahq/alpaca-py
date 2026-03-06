@@ -488,7 +488,7 @@ class TradeAccount(ModelWithID):
         buying_power (Optional[str]): Current available cash buying power. If multiplier = 2 then
           buying_power = max(equity-initial_margin(0) * 2). If multiplier = 1 then buying_power = cash.
         regt_buying_power (Optional[str]): User’s buying power under Regulation T
-          (excess equity - (equity - margin value) - * margin multiplier)
+          (excess equity - (equity - margin value) * margin multiplier)
         daytrading_buying_power (Optional[str]): The buying power for day trades for the account
         non_marginable_buying_power (Optional[str]): The non marginable buying power for the account
         cash (Optional[str]): Cash balance in the account

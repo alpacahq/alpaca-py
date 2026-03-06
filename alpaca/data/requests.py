@@ -1,7 +1,5 @@
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from typing import Any, List, Optional, Union
-
-import pytz
 from pydantic import ConfigDict
 
 from alpaca.common.enums import Sort, SupportedCurrencies
@@ -47,7 +45,7 @@ class BaseTimeseriesDataRequest(NonEmptyRequest):
             and isinstance(data["start"], datetime)
             and data["start"].tzinfo is not None
         ):
-            data["start"] = data["start"].astimezone(pytz.utc).replace(tzinfo=None)
+            data["start"] = data["start"].astimezone(timezone.utc).replace(tzinfo=None)
 
         if (
             "end" in data
@@ -55,7 +53,7 @@ class BaseTimeseriesDataRequest(NonEmptyRequest):
             and isinstance(data["end"], datetime)
             and data["end"].tzinfo is not None
         ):
-            data["end"] = data["end"].astimezone(pytz.utc).replace(tzinfo=None)
+            data["end"] = data["end"].astimezone(timezone.utc).replace(tzinfo=None)
 
         super().__init__(**data)
 

@@ -1,8 +1,7 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pytest
 from msgpack.ext import Timestamp
-from pytz import utc
 
 from alpaca.data.enums import Exchange
 from alpaca.data.models import Bar, Trade, News
@@ -136,7 +135,7 @@ def test_cast(ws_client: DataStream, raw_ws_client: DataStream, timestamp: Times
     assert cancel.exchange == "D"
     assert cancel.price == 36.18
 
-    created_at = datetime(2024, 6, 17, 14, 11, 0, tzinfo=utc)
+    created_at = datetime(2024, 6, 17, 14, 11, 0, tzinfo=timezone.utc)
     news = ws_client._cast(
         {
             "T": "n",

@@ -88,3 +88,9 @@ class NewsSet(BaseDataSet, TimeSeriesMixin):
         next_page_token = raw_data.get("next_page_token")
 
         super().__init__(data=parsed_news, next_page_token=next_page_token)
+
+    def __repr__(self) -> str:
+        import pprint
+
+        payload = {"data": self.dict(), "next_page_token": self.next_page_token}
+        return pprint.pformat(payload, indent=4)

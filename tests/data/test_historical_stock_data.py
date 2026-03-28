@@ -71,6 +71,9 @@ def test_get_bars(reqmock, stock_client: StockHistoricalDataClient):
     assert barset[symbol][0].open == 174
     assert barset[symbol][0].high == 174.84
 
+    assert symbol in barset
+    assert "NONEXISTENT" not in barset
+
     assert barset.df.index.nlevels == 2
 
     assert reqmock.called_once

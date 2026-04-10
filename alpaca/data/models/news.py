@@ -89,4 +89,3 @@ class NewsSet(BaseDataSet, TimeSeriesMixin):
         next_page_token = raw_data.get("next_page_token")
 
         super().__init__(data=parsed_news, next_page_token=next_page_token)
-

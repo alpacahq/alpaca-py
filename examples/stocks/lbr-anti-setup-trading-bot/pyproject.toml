@@ -1,0 +1,19 @@
+[project]
+name = "algo-trading-alpaca"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "alpaca-py",
+    "pandas",
+    "boto3",
+    "pytz>=2026.1.post1",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "pytest-mock",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]

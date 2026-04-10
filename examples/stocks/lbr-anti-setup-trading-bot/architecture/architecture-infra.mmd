@@ -1,0 +1,36 @@
+flowchart TD
+    CW["☁️ CloudWatch Events
+cron(30 14 ? * MON-FRI *)
+9:30 AM ET, Mon-Fri"]
+
+    subgraph AWS["AWS Cloud"]
+        CW -->|invoke| Lambda
+
+        subgraph Lambda["Lambda: trading-bot (Python 3.12, timeout 5m)"]
+            handler["main.handler()"]
+            layer["Layer: alpacaDeps
+alpaca-py · pandas · boto3"]
+        end
+
+        Lambda -->|ssm:GetParameter| SSM
+        Lambda -->|PutItem / GetItem| DDB
+
+        SSM["🔐 SSM Parameter Store
+/alpaca/ALPACA_API_KEY
+/alpaca/ALPACA_SECRET_KEY"]
+        DDB[("📦 DynamoDB
+algotrading-portfolios
+PK: accountHash")]
+    end
+
+    Lambda -->|HTTPS · alpaca-py| Alpaca
+
+    subgraph Alpaca["Alpaca API"]
+        TC["TradingClient
+get_clock · get_account
+get_all_positions · submit_order
+cancel_order_by_id"]
+        DC["StockHistoricalDataClient
+get_stock_bars
+get_stock_latest_quote"]
+    end

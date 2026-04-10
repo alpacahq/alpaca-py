@@ -1,0 +1,12 @@
+{
+  "name": "algo-trading-alpaca",
+  "version": "1.0.0",
+  "description": "Algorithmic trading bot for Alpaca API running on AWS Lambda",
+  "private": true,
+  "devDependencies": {
+    "serverless": "^4.33.0"
+  },
+  "overrides": {
+    "rimraf": "^6.1.3"
+  }
+}

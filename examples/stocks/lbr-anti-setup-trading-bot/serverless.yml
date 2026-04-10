@@ -1,0 +1,84 @@
+service: algo-trading-alpaca
+org: satopersonal
+app: algo-trading-alpaca
+
+frameworkVersion: '4'
+
+provider:
+  name: aws
+  runtime: python3.12
+  region: us-east-2
+  stackTags:
+    project: algo-trading-alpaca
+  environment:
+    PORTFOLIO_TABLE_NAME: algotrading-portfolios
+    ALPACA_PAPER_TRADE: "True"
+    ALPACA_API_KEY: ${ssm:/alpaca/ALPACA_API_KEY}
+    ALPACA_SECRET_KEY: ${ssm:/alpaca/ALPACA_SECRET_KEY}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - ssm:GetParameter
+      Resource: arn:aws:ssm:*:*:parameter/alpaca/*
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+        - dynamodb:GetItem
+        - dynamodb:Query
+      Resource: arn:aws:dynamodb:*:*:table/${self:provider.environment.PORTFOLIO_TABLE_NAME}
+    - Effect: Allow
+      Action:
+        - logs:CreateLogGroup
+        - logs:CreateLogStream
+        - logs:PutLogEvents
+      Resource: arn:aws:logs:*:*:*
+
+layers:
+  alpacaDeps:
+    path: layer
+    compatibleRuntimes:
+      - python3.12
+
+package:
+  patterns:
+    - '!node_modules/**'
+    - '!layer/**'
+    - '!tests/**'
+    - '!.venv/**'
+    - '!reference/**'
+    - '!docs/**'
+    - '!architecture/**'
+    - '!notebooks/**'
+    - '!**/*.md'
+    - '!**/*.mmd'
+    - '!**/*.txt'
+    - '!**/*.ipynb'
+    - '!pyproject.toml'
+    - '!uv.lock'
+    - '!package*.json'
+
+functions:
+  trading-bot:
+    handler: main.handler
+    layers:
+      - !Ref AlpacaDepsLambdaLayer
+    timeout: 300
+    maximumRetryAttempts: 0
+    events:
+      - schedule:
+          rate: cron(30 14 ? * MON-FRI *)   # 14:30 UTC = 9:30 AM ET
+          enabled: true
+
+resources:
+  Resources:
+    PortfolioTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.PORTFOLIO_TABLE_NAME}
+        AttributeDefinitions:
+          - AttributeName: accountHash
+            AttributeType: S
+        KeySchema:
+          - AttributeName: accountHash
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST

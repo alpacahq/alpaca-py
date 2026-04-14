@@ -6,7 +6,7 @@ dependencies = [
     "alpaca-py",
     "pandas",
     "boto3",
-    "pytz>=2026.1.post1",
+    "pytz>=2025.1,<2027",
 ]
 
 [dependency-groups]

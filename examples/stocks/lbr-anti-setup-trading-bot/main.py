@@ -306,7 +306,19 @@ def _get_ask_price(current_quotes: dict, symbol: str) -> Decimal | None:
     if symbol not in current_quotes:
         logger.warning(f"{symbol} NOT IN FETCHED QUOTES")
         return None
-    return Decimal(str(current_quotes[symbol]["askPrice"]))
+    
+    quote = current_quotes[symbol]
+    ask_price = quote.get("askPrice")
+    
+    if ask_price is None:
+        logger.warning(f"{symbol} askPrice missing or None in quote data")
+        return None
+    
+    try:
+        return Decimal(str(ask_price))
+    except (ValueError, TypeError) as e:
+        logger.warning(f"{symbol} askPrice invalid: {ask_price} — {e}")
+        return None
 
 
 def _portfolio_value(positions: dict, cash: Decimal) -> Decimal:
@@ -409,7 +421,16 @@ def run() -> None:
     # Profit target = entry + (ATR * ATR_STOP_MULTIPLIER * RISK_REWARD_RATIO) — 1:1 R:R.
     if buy_pos:
         for symbol, qty in buy_pos.items():
-            ask = Decimal(str(entry_quotes[symbol]["askPrice"]))
+            # Defensively check for symbol in entry_quotes to avoid KeyError
+            if symbol not in entry_quotes:
+                logger.warning(f"{symbol}: quote unavailable, skipping stop-loss setup")
+                continue
+            quote_data = entry_quotes[symbol]
+            if "askPrice" not in quote_data:
+                logger.warning(f"{symbol}: askPrice missing from quote, skipping stop-loss setup")
+                continue
+            
+            ask = Decimal(str(quote_data["askPrice"]))
             atr = Decimal(str(atr_by_symbol.get(symbol, 0)))
             # atr_by_symbol only contains selected symbols — fallback to 0 should never
             # trigger in normal operation. If it does, a refactor has broken the assumption
@@ -435,10 +456,10 @@ def handler(event, context):
     clock = get_clock()
     if not clock.is_open:
         logger.info("Market is closed — skipping run.")
-        return {"status": "skipped", "reason": "market_closed"}
+        return {"statusCode": 200, "body": {"status": "skipped", "reason": "market_closed"}}
     try:
         run()
-        return {"statusCode": 200}
+        return {"statusCode": 200, "body": {"status": "success"}}
     except Exception as e:
         logger.error(traceback.format_exc())
-        return {"statusCode": 500, "error": str(e), "trace": traceback.format_exc()}
+        return {"statusCode": 500, "body": {"error": "Internal server error"}}

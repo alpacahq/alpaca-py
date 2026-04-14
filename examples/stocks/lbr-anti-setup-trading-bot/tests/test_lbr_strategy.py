@@ -143,12 +143,12 @@ def test_adx_filter_blocks_strong_trend():
         })
 
     result = calculate_lbr_signal("AAPL", bars)
-    # The ADX test verifies the filter fires; other rules may or may not pass first
-    # but once ADX > 32 and rising, selected must be False.
-    # We verify the skip reason contains "ADX" when that is the reason.
-    if result["adx"] > 32 and result["adx_rising"]:
-        assert result["selected"] is False
-        assert "ADX" in result["skip_reason"]
+    # Precondition: verify synthetic data actually triggers ADX > 32 and rising
+    assert result["adx"] > 32 and result["adx_rising"], \
+        f"Test data should trigger ADX filter: adx={result['adx']}, adx_rising={result['adx_rising']}"
+    # Once ADX > 32 and rising, the setup should be rejected
+    assert result["selected"] is False
+    assert "ADX" in result["skip_reason"]
 
 
 # ---------------------------------------------------------------------------
@@ -167,13 +167,10 @@ def test_below_ema20_blocks_long_anti():
     price_data = _make_bars(closes)
 
     result = calculate_lbr_signal("AAPL", price_data)
-    if result["skip_reason"] and ("below" in result["skip_reason"] or "EMA20" in result["skip_reason"]):
-        assert result["selected"] is False
-    elif result["last_close"] != 0.0:
-        # If we reached the EMA check, verify the condition logic
-        if result["last_close"] <= result["ema20"]:
-            assert result["selected"] is False
-            assert "below" in result["skip_reason"] or "EMA20" in result["skip_reason"]
+    # Deterministic assertion: if EMA20 check was reached and price is below EMA20, it should be rejected
+    assert result["selected"] is False
+    assert result["last_close"] <= result["ema20"], f"Expected last_close ({result['last_close']}) <= ema20 ({result['ema20']})"
+    assert "below" in result["skip_reason"] or "EMA20" in result["skip_reason"], f"Expected EMA20 rejection reason, got: {result['skip_reason']}"
 
 
 def test_below_ema20_explicit():

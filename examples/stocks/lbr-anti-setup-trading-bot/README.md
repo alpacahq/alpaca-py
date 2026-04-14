@@ -56,6 +56,7 @@ The bot filters the Magnificent 7 through 6 sequential rules:
 ## Features
 
 - ✅ **Fully serverless**: Zero manual intervention; AWS handles scheduling
+- ✅ **Single-instance execution**: Lambda reserved concurrency = 1 prevents duplicate trades / race conditions
 - ✅ **Automated rebalancing**: Sell losers, buy new setups daily
 - ✅ **Risk-based stops**: ATR dynamically scales stops to volatility
 - ✅ **State persistence**: DynamoDB tracks portfolio across invocations

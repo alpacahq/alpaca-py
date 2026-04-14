@@ -1,11 +1,12 @@
 {
-  "name": "algo-trading-alpaca",
+  "name": "lbr-anti-setup-trading-bot",
   "version": "1.0.0",
   "description": "Algorithmic trading bot for Alpaca API running on AWS Lambda",
   "private": true,
   "devDependencies": {
     "serverless": "^4.33.0"
   },
+  "_comment_rimraf_override": "rimraf ^6.1.3 override: serverless ^4.33.0 pulls in an older rimraf version with a known issue. This override forces the patched version. Remove when serverless updates to >=4.35.0 or if rimraf dependency is removed.",
   "overrides": {
     "rimraf": "^6.1.3"
   }

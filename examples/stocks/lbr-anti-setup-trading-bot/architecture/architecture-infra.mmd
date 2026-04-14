@@ -1,15 +1,17 @@
 flowchart TD
-    CW["☁️ CloudWatch Events
-cron(30 14 ? * MON-FRI *)
-9:30 AM ET, Mon-Fri"]
+    EB["☁️ EventBridge Scheduler
+cron(30 9 ? * MON-FRI *)
+Timezone: America/New_York
+9:30 AM ET year-round"]
 
     subgraph AWS["AWS Cloud"]
-        CW -->|invoke| Lambda
+    EB -->|invoke| Lambda
 
-        subgraph Lambda["Lambda: trading-bot (Python 3.12, timeout 5m)"]
+        subgraph Lambda["Lambda: trading-bot (Python 3.12, timeout 5m, reserved concurrency = 1)"]
             handler["main.handler()"]
             layer["Layer: alpacaDeps
 alpaca-py · pandas · boto3"]
+            note["⚠️ Concurrency = 1: prevents duplicate trades / race conditions"]
         end
 
         Lambda -->|ssm:GetParameter| SSM

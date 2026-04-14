@@ -6,7 +6,17 @@ get_clock()"]
     handler --> open{"clock.is_open?"}
     open -->|No| SKIP(["return: skipped
 market_closed"])
-    open -->|Yes| scan
+    open -->|Yes| dedupe
+
+    dedupe{"Execution already
+recorded today?
+Check DynamoDB
+idempotency key"} -->|Yes| SKIP_DUP(["return: skipped
+already_executed"])
+    dedupe -->|No| RECORD_EXEC["RECORD_EXEC
+Atomic conditional put
+timestamp + lock to DynamoDB"]
+    RECORD_EXEC --> scan
 
     subgraph scan["LBR Signal Scan — build_target_portfolio()"]
         M7["Magnificent 7
@@ -62,11 +72,25 @@ get_all_positions() → held
 _get_portfolio() ← DynamoDB"]
     end
 
-    snapshot --> cancel
+    snapshot --> validate{"buying_power ≥
+required capital?"}
+    validate -->|No| INSUFFICIENT(["return: error
+insufficient_funds"])
+    validate -->|Yes| cancel
 
     subgraph cancel["Cancel Open Orders"]
         CANCEL["get_orders()
 cancel_order() × n"]
+        CANCEL --> VERIFY["VERIFY
+Check cancel responses
+Re-query order status"]
+        VERIFY --> refresh{"Partial fills
+detected?"}
+        refresh -->|Yes| RESNAPSHOT["RESNAPSHOT
+get_all_positions()
+Refresh account snapshot"]
+        refresh -->|No| cancel_ok["Cancel flow OK"]
+        RESNAPSHOT --> cancel_ok
     end
 
     cancel --> rebal
@@ -74,22 +98,52 @@ cancel_order() × n"]
     subgraph rebal["Rebalance"]
         DIFF["_desired_positions()
 _position_changes()"]
-        DIFF --> SELL["① SELL excess
-sleep 2s"]
-        SELL --> BUY["② BUY new positions
-sleep 2s"]
+        DIFF --> SELL_ORD["① SELL Orders
+MarketOrderRequest × n
+TimeInForce.DAY"]
+        SELL_ORD --> WAIT_SELL["WAIT_SELL
+Poll all sell orders
+until filled or rejected"]
+        WAIT_SELL --> sell_check{"All sells
+filled?"}
+        sell_check -->|No| SELL_FAIL["SELL_FAIL
+Log · partial/failed sells
+continue to buys"]
+        sell_check -->|Yes| SELL_OK["SELL_OK
+Confirmed"]
+        SELL_FAIL --> BUY_ORD
+        SELL_OK --> BUY_ORD["② BUY Orders
+MarketOrderRequest × n
+TimeInForce.DAY"]
+        BUY_ORD --> WAIT_BUY["WAIT_BUY
+Poll all buy orders
+until filled or rejected"]
     end
 
-    BUY --> orders["MarketOrderRequest
-TimeInForce.DAY"]
+    WAIT_BUY --> orders["Entry orders complete
+Ready for exits"]
 
-    orders --> protect
+    orders --> WAIT_FILL["WAIT_FILL
+Poll order status
+until filled or rejected"]
+    
+    WAIT_FILL --> fillcheck{"Filled?"}
+    fillcheck -->|No| HANDLE_REJECT["HANDLE_REJECT
+Log failure
+Skip exit orders"]
+    HANDLE_REJECT --> store
+    fillcheck -->|Yes| GET_FILLS["GET_FILLS
+Retrieve avg_fill_price
+filled_qty"]
+    
+    GET_FILLS --> protect
 
     subgraph protect["ATR-Based Exit Orders"]
-        ASK["entry ≈ ask price"] --> STOP_CALC["stop = ask − ATR × 1.5
-trail_pct = ATR × 1.5 / ask × 100"]
+        STOP_CALC["stop = avg_fill_price − ATR × 1.5
+trail_pct = ATR × 1.5 / avg_fill_price × 100"]
         STOP_CALC --> STOP_ORD["TrailingStopOrderRequest
-GTC"]
+TimeInForce.DAY
+qty = filled_qty"]
     end
 
     protect --> store

@@ -85,7 +85,11 @@ def cancel_order(account_hash, order_id: str) -> None:
 
 def place_order(account_hash, symbol: str, qty: int, side: str):
     trading_client, _ = _get_clients()
-    order_side = OrderSide.BUY if side == "BUY" else OrderSide.SELL
+    # Validate side parameter explicitly to prevent silent conversion to SELL
+    side_upper = side.upper() if isinstance(side, str) else ""
+    if side_upper not in ("BUY", "SELL"):
+        raise ValueError(f"Invalid order side '{side}': must be 'BUY' or 'SELL' (case-insensitive)")
+    order_side = OrderSide.BUY if side_upper == "BUY" else OrderSide.SELL
     req = MarketOrderRequest(
         symbol=symbol,
         qty=qty,
@@ -97,7 +101,11 @@ def place_order(account_hash, symbol: str, qty: int, side: str):
 
 def place_trailing_stop_order(account_hash, symbol: str, qty: int, trail_percent: float, side: str):
     trading_client, _ = _get_clients()
-    order_side = OrderSide.BUY if side == "BUY" else OrderSide.SELL
+    # Validate side parameter explicitly to prevent silent conversion to SELL
+    side_upper = side.upper() if isinstance(side, str) else ""
+    if side_upper not in ("BUY", "SELL"):
+        raise ValueError(f"Invalid order side '{side}': must be 'BUY' or 'SELL' (case-insensitive)")
+    order_side = OrderSide.BUY if side_upper == "BUY" else OrderSide.SELL
     req = TrailingStopOrderRequest(
         symbol=symbol,
         qty=qty,

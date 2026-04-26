@@ -31,23 +31,23 @@ from alpaca.trading.requests import LimitOrderRequest, MarketOrderRequest
 
 
 # Set the local timezone
-NY_TZ = ZoneInfo('America/New_York')
+NY_TZ = ZoneInfo("America/New_York")
 
 # Select the stock (ProShares UltraPro QQQ)
-underlying_symbol = 'TQQQ'
+underlying_symbol = "TQQQ"
 
 # Strategy Parameters
-RSI_PERIOD       = 14                   # Standard medium‑term RSI
-MACD_FAST        = 12                   # MACD fast EMA
-MACD_SLOW        = 26                   # MACD slow EMA
-MACD_SIGNAL      = 9                    # MACD signal line EMA
-MA_FAST          = 50                   # Higher‑timeframe fast MA
-MA_MID           = 100                  # Higher‑timeframe mid MA
-MA_SLOW          = 200                  # Higher‑timeframe slow MA
-BUY_POWER_LIMIT  = 0.02                 # Limit the amount of buying power to use for the trade
-MAX_RISK_PCT     = 0.03                 # 1–3% position sizing
-TIMEFRAME_MAIN   = TimeFrameUnit.Hour   # Suggested trading timeframe
-TIMEFRAME_TREND  = TimeFrameUnit.Day    # Trend‑defining timeframe
+RSI_PERIOD = 14  # Standard medium‑term RSI
+MACD_FAST = 12  # MACD fast EMA
+MACD_SLOW = 26  # MACD slow EMA
+MACD_SIGNAL = 9  # MACD signal line EMA
+MA_FAST = 50  # Higher‑timeframe fast MA
+MA_MID = 100  # Higher‑timeframe mid MA
+MA_SLOW = 200  # Higher‑timeframe slow MA
+BUY_POWER_LIMIT = 0.02  # Limit the amount of buying power to use for the trade
+MAX_RISK_PCT = 0.03  # 1–3% position sizing
+TIMEFRAME_MAIN = TimeFrameUnit.Hour  # Suggested trading timeframe
+TIMEFRAME_TREND = TimeFrameUnit.Day  # Trend‑defining timeframe
 
 
 # Set tracking signal lags over a predefined window
@@ -63,16 +63,24 @@ current_bar_index = 0
 # Please safely store your API keys and never commit them to the repository (use .gitignore)
 load_dotenv()
 API_KEY = os.getenv("ALPACA_PAPER_API_KEY")
-API_SECRET = os.getenv("ALPACA_PAPER_SECRET_KEY") 
-ALPACA_PAPER_TRADE = os.getenv("ALPACA_PAPER_TRADE", "True")  # Default to paper trading (Returns "True" if ALPACA_PAPER_TRADE not set)
+API_SECRET = os.getenv("ALPACA_PAPER_SECRET_KEY")
+ALPACA_PAPER_TRADE = os.getenv(
+    "ALPACA_PAPER_TRADE", "True"
+)  # Default to paper trading (Returns "True" if ALPACA_PAPER_TRADE not set)
 trade_api_url = os.getenv("TRADE_API_URL")
 
 if not API_KEY or not API_SECRET:
     raise RuntimeError("Missing Alpaca API credentials in environment variables.")
 
 # setup trading clients
-trade_client = TradingClient(api_key=API_KEY, secret_key=API_SECRET, paper=ALPACA_PAPER_TRADE, url_override=trade_api_url)
+trade_client = TradingClient(
+    api_key=API_KEY,
+    secret_key=API_SECRET,
+    paper=ALPACA_PAPER_TRADE,
+    url_override=trade_api_url,
+)
 stock_data_client = StockHistoricalDataClient(api_key=API_KEY, secret_key=API_SECRET)
+
 
 # Helper: Pause execution until the specified UTC datetime.
 def sleep_until(target_time, chunk_seconds=30):
@@ -85,16 +93,26 @@ def sleep_until(target_time, chunk_seconds=30):
         if remaining <= 0:
             break
         time.sleep(min(remaining, chunk_seconds))
-        
-# Helper: Fetch recent bar data  
-def fetch_bars(client: StockHistoricalDataClient, underlying_symbol: str, timeframe_unit: TimeFrameUnit, days: int = 90) -> pd.DataFrame:
+
+
+# Helper: Fetch recent bar data
+def fetch_bars(
+    client: StockHistoricalDataClient,
+    underlying_symbol: str,
+    timeframe_unit: TimeFrameUnit,
+    days: int = 90,
+) -> pd.DataFrame:
     today = datetime.now(NY_TZ).date()
     req = StockBarsRequest(
         symbol_or_symbols=[underlying_symbol],
         timeframe=TimeFrame(amount=1, unit=timeframe_unit),  # specify timeframe
-        start=today - timedelta(days=days),             # specify start datetime, default=the beginning of the current day.
+        start=today
+        - timedelta(
+            days=days
+        ),  # specify start datetime, default=the beginning of the current day.
     )
     return client.get_stock_bars(req).df
+
 
 # Helper: Compute RSI with Wilder's smoothing
 def compute_rsi(prices, period):
@@ -109,6 +127,7 @@ def compute_rsi(prices, period):
     rsi = 100 - (100 / (1 + rs))
     return rsi
 
+
 # Helper: Compute MACD and its signal line
 def compute_macd(prices, fast, slow, signal):
     ema_fast = prices.ewm(span=fast, adjust=False).mean()
@@ -116,6 +135,7 @@ def compute_macd(prices, fast, slow, signal):
     macd_line = ema_fast - ema_slow
     signal_line = macd_line.ewm(span=signal, adjust=False).mean()
     return macd_line, signal_line
+
 
 # Helper: Calculate buying power limit based on account value and risk percentage
 def calculate_buying_power_limit(buy_power_limit):
@@ -125,12 +145,16 @@ def calculate_buying_power_limit(buy_power_limit):
     buying_power_limit = buying_power * buy_power_limit
     return buying_power_limit
 
+
 # Helper: Get the latest price of the underlying stock
 def get_underlying_price(symbol):
     # Get the latest trade for the underlying stock
     underlying_trade_request = StockLatestTradeRequest(symbol_or_symbols=symbol)
-    underlying_trade_response = stock_data_client.get_stock_latest_trade(underlying_trade_request)
+    underlying_trade_response = stock_data_client.get_stock_latest_trade(
+        underlying_trade_request
+    )
     return underlying_trade_response[symbol].price
+
 
 def get_next_bar_time(current_bar_time, timeframe):
     """Calculate the next bar time based on the current timeframe"""
@@ -139,14 +163,15 @@ def get_next_bar_time(current_bar_time, timeframe):
     elif timeframe == TimeFrameUnit.Day:
         return current_bar_time + timedelta(days=1)
 
+
 def main():
     """Main trading loop and setup."""
     # Configure logging
     logging.basicConfig(
-        filename="trade_log.txt",          # file to write
-        level=logging.INFO,                # log INFO and above
+        filename="trade_log.txt",  # file to write
+        level=logging.INFO,  # log INFO and above
         format="%(asctime)s %(levelname)s: %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S"
+        datefmt="%Y-%m-%d %H:%M:%S",
     )
     logging.info("=== Strategy started ===")
 
@@ -168,26 +193,34 @@ def main():
 
         # Detect if the market has just transitioned from open to closed.
         if market_open and not clock.is_open:
-            logging.info("Market closed. Sleeping until next open at %s", clock.next_open)
+            logging.info(
+                "Market closed. Sleeping until next open at %s", clock.next_open
+            )
             market_open = False
             sleep_until(clock.next_open)
-            continue        # skip the rest of the loop while the market is shut
+            continue  # skip the rest of the loop while the market is shut
 
         # Detect if the market has just transitioned from closed to open.
         if (not market_open) and clock.is_open:
             logging.info("Market opened. Resuming trading")
-            market_open = True           # fall through and run the trading logic
+            market_open = True  # fall through and run the trading logic
 
         # Detect if the market is closed (e.g., at script start or unexpected state), exit to prevent trading.
         if not clock.is_open:
             logging.info("Market is closed. Exiting.")
             exit(0)
-        
+
         # Fetch data
-        df_main = fetch_bars(stock_data_client, underlying_symbol, TIMEFRAME_MAIN, days=MA_SLOW + 100)
-        df_trend = fetch_bars(stock_data_client, underlying_symbol, TIMEFRAME_TREND, days=MA_SLOW + 10)
-        logging.info("Fetched %d main bars and %d trend bars", len(df_main), len(df_trend))
-        
+        df_main = fetch_bars(
+            stock_data_client, underlying_symbol, TIMEFRAME_MAIN, days=MA_SLOW + 100
+        )
+        df_trend = fetch_bars(
+            stock_data_client, underlying_symbol, TIMEFRAME_TREND, days=MA_SLOW + 10
+        )
+        logging.info(
+            "Fetched %d main bars and %d trend bars", len(df_main), len(df_trend)
+        )
+
         # Update current bar index
         current_bar_index = len(df_main) - 1
 
@@ -217,10 +250,12 @@ def main():
         ma_fast = df_trend.close.rolling(MA_FAST).mean()
         ma_mid = df_trend.close.rolling(MA_MID).mean()
         ma_slow = df_trend.close.rolling(MA_SLOW).mean()
-        
+
         # Check if we have enough data for all MAs
         if not (ma_fast.isna().any() or ma_mid.isna().any() or ma_slow.isna().any()):
-            in_uptrend = (ma_fast.iloc[-1] > ma_mid.iloc[-1]) and (ma_mid.iloc[-1] > ma_slow.iloc[-1])
+            in_uptrend = (ma_fast.iloc[-1] > ma_mid.iloc[-1]) and (
+                ma_mid.iloc[-1] > ma_slow.iloc[-1]
+            )
         else:
             in_uptrend = False
 
@@ -239,10 +274,12 @@ def main():
 
         # Entry logic
         if not position_open and in_uptrend and position_size > 0:
-            if (rsi_bounce_bar is not None and 
-                macd_cross_bar is not None and 
-                abs(rsi_bounce_bar - macd_cross_bar) <= WINDOW_SIZE):
-                
+            if (
+                rsi_bounce_bar is not None
+                and macd_cross_bar is not None
+                and abs(rsi_bounce_bar - macd_cross_bar) <= WINDOW_SIZE
+            ):
+
                 req = MarketOrderRequest(
                     symbol=underlying_symbol,
                     qty=position_size,  # Use calculated position size
@@ -258,7 +295,7 @@ def main():
                     current_price,
                     res.id,
                     res.client_order_id,
-                    res.submitted_at
+                    res.submitted_at,
                 )
                 # Reset entry signals
                 rsi_bounce_bar = None
@@ -276,12 +313,17 @@ def main():
 
         # Exit logic
         if position_open:
-            if (rsi_retreat_bar is not None and 
-                ((macd_death_cross_bar is not None and 
-                  abs(rsi_retreat_bar - macd_death_cross_bar) <= WINDOW_SIZE) or
-                 (macd_centerline_bar is not None and 
-                  abs(rsi_retreat_bar - macd_centerline_bar) <= WINDOW_SIZE))):
-                
+            if rsi_retreat_bar is not None and (
+                (
+                    macd_death_cross_bar is not None
+                    and abs(rsi_retreat_bar - macd_death_cross_bar) <= WINDOW_SIZE
+                )
+                or (
+                    macd_centerline_bar is not None
+                    and abs(rsi_retreat_bar - macd_centerline_bar) <= WINDOW_SIZE
+                )
+            ):
+
                 req = MarketOrderRequest(
                     symbol=underlying_symbol,
                     qty=current_qty,
@@ -297,7 +339,7 @@ def main():
                     current_price,
                     res.id,
                     res.client_order_id,
-                    res.submitted_at
+                    res.submitted_at,
                 )
                 # Reset exit signals
                 rsi_retreat_bar = None
@@ -305,9 +347,12 @@ def main():
                 macd_centerline_bar = None
         # Hourly scheduling
         # Compute the timestamp for the next top of hour
-        next_run = datetime.now(timezone.utc).replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
+        next_run = datetime.now(timezone.utc).replace(
+            minute=0, second=0, microsecond=0
+        ) + timedelta(hours=1)
         # Pause until that exact moment
         sleep_until(next_run, chunk_seconds=30)
+
 
 # The code below ensures that the main() function is called only when this script is executed directly.
 # It prevents main() from running if the script is imported as a module in another script.

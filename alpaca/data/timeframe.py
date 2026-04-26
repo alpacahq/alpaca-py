@@ -79,6 +79,11 @@ class TimeFrame:
         Raises:
             ValueError: Raised if the values of amount and unit are not consistent with each other
         """
+        if not isinstance(unit, TimeFrameUnit):
+            raise TypeError(
+                f"unit must be of type TimeFrameUnit, got '{type(unit).__name__}' instead"
+            )
+
         if amount <= 0:
             raise ValueError("Amount must be a positive integer value.")
 

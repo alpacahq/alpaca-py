@@ -10,7 +10,7 @@ from alpaca.trading.enums import (
     TimeInForce,
     TradeEvent,
 )
-from alpaca.trading.models import TradeUpdate
+from alpaca.trading.models import TradeAccount, TradeUpdate
 from alpaca.trading.requests import (
     LimitOrderRequest,
     MarketOrderRequest,
@@ -214,6 +214,14 @@ def test_mleg_options() -> None:
                     OptionLegRequest(symbol=symbols[0], ratio_qty=1, side=OrderSide.BUY)
                 ],
             )
+
+
+def test_trade_account_regt_buying_power_docstring_formula() -> None:
+    assert "- * margin multiplier" not in TradeAccount.__doc__
+    assert (
+        "(excess equity - (equity - margin value) * margin multiplier)"
+        in TradeAccount.__doc__
+    )
 
 
 def test_trade_update_events() -> None:

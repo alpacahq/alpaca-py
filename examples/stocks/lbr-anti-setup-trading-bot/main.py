@@ -36,8 +36,12 @@ LBR_MIN_BARS = max(LBR_SLOW + LBR_SIGNAL, ADX_PERIOD + 1, EMA_PERIOD) + 5  # = 3
 # Exit parameters (Option A — mechanical approximation of Raschke's discretionary exits)
 # APPROXIMATION: Raschke sets stops at swing lows read from price structure.
 # We substitute ATR-based stops as a computable proxy.
-ATR_STOP_MULTIPLIER  = 1.5   # stop = entry - (ATR_14 * 1.5)
-RISK_REWARD_RATIO    = 1.0   # target = entry + (risk * 1.0) — conservative 1:1
+ATR_STOP_MULTIPLIER = Decimal("1.5")  # stop = entry - (ATR_14 * 1.5)
+RISK_REWARD_RATIO = Decimal("1.0")    # target = entry + (risk * 1.0) — conservative 1:1
+
+# Order polling
+ORDER_SETTLEMENT_MAX_ATTEMPTS = 10
+ORDER_SETTLEMENT_POLL_SECONDS = 2
 
 def _get_table():
     return boto3.resource("dynamodb").Table(
@@ -362,6 +366,107 @@ def _position_changes(current: dict, desired: dict) -> tuple[dict, dict]:
     return sell, buy
 
 
+def _positions_by_symbol() -> dict[str, int]:
+    return {p.symbol: int(float(p.qty)) for p in get_all_positions()}
+
+
+def _submit_market_orders(orders: dict[str, int], side: str) -> dict[str, int]:
+    submitted = {}
+    for symbol, qty in orders.items():
+        try:
+            order = place_order(None, symbol, qty, side)
+        except Exception as exc:
+            logger.warning(
+                f"{symbol}: failed to submit {side} order for qty={qty}: {exc}",
+                exc_info=True,
+            )
+            continue
+
+        order_id = getattr(order, "id", None)
+        status = getattr(order, "status", None)
+        logger.info(f"{symbol}: submitted {side} order qty={qty} id={order_id} status={status}")
+        submitted[symbol] = qty
+    return submitted
+
+
+def _expected_positions_after(current: dict[str, int], changes: dict[str, int], side: str) -> dict[str, int]:
+    expected = current.copy()
+    for symbol, qty in changes.items():
+        current_qty = expected.get(symbol, 0)
+        next_qty = current_qty + qty if side == "BUY" else current_qty - qty
+        if next_qty > 0:
+            expected[symbol] = next_qty
+        else:
+            expected.pop(symbol, None)
+    return expected
+
+
+def _positions_match(observed: dict[str, int], expected: dict[str, int], symbols: set[str]) -> bool:
+    return all(observed.get(symbol, 0) == expected.get(symbol, 0) for symbol in symbols)
+
+
+def _positions_for_log(positions: dict[str, int], symbols: set[str]) -> dict[str, int]:
+    return {symbol: positions.get(symbol, 0) for symbol in sorted(symbols)}
+
+
+def _wait_for_positions(expected: dict[str, int], symbols: set[str], phase: str) -> dict[str, int]:
+    last_observed = {}
+    for attempt in range(1, ORDER_SETTLEMENT_MAX_ATTEMPTS + 1):
+        last_observed = _positions_by_symbol()
+        if _positions_match(last_observed, expected, symbols):
+            logger.info(f"{phase}: positions settled after {attempt} poll(s)")
+            return last_observed
+
+        if attempt < ORDER_SETTLEMENT_MAX_ATTEMPTS:
+            logger.info(
+                f"{phase}: waiting for positions to settle; "
+                f"expected={_positions_for_log(expected, symbols)} "
+                f"observed={_positions_for_log(last_observed, symbols)}"
+            )
+            time.sleep(ORDER_SETTLEMENT_POLL_SECONDS)
+
+    logger.warning(
+        f"{phase}: positions did not settle; "
+        f"expected={_positions_for_log(expected, symbols)} "
+        f"observed={_positions_for_log(last_observed, symbols)}"
+    )
+    raise TimeoutError(f"{phase}: positions did not settle after market order submission")
+
+
+def _place_exit_orders(
+    buy_pos: dict[str, int],
+    atr_by_symbol: dict[str, float],
+    entry_quotes: dict,
+) -> None:
+    for symbol, qty in buy_pos.items():
+        # Defensively check for symbol in entry_quotes to avoid KeyError
+        if symbol not in entry_quotes:
+            logger.warning(f"{symbol}: quote unavailable, skipping stop-loss setup")
+            continue
+        quote_data = entry_quotes[symbol]
+        if "askPrice" not in quote_data:
+            logger.warning(f"{symbol}: askPrice missing from quote, skipping stop-loss setup")
+            continue
+
+        ask = Decimal(str(quote_data["askPrice"]))
+        atr = Decimal(str(atr_by_symbol.get(symbol, 0)))
+        # atr_by_symbol only contains selected symbols. If a submitted buy has no
+        # ATR, the strategy invariant is broken and an operator should inspect it.
+        if atr <= 0:
+            raise RuntimeError(f"{symbol}: ATR unavailable for submitted buy; refusing stop-loss setup")
+        stop_price = ask - (atr * ATR_STOP_MULTIPLIER)
+        stop_price = max(stop_price, Decimal("0.01"))   # floor at $0.01
+        trail_pct = float((atr * ATR_STOP_MULTIPLIER) / ask * 100)
+        logger.info(
+            f"{symbol}: entry≈{ask:.2f} | ATR={atr:.2f} | "
+            f"stop={stop_price:.2f} | trail_pct={trail_pct:.2f}% | "
+            f"target≈{ask + atr * ATR_STOP_MULTIPLIER * RISK_REWARD_RATIO:.2f}"
+        )
+        # APPROXIMATION: converting ATR distance to trail_percent for TrailingStopOrderRequest.
+        # True Option A would place a hard stop-limit at stop_price directly.
+        place_trailing_stop_order(None, symbol, qty, trail_pct, "SELL")
+
+
 # --- Main run logic ---
 
 def run() -> None:
@@ -373,8 +478,7 @@ def run() -> None:
     account_hash = str(account.id)
     buying_power = Decimal(str(account.buying_power))
 
-    positions_raw = get_all_positions()
-    current_positions = {p.symbol: int(float(p.qty)) for p in positions_raw}
+    current_positions = _positions_by_symbol()
 
     portfolio = _get_portfolio(account_hash)
     portfolio["cash"] = buying_power
@@ -395,61 +499,29 @@ def run() -> None:
     logger.info(f"Selling: {sell_pos}")
     logger.info(f"Buying: {buy_pos}")
 
-    for symbol, qty in sell_pos.items():
-        place_order(None, symbol, qty, "SELL")
-
-    if sell_pos:
-        time.sleep(2)  # allow sell orders to settle before buying
+    submitted_sells = _submit_market_orders(sell_pos, "SELL")
+    if submitted_sells:
+        expected_after_sells = _expected_positions_after(current_positions, submitted_sells, "SELL")
+        current_positions = _wait_for_positions(expected_after_sells, set(submitted_sells), "WAIT_SELL")
 
     # Fetch quotes BEFORE placing orders — used for stop price calculation
     entry_quotes = get_current_quotes(list(buy_pos.keys())) if buy_pos else {}
 
-    for symbol, qty in buy_pos.items():
-        place_order(None, symbol, qty, "BUY")
-
-    if buy_pos:
-        time.sleep(2)
+    submitted_buys = _submit_market_orders(buy_pos, "BUY")
+    if submitted_buys:
+        expected_after_buys = _expected_positions_after(current_positions, submitted_buys, "BUY")
+        current_positions = _wait_for_positions(expected_after_buys, set(submitted_buys), "WAIT_BUY")
 
     # Refresh positions and store to DynamoDB
-    positions_raw = get_all_positions()
-    portfolio["positions"] = {p.symbol: int(float(p.qty)) for p in positions_raw}
+    portfolio["positions"] = current_positions
     _store_portfolio(portfolio)
 
     # --- Option A exits: ATR-based stop + measured move target ---
     # APPROXIMATION: Raschke sets stops at swing lows from price structure.
     # Trailing stops are replaced by fixed ATR stops placed at order time.
     # Profit target = entry + (ATR * ATR_STOP_MULTIPLIER * RISK_REWARD_RATIO) — 1:1 R:R.
-    if buy_pos:
-        for symbol, qty in buy_pos.items():
-            # Defensively check for symbol in entry_quotes to avoid KeyError
-            if symbol not in entry_quotes:
-                logger.warning(f"{symbol}: quote unavailable, skipping stop-loss setup")
-                continue
-            quote_data = entry_quotes[symbol]
-            if "askPrice" not in quote_data:
-                logger.warning(f"{symbol}: askPrice missing from quote, skipping stop-loss setup")
-                continue
-            
-            ask = Decimal(str(quote_data["askPrice"]))
-            atr = Decimal(str(atr_by_symbol.get(symbol, 0)))
-            # atr_by_symbol only contains selected symbols — fallback to 0 should never
-            # trigger in normal operation. If it does, a refactor has broken the assumption
-            # that buy_pos symbols are always a subset of selected symbols.
-            if atr == 0:
-                # APPROXIMATION: fallback to 2% stop if ATR unavailable
-                logger.warning(f"{symbol}: ATR unavailable, using 2% fallback stop")
-                atr = ask * Decimal("0.02")
-            stop_price = ask - (atr * Decimal(str(ATR_STOP_MULTIPLIER)))
-            stop_price = max(stop_price, Decimal("0.01"))   # floor at $0.01
-            trail_pct = float((atr * Decimal(str(ATR_STOP_MULTIPLIER))) / ask * 100)
-            logger.info(
-                f"{symbol}: entry≈{ask:.2f} | ATR={atr:.2f} | "
-                f"stop={stop_price:.2f} | trail_pct={trail_pct:.2f}% | "
-                f"target≈{ask + atr * Decimal(str(ATR_STOP_MULTIPLIER * RISK_REWARD_RATIO)):.2f}"
-            )
-            # APPROXIMATION: converting ATR distance to trail_percent for TrailingStopOrderRequest.
-            # True Option A would place a hard stop-limit at stop_price directly.
-            place_trailing_stop_order(None, symbol, qty, trail_pct, "SELL")
+    if submitted_buys:
+        _place_exit_orders(submitted_buys, atr_by_symbol, entry_quotes)
 
 
 def handler(event, context):
@@ -463,3 +535,9 @@ def handler(event, context):
     except Exception as e:
         logger.error(traceback.format_exc())
         return {"statusCode": 500, "body": {"error": "Internal server error"}}
+
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    response = handler({}, None)
+    raise SystemExit(0 if response.get("statusCode", 500) < 400 else 1)

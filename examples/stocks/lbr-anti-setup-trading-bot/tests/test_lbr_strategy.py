@@ -6,7 +6,7 @@ so each test exercises exactly one code path.
 """
 import math
 import logging
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pandas as pd
 import pytest
@@ -15,6 +15,8 @@ from main import (
     LBR_FAST, LBR_SLOW, LBR_SIGNAL,
     LBR_MIN_BARS, DAILY_BARS, MAGNIFICENT_7,
     calculate_lbr_signal, calculate_atr, build_target_portfolio,
+    _expected_positions_after, _place_exit_orders, _submit_market_orders,
+    _wait_for_positions,
 )
 
 
@@ -124,28 +126,12 @@ def test_adx_filter_blocks_strong_trend():
     """
     When ADX > 32 and rising, the Anti setup must be rejected even if all
     other conditions are met.
-
-    We take the Anti setup base data and add a strong uniform uptrend to
-    push ADX above 32 while keeping it rising.
     """
-    # Start from a very strong, consistent trend: 80 bars of steep linear rise.
-    # This generates high +DI, low -DI, and high rising ADX.
-    n = 80
-    # Steep climb of 5 per bar to drive ADX high
-    closes = [100.0 + i * 5.0 for i in range(n)]
-    bars = []
-    for i, c in enumerate(closes):
-        bars.append({
-            "close": c,
-            "high":  c + 3.0,
-            "low":   c - 0.5,   # asymmetric: much larger up moves → high +DI
-            "datetime": float(i * 86_400_000),
-        })
+    price_data = _anti_setup_prices()
 
-    result = calculate_lbr_signal("AAPL", bars)
-    # Precondition: verify synthetic data actually triggers ADX > 32 and rising
-    assert result["adx"] > 32 and result["adx_rising"], \
-        f"Test data should trigger ADX filter: adx={result['adx']}, adx_rising={result['adx_rising']}"
+    with patch("main.calculate_adx", return_value=(33.0, True)):
+        result = calculate_lbr_signal("AAPL", price_data)
+
     # Once ADX > 32 and rising, the setup should be rejected
     assert result["selected"] is False
     assert "ADX" in result["skip_reason"]
@@ -347,3 +333,64 @@ def test_full_risk_off_returns_empty_tuple(mock_signal, mock_history, caplog):
     assert selected == []
     assert atr_by_symbol == {}
     assert "holding cash" in caplog.text
+
+
+# ---------------------------------------------------------------------------
+# Portfolio execution helpers
+# ---------------------------------------------------------------------------
+
+def test_expected_positions_after_sell_and_buy():
+    """Expected position math removes zeroed sells and increments buys."""
+    current = {"AAPL": 10, "MSFT": 5}
+
+    after_sell = _expected_positions_after(current, {"AAPL": 10}, "SELL")
+    after_buy = _expected_positions_after(after_sell, {"NVDA": 3}, "BUY")
+
+    assert after_sell == {"MSFT": 5}
+    assert after_buy == {"MSFT": 5, "NVDA": 3}
+
+
+def test_submit_market_orders_warns_and_skips_failed_order(caplog):
+    """Submit failures are logged and omitted from settlement expectations."""
+    submitted_order = MagicMock(id="order-2", status="accepted")
+    with patch("main.place_order", side_effect=[RuntimeError("boom"), submitted_order]):
+        with caplog.at_level(logging.WARNING):
+            submitted = _submit_market_orders({"AAPL": 1, "MSFT": 2}, "BUY")
+
+    assert submitted == {"MSFT": 2}
+    assert "AAPL: failed to submit BUY order for qty=1" in caplog.text
+
+
+def test_wait_for_positions_polls_until_expected_positions():
+    """Position settlement waits until the changed symbols reach expected qty."""
+    stale_position = MagicMock(symbol="AAPL", qty="0")
+    settled_position = MagicMock(symbol="AAPL", qty="3")
+
+    with patch("main.get_all_positions", side_effect=[[stale_position], [settled_position]]):
+        with patch("main.time.sleep") as sleep:
+            observed = _wait_for_positions({"AAPL": 3}, {"AAPL"}, "WAIT_BUY")
+
+    assert observed == {"AAPL": 3}
+    sleep.assert_called_once()
+
+
+def test_place_exit_orders_raises_when_atr_missing():
+    """A missing ATR means the selected-symbol invariant was broken."""
+    with patch("main.place_trailing_stop_order") as place_stop:
+        with pytest.raises(RuntimeError, match="ATR unavailable"):
+            _place_exit_orders({"AAPL": 1}, {}, {"AAPL": {"askPrice": 100}})
+
+    place_stop.assert_not_called()
+
+
+def test_place_exit_orders_uses_decimal_multipliers():
+    """ATR stop distance is converted into the trailing-stop percentage."""
+    with patch("main.place_trailing_stop_order") as place_stop:
+        _place_exit_orders({"AAPL": 1}, {"AAPL": 2.0}, {"AAPL": {"askPrice": 100}})
+
+    place_stop.assert_called_once()
+    _, symbol, qty, trail_pct, side = place_stop.call_args[0]
+    assert symbol == "AAPL"
+    assert qty == 1
+    assert trail_pct == pytest.approx(3.0)
+    assert side == "SELL"

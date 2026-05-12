@@ -2,9 +2,9 @@
 
 ## Overview
 
-This is a **production-ready algorithmic trading bot** that implements **Linda Raschke's LBR 3/10 Anti setup** strategy on the **Magnificent 7** stocks (AAPL, MSFT, NVDA, GOOGL, AMZN, META, TSLA) using **AWS Lambda** for serverless execution and **[Alpaca's Trading API](https://app.alpaca.markets/account/login)** for live market data and order execution.
+This is a **production-ready algorithmic trading bot** that implements **Linda Raschke's LBR 3/10 Anti setup** strategy on the **Magnificent 7** stocks (AAPL, MSFT, NVDA, GOOGL, AMZN, META, TSLA) using **AWS Lambda** for serverless execution and **[Alpaca's Trading API](https://docs.alpaca.markets/docs/trading-api)** for live market data and order execution.
 
-The bot runs automatically **every weekday at 9:30 AM ET** (market open) on Lambda, scans for valid setups using technical indicators (MACD, ADX, EMA, ATR), and executes equal-weighted rebalancing across selected symbols with **risk management via ATR-based trailing stops**.
+The bot runs automatically **every weekday at 9:30 AM ET** (market open) on Lambda. It checks Alpaca's market clock first and exits without scanning or trading if the market is closed; otherwise, it scans for valid setups using technical indicators (MACD, ADX, EMA, ATR), and executes equal-weighted rebalancing across selected symbols with **risk management via ATR-based trailing stops**.
 
 **Note:** This is an educational implementation of Raschke's discretionary trading approach. It is not investment advice and comes with no performance guarantees.
 
@@ -416,8 +416,10 @@ functions:
 ### Modify Stop/Target Multipliers
 
 ```python
-ATR_STOP_MULTIPLIER  = 1.5   # stop = entry - (ATR_14 * 1.5)
-RISK_REWARD_RATIO    = 1.0   # target = entry + (risk * 1.0)
+from decimal import Decimal
+
+ATR_STOP_MULTIPLIER = Decimal("1.5")  # stop = entry - (ATR_14 * 1.5)
+RISK_REWARD_RATIO = Decimal("1.0")    # target = entry + (risk * 1.0)
 ```
 
 ## References

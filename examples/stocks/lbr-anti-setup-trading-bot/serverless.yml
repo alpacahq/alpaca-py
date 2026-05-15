@@ -66,7 +66,9 @@ functions:
     maximumRetryAttempts: 0
     events:
       - schedule:
-          rate: cron(30 14 ? * MON-FRI *)   # 14:30 UTC = 9:30 AM ET
+          method: scheduler
+          rate: cron(30 9 ? * MON-FRI *)   # 9:30 AM in America/New_York
+          timezone: America/New_York
           enabled: true
 
 resources:

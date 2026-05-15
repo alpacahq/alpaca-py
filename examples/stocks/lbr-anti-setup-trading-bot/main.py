@@ -9,7 +9,7 @@ import pandas as pd
 
 from alpaca_broker import (
     get_clock, get_price_history, get_orders, cancel_order,
-    get_current_quotes, place_order, place_trailing_stop_order,
+    get_current_quotes, place_market_order, place_trailing_stop_order,
     get_account, get_all_positions,
 )
 
@@ -374,17 +374,17 @@ def _submit_market_orders(orders: dict[str, int], side: str) -> dict[str, int]:
     submitted = {}
     for symbol, qty in orders.items():
         try:
-            order = place_order(None, symbol, qty, side)
+            order = place_market_order(None, symbol, qty, side)
         except Exception as exc:
             logger.warning(
-                f"{symbol}: failed to submit {side} order for qty={qty}: {exc}",
+                f"{symbol}: failed to submit {side} market order for qty={qty}: {exc}",
                 exc_info=True,
             )
             continue
 
         order_id = getattr(order, "id", None)
         status = getattr(order, "status", None)
-        logger.info(f"{symbol}: submitted {side} order qty={qty} id={order_id} status={status}")
+        logger.info(f"{symbol}: submitted {side} market order qty={qty} id={order_id} status={status}")
         submitted[symbol] = qty
     return submitted
 
@@ -453,7 +453,8 @@ def _place_exit_orders(
         # atr_by_symbol only contains selected symbols. If a submitted buy has no
         # ATR, the strategy invariant is broken and an operator should inspect it.
         if atr <= 0:
-            raise RuntimeError(f"{symbol}: ATR unavailable for submitted buy; refusing stop-loss setup")
+            logger.warning(f"{symbol}: ATR unavailable for submitted buy, skipping stop-loss setup")
+            continue
         stop_price = ask - (atr * ATR_STOP_MULTIPLIER)
         stop_price = max(stop_price, Decimal("0.01"))   # floor at $0.01
         trail_pct = float((atr * ATR_STOP_MULTIPLIER) / ask * 100)

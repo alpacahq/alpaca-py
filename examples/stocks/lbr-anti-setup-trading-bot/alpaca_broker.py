@@ -1,3 +1,4 @@
+import logging
 import os
 from zoneinfo import ZoneInfo
 from datetime import datetime, timedelta
@@ -16,9 +17,28 @@ from alpaca.data.historical.stock import StockHistoricalDataClient
 from alpaca.data.requests import StockBarsRequest, StockLatestQuoteRequest
 from alpaca.data.timeframe import TimeFrame
 
+logger = logging.getLogger(__name__)
+
 NY_TZ = ZoneInfo("America/New_York")
 
 _clients_cache = None
+
+_TRUTHY_VALUES = {"1", "true", "t", "yes", "y", "on"}
+_FALSY_VALUES = {"0", "false", "f", "no", "n", "off"}
+
+
+def _parse_bool_env(name: str, default: bool) -> bool:
+    value = os.environ.get(name)
+    if value is None:
+        return default
+
+    normalized = value.strip().lower()
+    if normalized in _TRUTHY_VALUES:
+        return True
+    if normalized in _FALSY_VALUES:
+        return False
+    accepted = sorted(_TRUTHY_VALUES | _FALSY_VALUES)
+    raise ValueError(f"Invalid boolean value for {name}: {value!r}. Expected one of: {accepted}")
 
 
 def _get_clients() -> tuple[TradingClient, StockHistoricalDataClient]:
@@ -28,7 +48,8 @@ def _get_clients() -> tuple[TradingClient, StockHistoricalDataClient]:
     ssm = boto3.client("ssm")
     api_key = ssm.get_parameter(Name="/alpaca/ALPACA_API_KEY", WithDecryption=True)["Parameter"]["Value"]
     secret_key = ssm.get_parameter(Name="/alpaca/ALPACA_SECRET_KEY", WithDecryption=True)["Parameter"]["Value"]
-    paper = os.environ.get("ALPACA_PAPER_TRADE", "true").lower() != "false"
+    paper = _parse_bool_env("ALPACA_PAPER_TRADE", default=True)
+    logger.info("Resolved Alpaca trading mode: %s", "paper" if paper else "live")
     trading_client = TradingClient(api_key=api_key, secret_key=secret_key, paper=paper)
     stock_historical_data_client = StockHistoricalDataClient(api_key=api_key, secret_key=secret_key)
     _clients_cache = (trading_client, stock_historical_data_client)
@@ -83,7 +104,7 @@ def cancel_order(account_hash, order_id: str) -> None:
     trading_client.cancel_order_by_id(order_id)
 
 
-def place_order(account_hash, symbol: str, qty: int, side: str):
+def place_market_order(account_hash, symbol: str, qty: int, side: str):
     trading_client, _ = _get_clients()
     # Validate side parameter explicitly to prevent silent conversion to SELL
     side_upper = side.upper() if isinstance(side, str) else ""

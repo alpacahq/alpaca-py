@@ -168,6 +168,7 @@ class DocumentType(str, Enum):
     SOCIAL_SECURITY_NUMBER_VERIFICATION = "social_security_number_verification"
     NULL = ""
     CIP_RESULT = "cip_result"
+    OTHER = "other"
 
 
 class AccountEntities(str, Enum):

@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from alpaca.common.models import ValidateBaseModel as BaseModel
 from alpaca.common.types import RawData
@@ -69,6 +69,7 @@ class NewsSet(BaseDataSet, TimeSeriesMixin):
         next_page_token (Optional[str]): The token to get the next page of data.
     """
 
+    data: Dict[str, List[News]] = {}
     next_page_token: Optional[str]
 
     def __init__(self, raw_data: RawData) -> None:

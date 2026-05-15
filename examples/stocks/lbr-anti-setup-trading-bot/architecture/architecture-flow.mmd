@@ -1,0 +1,157 @@
+flowchart TD
+    START(["CloudWatch fires
+9:30 AM ET (Mon–Fri)"]) --> handler["handler()
+get_clock()"]
+
+    handler --> open{"clock.is_open?"}
+    open -->|No| SKIP(["return: skipped
+market_closed"])
+    open -->|Yes| dedupe
+
+    dedupe{"Execution already
+recorded today?
+Check DynamoDB
+idempotency key"} -->|Yes| SKIP_DUP(["return: skipped
+already_executed"])
+    dedupe -->|No| RECORD_EXEC["RECORD_EXEC
+Atomic conditional put
+timestamp + lock to DynamoDB"]
+    RECORD_EXEC --> scan
+
+    subgraph scan["LBR Signal Scan — build_target_portfolio()"]
+        M7["Magnificent 7
+AAPL · MSFT · NVDA · GOOGL · AMZN · META · TSLA"]
+        M7 --> hist["get_price_history()
+120 daily bars · last ~6 months"]
+        hist --> lbr["calculate_lbr_signal()
+LBR 3/10 oscillator
+MACD = SMA(3) − SMA(10)
+signal = SMA(16) of MACD
+histogram = MACD − signal"]
+
+        lbr --> r1{"Rule 1
+≥ 31 bars?"}
+        r1 -->|No| FAIL["selected = False
+skip_reason logged"]
+        r1 -->|Yes| r2{"Rule 2
+ADX(14) > 32
+AND rising?"}
+        r2 -->|Yes| FAIL
+        r2 -->|No| r3{"Rule 3
+Close > EMA(20)?"}
+        r3 -->|No| FAIL
+        r3 -->|Yes| r4{"Rule 4
+Signal crossed zero
+from below in last 16 bars?"}
+        r4 -->|No| FAIL
+        r4 -->|Yes| r5{"Rule 5
+MACD pulled back to
+≤ signal + 0.5×ATR?"}
+        r5 -->|No| FAIL
+        r5 -->|Yes| r6{"Rule 6
+Histogram hooking up?
+hist_now > hist_prev"}
+        r6 -->|No| FAIL
+        r6 -->|Yes| PASS["selected = True
+return score & ATR"]
+    end
+
+    scan --> positive{"Any symbol
+selected?"}
+    positive -->|No| CASH(["Log: no Anti setups —
+holding cash"])
+    positive -->|Yes| select["Select confirmed symbols
+Equal-weight allocation
+portfolio_value ÷ n symbols"]
+
+    select --> snapshot
+
+    subgraph snapshot["Account Snapshot"]
+        GET["get_account() → buying_power
+get_all_positions() → held
+_get_portfolio() ← DynamoDB"]
+    end
+
+    snapshot --> validate{"buying_power ≥
+required capital?"}
+    validate -->|No| INSUFFICIENT(["return: error
+insufficient_funds"])
+    validate -->|Yes| cancel
+
+    subgraph cancel["Cancel Open Orders"]
+        CANCEL["get_orders()
+cancel_order() × n"]
+        CANCEL --> VERIFY["VERIFY
+Check cancel responses
+Re-query order status"]
+        VERIFY --> refresh{"Partial fills
+detected?"}
+        refresh -->|Yes| RESNAPSHOT["RESNAPSHOT
+get_all_positions()
+Refresh account snapshot"]
+        refresh -->|No| cancel_ok["Cancel flow OK"]
+        RESNAPSHOT --> cancel_ok
+    end
+
+    cancel --> rebal
+
+    subgraph rebal["Rebalance"]
+        DIFF["_desired_positions()
+_position_changes()"]
+        DIFF --> SELL_ORD["① SELL Orders
+MarketOrderRequest × n
+TimeInForce.DAY"]
+        SELL_ORD --> WAIT_SELL["WAIT_SELL
+Poll all sell orders
+until filled or rejected"]
+        WAIT_SELL --> sell_check{"All sells
+filled?"}
+        sell_check -->|No| SELL_FAIL["SELL_FAIL
+Log · partial/failed sells
+continue to buys"]
+        sell_check -->|Yes| SELL_OK["SELL_OK
+Confirmed"]
+        SELL_FAIL --> BUY_ORD
+        SELL_OK --> BUY_ORD["② BUY Orders
+MarketOrderRequest × n
+TimeInForce.DAY"]
+        BUY_ORD --> WAIT_BUY["WAIT_BUY
+Poll all buy orders
+until filled or rejected"]
+    end
+
+    WAIT_BUY --> orders["Entry orders complete
+Ready for exits"]
+
+    orders --> WAIT_FILL["WAIT_FILL
+Poll order status
+until filled or rejected"]
+    
+    WAIT_FILL --> fillcheck{"Filled?"}
+    fillcheck -->|No| HANDLE_REJECT["HANDLE_REJECT
+Log failure
+Skip exit orders"]
+    HANDLE_REJECT --> store
+    fillcheck -->|Yes| GET_FILLS["GET_FILLS
+Retrieve avg_fill_price
+filled_qty"]
+    
+    GET_FILLS --> protect
+
+    subgraph protect["ATR-Based Exit Orders"]
+        STOP_CALC["stop = avg_fill_price − ATR × 1.5
+trail_pct = ATR × 1.5 / avg_fill_price × 100"]
+        STOP_CALC --> STOP_ORD["TrailingStopOrderRequest
+TimeInForce.DAY
+qty = filled_qty"]
+    end
+
+    protect --> store
+
+    subgraph store["Log to DynamoDB"]
+        DB["_store_portfolio()
+accountHash · cash · positions"]
+    end
+
+    store --> DONE(["return
+statusCode: 200"])

@@ -1,0 +1,35 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Lambda build artifacts
+layer/python/
+requirements-lambda.txt
+requirements-lambda-layer.txt
+.serverless/
+
+# Node
+node_modules/
+
+# Secrets
+.env
+
+# macOS
+.DS_Store
+
+# Test cache
+.pytest_cache/
+
+# Dev tooling and local instructions
+.cursor/
+.claude/
+
+# Reference material (not part of deployable codebase)
+reference/

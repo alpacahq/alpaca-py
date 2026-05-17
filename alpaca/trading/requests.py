@@ -293,7 +293,7 @@ class OrderRequest(NonEmptyRequest):
         side (Optional[OrderSide]): Whether the order will buy or sell the asset. Either side or position_intent is required for all order classes other than mleg.
         type (OrderType): The execution logic type of the order (market, limit, etc).
         time_in_force (TimeInForce): The expiration logic of the order.
-        extended_hours (Optional[float]): Whether the order can be executed during regular market hours.
+        extended_hours (Optional[bool]): Whether the order can be executed during extended hours.
         client_order_id (Optional[str]): A string to identify which client submitted the order.
         order_class (Optional[OrderClass]): The class of the order. Simple orders have no other legs.
         legs (Optional[List[OptionLegRequest]]): For multi-leg option orders, the legs of the order If specified (must contain at least 2 but no more than 4 legs for options).
@@ -369,7 +369,7 @@ class MarketOrderRequest(OrderRequest):
         side (OrderSide): Whether the order will buy or sell the asset. Required for all order classes other than mleg.
         type (OrderType): The execution logic type of the order (market, limit, etc).
         time_in_force (TimeInForce): The expiration logic of the order.
-        extended_hours (Optional[float]): Whether the order can be executed during regular market hours.
+        extended_hours (Optional[bool]): Whether the order can be executed during extended hours.
         client_order_id (Optional[str]): A string to identify which client submitted the order.
         order_class (Optional[OrderClass]): The class of the order. Simple orders have no other legs.
         legs (Optional[List[OptionLegRequest]]): For multi-leg option orders, the legs of the order. At most 4 legs are allowed for options.
@@ -396,7 +396,7 @@ class StopOrderRequest(OrderRequest):
         side (OrderSide): Whether the order will buy or sell the asset.
         type (OrderType): The execution logic type of the order (market, limit, etc).
         time_in_force (TimeInForce): The expiration logic of the order.
-        extended_hours (Optional[float]): Whether the order can be executed during regular market hours.
+        extended_hours (Optional[bool]): Whether the order can be executed during extended hours.
         client_order_id (Optional[str]): A string to identify which client submitted the order.
         order_class (Optional[OrderClass]): The class of the order. Simple orders have no other legs.
         legs (Optional[List[OptionLegRequest]]): For multi-leg option orders, the legs of the order. At most 4 legs are allowed for options.
@@ -427,7 +427,7 @@ class LimitOrderRequest(OrderRequest):
         side (OrderSide): Whether the order will buy or sell the asset.
         type (OrderType): The execution logic type of the order (market, limit, etc).
         time_in_force (TimeInForce): The expiration logic of the order.
-        extended_hours (Optional[float]): Whether the order can be executed during regular market hours.
+        extended_hours (Optional[bool]): Whether the order can be executed during extended hours.
         client_order_id (Optional[str]): A string to identify which client submitted the order.
         order_class (Optional[OrderClass]): The class of the order. Simple orders have no other legs.
         legs (Optional[List[OptionLegRequest]]): For multi-leg option orders, the legs of the order. At most 4 legs are allowed for options.
@@ -469,7 +469,7 @@ class StopLimitOrderRequest(OrderRequest):
         side (OrderSide): Whether the order will buy or sell the asset.
         type (OrderType): The execution logic type of the order (market, limit, etc).
         time_in_force (TimeInForce): The expiration logic of the order.
-        extended_hours (Optional[float]): Whether the order can be executed during regular market hours.
+        extended_hours (Optional[bool]): Whether the order can be executed during extended hours.
         client_order_id (Optional[str]): A string to identify which client submitted the order.
         order_class (Optional[OrderClass]): The class of the order. Simple orders have no other legs.
         legs (Optional[List[OptionLegRequest]]): For multi-leg option orders, the legs of the order. At most 4 legs are allowed for options.
@@ -504,7 +504,7 @@ class TrailingStopOrderRequest(OrderRequest):
         side (OrderSide): Whether the order will buy or sell the asset.
         type (OrderType): The execution logic type of the order (market, limit, etc).
         time_in_force (TimeInForce): The expiration logic of the order.
-        extended_hours (Optional[float]): Whether the order can be executed during regular market hours.
+        extended_hours (Optional[bool]): Whether the order can be executed during extended hours.
         client_order_id (Optional[str]): A string to identify which client submitted the order.
         order_class (Optional[OrderClass]): The class of the order. Simple orders have no other legs.
         legs (Optional[List[OptionLegRequest]]): For multi-leg option orders, the legs of the order. At most 4 legs are allowed for options.

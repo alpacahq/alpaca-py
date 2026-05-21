@@ -25,6 +25,63 @@ from alpaca.trading.models import AccountConfiguration as TradeAccountConfigurat
 from tests.broker.factories import accounts as factory
 
 
+def test_create_account_forwards_idempotency_key(reqmock, client: BrokerClient):
+    reqmock.post(
+        "https://broker-api.sandbox.alpaca.markets/v1/accounts",
+        json={
+            "id": "0d969814-40d6-4b2b-99ac-2e37427f1ad2",
+            "account_number": "682389557",
+            "status": "SUBMITTED",
+            "crypto_status": "INACTIVE",
+            "currency": "USD",
+            "last_equity": "0",
+            "created_at": "2022-04-12T17:24:31.30283Z",
+            "contact": {
+                "email_address": "cool_alpaca@example.com",
+                "phone_number": "555-666-7788",
+                "street_address": ["20 N San Mateo Dr"],
+                "city": "San Mateo",
+                "state": "CA",
+                "postal_code": "94401",
+            },
+            "identity": {
+                "given_name": "John",
+                "family_name": "Doe",
+                "date_of_birth": "1990-01-01",
+                "tax_id_type": "USA_SSN",
+                "country_of_citizenship": "USA",
+                "country_of_birth": "USA",
+                "country_of_tax_residence": "USA",
+                "funding_source": ["employment_income"],
+            },
+            "disclosures": {
+                "is_control_person": False,
+                "is_affiliated_exchange_or_finra": False,
+                "is_politically_exposed": False,
+                "immediate_family_exposed": False,
+                "is_discretionary": False,
+            },
+            "agreements": [],
+            "account_type": "trading",
+        },
+    )
+
+    create_data = CreateAccountRequest(
+        agreements=factory.create_dummy_agreements(),
+        contact=factory.create_dummy_contact(),
+        disclosures=factory.create_dummy_disclosures(),
+        documents=factory.create_dummy_account_documents(),
+        identity=factory.create_dummy_identity(),
+    )
+
+    client.create_account(create_data, idempotency_key="acct-key-1")
+    client.create_account(create_data)
+
+    assert len(reqmock.request_history) == 2
+    assert reqmock.request_history[0].headers["Idempotency-Key"] == "acct-key-1"
+    assert "Idempotency-Key" not in reqmock.request_history[1].headers
+
+
 def test_create_account(reqmock, client: BrokerClient):
     created_id = "0d969814-40d6-4b2b-99ac-2e37427f1ad2"
 

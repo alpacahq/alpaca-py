@@ -24,6 +24,79 @@ from alpaca.broker.requests import (
 from alpaca.common.enums import BaseURL, PaginationType
 
 
+def test_create_ach_relationship_forwards_idempotency_key(
+    reqmock, client: BrokerClient
+):
+    account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
+    reqmock.post(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/accounts/{account_id}/ach_relationships",
+        json={
+            "id": "15ef9978-cb1e-4872-9565-bd0a720b8b76",
+            "account_id": account_id,
+            "created_at": "2022-04-14T15:51:14.523349Z",
+            "updated_at": "2022-04-14T15:51:14.523349Z",
+            "status": "QUEUED",
+            "account_owner_name": "John Doe",
+            "bank_account_type": "SAVINGS",
+            "bank_account_number": "123456789abc",
+            "bank_routing_number": "123456789",
+        },
+    )
+
+    ach_data = CreateACHRelationshipRequest(
+        account_owner_name="John Doe",
+        bank_account_type="SAVINGS",
+        bank_account_number="123456789abc",
+        bank_routing_number="123456789",
+    )
+    client.create_ach_relationship_for_account(
+        account_id, ach_data, idempotency_key="ach-rel-key"
+    )
+    client.create_ach_relationship_for_account(account_id, ach_data)
+
+    assert len(reqmock.request_history) == 2
+    assert reqmock.request_history[0].headers["Idempotency-Key"] == "ach-rel-key"
+    assert "Idempotency-Key" not in reqmock.request_history[1].headers
+
+
+def test_create_transfer_forwards_idempotency_key(reqmock, client: BrokerClient):
+    account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
+    reqmock.post(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/accounts/{account_id}/transfers",
+        json={
+            "id": "be3c368a-4c7c-4384-808e-f02c9f5a8afe",
+            "relationship_id": "0f08c6bc-8e9f-463d-a73f-fd047fdb5e94",
+            "account_id": account_id,
+            "type": "ach",
+            "status": "COMPLETE",
+            "reason": None,
+            "amount": "498",
+            "direction": "INCOMING",
+            "created_at": "2021-05-05T07:55:31.190788Z",
+            "updated_at": "2021-05-05T08:13:33.029539Z",
+            "expires_at": "2021-05-12T07:55:31.190719Z",
+            "requested_amount": "500",
+            "fee": "2",
+            "fee_payment_method": "user",
+        },
+    )
+
+    transfer_data = CreateACHTransferRequest(
+        relationship_id="0f08c6bc-8e9f-463d-a73f-fd047fdb5e94",
+        amount="100.0",
+        direction=TransferDirection.INCOMING,
+        timing=TransferTiming.IMMEDIATE,
+    )
+    client.create_transfer_for_account(
+        account_id, transfer_data, idempotency_key="xfer-key"
+    )
+    client.create_transfer_for_account(account_id, transfer_data)
+
+    assert len(reqmock.request_history) == 2
+    assert reqmock.request_history[0].headers["Idempotency-Key"] == "xfer-key"
+    assert "Idempotency-Key" not in reqmock.request_history[1].headers
+
+
 def test_create_ach_relationship_for_account(reqmock, client: BrokerClient):
     account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
 

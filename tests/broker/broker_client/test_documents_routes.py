@@ -75,6 +75,36 @@ def test_get_trade_documents_for_account_validates_account_id(
         )
 
 
+def test_upload_documents_forwards_idempotency_key(reqmock, client: BrokerClient):
+    account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
+    reqmock.post(
+        BaseURL.BROKER_SANDBOX.value + f"/v1/accounts/{account_id}/documents/upload",
+        json={},
+        status_code=202,
+    )
+
+    document_data = [
+        UploadDocumentRequest(
+            document_type=DocumentType.ACCOUNT_APPROVAL_LETTER,
+            content="fake base64",
+            mime_type=UploadDocumentMimeType.PDF,
+        )
+    ]
+
+    client.upload_documents_to_account(
+        account_id=account_id,
+        document_data=document_data,
+        idempotency_key="doc-key",
+    )
+    client.upload_documents_to_account(
+        account_id=account_id, document_data=document_data
+    )
+
+    assert len(reqmock.request_history) == 2
+    assert reqmock.request_history[0].headers["Idempotency-Key"] == "doc-key"
+    assert "Idempotency-Key" not in reqmock.request_history[1].headers
+
+
 def test_upload_documents_to_account(reqmock, client: BrokerClient):
     account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
     reqmock.post(

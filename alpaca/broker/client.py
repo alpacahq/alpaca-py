@@ -120,6 +120,10 @@ from .requests import (
 )
 
 
+def _idempotency_headers(idempotency_key: Optional[str]) -> Optional[Dict[str, str]]:
+    return {"Idempotency-Key": idempotency_key} if idempotency_key else None
+
+
 class BrokerClient(RESTClient):
     """
     Client for accessing Broker API services
@@ -242,12 +246,15 @@ class BrokerClient(RESTClient):
     def create_account(
         self,
         account_data: CreateAccountRequest,
+        idempotency_key: Optional[str] = None,
     ) -> Union[Account, RawData]:
         """
         Create an account.
 
         Args:
             account_data (CreateAccountRequest): The data representing the Account you wish to create
+            idempotency_key (Optional[str]): If supplied, sent as the ``Idempotency-Key`` header so
+              that retried requests with the same key are deduplicated server-side.
 
         Returns:
             Account: The newly created Account instance as returned from the API. Should now have id
@@ -255,7 +262,9 @@ class BrokerClient(RESTClient):
         """
 
         data = account_data.to_request_fields()
-        response = self.post("/accounts", data)
+        response = self.post(
+            "/accounts", data, extra_headers=_idempotency_headers(idempotency_key)
+        )
 
         return Account(**response)
 
@@ -416,6 +425,7 @@ class BrokerClient(RESTClient):
         self,
         account_id: Union[UUID, str],
         document_data: List[Union[UploadDocumentRequest, UploadW8BenDocumentRequest]],
+        idempotency_key: Optional[str] = None,
     ) -> None:
         """
         Allows you to upload up to 10 documents at a time for an Account.
@@ -429,6 +439,8 @@ class BrokerClient(RESTClient):
             account_id (Union[UUID, str]): The id of the Account you wish to upload the document data to.
             document_data (List[UploadDocumentRequest]): List of UploadDocumentRequest's that contain the relevant
               Document data
+            idempotency_key (Optional[str]): If supplied, sent as the ``Idempotency-Key`` header so
+              that retried requests with the same key are deduplicated server-side.
 
         Returns:
             None: This function returns nothing on success and will raise an APIError in case of a failure
@@ -447,6 +459,7 @@ class BrokerClient(RESTClient):
         self.post(
             f"/accounts/{account_id}/documents/upload",
             [document.to_request_fields() for document in document_data],
+            extra_headers=_idempotency_headers(idempotency_key),
         )
 
     def get_trade_configuration_for_account(
@@ -800,6 +813,7 @@ class BrokerClient(RESTClient):
         self,
         account_id: Union[UUID, str],
         ach_data: Union[CreateACHRelationshipRequest, CreatePlaidRelationshipRequest],
+        idempotency_key: Optional[str] = None,
     ) -> Union[ACHRelationship, RawData]:
         """
         Creates a single ACH relationship for the given account.
@@ -808,6 +822,8 @@ class BrokerClient(RESTClient):
             account_id (Union[UUID, str]): The ID of the Account that has the ACH Relationship.
             ach_data (Union[CreateACHRelationshipRequest, CreatePlaidRelationshipRequest]): The request data used to
               create the ACH relationship.
+            idempotency_key (Optional[str]): If supplied, sent as the ``Idempotency-Key`` header so
+              that retried requests with the same key are deduplicated server-side.
 
         Returns:
             ACHRelationship: The ACH relationship that was created.
@@ -823,7 +839,9 @@ class BrokerClient(RESTClient):
             )
 
         response = self.post(
-            f"/accounts/{account_id}/ach_relationships", ach_data.to_request_fields()
+            f"/accounts/{account_id}/ach_relationships",
+            ach_data.to_request_fields(),
+            extra_headers=_idempotency_headers(idempotency_key),
         )
 
         if self._use_raw_data:
@@ -949,6 +967,7 @@ class BrokerClient(RESTClient):
         self,
         account_id: Union[UUID, str],
         transfer_data: Union[CreateACHTransferRequest, CreateBankTransferRequest],
+        idempotency_key: Optional[str] = None,
     ) -> Union[Transfer, RawData]:
         """
         Creates a single Transfer for the given account.
@@ -957,13 +976,17 @@ class BrokerClient(RESTClient):
             account_id (Union[UUID, str]): The ID of the Account to create the bank connection for.
             transfer_data (Union[CreateACHTransferRequest, CreateBankTransferRequest]): The request data used to
               create the bank connection.
+            idempotency_key (Optional[str]): If supplied, sent as the ``Idempotency-Key`` header so
+              that retried requests with the same key are deduplicated server-side.
 
         Returns:
             Transfer: The Transfer that was created.
         """
         account_id = validate_uuid_id_param(account_id)
         response = self.post(
-            f"/accounts/{account_id}/transfers", transfer_data.to_request_fields()
+            f"/accounts/{account_id}/transfers",
+            transfer_data.to_request_fields(),
+            extra_headers=_idempotency_headers(idempotency_key),
         )
 
         if self._use_raw_data:

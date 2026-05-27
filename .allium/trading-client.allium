@@ -1,0 +1,708 @@
+-- allium: 3
+-- trading-client.allium
+
+-- Scope: Alpaca TradingClient — orders, positions, account, assets, watchlists,
+--        calendar/clock, options contracts, and real-time streaming.
+-- Excludes: examples/ demo notebooks
+
+------------------------------------------------------------
+-- Enumerations
+------------------------------------------------------------
+
+enum AssetClass { us_equity | us_option | crypto | crypto_perp }
+
+enum OrderStatus {
+    new | pending_new | accepted | pending_review | accepted_for_bidding
+    | partially_filled | filled
+    | done_for_day | held | stopped | suspended | calculated
+    | pending_replace | replaced
+    | pending_cancel | canceled
+    | expired | rejected
+}
+
+enum OrderType { market | limit | stop | stop_limit | trailing_stop }
+
+enum OrderSide { buy | sell }
+
+enum OrderClass { simple | bracket | oco | oto | mleg }
+
+enum TimeInForce { day | gtc | opg | cls | ioc | fok }
+
+enum PositionSide { long | short }
+
+enum PositionIntent { buy_to_open | buy_to_close | sell_to_open | sell_to_close }
+
+enum TradeEvent {
+    new | pending_new | accepted | fill | partial_fill
+    | canceled | expired | replaced | pending_cancel | pending_replace
+    | rejected | restated
+}
+
+enum ContractType { call | put }
+
+enum ExerciseStyle { american | european }
+
+enum AccountStatus {
+    onboarding | submission_failed | submitted | resubmitted
+    | approval_pending | reapproval_pending | kyc_submitted | aml_review
+    | approved | account_updated | edited | active | limited | paper_only
+    | action_required | disable_pending | disabled | account_closed
+    | rejected | signed_up
+}
+
+enum OptionsApprovalLevel { disabled | covered_only | long_options | spreads }
+
+enum DTBPCheck { both | entry | exit }
+
+enum TradeConfirmationEmail { all | none }
+
+------------------------------------------------------------
+-- Value Types
+------------------------------------------------------------
+
+value TakeProfitSpec {
+    limit_price: Decimal
+}
+
+value StopLossSpec {
+    stop_price: Decimal
+    limit_price: Decimal?
+}
+
+------------------------------------------------------------
+-- Entities and Variants
+------------------------------------------------------------
+
+entity Asset {
+    symbol: String
+    name: String
+    asset_class: AssetClass
+    exchange: String
+    tradable: Boolean
+    marginable: Boolean
+    shortable: Boolean
+    easy_to_borrow: Boolean
+    fractionable: Boolean
+    min_order_size: Decimal?
+    min_trade_increment: Decimal?
+    price_increment: Decimal?
+}
+
+entity OptionContract {
+    symbol: String
+    name: String
+    root_symbol: String
+    underlying_symbol: String
+    underlying_asset: Asset
+    tradable: Boolean
+    expiration_date: Timestamp
+    contract_type: ContractType
+    exercise_style: ExerciseStyle
+    strike_price: Decimal
+    size: Decimal
+    open_interest: Decimal?
+    close_price: Decimal?
+}
+
+entity Order {
+    symbol: String?
+    asset_class: AssetClass?
+    qty: Decimal?
+    notional: Decimal?
+    filled_qty: Decimal
+    filled_avg_price: Decimal?
+    order_class: OrderClass
+    order_type: OrderType
+    side: OrderSide?
+    position_intent: PositionIntent?
+    time_in_force: TimeInForce
+    limit_price: Decimal?
+    stop_price: Decimal?
+    trail_price: Decimal?
+    trail_percent: Decimal?
+    hwm: Decimal?
+    extended_hours: Boolean
+    client_order_id: String
+    status: OrderStatus
+    submitted_at: Timestamp?
+    filled_at: Timestamp when status = filled
+    canceled_at: Timestamp when status = canceled
+    expired_at: Timestamp when status = expired
+    replaced_at: Timestamp when status = replaced
+    failed_at: Timestamp when status = rejected
+    expires_at: Timestamp?
+    take_profit: TakeProfitSpec?
+    stop_loss: StopLossSpec?
+    legs: List<Order>
+    replaces: Order?
+    replaced_by: Order?
+
+    transitions status {
+        new -> pending_new
+        new -> pending_review
+        pending_new -> accepted
+        pending_new -> pending_cancel
+        pending_review -> accepted_for_bidding
+        accepted -> partially_filled
+        accepted -> filled
+        accepted -> done_for_day
+        accepted -> held
+        accepted -> stopped
+        accepted -> suspended
+        accepted -> calculated
+        accepted -> pending_replace
+        accepted -> pending_cancel
+        partially_filled -> filled
+        partially_filled -> done_for_day
+        partially_filled -> pending_replace
+        partially_filled -> pending_cancel
+        pending_replace -> accepted
+        pending_replace -> replaced
+        pending_cancel -> canceled
+        terminal: filled, canceled, expired, rejected, replaced, done_for_day,
+                  stopped, suspended, calculated, held, accepted_for_bidding
+    }
+
+    invariant QuantityOrNotional {
+        (qty != null) implies (notional = null)
+    }
+
+    invariant TrailPriceOrPercent {
+        order_type = trailing_stop implies
+            (trail_price != null) or (trail_percent != null)
+    }
+
+    invariant MlegHasLegs {
+        order_class = mleg implies legs.count >= 2
+    }
+}
+
+entity Position {
+    symbol: String
+    asset_class: AssetClass
+    qty: Decimal
+    qty_available: Decimal
+    side: PositionSide
+    avg_entry_price: Decimal
+    market_value: Decimal
+    unrealized_pl: Decimal
+}
+
+entity TradeAccount {
+    status: AccountStatus
+    buying_power: Decimal
+    daytrading_buying_power: Decimal
+    cash: Decimal
+    equity: Decimal
+    daytrade_count: Integer
+    pattern_day_trader: Boolean
+    options_approved_level: OptionsApprovalLevel?
+    options_trading_level: OptionsApprovalLevel?
+
+    transitions status {
+        signed_up -> submission_failed
+        signed_up -> submitted
+        submission_failed -> submitted
+        submitted -> resubmitted
+        submitted -> approval_pending
+        submitted -> kyc_submitted
+        resubmitted -> approval_pending
+        kyc_submitted -> aml_review
+        aml_review -> approval_pending
+        approval_pending -> reapproval_pending
+        approval_pending -> approved
+        reapproval_pending -> approved
+        approved -> account_updated
+        account_updated -> active
+        approved -> active
+        active -> action_required
+        active -> limited
+        active -> edited
+        active -> disable_pending
+        action_required -> active
+        limited -> active
+        edited -> active
+        disable_pending -> disabled
+        disabled -> disable_pending
+        disable_pending -> active
+        terminal: account_closed, rejected, onboarding, paper_only
+    }
+}
+
+entity AccountConfiguration {
+    dtbp_check: DTBPCheck
+    fractional_trading: Boolean
+    max_margin_multiplier: Integer
+    no_shorting: Boolean
+    pdt_check: DTBPCheck
+    suspend_trade: Boolean
+    trade_confirm_email: TradeConfirmationEmail
+    max_options_trading_level: OptionsApprovalLevel?
+}
+
+entity Watchlist {
+    name: String
+    updated_at: Timestamp
+    assets: List<String>
+}
+
+entity MarketCalendarDay {
+    date: Timestamp
+    open: Timestamp
+    close: Timestamp
+}
+
+entity TradeUpdate {
+    event: TradeEvent
+    order: Order
+    timestamp: Timestamp
+    position_qty: Decimal?
+    price: Decimal?
+    qty: Decimal?
+}
+
+------------------------------------------------------------
+-- Rules
+------------------------------------------------------------
+
+-- Order Management
+
+rule SubmitOrder {
+    when: SubmitOrder(order_data)
+
+    requires: order_data.order_class = mleg implies order_data.qty != null
+    requires: order_data.order_class != mleg implies order_data.symbol != null
+    requires: order_data.qty = null or order_data.notional = null
+    requires: order_data.order_type = trailing_stop implies
+        (order_data.trail_price != null) or (order_data.trail_percent != null)
+    requires: order_data.order_type = limit or order_data.order_class = oco implies
+        order_data.limit_price != null
+    requires: order_data.order_type = stop or order_data.order_type = stop_limit implies
+        order_data.stop_price != null
+    requires: order_data.order_class = mleg implies order_data.legs.count >= 2
+
+    ensures: Order.created(
+        symbol: order_data.symbol,
+        asset_class: order_data.asset_class,
+        qty: order_data.qty,
+        notional: order_data.notional,
+        filled_qty: 0,
+        order_class: order_data.order_class,
+        order_type: order_data.order_type,
+        side: order_data.side,
+        position_intent: order_data.position_intent,
+        time_in_force: order_data.time_in_force,
+        limit_price: order_data.limit_price,
+        stop_price: order_data.stop_price,
+        trail_price: order_data.trail_price,
+        trail_percent: order_data.trail_percent,
+        extended_hours: order_data.extended_hours,
+        take_profit: order_data.take_profit,
+        stop_loss: order_data.stop_loss,
+        legs: order_data.legs,
+        status: new,
+        submitted_at: now
+    )
+}
+
+rule ReplaceOrder {
+    when: ReplaceOrder(order, replace_data)
+
+    requires: order.status in { new, pending_new, accepted, partially_filled }
+
+    ensures:
+        let new_order = Order.created(
+            symbol: order.symbol,
+            asset_class: order.asset_class,
+            qty: replace_data.qty ?? order.qty,
+            time_in_force: replace_data.time_in_force ?? order.time_in_force,
+            limit_price: replace_data.limit_price ?? order.limit_price,
+            stop_price: replace_data.stop_price ?? order.stop_price,
+            trail_price: replace_data.trail_price ?? order.trail_price,
+            trail_percent: replace_data.trail_percent ?? order.trail_percent,
+            filled_qty: 0,
+            order_class: order.order_class,
+            order_type: order.order_type,
+            side: order.side,
+            extended_hours: order.extended_hours,
+            replaces: order,
+            status: new,
+            submitted_at: now
+        )
+        order.status = pending_replace
+        order.replaced_by = new_order
+}
+
+rule CancelOrder {
+    when: CancelOrder(order)
+
+    requires: order.status in { new, pending_new, accepted, partially_filled, held }
+
+    ensures: order.status = pending_cancel
+}
+
+rule CancelAllOrders {
+    when: CancelAllOrders()
+
+    ensures:
+        for order in Orders where status in { new, pending_new, accepted, partially_filled, held }:
+            order.status = pending_cancel
+}
+
+-- Order lifecycle — driven by exchange
+
+rule OrderFilled {
+    when: OrderFilled(order, fill_qty, fill_price)
+
+    requires: order.status in { accepted, partially_filled }
+
+    ensures: order.status = filled
+    ensures: order.filled_qty = fill_qty
+    ensures: order.filled_avg_price = fill_price
+    ensures: order.filled_at = now
+}
+
+rule OrderPartiallyFilled {
+    when: OrderPartiallyFilled(order, fill_qty, fill_price)
+
+    requires: order.status in { accepted, partially_filled }
+
+    ensures: order.status = partially_filled
+    ensures: order.filled_qty = fill_qty
+    ensures: order.filled_avg_price = fill_price
+}
+
+rule OrderRejected {
+    when: OrderRejected(order)
+
+    requires: order.status in { new, pending_new, accepted, pending_review }
+
+    ensures: order.status = rejected
+    ensures: order.failed_at = now
+}
+
+rule OrderExpired {
+    when: OrderExpired(order)
+
+    requires: order.status in { new, pending_new, accepted, partially_filled }
+
+    ensures: order.status = expired
+    ensures: order.expired_at = now
+}
+
+rule OrderCanceled {
+    when: OrderCanceled(order)
+
+    requires: order.status = pending_cancel
+
+    ensures: order.status = canceled
+    ensures: order.canceled_at = now
+}
+
+rule OrderReplaced {
+    when: OrderReplaced(order, replacement)
+
+    requires: order.status = pending_replace
+
+    ensures: order.status = replaced
+    ensures: order.replaced_at = now
+    ensures: order.replaced_by = replacement
+}
+
+-- Bracket / OCO / OTO lifecycle
+
+rule BracketLegTriggered {
+    when: OrderFilled(parent_order, fill_qty, fill_price)
+
+    requires: parent_order.order_class = bracket
+    requires: parent_order.take_profit != null or parent_order.stop_loss != null
+
+    ensures:
+        for leg in parent_order.legs:
+            leg.status = new
+}
+
+rule OcoLegCanceled {
+    when: OrderFilled(oco_leg, fill_qty, fill_price)
+
+    requires: oco_leg.order_class = oco
+
+    ensures:
+        for sibling in Orders where replaces = oco_leg.replaces and status != filled:
+            sibling.status = pending_cancel
+}
+
+rule OtoSecondarySubmitted {
+    when: OrderFilled(primary, fill_qty, fill_price)
+
+    requires: primary.order_class = oto
+    requires: primary.legs.count > 0
+
+    ensures:
+        for leg in primary.legs:
+            leg.status = new
+}
+
+-- Position Management
+
+rule ClosePosition {
+    when: ClosePosition(position, close_options)
+
+    requires: position.qty_available > 0
+    requires: close_options.qty != null or close_options.percentage != null
+    requires: close_options.qty = null or close_options.percentage = null
+
+    ensures: Order.created(
+        symbol: position.symbol,
+        asset_class: position.asset_class,
+        side: if position.side = long: sell else: buy,
+        order_type: market,
+        order_class: simple,
+        filled_qty: 0,
+        extended_hours: false,
+        status: new,
+        submitted_at: now
+    )
+}
+
+rule CloseAllPositions {
+    when: CloseAllPositions(cancel_orders)
+
+    ensures:
+        if cancel_orders:
+            for order in Orders where status in { new, pending_new, accepted, partially_filled }:
+                order.status = pending_cancel
+    ensures:
+        for position in Positions:
+            Order.created(
+                symbol: position.symbol,
+                asset_class: position.asset_class,
+                side: if position.side = long: sell else: buy,
+                order_type: market,
+                order_class: simple,
+                filled_qty: 0,
+                extended_hours: false,
+                status: new,
+                submitted_at: now
+            )
+}
+
+rule ExerciseOptionsPosition {
+    when: ExerciseOptionsPosition(position)
+
+    requires: position.asset_class = us_option
+    requires: position.qty_available > 0
+
+    ensures: OptionsExercised(position: position)
+}
+
+-- Watchlist Management
+
+rule CreateWatchlist {
+    when: CreateWatchlist(name, symbols)
+
+    ensures: Watchlist.created(
+        name: name,
+        assets: symbols,
+        updated_at: now
+    )
+}
+
+rule UpdateWatchlist {
+    when: UpdateWatchlist(watchlist, name?, symbols?)
+
+    ensures: watchlist.name = name ?? watchlist.name
+    ensures: watchlist.assets = symbols ?? watchlist.assets
+    ensures: watchlist.updated_at = now
+}
+
+rule AddAssetToWatchlist {
+    when: AddAssetToWatchlist(watchlist, symbol)
+
+    requires: symbol not in watchlist.assets
+
+    ensures: watchlist.assets.add(symbol)
+    ensures: watchlist.updated_at = now
+}
+
+rule RemoveAssetFromWatchlist {
+    when: RemoveAssetFromWatchlist(watchlist, symbol)
+
+    requires: symbol in watchlist.assets
+
+    ensures: watchlist.assets.remove(symbol)
+    ensures: watchlist.updated_at = now
+}
+
+rule DeleteWatchlist {
+    when: DeleteWatchlist(watchlist)
+
+    ensures: not exists watchlist
+}
+
+-- Account Configuration
+
+rule UpdateAccountConfiguration {
+    when: UpdateAccountConfiguration(config_update)
+
+    ensures: AccountConfiguration.created(
+        dtbp_check: config_update.dtbp_check,
+        fractional_trading: config_update.fractional_trading,
+        max_margin_multiplier: config_update.max_margin_multiplier,
+        no_shorting: config_update.no_shorting,
+        pdt_check: config_update.pdt_check,
+        suspend_trade: config_update.suspend_trade,
+        trade_confirm_email: config_update.trade_confirm_email,
+        max_options_trading_level: config_update.max_options_trading_level
+    )
+}
+
+-- Real-time streaming
+
+rule TradeUpdateReceived {
+    when: trade_update: TradeUpdate.created
+
+    ensures: OrderUpdateApplied(order: trade_update.order, event: trade_update.event)
+}
+
+------------------------------------------------------------
+-- Invariants
+------------------------------------------------------------
+
+invariant PatternDayTraderBuyingPower {
+    for account in TradeAccounts:
+        account.pattern_day_trader implies
+            account.daytrading_buying_power <= account.buying_power * 4
+}
+
+invariant OptionsLevelWithinApproved {
+    for account in TradeAccounts:
+        account.options_trading_level != null and account.options_approved_level != null implies
+            account.options_trading_level = account.options_approved_level
+}
+
+invariant AvailableQtyBound {
+    for position in Positions:
+        position.qty_available <= position.qty
+}
+
+------------------------------------------------------------
+-- Surfaces
+------------------------------------------------------------
+
+surface OrderManagement {
+    exposes:
+        for order in Orders:
+            order.symbol
+            order.status
+            order.order_type
+            order.side
+            order.qty
+            order.filled_qty
+            order.limit_price
+            order.stop_price
+            order.legs
+
+    provides:
+        SubmitOrder(order_data)
+        ReplaceOrder(order, replace_data) when order.status in { new, pending_new, accepted, partially_filled }
+        CancelOrder(order) when order.status in { new, pending_new, accepted, partially_filled, held }
+        CancelAllOrders()
+}
+
+surface PositionManagement {
+    exposes:
+        for position in Positions:
+            position.symbol
+            position.qty
+            position.qty_available
+            position.side
+            position.market_value
+            position.unrealized_pl
+            position.avg_entry_price
+
+    provides:
+        ClosePosition(position, close_options)
+        CloseAllPositions(cancel_orders)
+        ExerciseOptionsPosition(position) when position.asset_class = us_option
+}
+
+surface AccountView {
+    exposes:
+        for account in TradeAccounts:
+            account.status
+            account.buying_power
+            account.equity
+            account.cash
+            account.pattern_day_trader
+            account.daytrade_count
+            account.options_approved_level
+
+    provides:
+        UpdateAccountConfiguration(config_update)
+}
+
+surface WatchlistList {
+    exposes:
+        for watchlist in Watchlists:
+            watchlist.name
+            watchlist.updated_at
+
+    provides:
+        CreateWatchlist(name, symbols)
+}
+
+surface WatchlistManagement {
+    context watchlist: Watchlist
+
+    exposes:
+        watchlist.name
+        watchlist.assets
+        watchlist.updated_at
+
+    provides:
+        UpdateWatchlist(watchlist, name?, symbols?)
+        AddAssetToWatchlist(watchlist, symbol)
+        RemoveAssetFromWatchlist(watchlist, symbol) when symbol in watchlist.assets
+        DeleteWatchlist(watchlist)
+}
+
+surface MarketData {
+    exposes:
+        for asset in Assets:
+            asset.symbol
+            asset.tradable
+            asset.fractionable
+            asset.asset_class
+        for day in MarketCalendarDays:
+            day.date
+            day.open
+            day.close
+        for contract in OptionContracts:
+            contract.symbol
+            contract.underlying_symbol
+            contract.contract_type
+            contract.expiration_date
+            contract.strike_price
+}
+
+surface ExchangeFeed {
+    provides:
+        OrderFilled(order, fill_qty, fill_price)
+        OrderPartiallyFilled(order, fill_qty, fill_price)
+        OrderRejected(order)
+        OrderExpired(order)
+        OrderCanceled(order)
+        OrderReplaced(order, replacement)
+}
+
+surface TradeStream {
+    exposes:
+        for update in TradeUpdates:
+            update.event
+            update.order
+            update.timestamp
+            update.price
+            update.qty
+            update.position_qty
+}

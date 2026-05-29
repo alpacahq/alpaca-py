@@ -1,0 +1,81 @@
+name: Allium Check
+
+# Runs `allium check` on every `.allium` file in the repo.
+#
+# Local install:
+#     cargo install --locked --version 3.0.4 allium-cli
+#
+# Toolchain note: allium-cli is a Rust binary and is not bootstrapped through
+# the Makefile's `bin/<name>-<version>` convention (where one exists). The
+# version is single-sourced via the ALLIUM_VERSION env var below.
+
+"on":
+  push:
+    branches: [master]
+    paths:
+      - "**/*.allium"
+      - ".github/workflows/allium-check.yml"
+  pull_request:
+    paths:
+      - "**/*.allium"
+      - ".github/workflows/allium-check.yml"
+
+permissions:
+  contents: read
+
+env:
+  ALLIUM_VERSION: "3.0.4"
+  # Opt in to Node 24 runtime for actions; Node 20 will be removed 2026-09-16.
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache allium-cli binary
+        id: cache-allium
+        uses: actions/cache@v5
+        with:
+          path: ~/.cargo/bin/allium
+          key: allium-cli-${{ env.ALLIUM_VERSION }}-${{ runner.os }}-${{ runner.arch }}
+
+      - name: Install Rust toolchain
+        if: steps.cache-allium.outputs.cache-hit != 'true'
+        # Pinned SHA for `stable` branch — dtolnay/rust-toolchain uses
+        # branches (not tags) for channel pinning, so we pin the commit
+        # instead. Bump when refreshing the toolchain.
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # stable
+
+      - name: Install allium-cli
+        if: steps.cache-allium.outputs.cache-hit != 'true'
+        run: cargo install --locked --version ${{ env.ALLIUM_VERSION }} allium-cli
+
+      - name: Run allium check
+        # `-e` is GHA's default, but `allium check` exits non-zero on any
+        # warning — we only want to fail CI on actual errors. Disable
+        # errexit and gate on the parsed summary line.
+        shell: bash
+        run: |
+          set +e
+          set -uo pipefail
+          FILES=$(find . -type f -name "*.allium" -not -path "./.git/*" | sort)
+          if [ -z "$FILES" ]; then
+            echo "No .allium files found; nothing to check."
+            exit 0
+          fi
+          echo "Checking:"
+          echo "$FILES" | sed 's/^/  /'
+          allium check $FILES 2>&1 | tee allium.log
+          ERRORS=$(grep -oE '[0-9]+ error\(s\)' allium.log | tail -1 | awk '{print $1}')
+          if [ -z "$ERRORS" ]; then
+            echo "::error::could not parse allium check summary"
+            exit 1
+          fi
+          if [ "$ERRORS" -gt 0 ]; then
+            echo "::error::allium check reported $ERRORS error(s)"
+            exit 1
+          fi
+          echo "OK — 0 errors."

@@ -1,0 +1,38 @@
+name: Allium Drift Check
+
+# Thin caller — the drift check logic lives in alpaca-harness.
+#
+# Runs automatically on every PR update. Posts a drift report as a PR comment.
+# Currently in advisory mode (required_passing: false) — drift findings will not
+# block PRs. Flip to true once specs are trusted.
+#
+# Required secret on this repo (set one — the reusable workflow auto-detects):
+#   ANTHROPIC_API_KEY — claude provider (preferred when both set)
+#   CURSOR_API_KEY    — cursor provider
+#
+# Ref pin policy: alpacahq/alpaca-harness is a first-party internal repo and
+# this caller deliberately tracks its `master` so improvements (e.g. parser
+# fixes, model bumps) reach all callers without per-repo PRs. The repo is
+# org-internal, so all branch writes are gated by the same review process
+# as this repo. If we later need pinned releases, switch to a tag and bump
+# via dependabot.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  allium-drift:
+    uses: alpacahq/alpaca-harness/.github/workflows/ai-allium-drift.yml@master
+    with:
+      pr_num: ${{ github.event.pull_request.number }}
+      head_ref: ${{ github.event.pull_request.head.ref }}
+      target_repo: alpacahq/alpaca-py
+      required_passing: false
+    secrets:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}

@@ -1,0 +1,1520 @@
+-- allium: 3
+-- broker-client.allium
+--
+-- B2B brokerage platform: a Correspondent (broker partner) onboards end users,
+-- holds and funds their BrokerageAccounts, journals assets between accounts,
+-- and optionally subscribes accounts to model portfolios that rebalance
+-- automatically. Trading mechanics (order placement, market data, corporate
+-- actions, activity streams) are deferred to the trading spec.
+--
+-- This spec captures behaviour from the correspondent's perspective. Most
+-- entity lifecycles (account review, transfer/journal clearing, rebalancing
+-- progression) are driven by the broker's internal operations; the client
+-- observes those states and acts on them but does not generally cause those
+-- transitions itself. Broker-driven transitions are modelled as opaque
+-- external stimuli so that the observable state space remains documented.
+--
+-- excluded: OAuth B2B integration flow (provided by a separate authorization
+--           service; not present in the surveyed code)
+-- excluded: order placement, positions, watchlists, calendar/clock, assets,
+--           corporate actions, account-activity streams (trading spec)
+
+use "github.com/alpacahq/alpaca-allium-lib@d5d38e0fe969061525b6fabbf7c66e0aa66c40e2/BrokerageAccount" as brokerageaccount
+
+------------------------------------------------------------
+-- External Entities
+------------------------------------------------------------
+
+external entity Correspondent {
+    -- B2B broker partner integrating with the brokerage platform to offer
+    -- accounts to its own end users
+    name: String
+}
+
+external entity AccountHolder {
+    -- Natural or legal person on whose behalf a brokerage account is held
+    contact_email: String
+}
+
+external entity KycProvider {
+    -- Third-party identity verification provider whose review outcomes the
+    -- correspondent submits as part of customer identification
+    name: String
+}
+
+external entity TradableSecurity {
+    -- A security held in journals, portfolio weights and rebalancing runs;
+    -- identified by its trading symbol
+    symbol: String
+}
+
+------------------------------------------------------------
+-- Value Types
+------------------------------------------------------------
+
+value PostalAddress {
+    street_address: List<String>
+    unit: String?
+    city: String
+    state: String?
+    postal_code: String?
+    country: String
+}
+
+value ContactDetails {
+    email_address: String
+    phone_number: String?
+    address: PostalAddress
+}
+
+value PersonalIdentity {
+    given_name: String
+    middle_name: String?
+    family_name: String
+    date_of_birth: String
+    country_of_tax_residence: String
+    country_of_citizenship: String?
+    country_of_birth: String?
+    tax_id: String?
+    tax_id_kind: String?
+    visa_kind: String?
+    visa_expiration_date: String?
+    permanent_resident: Boolean?
+    funding_sources: Set<FundingSource>
+}
+
+value RegulatoryDisclosures {
+    -- Disclosures the holder must affirm under broker-dealer regulations
+    is_control_person: Boolean
+    is_affiliated_exchange_or_finra: Boolean
+    is_politically_exposed: Boolean
+    immediate_family_exposed: Boolean
+    employment_status: EmploymentStatus?
+    employer_name: String?
+    employer_address: String?
+    employment_position: String?
+}
+
+value SignedAgreement {
+    -- An agreement the holder has electronically signed (margin, customer,
+    -- options, crypto, etc.)
+    kind: AgreementKind
+    signed_at: Timestamp
+    ip_address: String
+    revision: String?
+}
+
+value EmergencyContact {
+    -- Trusted contact the broker may reach if the holder cannot be reached
+    -- (regulatory requirement)
+    given_name: String
+    family_name: String
+    email_address: String?
+    phone_number: String?
+    address: PostalAddress?
+}
+
+value KycReviewOutcome {
+    -- Outcome of the customer identification review performed by a KYC provider
+    summary: KycSummary
+    additional_information: String?
+}
+
+value PortfolioWeight {
+    -- One target allocation in a model portfolio: either a security weight or
+    -- a residual cash weight
+    kind: WeightKind
+    symbol: String?
+    percent: Decimal
+}
+
+value RebalanceCondition {
+    -- When the rebalancer should re-evaluate a subscribed account: a
+    -- drift-band condition (target drift in percent) or a calendar cadence
+    kind: RebalanceConditionKind
+    drift_band_percent: Decimal?
+    calendar_cadence: CalendarCadence?
+}
+
+value JournalEntryRequest {
+    -- A single entry in a batch or reverse-batch journal request: identifies
+    -- one counterparty account and the amount of cash to journal
+    to_account: brokerageaccount/BrokerageAccount?
+    from_account: brokerageaccount/BrokerageAccount?
+    amount: Decimal
+    description: String?
+    transmitter_name: String?
+    transmitter_account_number: String?
+    transmitter_address: String?
+    transmitter_financial_institution: String?
+    transmitter_timestamp: String?
+}
+
+value AccountDocumentUpload {
+    -- A document the correspondent attaches to an application or upload
+    -- batch: identifies the document's kind for the broker's review
+    kind: AccountDocumentKind
+    sub_kind: String?
+}
+
+------------------------------------------------------------
+-- Enumerations
+------------------------------------------------------------
+
+enum AccountKind {
+    trading | custodial | donor_advised | ira | hsa
+}
+
+enum AccountSubKind {
+    traditional | roth
+}
+
+enum FundingSource {
+    employment_income | investments | inheritance
+    | business_income | savings | family
+}
+
+enum EmploymentStatus {
+    unemployed | employed | student | retired
+}
+
+enum AgreementKind {
+    margin | account | customer | crypto | options | custodial_customer
+}
+
+enum AccountDocumentKind {
+    identity_verification
+    | address_verification
+    | date_of_birth_verification
+    | tax_id_verification
+    | account_approval_letter
+    | limited_trading_authorization
+    | w8ben
+    | social_security_number_verification
+    | cip_result
+    | other
+}
+
+enum TradeDocumentKind {
+    account_statement
+    | trade_confirmation
+    | tax_statement
+    | account_application
+}
+
+enum KycSummary {
+    pass | fail | indeterminate
+}
+
+enum BankAccountKind {
+    checking | savings
+}
+
+enum BankIdentifierKind {
+    -- Routing identifier scheme: ABA for US domestic, BIC for international
+    aba | bic
+}
+
+enum TransferKind {
+    ach | wire
+}
+
+enum TransferDirection {
+    incoming | outgoing
+}
+
+enum FeePayer {
+    user | invoice
+}
+
+enum JournalKind {
+    cash | security
+}
+
+enum WeightKind {
+    cash | asset
+}
+
+enum RebalanceConditionKind {
+    drift_band | calendar
+}
+
+enum CalendarCadence {
+    weekly | monthly | quarterly | annually
+}
+
+enum RebalancingRunKind {
+    full_rebalance | invest_cash
+}
+
+enum RebalancingRunInitiator {
+    system | api
+}
+
+enum CryptoStatus {
+    signed_up | approval_pending | active | rejected | disabled
+}
+
+------------------------------------------------------------
+-- Entities and Variants
+------------------------------------------------------------
+
+entity AccountDocument {
+    -- A holder-supplied document attached to the account (identity proof,
+    -- address proof, W-8BEN, etc.) used during onboarding and CIP
+    account: brokerageaccount/BrokerageAccount
+    kind: AccountDocumentKind
+    sub_kind: String?
+    uploaded_at: Timestamp
+}
+
+entity TradeDocument {
+    -- A broker-generated document about trading activity on the account
+    -- (account statement, trade confirmation, tax statement). Available for
+    -- download by the correspondent.
+    account: brokerageaccount/BrokerageAccount
+    name: String
+    kind: TradeDocumentKind
+    generated_for_date: Timestamp
+}
+
+entity CipSubmission {
+    -- A customer-identification report submitted by the correspondent against
+    -- an account. Bundles KYC findings, document checks, photo comparison,
+    -- identity-source lookups and watchlist results from a KYC provider.
+    account: brokerageaccount/BrokerageAccount
+    providers: Set<KycProvider>
+    submitted_at: Timestamp
+    updated_at: Timestamp
+}
+
+entity AchRelationship {
+    -- A linked US bank account used for ACH deposits and withdrawals. The
+    -- correspondent submits it; the broker validates and approves it; the
+    -- correspondent may unlink it.
+    account: brokerageaccount/BrokerageAccount
+    nickname: String?
+    bank_account_kind: BankAccountKind
+    status: queued | pending | approved | canceled
+}
+
+entity RecipientBank {
+    -- A linked external bank used as the destination for outbound wire
+    -- transfers (or origin for inbound, for international accounts)
+    account: brokerageaccount/BrokerageAccount
+    name: String
+    identifier_kind: BankIdentifierKind
+    address: PostalAddress?
+    status: queued | sent_to_clearing | approved | canceled
+}
+
+entity Transfer {
+    -- Money moving between an account and the outside world (an ACH bank
+    -- relationship or a recipient wire bank). The funding source determines
+    -- whether the transfer is ACH or wire. The broker (with its clearing
+    -- counterparty) drives the transfer's progression through clearing;
+    -- the correspondent requests transfers and may cancel them prior to
+    -- clearing.
+    account: brokerageaccount/BrokerageAccount
+    kind: TransferKind
+    direction: TransferDirection
+    amount: Decimal
+    requested_amount: Decimal?
+    fee: Decimal?
+    fee_payer: FeePayer?
+    reason: String?
+    ach_source: AchRelationship?
+    wire_source: RecipientBank?
+    requested_at: Timestamp
+    expires_at: Timestamp?
+    status: queued
+            | approval_pending
+            | pending
+            | sent_to_clearing
+            | approved
+            | settled
+            | complete
+            | rejected
+            | canceled
+            | returned
+
+    invariant FundingSourceMatchesKind {
+        kind = ach implies ach_source != null and wire_source = null
+    }
+
+    invariant WireSourceMatchesKind {
+        kind = wire implies wire_source != null and ach_source = null
+    }
+}
+
+entity Journal {
+    -- An internal transfer of cash or securities between two brokerage
+    -- accounts at this broker. Journals are off-market: they never touch
+    -- external rails, but still flow through clearing.
+    from_account: brokerageaccount/BrokerageAccount
+    to_account: brokerageaccount/BrokerageAccount
+    kind: JournalKind
+    -- Cash journal payload
+    cash_amount: Decimal?
+    base_currency: String?
+    -- Security journal payload
+    security: TradableSecurity?
+    quantity: Decimal?
+    price: Decimal?
+    -- Travel-rule fields (required by FinCEN for cash journals over the
+    -- regulatory threshold)
+    transmitter_name: String?
+    transmitter_account_number: String?
+    transmitter_address: String?
+    transmitter_financial_institution: String?
+    transmitter_timestamp: String?
+    description: String?
+    settle_date: Timestamp?
+    system_date: Timestamp?
+    error_message: String?
+    requested_at: Timestamp
+    status: queued
+            | sent_to_clearing
+            | pending
+            | executed
+            | correct
+            | rejected
+            | canceled
+            | refused
+            | deleted
+
+    invariant CashJournalPayload {
+        kind = cash implies cash_amount != null and security = null and quantity = null
+    }
+
+    invariant SecurityJournalPayload {
+        kind = security implies security != null and quantity != null and cash_amount = null
+    }
+
+    invariant DistinctParties {
+        from_account != to_account
+    }
+}
+
+entity ModelPortfolio {
+    -- A target allocation across securities and cash, defined by the
+    -- correspondent and reused across many subscribed accounts. When weights
+    -- or conditions change, subscribed accounts are re-evaluated for
+    -- rebalance at the next opportunity (subject to portfolio cooldown).
+    correspondent: Correspondent
+    name: String
+    description: String
+    weights: List<PortfolioWeight>
+    cooldown_days: Integer
+    rebalance_conditions: Set<RebalanceCondition>
+    status: active | inactive | needs_adjustment
+    created_at: Timestamp
+    updated_at: Timestamp
+
+    subscriptions: AccountSubscription with portfolio = this
+    runs: RebalancingRun with portfolio = this
+
+    @guidance
+        -- Weight percent values are expected to sum to 100%; the broker
+        -- normalises any rounding before placing rebalance orders. Stated
+        -- here as guidance rather than as a strict invariant because the
+        -- normalised representation is not surfaced to the correspondent.
+}
+
+entity AccountSubscription {
+    -- Records that a BrokerageAccount has elected to be rebalanced to a
+    -- ModelPortfolio's target weights. The brokerage produces rebalancing
+    -- runs against subscribed accounts when conditions are met.
+    account: brokerageaccount/BrokerageAccount
+    portfolio: ModelPortfolio
+    created_at: Timestamp
+    last_rebalanced_at: Timestamp?
+}
+
+entity RebalancingRun {
+    -- An attempt to bring a subscribed account's holdings in line with its
+    -- portfolio's target weights. May be triggered by a rebalance condition,
+    -- a portfolio update, or a manual run requested by the correspondent.
+    -- The broker drives the run's progression; the correspondent may cancel
+    -- a run before or during execution.
+    account: brokerageaccount/BrokerageAccount
+    portfolio: ModelPortfolio
+    kind: RebalancingRunKind
+    initiator: RebalancingRunInitiator?
+    weights: List<PortfolioWeight>
+    amount: Decimal?
+    reason: String?
+    created_at: Timestamp
+    updated_at: Timestamp
+    completed_at: Timestamp?
+    canceled_at: Timestamp?
+    status: queued
+            | in_progress
+            | canceled
+            | canceled_mid_run
+            | error
+            | timeout
+            | completed_success
+            | completed_adjusted
+}
+
+------------------------------------------------------------
+-- Config
+------------------------------------------------------------
+
+config {
+    -- Account application bundle size: how many supporting documents may
+    -- accompany a single application or be uploaded in one batch
+    max_documents_per_upload: Integer = 10
+
+    -- Cash journal threshold above which travel-rule transmitter fields must
+    -- be supplied (FinCEN obligation; expressed as the regulatory minimum)
+    travel_rule_threshold_amount: Decimal = 3000
+}
+
+------------------------------------------------------------
+-- Rules
+------------------------------------------------------------
+
+-- ##### Account lifecycle ##### --
+
+rule SubmitAccountApplication {
+    -- A correspondent submits a complete application bundle for a new
+    -- account on behalf of an end user, including contact, identity,
+    -- disclosures and signed agreements. The account enters the broker's
+    -- review pipeline.
+    when: SubmitAccountApplication(
+        correspondent,
+        holder,
+        kind,
+        sub_kind?,
+        contact,
+        identity,
+        disclosures,
+        agreements,
+        trusted_contact?,
+        supporting_documents?
+    )
+    requires: agreements.count > 0
+    ensures:
+        let account = brokerageaccount/BrokerageAccount.created(
+            correspondent: correspondent,
+            holder: holder,
+            kind: kind,
+            sub_kind: sub_kind,
+            contact: contact,
+            identity: identity,
+            disclosures: disclosures,
+            agreements: agreements,
+            trusted_contact: trusted_contact,
+            status: submitted,
+            created_at: now
+        )
+        for document in supporting_documents:
+            AccountDocument.created(
+                account: account,
+                kind: document.kind,
+                sub_kind: document.sub_kind,
+                uploaded_at: now
+            )
+}
+
+rule UpdateAccountInformation {
+    -- A correspondent updates a mutable subset of an open account's identity
+    -- package (contact, partial identity, disclosures, trusted contact).
+    -- Permitted only while the account is open; a closed account cannot
+    -- be edited.
+    when: UpdateAccountInformation(
+        correspondent,
+        account,
+        contact?,
+        identity?,
+        disclosures?,
+        trusted_contact?
+    )
+    requires: account.correspondent = correspondent
+    requires: account.status != account_closed
+    ensures:
+        if contact != null:
+            account.contact = contact
+        if identity != null:
+            account.identity = identity
+        if disclosures != null:
+            account.disclosures = disclosures
+        if trusted_contact != null:
+            account.trusted_contact = trusted_contact
+}
+
+rule UploadAccountDocuments {
+    -- The correspondent uploads one or more supporting documents (identity
+    -- verification, address proof, W-8BEN, etc.) for an open account. The
+    -- batch is capped to prevent oversized uploads.
+    when: UploadAccountDocuments(correspondent, account, documents)
+    requires: account.correspondent = correspondent
+    requires: account.status != account_closed
+    requires: documents.count <= config.max_documents_per_upload
+    ensures:
+        for document in documents:
+            AccountDocument.created(
+                account: account,
+                kind: document.kind,
+                sub_kind: document.sub_kind,
+                uploaded_at: now
+            )
+}
+
+rule SubmitCipResults {
+    -- The correspondent submits the results of a customer-identification
+    -- review performed by a KYC provider (or stack of providers). The
+    -- broker consumes these to advance the account through approval.
+    when: SubmitCipResults(correspondent, account, providers, review)
+    requires: account.correspondent = correspondent
+    requires: account.status in {submitted, action_required, aml_review, approval_pending}
+    ensures:
+        CipSubmission.created(
+            account: account,
+            providers: providers,
+            submitted_at: now,
+            updated_at: now
+        )
+        account.kyc_review = review
+}
+
+rule CloseAccount {
+    -- The correspondent closes an open account. Closing presumes positions
+    -- are flat and cash has been withdrawn; that gating lives upstream in
+    -- the trading and funding flows. Here we model the closure itself.
+    when: CloseAccount(correspondent, account)
+    requires: account.correspondent = correspondent
+    requires: account.status in {active, limited, paper_only, disabled, inactive, approved}
+    ensures: account.status = account_closed
+
+    @guidance
+        -- The underlying records of a closed account are retained for
+        -- regulatory recordkeeping; closure is a status change, not a delete.
+}
+
+-- ##### Broker-side account lifecycle (observed by the correspondent) ##### --
+
+rule BrokerProgressesAccountReview {
+    -- The broker accepts an application into its review pipeline after
+    -- initial pre-checks. Modelled as an opaque external stimulus because
+    -- the broker's decision logic is internal to it.
+    when: BrokerProgressedAccountReview(account)
+    requires: account.status = submitted
+    ensures: account.status = approval_pending
+}
+
+rule BrokerRequestsAccountAction {
+    -- The broker pauses review and asks the correspondent to supply
+    -- additional information or correct an earlier submission.
+    when: BrokerRequestedAccountAction(account)
+    requires: account.status in {submitted, approval_pending, aml_review}
+    ensures: account.status = action_required
+}
+
+rule BrokerEscalatesAccountForAmlReview {
+    -- The broker escalates an account for enhanced anti-money-laundering
+    -- review.
+    when: BrokerEscalatedAccountForAmlReview(account)
+    requires: account.status in {submitted, approval_pending, action_required}
+    ensures: account.status = aml_review
+}
+
+rule BrokerApprovesAccount {
+    -- The broker concludes its review and approves the account for funding
+    -- (but not yet for trading).
+    when: BrokerApprovedAccount(account)
+    requires: account.status in {submitted, approval_pending, action_required, aml_review}
+    ensures: account.status = approved
+}
+
+rule BrokerActivatesAccount {
+    -- The broker activates an approved account for trading, or restores a
+    -- previously-restricted account.
+    when: BrokerActivatedAccount(account)
+    requires: account.status in {approved, limited, paper_only, disabled, inactive}
+    ensures: account.status = active
+}
+
+rule BrokerLimitsAccount {
+    -- The broker restricts an account's trading authority (no new orders
+    -- or no opening positions, for example).
+    when: BrokerLimitedAccount(account)
+    requires: account.status in {active, approved}
+    ensures: account.status = limited
+}
+
+rule BrokerSetsAccountPaperOnly {
+    -- The broker restricts an account to paper trading.
+    when: BrokerSetAccountPaperOnly(account)
+    requires: account.status in {approved, active}
+    ensures: account.status = paper_only
+}
+
+rule BrokerInactivatesAccount {
+    -- The broker marks an account inactive due to dormancy or operational
+    -- reasons short of disabling it.
+    when: BrokerInactivatedAccount(account)
+    requires: account.status in {active, limited}
+    ensures: account.status = inactive
+}
+
+rule BrokerDisablesAccount {
+    -- The broker disables an account, blocking transactions while keeping
+    -- the account record intact.
+    when: BrokerDisabledAccount(account)
+    requires: account.status in {active, limited, inactive}
+    ensures: account.status = disabled
+}
+
+rule BrokerRejectsAccount {
+    -- The broker rejects an account application outright.
+    when: BrokerRejectedAccount(account)
+    requires: account.status in {submitted, approval_pending, action_required, aml_review}
+    ensures: account.status = rejected
+}
+
+-- ##### Funding sources: ACH ##### --
+
+rule EstablishAchRelationship {
+    -- Link a US bank account to a brokerage account so it can serve as a
+    -- source or destination for ACH transfers. Either direct entry of
+    -- routing and account numbers, or via a Plaid-supplied processor token.
+    when: EstablishAchRelationship(
+        correspondent,
+        account,
+        owner_name,
+        bank_account_kind,
+        bank_account_number?,
+        bank_routing_number?,
+        plaid_processor_token?,
+        nickname?
+    )
+    requires: account.correspondent = correspondent
+    requires: account.status in {approved, active, limited, paper_only}
+    requires:
+        (bank_account_number != null and bank_routing_number != null)
+        or plaid_processor_token != null
+    ensures:
+        AchRelationship.created(
+            account: account,
+            nickname: nickname,
+            bank_account_kind: bank_account_kind,
+            status: queued
+        )
+}
+
+rule RemoveAchRelationship {
+    -- The correspondent unlinks an ACH relationship from an account. The
+    -- relationship enters a canceled terminal state; outstanding transfers
+    -- that already reference it are unaffected.
+    when: RemoveAchRelationship(correspondent, account, relationship)
+    requires: account.correspondent = correspondent
+    requires: relationship.account = account
+    requires: relationship.status != canceled
+    ensures: relationship.status = canceled
+}
+
+rule BrokerApprovesAchRelationship {
+    -- The broker validates the linked bank account (penny verification or
+    -- equivalent) and approves it for ACH transfers.
+    when: BrokerApprovedAchRelationship(relationship)
+    requires: relationship.status in {queued, pending}
+    ensures: relationship.status = approved
+}
+
+rule BrokerMarksAchRelationshipPending {
+    -- The broker accepts the relationship for validation but verification
+    -- is still pending.
+    when: BrokerMarkedAchRelationshipPending(relationship)
+    requires: relationship.status = queued
+    ensures: relationship.status = pending
+}
+
+-- ##### Funding sources: wire ##### --
+
+rule RegisterRecipientBank {
+    -- Link an external bank as a destination for outgoing wire transfers
+    -- (or as a permitted source for incoming international wires). Domestic
+    -- banks are identified by ABA routing number; international by BIC
+    -- plus the bank's postal address.
+    when: RegisterRecipientBank(
+        correspondent,
+        account,
+        name,
+        identifier_kind,
+        bank_code,
+        bank_account_number,
+        address?
+    )
+    requires: account.correspondent = correspondent
+    requires: account.status in {approved, active, limited}
+    requires: identifier_kind = bic implies address != null
+    requires: identifier_kind = aba implies address = null
+    ensures:
+        RecipientBank.created(
+            account: account,
+            name: name,
+            identifier_kind: identifier_kind,
+            address: address,
+            status: queued
+        )
+}
+
+rule RemoveRecipientBank {
+    -- The correspondent unlinks a recipient wire bank.
+    when: RemoveRecipientBank(correspondent, account, bank)
+    requires: account.correspondent = correspondent
+    requires: bank.account = account
+    requires: bank.status != canceled
+    ensures: bank.status = canceled
+}
+
+rule BrokerSendsRecipientBankToClearing {
+    -- The broker submits a newly registered recipient bank to its clearing
+    -- counterparty for validation.
+    when: BrokerSentRecipientBankToClearing(bank)
+    requires: bank.status = queued
+    ensures: bank.status = sent_to_clearing
+}
+
+rule BrokerApprovesRecipientBank {
+    -- The clearing counterparty confirms the recipient bank's details, and
+    -- the broker approves it for wire transfers.
+    when: BrokerApprovedRecipientBank(bank)
+    requires: bank.status = sent_to_clearing
+    ensures: bank.status = approved
+}
+
+-- ##### Transfers ##### --
+
+rule RequestAchTransfer {
+    -- Move money in or out of an account over ACH using an approved
+    -- relationship. Wire-specific details (recipient bank) are not used.
+    when: RequestAchTransfer(
+        correspondent,
+        account,
+        relationship,
+        direction,
+        amount,
+        fee_payer?
+    )
+    requires: account.correspondent = correspondent
+    requires: relationship.account = account
+    requires: relationship.status = approved
+    requires: amount > 0
+    requires: account.status in {approved, active, limited, paper_only}
+    ensures:
+        Transfer.created(
+            account: account,
+            kind: ach,
+            direction: direction,
+            amount: amount,
+            requested_amount: amount,
+            fee_payer: fee_payer,
+            ach_source: relationship,
+            requested_at: now,
+            status: queued
+        )
+}
+
+rule RequestWireTransfer {
+    -- Move money in or out of an account over wire, against a registered
+    -- recipient bank. Optional additional information (memo, reference) is
+    -- forwarded with the wire instruction.
+    when: RequestWireTransfer(
+        correspondent,
+        account,
+        bank,
+        direction,
+        amount,
+        fee_payer?,
+        additional_information?
+    )
+    requires: account.correspondent = correspondent
+    requires: bank.account = account
+    requires: bank.status = approved
+    requires: amount > 0
+    requires: account.status in {approved, active, limited, paper_only}
+    ensures:
+        Transfer.created(
+            account: account,
+            kind: wire,
+            direction: direction,
+            amount: amount,
+            requested_amount: amount,
+            fee_payer: fee_payer,
+            wire_source: bank,
+            requested_at: now,
+            status: queued
+        )
+}
+
+rule CancelTransfer {
+    -- The correspondent cancels a transfer that has not yet been sent to
+    -- clearing. After clearing has been notified, cancellation is no longer
+    -- possible — the clearing counterparty owns the lifecycle from there.
+    when: CancelTransfer(correspondent, account, transfer)
+    requires: account.correspondent = correspondent
+    requires: transfer.account = account
+    requires: transfer.status in {queued, approval_pending, pending}
+    ensures: transfer.status = canceled
+}
+
+rule BrokerHoldsTransferForApproval {
+    -- The broker holds a transfer for manual approval (e.g. an outgoing
+    -- transfer above an internal threshold).
+    when: BrokerHeldTransferForApproval(transfer)
+    requires: transfer.status = queued
+    ensures: transfer.status = approval_pending
+}
+
+rule BrokerApprovesTransferForClearing {
+    -- The broker accepts a transfer (or finishes its hold review) and
+    -- queues it for submission to the clearing counterparty.
+    when: BrokerApprovedTransferForClearing(transfer)
+    requires: transfer.status in {queued, approval_pending}
+    ensures: transfer.status = pending
+}
+
+rule BrokerSendsTransferToClearing {
+    -- The broker hands the transfer to its clearing counterparty.
+    when: BrokerSentTransferToClearing(transfer)
+    requires: transfer.status = pending
+    ensures: transfer.status = sent_to_clearing
+}
+
+rule BrokerMarksTransferApproved {
+    -- The clearing counterparty has accepted the instruction.
+    when: BrokerMarkedTransferApproved(transfer)
+    requires: transfer.status = sent_to_clearing
+    ensures: transfer.status = approved
+}
+
+rule BrokerSettlesTransfer {
+    -- The transfer settles at the clearing counterparty: funds have moved.
+    when: BrokerSettledTransfer(transfer)
+    requires: transfer.status = approved
+    ensures: transfer.status = settled
+}
+
+rule BrokerCompletesTransfer {
+    -- The broker finalises the transfer in its books after settlement.
+    when: BrokerCompletedTransfer(transfer)
+    requires: transfer.status = settled
+    ensures: transfer.status = complete
+}
+
+rule BrokerRejectsTransfer {
+    -- The broker rejects a transfer for compliance, balance or other
+    -- operational reasons before settlement.
+    when: BrokerRejectedTransfer(transfer)
+    requires: transfer.status in {queued, approval_pending, pending}
+    ensures: transfer.status = rejected
+}
+
+rule BrokerReturnsTransfer {
+    -- The transfer is returned by the receiving institution (insufficient
+    -- funds, account closed at the counterparty, etc.).
+    when: BrokerReturnedTransfer(transfer)
+    requires: transfer.status in {sent_to_clearing, approved, settled}
+    ensures: transfer.status = returned
+}
+
+-- ##### Journals ##### --
+
+rule RequestJournal {
+    -- The correspondent journals cash or securities from one of its
+    -- accounts into another. For cash journals above the regulatory
+    -- travel-rule threshold, transmitter details must be supplied.
+    when: RequestJournal(
+        correspondent,
+        from_account,
+        to_account,
+        kind,
+        cash_amount?,
+        base_currency?,
+        security?,
+        quantity?,
+        price?,
+        description?,
+        transmitter_name?,
+        transmitter_account_number?,
+        transmitter_address?,
+        transmitter_financial_institution?,
+        transmitter_timestamp?
+    )
+    requires: from_account.correspondent = correspondent
+    requires: to_account.correspondent = correspondent
+    requires: from_account != to_account
+    requires: from_account.status in {active, limited}
+    requires: to_account.status in {approved, active, limited}
+    requires: kind = cash implies cash_amount != null and cash_amount > 0
+    requires: kind = security implies security != null and quantity != null and quantity > 0
+    requires:
+        kind = cash and cash_amount > config.travel_rule_threshold_amount
+            implies transmitter_name != null
+                    and transmitter_account_number != null
+                    and transmitter_address != null
+                    and transmitter_financial_institution != null
+                    and transmitter_timestamp != null
+    ensures:
+        Journal.created(
+            from_account: from_account,
+            to_account: to_account,
+            kind: kind,
+            cash_amount: cash_amount,
+            base_currency: base_currency,
+            security: security,
+            quantity: quantity,
+            price: price,
+            description: description,
+            transmitter_name: transmitter_name,
+            transmitter_account_number: transmitter_account_number,
+            transmitter_address: transmitter_address,
+            transmitter_financial_institution: transmitter_financial_institution,
+            transmitter_timestamp: transmitter_timestamp,
+            requested_at: now,
+            status: queued
+        )
+}
+
+rule RequestBatchJournal {
+    -- The correspondent journals cash out of one originating account into
+    -- many beneficiary accounts in a single request. Typically used to
+    -- distribute funds from a sweep firm account to many end-user accounts.
+    -- Each entry produces an independent journal whose lifecycle is tracked
+    -- separately; one bad entry does not roll back the others.
+    when: RequestBatchJournal(correspondent, from_account, entries)
+    requires: from_account.correspondent = correspondent
+    requires: entries.count > 0
+    ensures:
+        for entry in entries:
+            Journal.created(
+                from_account: from_account,
+                to_account: entry.to_account,
+                kind: cash,
+                cash_amount: entry.amount,
+                description: entry.description,
+                transmitter_name: entry.transmitter_name,
+                transmitter_account_number: entry.transmitter_account_number,
+                transmitter_address: entry.transmitter_address,
+                transmitter_financial_institution: entry.transmitter_financial_institution,
+                transmitter_timestamp: entry.transmitter_timestamp,
+                requested_at: now,
+                status: queued
+            )
+}
+
+rule RequestReverseBatchJournal {
+    -- The mirror of a batch journal: cash from many originating accounts
+    -- collected into a single beneficiary account (typically a sweep firm
+    -- account aggregating funds back from end users).
+    when: RequestReverseBatchJournal(correspondent, to_account, entries)
+    requires: to_account.correspondent = correspondent
+    requires: entries.count > 0
+    ensures:
+        for entry in entries:
+            Journal.created(
+                from_account: entry.from_account,
+                to_account: to_account,
+                kind: cash,
+                cash_amount: entry.amount,
+                description: entry.description,
+                transmitter_name: entry.transmitter_name,
+                transmitter_account_number: entry.transmitter_account_number,
+                transmitter_address: entry.transmitter_address,
+                transmitter_financial_institution: entry.transmitter_financial_institution,
+                transmitter_timestamp: entry.transmitter_timestamp,
+                requested_at: now,
+                status: queued
+            )
+}
+
+rule CancelJournal {
+    -- The correspondent cancels a journal that has not yet executed. After
+    -- execution the journal is final; remediation goes through a separate
+    -- correction or deletion path handled by the broker's operations team.
+    when: CancelJournal(correspondent, journal)
+    requires: journal.from_account.correspondent = correspondent
+    requires: journal.status in {queued, sent_to_clearing, pending}
+    ensures: journal.status = canceled
+}
+
+rule BrokerSendsJournalToClearing {
+    -- The broker hands a journal to clearing.
+    when: BrokerSentJournalToClearing(journal)
+    requires: journal.status = queued
+    ensures: journal.status = sent_to_clearing
+}
+
+rule BrokerMarksJournalPending {
+    -- Clearing acknowledges receipt of the journal.
+    when: BrokerMarkedJournalPending(journal)
+    requires: journal.status = sent_to_clearing
+    ensures: journal.status = pending
+}
+
+rule BrokerExecutesJournal {
+    -- Clearing books the journal: funds (or securities) have moved between
+    -- the two accounts.
+    when: BrokerExecutedJournal(journal)
+    requires: journal.status = pending
+    ensures: journal.status = executed
+}
+
+rule BrokerFinalisesJournal {
+    -- The broker marks an executed journal as correct, closing the entry.
+    when: BrokerFinalisedJournal(journal)
+    requires: journal.status = executed
+    ensures: journal.status = correct
+}
+
+rule BrokerRejectsJournal {
+    -- The broker rejects a journal before execution.
+    when: BrokerRejectedJournal(journal)
+    requires: journal.status in {queued, sent_to_clearing, pending}
+    ensures: journal.status = rejected
+}
+
+rule BrokerRefusesJournal {
+    -- The broker refuses a journal at intake (e.g. policy violation,
+    -- account state mismatch).
+    when: BrokerRefusedJournal(journal)
+    requires: journal.status = queued
+    ensures: journal.status = refused
+}
+
+rule BrokerDeletesJournal {
+    -- The broker reverses an executed journal as a corrective action by
+    -- operations.
+    when: BrokerDeletedJournal(journal)
+    requires: journal.status = executed
+    ensures: journal.status = deleted
+}
+
+-- ##### Portfolio rebalancing ##### --
+
+rule DefineModelPortfolio {
+    -- The correspondent publishes a model portfolio: a named target
+    -- allocation that subscribed accounts will be rebalanced to.
+    when: DefineModelPortfolio(
+        correspondent,
+        name,
+        description,
+        weights,
+        cooldown_days,
+        rebalance_conditions?
+    )
+    requires: weights.count > 0
+    requires: cooldown_days >= 0
+    ensures:
+        ModelPortfolio.created(
+            correspondent: correspondent,
+            name: name,
+            description: description,
+            weights: weights,
+            cooldown_days: cooldown_days,
+            rebalance_conditions: rebalance_conditions,
+            status: active,
+            created_at: now,
+            updated_at: now
+        )
+}
+
+rule UpdateModelPortfolio {
+    -- The correspondent updates a model portfolio. If weights or conditions
+    -- change, all subscribed accounts are re-evaluated for rebalancing at
+    -- the next opportunity, respecting the portfolio's cooldown.
+    when: UpdateModelPortfolio(
+        correspondent,
+        portfolio,
+        name?,
+        description?,
+        weights?,
+        cooldown_days?,
+        rebalance_conditions?
+    )
+    requires: portfolio.correspondent = correspondent
+    requires: portfolio.status in {active, needs_adjustment}
+    ensures:
+        if name != null:
+            portfolio.name = name
+        if description != null:
+            portfolio.description = description
+        if weights != null:
+            portfolio.weights = weights
+        if cooldown_days != null:
+            portfolio.cooldown_days = cooldown_days
+        if rebalance_conditions != null:
+            portfolio.rebalance_conditions = rebalance_conditions
+        portfolio.updated_at = now
+}
+
+rule InactivateModelPortfolio {
+    -- The correspondent retires a model portfolio. Only permitted when no
+    -- account is still subscribed to it. Inactive portfolios cannot be
+    -- linked in new subscriptions.
+    when: InactivateModelPortfolio(correspondent, portfolio)
+    requires: portfolio.correspondent = correspondent
+    requires: portfolio.subscriptions.count = 0
+    requires: portfolio.status != inactive
+    ensures: portfolio.status = inactive
+}
+
+rule BrokerFlagsPortfolioForAdjustment {
+    -- The broker flags a portfolio as needing adjustment, typically because
+    -- one of its weighted securities is no longer tradable or its weights
+    -- no longer sum to 100% after a corporate action. Drives downstream
+    -- re-evaluation by the correspondent.
+    when: BrokerFlaggedPortfolioForAdjustment(portfolio)
+    requires: portfolio.status = active
+    ensures: portfolio.status = needs_adjustment
+}
+
+rule SubscribeAccountToPortfolio {
+    -- An account is enrolled in a model portfolio. From that point on the
+    -- rebalancer treats the account's holdings as drift to be corrected.
+    when: SubscribeAccountToPortfolio(correspondent, account, portfolio)
+    requires: account.correspondent = correspondent
+    requires: portfolio.correspondent = correspondent
+    requires: account.status = active
+    requires: portfolio.status = active
+    requires: not exists AccountSubscription{account: account, portfolio: portfolio}
+    ensures:
+        AccountSubscription.created(
+            account: account,
+            portfolio: portfolio,
+            created_at: now
+        )
+}
+
+rule UnsubscribeAccount {
+    -- The correspondent removes an account's subscription. The rebalancer no
+    -- longer maintains target weights; in-flight runs are unaffected.
+    when: UnsubscribeAccount(correspondent, subscription)
+    requires: subscription.account.correspondent = correspondent
+    ensures: not exists subscription
+}
+
+rule RequestManualRebalancingRun {
+    -- The correspondent triggers an ad-hoc rebalance for one subscribed
+    -- account against one of its portfolios, optionally with custom weights
+    -- (e.g. to liquidate-and-reinvest on a specific cash event). The run
+    -- enters the queue alongside system-initiated runs.
+    when: RequestManualRebalancingRun(correspondent, subscription, kind, weights)
+    requires: subscription.account.correspondent = correspondent
+    requires: weights.count > 0
+    ensures:
+        RebalancingRun.created(
+            account: subscription.account,
+            portfolio: subscription.portfolio,
+            kind: kind,
+            initiator: api,
+            weights: weights,
+            created_at: now,
+            updated_at: now,
+            status: queued
+        )
+}
+
+rule CancelRebalancingRun {
+    -- The correspondent cancels a run before, during, or after it has
+    -- started placing orders. If orders have already been submitted, the
+    -- broker attempts to cancel them as well; the resulting state
+    -- distinguishes pre-execution cancellation (canceled) from
+    -- mid-execution (canceled_mid_run).
+    when: CancelRebalancingRun(correspondent, run)
+    requires: run.account.correspondent = correspondent
+    requires: run.status in {queued, in_progress}
+    ensures:
+        if run.status = queued:
+            run.status = canceled
+            run.canceled_at = now
+            run.updated_at = now
+        else:
+            run.status = canceled_mid_run
+            run.canceled_at = now
+            run.updated_at = now
+}
+
+rule BrokerStartsRebalancingRun {
+    -- The broker begins executing a queued rebalancing run by placing the
+    -- first orders.
+    when: BrokerStartedRebalancingRun(run)
+    requires: run.status = queued
+    ensures:
+        run.status = in_progress
+        run.updated_at = now
+}
+
+rule BrokerCompletesRebalancingRunSuccessfully {
+    -- The broker finishes the run with all target orders filled.
+    when: BrokerCompletedRebalancingRunSuccessfully(run)
+    requires: run.status = in_progress
+    ensures:
+        run.status = completed_success
+        run.completed_at = now
+        run.updated_at = now
+}
+
+rule BrokerCompletesRebalancingRunAdjusted {
+    -- The broker finishes the run, but with one or more orders skipped or
+    -- adjusted (e.g. due to fractional-share limits or a halted symbol).
+    when: BrokerCompletedRebalancingRunAdjusted(run)
+    requires: run.status = in_progress
+    ensures:
+        run.status = completed_adjusted
+        run.completed_at = now
+        run.updated_at = now
+}
+
+rule BrokerFailsRebalancingRun {
+    -- An unrecoverable error occurred during the run.
+    when: BrokerFailedRebalancingRun(run)
+    requires: run.status = in_progress
+    ensures:
+        run.status = error
+        run.updated_at = now
+}
+
+rule BrokerTimesOutRebalancingRun {
+    -- The run exceeded its allotted execution window.
+    when: BrokerTimedOutRebalancingRun(run)
+    requires: run.status = in_progress
+    ensures:
+        run.status = timeout
+        run.updated_at = now
+}
+
+-- ##### Document retrieval ##### --
+
+rule DownloadTradeDocument {
+    -- The correspondent fetches a generated trade document (statement,
+    -- confirmation, tax form) for an account. Read-only — modelled because
+    -- regulatory recordkeeping mandates these documents exist and remain
+    -- retrievable for the document's retention period.
+    when: DownloadTradeDocument(correspondent, account, document)
+    requires: account.correspondent = correspondent
+    requires: document.account = account
+    ensures: TradeDocumentRetrieved(
+        correspondent: correspondent,
+        account: account,
+        document: document,
+        retrieved_at: now
+    )
+}
+
+------------------------------------------------------------
+-- Invariants
+------------------------------------------------------------
+
+invariant AccountsBelongToOneCorrespondent {
+    for account in brokerageaccount/BrokerageAccounts:
+        account.correspondent != null
+}
+
+invariant AchTransfersStayWithinTheirAccount {
+    for transfer in Transfers:
+        transfer.ach_source != null implies transfer.ach_source.account = transfer.account
+}
+
+invariant WireTransfersStayWithinTheirAccount {
+    for transfer in Transfers:
+        transfer.wire_source != null implies transfer.wire_source.account = transfer.account
+}
+
+invariant JournalsAreCrossAccount {
+    for journal in Journals:
+        journal.from_account != journal.to_account
+}
+
+invariant SubscriptionPortfolioAndAccountShareCorrespondent {
+    for subscription in AccountSubscriptions:
+        subscription.account.correspondent = subscription.portfolio.correspondent
+}
+
+invariant RebalancingRunBelongsToSubscribedAccount {
+    for run in RebalancingRuns:
+        run.account.correspondent = run.portfolio.correspondent
+}
+
+------------------------------------------------------------
+-- Actor Declarations
+------------------------------------------------------------
+
+actor BrokerPartner {
+    -- The correspondent broker integrating with the platform. Authenticated
+    -- via API credentials issued at partnership onboarding; identity is
+    -- modelled as the Correspondent entity itself.
+    identified_by: Correspondent where name != ""
+}
+
+------------------------------------------------------------
+-- Surfaces
+------------------------------------------------------------
+
+surface PartnerOnboarding {
+    -- The boundary for creating new accounts for end users. Distinct from
+    -- AccountAdministration because the account does not yet exist.
+    facing partner: BrokerPartner
+
+    provides:
+        SubmitAccountApplication(
+            partner,
+            holder,
+            kind,
+            sub_kind?,
+            contact,
+            identity,
+            disclosures,
+            agreements,
+            trusted_contact?,
+            supporting_documents?
+        )
+}
+
+surface AccountAdministration {
+    -- The boundary the correspondent uses to manage a single account it
+    -- holds on behalf of an end user.
+    facing partner: BrokerPartner
+
+    context account: brokerageaccount/BrokerageAccount where correspondent = partner
+
+    exposes:
+        account.account_number
+        account.kind
+        account.sub_kind
+        account.status
+        account.crypto_status
+        account.kyc_review
+        account.contact
+        account.identity
+        account.disclosures
+        account.agreements
+        account.trusted_contact
+        account.account_documents
+        account.trade_documents
+
+    provides:
+        UpdateAccountInformation(partner, account, contact?, identity?, disclosures?, trusted_contact?)
+            when account.status != account_closed
+        UploadAccountDocuments(partner, account, documents)
+            when account.status != account_closed
+        SubmitCipResults(partner, account, providers, review)
+            when account.status in {submitted, action_required, aml_review, approval_pending}
+        CloseAccount(partner, account)
+            when account.status in {active, limited, paper_only, disabled, inactive, approved}
+        DownloadTradeDocument(partner, account, document)
+
+    related:
+        AccountFunding(account)
+        AccountRebalancing(account) when account.subscriptions.count > 0
+}
+
+surface AccountFunding {
+    -- The boundary for moving money in and out of an account, and for the
+    -- bank links used to do so.
+    facing partner: BrokerPartner
+
+    context account: brokerageaccount/BrokerageAccount where correspondent = partner
+
+    exposes:
+        account.ach_relationships
+        account.recipient_banks
+        account.transfers
+
+    provides:
+        EstablishAchRelationship(
+            partner, account, owner_name, bank_account_kind,
+            bank_account_number?, bank_routing_number?,
+            plaid_processor_token?, nickname?
+        ) when account.status in {approved, active, limited, paper_only}
+        RemoveAchRelationship(partner, account, relationship)
+        RegisterRecipientBank(
+            partner, account, name, identifier_kind,
+            bank_code, bank_account_number, address?
+        ) when account.status in {approved, active, limited}
+        RemoveRecipientBank(partner, account, bank)
+        RequestAchTransfer(partner, account, relationship, direction, amount, fee_payer?)
+            when account.status in {approved, active, limited, paper_only}
+        RequestWireTransfer(
+            partner, account, bank, direction, amount, fee_payer?, additional_information?
+        ) when account.status in {approved, active, limited, paper_only}
+        CancelTransfer(partner, account, transfer)
+}
+
+surface InterAccountJournals {
+    -- The boundary for moving cash and securities between two accounts that
+    -- the same correspondent holds. Distinct from funding because no
+    -- external rail is involved.
+    facing partner: BrokerPartner
+
+    provides:
+        RequestJournal(
+            partner, from_account, to_account, kind,
+            cash_amount?, base_currency?,
+            security?, quantity?, price?,
+            description?,
+            transmitter_name?, transmitter_account_number?,
+            transmitter_address?, transmitter_financial_institution?,
+            transmitter_timestamp?
+        )
+        RequestBatchJournal(partner, from_account, entries)
+        RequestReverseBatchJournal(partner, to_account, entries)
+        CancelJournal(partner, journal)
+}
+
+surface PortfolioCatalog {
+    -- The boundary the correspondent uses to define and maintain the set of
+    -- model portfolios it offers to its end users.
+    facing partner: BrokerPartner
+
+    let portfolios = ModelPortfolios where correspondent = partner
+
+    exposes:
+        portfolios
+
+    provides:
+        DefineModelPortfolio(
+            partner, name, description, weights,
+            cooldown_days, rebalance_conditions?
+        )
+        UpdateModelPortfolio(
+            partner, portfolio, name?, description?,
+            weights?, cooldown_days?, rebalance_conditions?
+        )
+        InactivateModelPortfolio(partner, portfolio)
+}
+
+surface AccountRebalancing {
+    -- The boundary for subscribing accounts to portfolios and managing
+    -- rebalancing runs.
+    facing partner: BrokerPartner
+
+    context account: brokerageaccount/BrokerageAccount where correspondent = partner
+
+    exposes:
+        account.subscriptions
+        account.rebalancing_runs
+
+    provides:
+        SubscribeAccountToPortfolio(partner, account, portfolio)
+            when account.status = active
+        UnsubscribeAccount(partner, subscription)
+        RequestManualRebalancingRun(partner, subscription, kind, weights)
+        CancelRebalancingRun(partner, run)
+}
+
+------------------------------------------------------------
+-- Open Questions
+------------------------------------------------------------
+
+open question "Account approval automation — exact conditions under which the broker advances an account from approval_pending to approved versus action_required versus aml_review. Currently treated as broker-internal and modelled as opaque external stimuli."
+
+open question "Rebalancing trigger semantics — exact conditions under which a portfolio update or a drift-band breach produces a system-initiated RebalancingRun. Currently surfaced only through the run's initiator field."
+
+open question "Travel-rule threshold currency — config.travel_rule_threshold_amount is expressed in USD, but cash journals support multiple base currencies. Threshold may need to be per-currency."
+
+open question "OAuth B2B authorization flow — referenced in scope description but not present in the surveyed code; assumed to live in a separate authorization service."

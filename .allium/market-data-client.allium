@@ -1,0 +1,464 @@
+-- allium: 3
+-- market-data-client.allium
+
+use "github.com/alpacahq/alpaca-allium-lib@d5d38e0fe969061525b6fabbf7c66e0aa66c40e2/MarketDataTrade" as marketdatatrade
+use "github.com/alpacahq/alpaca-allium-lib@d5d38e0fe969061525b6fabbf7c66e0aa66c40e2/Quote" as quote
+use "github.com/alpacahq/alpaca-allium-lib@d5d38e0fe969061525b6fabbf7c66e0aa66c40e2/NewsArticle" as newsarticle
+
+------------------------------------------------------------
+-- Enumerations
+------------------------------------------------------------
+
+enum AssetClass { stock | crypto | option | news }
+
+enum DataFeed {
+    iex | sip | `delayed_sip` | otc | boats | overnight
+    | opra | indicative | us
+}
+
+enum Adjustment { raw | split | dividend | all }
+
+enum BarTimeframeUnit { minute | hour | day | week | month }
+
+enum SortOrder { asc | desc }
+
+enum ScreenerRankBy { volume | trades }
+
+enum ScreenerMarketType { stocks | crypto }
+
+enum StreamingDataType {
+    trades | quotes | bars | updated_bars | daily_bars
+    | orderbooks | trading_statuses | trade_corrections | trade_cancels
+    | news
+}
+
+enum StreamStatus { idle | connecting | authenticated | streaming | stopped }
+
+------------------------------------------------------------
+-- Value Types
+------------------------------------------------------------
+
+value TimeFrame {
+    amount: Integer
+    unit: BarTimeframeUnit
+
+    valid_as_minute: unit = minute and amount >= 1 and amount <= 59
+    valid_as_hour: unit = hour and amount >= 1 and amount <= 23
+    valid_as_day_or_week: unit in {day, week} and amount = 1
+    valid_as_month: unit = month and amount in {1, 2, 3, 6, 12}
+    is_valid: valid_as_minute or valid_as_hour or valid_as_day_or_week or valid_as_month
+}
+
+value OrderbookLevel {
+    price: Decimal
+    size: Decimal
+}
+
+value OptionsGreeks {
+    delta: Decimal?
+    gamma: Decimal?
+    rho: Decimal?
+    theta: Decimal?
+    vega: Decimal?
+}
+
+------------------------------------------------------------
+-- External Entities
+------------------------------------------------------------
+
+external entity ApiClient {
+    has_credentials: Boolean
+}
+
+external entity Bar {
+    symbol: String
+    timestamp: Timestamp
+    open: Decimal
+    high: Decimal
+    low: Decimal
+    close: Decimal
+    volume: Decimal
+    trade_count: Integer?
+    vwap: Decimal?
+    timeframe: TimeFrame
+}
+
+external entity Snapshot {
+    symbol: String
+    latest_trade: marketdatatrade/MarketDataTrade?
+    latest_quote: quote/Quote?
+    minute_bar: Bar?
+    daily_bar: Bar?
+    previous_daily_bar: Bar?
+}
+
+external entity OptionsSnapshot {
+    symbol: String
+    latest_trade: marketdatatrade/MarketDataTrade?
+    latest_quote: quote/Quote?
+    minute_bar: Bar?
+    daily_bar: Bar?
+    previous_daily_bar: Bar?
+    greeks: OptionsGreeks?
+    implied_volatility: Decimal?
+}
+
+external entity Orderbook {
+    symbol: String
+    timestamp: Timestamp
+    bids: List<OrderbookLevel>
+    asks: List<OrderbookLevel>
+    reset: Boolean
+}
+
+external entity TradingStatus {
+    symbol: String
+    timestamp: Timestamp
+    status_code: String
+    status_message: String
+    halt_reason: String?
+}
+
+external entity TradeCorrection {
+    symbol: String
+    timestamp: Timestamp
+    original_price: Decimal
+    original_size: Decimal
+    corrected_price: Decimal
+    corrected_size: Decimal
+}
+
+external entity TradeCancel {
+    symbol: String
+    timestamp: Timestamp
+    price: Decimal
+    size: Decimal
+}
+
+external entity CorporateActionEvent {
+    symbol: String
+    action_type: String
+    process_date: Timestamp
+    record_date: Timestamp?
+    payable_date: Timestamp?
+    old_rate: Decimal?
+    new_rate: Decimal?
+}
+
+------------------------------------------------------------
+-- Entities
+------------------------------------------------------------
+
+entity DataStream {
+    asset_class: AssetClass
+    status: StreamStatus
+
+    transitions status {
+        idle -> connecting
+        connecting -> authenticated
+        connecting -> idle
+        authenticated -> streaming
+        streaming -> idle
+        idle -> stopped
+        connecting -> stopped
+        authenticated -> stopped
+        streaming -> stopped
+        terminal: stopped
+    }
+}
+
+entity DataSubscription {
+    stream: DataStream
+    symbol: String
+    data_type: StreamingDataType
+    is_wildcard: Boolean
+
+    invariant WildcardSymbol {
+        is_wildcard implies symbol = "*"
+    }
+}
+
+------------------------------------------------------------
+-- Config
+------------------------------------------------------------
+
+config {
+    bar_query_page_size: Integer = 10_000
+    news_query_page_size: Integer = 50
+    stream_ping_interval: Duration = 10.seconds
+    stream_ping_timeout: Duration = 180.seconds
+}
+
+------------------------------------------------------------
+-- Rules
+------------------------------------------------------------
+
+rule FetchBars {
+    when: FetchBars(symbols, timeframe, start?, end?, feed?, adjustment?, sort?, limit?, currency?)
+    requires: timeframe.is_valid
+    ensures: BarsReturned(symbols: symbols)
+}
+
+rule FetchQuotes {
+    when: FetchQuotes(symbols, start?, end?, feed?, sort?, limit?, currency?)
+    ensures: QuotesReturned(symbols: symbols)
+}
+
+rule FetchTrades {
+    when: FetchTrades(symbols, start?, end?, feed?, sort?, limit?, currency?)
+    ensures: TradesReturned(symbols: symbols)
+}
+
+rule FetchSnapshots {
+    when: FetchSnapshots(symbols, feed?, currency?)
+    ensures: SnapshotsReturned(symbols: symbols)
+}
+
+rule FetchOptionChain {
+    when: FetchOptionChain(underlying_symbol, feed?, expiration_gte?, expiration_lte?, strike_gte?, strike_lte?, contract_type?, root_symbol?, updated_since?)
+    ensures: OptionChainReturned(underlying_symbol: underlying_symbol)
+}
+
+rule FetchCryptoOrderbooks {
+    when: FetchCryptoOrderbooks(symbols)
+    ensures: OrderbooksReturned(symbols: symbols)
+}
+
+rule FetchNews {
+    when: FetchNews(symbols?, start?, end?, limit?, sort?, include_content?, exclude_contentless?, page_token?)
+    ensures: NewsReturned(symbols: symbols)
+}
+
+rule FetchMostActives {
+    when: FetchMostActives(by?, top?)
+    ensures: MostActivesReturned(rank_by: by ?? volume, top: top)
+}
+
+rule FetchMarketMovers {
+    when: FetchMarketMovers(market_type, top?)
+    ensures: MarketMoversReturned(market_type: market_type, top: top)
+}
+
+rule FetchCorporateActionsById {
+    when: FetchCorporateActions(ids?, symbols?, cusips?, types?, start?, end?)
+    requires: ids != null
+    ensures: CorporateActionsReturned(ids: ids)
+
+    @guidance
+        -- When IDs are provided, all other filter parameters (symbols, CUSIPs,
+        -- types, date range) are ignored.
+}
+
+rule FetchCorporateActionsByFilter {
+    when: FetchCorporateActions(ids?, symbols?, cusips?, types?, start?, end?)
+    requires: ids = null
+    ensures: CorporateActionsReturned(symbols: symbols, cusips: cusips, types: types, start: start, end: end)
+}
+
+rule StartStream {
+    when: StartStream(stream)
+    requires: stream.status = idle
+    ensures: stream.status = connecting
+}
+
+rule StreamAuthSucceeded {
+    when: StreamAuthSucceeded(stream)
+    requires: stream.status = connecting
+    ensures: stream.status = authenticated
+}
+
+rule StreamAuthFailed {
+    when: StreamAuthFailed(stream)
+    requires: stream.status = connecting
+    ensures: stream.status = idle
+}
+
+rule StartSubscribing {
+    when: Subscribe(stream, symbol, data_type, is_wildcard?)
+    requires: stream.status = authenticated
+    ensures:
+        stream.status = streaming
+        DataSubscription.created(stream: stream, symbol: symbol, data_type: data_type, is_wildcard: is_wildcard ?? false)
+}
+
+rule AddSubscription {
+    when: Subscribe(stream, symbol, data_type, is_wildcard?)
+    requires: stream.status = streaming
+    ensures:
+        DataSubscription.created(stream: stream, symbol: symbol, data_type: data_type, is_wildcard: is_wildcard ?? false)
+}
+
+rule RemoveSubscription {
+    when: Unsubscribe(stream, symbol, data_type)
+    requires: stream.status = streaming
+    let subscription = DataSubscription{stream, symbol, data_type}
+    requires: exists subscription
+    ensures: not exists subscription
+}
+
+rule StopStream {
+    when: StopStream(stream)
+    requires: stream.status in {idle, connecting, authenticated, streaming}
+    ensures: stream.status = stopped
+}
+
+rule StreamConnectionLost {
+    when: StreamConnectionLost(stream)
+    requires: stream.status in {authenticated, streaming}
+    ensures: stream.status = idle
+}
+
+rule OrderbookResetReceived {
+    when: StreamOrderbookReceived(stream, orderbook)
+    requires: stream.status = streaming
+    requires: orderbook.reset = true
+    ensures: OrderbookReset(stream: stream, symbol: orderbook.symbol)
+
+    @guidance
+        -- Consumers must discard all locally cached bids and asks for the symbol
+        -- and rebuild from the bids and asks in this message.
+}
+
+rule UpdatedBarReceived {
+    when: StreamUpdatedBarReceived(stream, bar)
+    requires: stream.status = streaming
+    ensures: UpdatedBarDelivered(stream: stream, bar: bar)
+
+    @guidance
+        -- Updated bars are in-progress aggregations for the current interval.
+        -- They are superseded by subsequent updates or the final bar at interval close.
+}
+
+------------------------------------------------------------
+-- Surfaces
+------------------------------------------------------------
+
+surface HistoricalStockData {
+    facing caller: ApiClient
+
+    provides:
+        FetchBars(symbols, timeframe, start?, end?, feed?, adjustment?, sort?, limit?, currency?)
+        FetchQuotes(symbols, start?, end?, feed?, sort?, limit?, currency?)
+        FetchTrades(symbols, start?, end?, feed?, sort?, limit?, currency?)
+        FetchSnapshots(symbols, feed?, currency?)
+
+    @guidance
+        -- Default feed is IEX (free). SIP, DELAYED_SIP, and OTC feeds require
+        -- a premium market data subscription.
+        -- Adjustment defaults to RAW when not specified. Applies to stocks only.
+        -- Results paginate automatically at config.bar_query_page_size data points per page.
+}
+
+surface HistoricalCryptoData {
+    facing caller: ApiClient
+
+    provides:
+        FetchBars(symbols, timeframe, start?, end?, sort?, limit?, currency?)
+        FetchQuotes(symbols, start?, end?, sort?, limit?, currency?)
+        FetchTrades(symbols, start?, end?, sort?, limit?, currency?)
+        FetchSnapshots(symbols, currency?)
+        FetchCryptoOrderbooks(symbols)
+
+    @guidance
+        -- Crypto data does not require credentials; unauthenticated requests
+        -- are subject to lower rate limits. No feed or adjustment parameters apply.
+}
+
+surface HistoricalOptionsData {
+    facing caller: ApiClient
+
+    provides:
+        FetchTrades(symbols, start?, end?, feed?, sort?, limit?)
+        FetchQuotes(symbols, start?, end?, feed?, sort?, limit?)
+        FetchSnapshots(symbols, feed?)
+        FetchOptionChain(underlying_symbol, feed?, expiration_gte?, expiration_lte?, strike_gte?, strike_lte?, contract_type?, root_symbol?, updated_since?)
+
+    @guidance
+        -- Default feed (INDICATIVE) does not require a subscription.
+        -- OPRA feed requires an options market data subscription.
+        -- OptionsSnapshot includes greeks and implied volatility alongside the standard snapshot fields.
+}
+
+surface MarketIntelligence {
+    facing caller: ApiClient
+
+    provides:
+        FetchNews(symbols?, start?, end?, limit?, sort?, include_content?, exclude_contentless?, page_token?)
+        FetchMostActives(by?, top?)
+        FetchMarketMovers(market_type, top?)
+        FetchCorporateActions(ids?, symbols?, cusips?, types?, start?, end?)
+
+    @guidance
+        -- News results use token-based pagination via page_token.
+        -- Screener results (most actives, market movers) are pre-computed rankings refreshed periodically.
+        -- Corporate action queries by ID are exclusive with filter-based queries.
+}
+
+surface LiveStockStream {
+    facing caller: ApiClient
+    context stream: DataStream where asset_class = stock
+
+    exposes:
+        stream.status
+
+    provides:
+        StartStream(stream) when stream.status = idle
+        Subscribe(stream, symbol, data_type) when stream.status in {authenticated, streaming}
+        Unsubscribe(stream, symbol, data_type) when stream.status = streaming
+        StopStream(stream)
+
+    @guidance
+        -- Supported data types: trades, quotes, bars, updated_bars, daily_bars, trading_statuses.
+        -- Trade corrections and cancels are delivered on the trades channel without separate subscription.
+        -- Wildcard symbol "*" subscribes to all symbols for the given data type.
+}
+
+surface LiveCryptoStream {
+    facing caller: ApiClient
+    context stream: DataStream where asset_class = crypto
+
+    exposes:
+        stream.status
+
+    provides:
+        StartStream(stream) when stream.status = idle
+        Subscribe(stream, symbol, data_type) when stream.status in {authenticated, streaming}
+        Unsubscribe(stream, symbol, data_type) when stream.status = streaming
+        StopStream(stream)
+
+    @guidance
+        -- Supported data types: trades, quotes, bars, updated_bars, daily_bars, orderbooks.
+        -- Orderbook subscriptions are unique to crypto streams.
+        -- An orderbook message with reset=true requires a full local orderbook rebuild for that symbol.
+}
+
+surface LiveOptionsStream {
+    facing caller: ApiClient
+    context stream: DataStream where asset_class = option
+
+    exposes:
+        stream.status
+
+    provides:
+        StartStream(stream) when stream.status = idle
+        Subscribe(stream, symbol, data_type) when stream.status in {authenticated, streaming}
+        Unsubscribe(stream, symbol, data_type) when stream.status = streaming
+        StopStream(stream)
+
+    @guidance
+        -- Supported data types: trades, quotes.
+}
+
+surface LiveNewsStream {
+    facing caller: ApiClient
+    context stream: DataStream where asset_class = news
+
+    exposes:
+        stream.status
+
+    provides:
+        StartStream(stream) when stream.status = idle
+        Subscribe(stream, symbol, news) when stream.status in {authenticated, streaming}
+        Unsubscribe(stream, symbol, news) when stream.status = streaming
+        StopStream(stream)
+}

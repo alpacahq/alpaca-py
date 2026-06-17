@@ -1,5 +1,6 @@
 from datetime import date, datetime, timedelta
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Literal, Optional, Union
+from uuid import UUID
 
 import pandas as pd
 from pydantic import model_validator
@@ -8,20 +9,29 @@ from alpaca.common.enums import Sort
 from alpaca.common.models import ModelWithID
 from alpaca.common.requests import NonEmptyRequest
 from alpaca.trading.enums import (
+    ActivityCategory,
+    ActivityType,
     AssetClass,
     AssetExchange,
     AssetStatus,
+    BondStatus,
     ContractType,
     CorporateActionDateType,
     CorporateActionType,
+    CreateCryptoTransferRequestChain,
     ExerciseStyle,
+    LocateStatus,
     OrderClass,
     OrderSide,
     OrderType,
     PositionIntent,
     QueryOrderStatus,
     TimeInForce,
+    TokenizationIssuer,
+    TokenizationNetwork,
+    TreasurySubtype,
 )
+from alpaca.trading.models import AdvancedInstructions
 
 
 class ClosePositionRequest(NonEmptyRequest):
@@ -87,6 +97,7 @@ class GetCalendarRequest(NonEmptyRequest):
 
     start: Optional[date] = None
     end: Optional[date] = None
+    date_type: Optional[Literal["TRADING", "SETTLEMENT"]] = "TRADING"
 
 
 class CreateWatchlistRequest(NonEmptyRequest):
@@ -107,11 +118,11 @@ class UpdateWatchlistRequest(NonEmptyRequest):
     Represents the fields you can specify when updating a Watchlist
 
     Attributes:
-        name(Optional[str]): Name of the Watchlist
+        name(str): Name of the Watchlist
         symbols(Optional[List[str]]): Symbols of Assets to watch
     """
 
-    name: Optional[str] = None
+    name: str
     symbols: Optional[List[str]] = None
 
     @model_validator(mode="before")
@@ -207,6 +218,9 @@ class GetOrdersRequest(NonEmptyRequest):
         nested (Optional[bool]): If true, the result will roll up multi-leg orders under the legs field of primary order.
         side (Optional[OrderSide]): Filters down to orders that have a matching side field set.
         symbols (Optional[List[str]]): List of symbols to filter by.
+        asset_class (Optional[AssetClass]):  comma-separated list of asset classes, the response will include only orders in the specified asset classes. By specifying `us_option` as the class, you can query option orders by underlying symbol using the symbols parameter.
+        after_order_id (Optional[UUID]): If specified, only orders submitted after this order ID are returned.
+        before_order_id (Optional[UUID]): If specified, only orders submitted before this order ID are returned.
     """
 
     status: Optional[QueryOrderStatus] = None
@@ -217,6 +231,9 @@ class GetOrdersRequest(NonEmptyRequest):
     nested: Optional[bool] = None
     side: Optional[OrderSide] = None
     symbols: Optional[List[str]] = None
+    after_order_id: Optional[UUID] = None
+    before_order_id: Optional[UUID] = None
+    asset_class: Optional[AssetClass] = None
 
 
 class GetOrderByIdRequest(NonEmptyRequest):
@@ -323,7 +340,7 @@ class CancelOrderResponse(ModelWithID):
     Attributes:
         id (UUID): The order id
         status (int): The HTTP status returned after attempting to cancel the order.
-        body (Dict[str, Any]): an error description
+        body (Optional[Dict[str, Any]]): An error description when the cancellation failed.
     """
 
     status: int
@@ -689,6 +706,7 @@ class GetOptionContractsRequest(NonEmptyRequest):
 
     Attributes:
         underlying_symbols (Optional[List[str]]): The underlying symbols for the option contracts to be returned. (e.g. ["AAPL", "SPY"])
+        show_deliverables (Optional[bool]): Include deliverables array in the response.
         status (Optional[AssetStatus]): The status of the asset.
         expiration_date (Optional[Union[date, str]]): The expiration date of the option contract. (YYYY-MM-DD)
         expiration_date_gte (Optional[Union[date, str]]): The expiration date of the option contract greater than or equal to. (YYYY-MM-DD)
@@ -696,14 +714,16 @@ class GetOptionContractsRequest(NonEmptyRequest):
         root_symbol (Optional[str]): The option root symbol.
         type (Optional[ContractType]): The option contract type.
         style (Optional[ExerciseStyle]): The option contract style.
-        strike_price_gte (Optional[str]): The option contract strike price greater than or equal to.
-        strike_price_lte (Optional[str]): The option contract strike price less than or equal to.
+        strike_price_gte (Optional[float]): The option contract strike price greater than or equal to.
+        strike_price_lte (Optional[float]): The option contract strike price less than or equal to.
         limit (Optional[int]): The number of contracts to limit per page (default=100, max=10000).
+        ppind (Optional[bool]): The ppind(Penny Program Indicator) field indicates whether an option contract is eligible for penny price increments, with `true` meaning it is part of the Penny Program and `false` meaning it is not.
         page_token (Optional[str]): Pagination token to continue from. The value to pass here is returned in specific
             requests when more data is available than the request limit allows.
     """
 
     underlying_symbols: Optional[List[str]] = None
+    show_deliverables: Optional[bool] = True
     status: Optional[AssetStatus] = AssetStatus.ACTIVE
     expiration_date: Optional[Union[date, str]] = None
     expiration_date_gte: Optional[Union[date, str]] = None
@@ -711,8 +731,236 @@ class GetOptionContractsRequest(NonEmptyRequest):
     root_symbol: Optional[str] = None
     type: Optional[ContractType] = None
     style: Optional[ExerciseStyle] = None
-    strike_price_gte: Optional[str] = None
-    strike_price_lte: Optional[str] = None
+    strike_price_gte: Optional[float] = None
+    strike_price_lte: Optional[float] = None
 
     limit: Optional[int] = None
+    ppind: Optional[bool] = None
+    page_token: Optional[str] = None
+
+
+class CreateCryptoTransferRequest(NonEmptyRequest):
+    """
+    Request to initiate a crypto withdrawal transfer to an external wallet.
+
+    Attributes:
+        amount (str): Amount (denominated in the specified asset) to withdraw from the user's wallet.
+        address (str): Destination wallet address.
+        asset (str): Crypto asset symbol, e.g. "BTC", "ETH", "USDT".
+        chain (Optional[Union[CreateCryptoTransferRequestChain, Literal["SOL","ETH","BTC","XRP","ARB"]]]):
+            Blockchain network for the withdrawal. Required when the asset is available on
+            multiple chains. Accepts the ``CreateCryptoTransferRequestChain`` enum or a raw
+            string; values are still validated against the allowed set for backward compatibility.
+
+    .. todo::
+        Simplify ``chain`` to ``CreateCryptoTransferRequestChain`` (drop the ``Literal``
+        fallback) on the next breaking release.
+    """
+
+    amount: str
+    address: str
+    asset: str
+    # TODO: simplify to just CreateCryptoTransferRequestChain on next breaking release
+    # (Literal fallback preserves validation strictness for callers passing raw strings)
+    chain: Optional[
+        Union[
+            CreateCryptoTransferRequestChain, Literal["SOL", "ETH", "BTC", "XRP", "ARB"]
+        ]
+    ] = None
+
+
+class PatchOrderRequest(NonEmptyRequest):
+    """
+    Request to patch (replace) an existing open order.
+
+    Note: ``qty`` and ``notional`` are mutually exclusive. ``notional`` is only valid for
+    IPO indications of interest (``asset_class: "ipo"``); non-IPO notional orders cannot
+    be replaced at all — cancel and resubmit instead.
+
+    Attributes:
+        qty (Optional[str]): Number of shares to trade (full shares only). Fractional qty
+            and non-IPO notional orders cannot be changed via patch.
+        notional (Optional[str]): New dollar amount for IPO orders only.
+        time_in_force (Optional[TimeInForce]): New time-in-force for the order.
+        limit_price (Optional[str]): Required if the original order type is ``limit`` or
+            ``stop_limit``. For multi-leg orders, positive = debit, negative = credit.
+        stop_price (Optional[str]): Required if the original order type is ``stop`` or
+            ``stop_limit``.
+        trail (Optional[str]): New ``trail_price`` or ``trail_percent`` value
+            (trailing-stop orders only).
+        client_order_id (Optional[str]): Unique identifier for the replacement order
+            (max 128 characters).
+        advanced_instructions (Optional[AdvancedInstructions]): Elite Smart Router
+            instructions for the replacement order.
+    """
+
+    qty: Optional[str] = None
+    notional: Optional[str] = None
+    time_in_force: Optional[TimeInForce] = None
+    limit_price: Optional[str] = None
+    stop_price: Optional[str] = None
+    trail: Optional[str] = None
+    client_order_id: Optional[str] = None
+    advanced_instructions: Optional[AdvancedInstructions] = None
+
+
+class TokenizationMintRequest(NonEmptyRequest):
+    """
+    Request to convert an underlying asset into a tokenized asset (mint).
+
+    Attributes:
+        underlying_symbol (str): The underlying asset symbol to convert.
+        qty (str): Quantity to convert into the tokenized asset. May be fractional.
+        issuer (TokenizationIssuer): The tokenized asset's issuer.
+        network (TokenizationNetwork): The blockchain network to receive the token.
+        wallet_address (str): Wallet address to receive the tokenized asset.
+    """
+
+    underlying_symbol: str
+    qty: str
+    issuer: TokenizationIssuer
+    network: TokenizationNetwork
+    wallet_address: str
+
+
+class GetUSTreasuriesRequest(NonEmptyRequest):
+    """
+    Parameters for fetching US Treasury securities.
+
+    Attributes:
+        subtype (Optional[TreasurySubtype]): Filter by treasury subtype
+            (``bond``, ``bill``, ``note``, ``strips``, ``tips``, ``floating``).
+        bond_status (Optional[BondStatus]): Filter by bond status
+            (``outstanding``, ``matured``, ``pre_issuance``).
+        cusips (Optional[str]): Comma-separated list of CUSIPs to filter by
+            (limit 1000, e.g. ``"912810UG1,912797PM3"``).
+        isins (Optional[str]): Comma-separated list of ISINs to filter by
+            (limit 1000, e.g. ``"US912810UG12,US912797PM34"``).
+    """
+
+    subtype: Optional[TreasurySubtype] = None
+    bond_status: Optional[BondStatus] = None
+    cusips: Optional[str] = None
+    isins: Optional[str] = None
+
+
+class GetUSCorporatesRequest(NonEmptyRequest):
+    """
+    Parameters for fetching US corporate bonds.
+
+    Attributes:
+        bond_status (Optional[BondStatus]): Filter by bond status
+            (``outstanding``, ``matured``, ``pre_issuance``).
+        isins (Optional[str]): Comma-separated list of ISINs to filter by
+            (e.g. ``"US912810UG12,US912797PM34"``).
+        cusips (Optional[str]): Comma-separated list of CUSIPs to filter by
+            (e.g. ``"912810UG1,912797PM3"``).
+        tickers (Optional[str]): Comma-separated list of ticker symbols to
+            filter by (e.g. ``"BAC,MSFT"``).
+    """
+
+    bond_status: Optional[BondStatus] = None
+    isins: Optional[str] = None
+    cusips: Optional[str] = None
+    tickers: Optional[str] = None
+
+
+class GetWalletFeeEstimateRequest(NonEmptyRequest):
+    """
+    Parameters for estimating the gas fee for a crypto transfer.
+
+    Attributes:
+        asset (Optional[str]): The asset symbol (e.g. ``"USDC"``).
+        from_address (Optional[str]): The source wallet address.
+        to_address (Optional[str]): The destination wallet address.
+        amount (Optional[str]): The transfer amount as a string.
+    """
+
+    asset: Optional[str] = None
+    from_address: Optional[str] = None
+    to_address: Optional[str] = None
+    amount: Optional[str] = None
+
+
+class GetLocatesRequest(NonEmptyRequest):
+    """
+    Parameters for fetching locate requests.
+
+    Attributes:
+        page_token (Optional[str]): Pagination token to continue from.
+        limit (Optional[int]): Maximum number of results to return.
+        status (Optional[LocateStatus]): Filter by locate status.
+        symbol (Optional[str]): Filter by stock symbol.
+        start (Optional[date]): Filter locates with trading date on or after this date.
+        end (Optional[date]): Filter locates with trading date before this date.
+    """
+
+    page_token: Optional[str] = None
+    limit: Optional[int] = None
+    status: Optional[LocateStatus] = None
+    symbol: Optional[str] = None
+    start: Optional[date] = None
+    end: Optional[date] = None
+
+
+class CreateLocateRequest(NonEmptyRequest):
+    """
+    Request to locate shares for a short sale.
+
+    Attributes:
+        symbol (str): Stock symbol.
+        qty (int): Number of shares to locate.
+        all_or_none (Optional[bool]): Reject unless the full requested quantity is available.
+        limit_price (Optional[str]): Maximum acceptable locate fee per share in USD.
+    """
+
+    symbol: str
+    qty: int
+    all_or_none: Optional[bool] = False
+    limit_price: Optional[str] = None
+
+
+class GetLocateQuotesRequest(NonEmptyRequest):
+    """
+    Parameters for fetching locate availability and pricing.
+
+    Attributes:
+        symbols (Union[str, List[str]]): Comma-separated stock symbols or a list
+            of stock symbols to quote.
+    """
+
+    symbols: Union[str, List[str]]
+
+
+class GetActivitiesRequest(NonEmptyRequest):
+    """
+    Parameters for fetching account activity history from ``GET /v2/account/activities``.
+
+    Attributes:
+        activity_types (Optional[List[ActivityType]]): Filter by one or more activity
+            types.  Cannot be combined with ``category``.
+        category (Optional[ActivityCategory]): Filter by high-level category
+            (``trade_activity`` or ``non_trade_activity``).  Cannot be combined
+            with ``activity_types``.
+        date (Optional[Union[date, datetime, str]]): Return activities whose
+            ``created_at`` matches this date.  Accepts ``YYYY-MM-DD`` or
+            ``YYYY-MM-DDTHH:MM:SSZ``.
+        until (Optional[Union[date, datetime, str]]): Return activities created
+            before this date/time.
+        after (Optional[Union[date, datetime, str]]): Return activities created
+            after this date/time.
+        direction (Optional[str]): Chronological order — ``asc`` or ``desc``
+            (default ``desc``).
+        page_size (Optional[int]): Number of results per page (1–100, default 100).
+        page_token (Optional[str]): ID of the last activity from the previous page,
+            used for cursor pagination.
+    """
+
+    activity_types: Optional[List[ActivityType]] = None
+    category: Optional[ActivityCategory] = None
+    date: Optional[Union[date, datetime, str]] = None
+    until: Optional[Union[date, datetime, str]] = None
+    after: Optional[Union[date, datetime, str]] = None
+    direction: Optional[str] = None
+    page_size: Optional[int] = None
     page_token: Optional[str] = None

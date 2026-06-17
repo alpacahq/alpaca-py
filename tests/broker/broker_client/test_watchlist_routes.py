@@ -215,7 +215,7 @@ def test_update_watchlist_for_account_by_id_validates_ids(
     reqmock, client: BrokerClient
 ):
     id = "0d969814-40d6-4b2b-99ac-2e37427f1ad2"
-    request = UpdateWatchlistRequest(symbols=["AAPL"])
+    request = UpdateWatchlistRequest(name="test", symbols=["AAPL"])
 
     with pytest.raises(ValueError):
         client.update_watchlist_for_account_by_id(

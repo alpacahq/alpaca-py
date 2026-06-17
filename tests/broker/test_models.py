@@ -10,6 +10,12 @@ from alpaca.broker.requests import (
     UploadW8BenDocumentRequest,
     W8BenDocument,
     CreateJournalRequest,
+    LimitOrderRequest,
+    MarketOrderRequest,
+    OrderRequest,
+    StopLimitOrderRequest,
+    StopOrderRequest,
+    TrailingStopOrderRequest,
 )
 from alpaca.broker.models import (
     AccountDocument,
@@ -37,6 +43,21 @@ from alpaca.broker.enums import (
 from alpaca.trading.enums import ActivityType
 from tests.broker.factories import create_dummy_w8ben_document
 from uuid import uuid4
+
+
+@pytest.mark.parametrize(
+    "request_cls",
+    [
+        OrderRequest,
+        MarketOrderRequest,
+        LimitOrderRequest,
+        StopOrderRequest,
+        StopLimitOrderRequest,
+        TrailingStopOrderRequest,
+    ],
+)
+def test_order_request_extended_hours_doc_type_matches_annotation(request_cls):
+    assert "extended_hours (Optional[bool])" in request_cls.__doc__
 
 
 def test_document_validates_id():

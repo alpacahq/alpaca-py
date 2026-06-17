@@ -1,19 +1,37 @@
 import uuid
 import warnings
+from typing import Optional
 
 import pytest
+from pydantic import ValidationError
 
 from alpaca.trading.enums import (
+    ActivityType,
     OrderClass,
     OrderSide,
     OrderType,
     TimeInForce,
+    TradeActivityType,
     TradeEvent,
 )
-from alpaca.trading.models import TradeUpdate
+from alpaca.trading.models import (
+    ActivityEventV2CommonFields,
+    CanceledOrderResponse,
+    ErrorResponse,
+    ListLocatesResponse,
+    NonTradeActivities,
+    Order,
+    OrderLeg,
+    TradeAccount,
+    TradingActivities,
+    TradeUpdate,
+)
 from alpaca.trading.requests import (
+    CreateLocateRequest,
+    GetOptionContractsRequest,
     LimitOrderRequest,
     MarketOrderRequest,
+    OrderRequest,
     OptionLegRequest,
     StopLossRequest,
     StopLimitOrderRequest,
@@ -21,6 +39,29 @@ from alpaca.trading.requests import (
     TakeProfitRequest,
     TrailingStopOrderRequest,
 )
+
+
+@pytest.mark.parametrize(
+    "request_cls",
+    [
+        OrderRequest,
+        MarketOrderRequest,
+        StopOrderRequest,
+        LimitOrderRequest,
+        StopLimitOrderRequest,
+        TrailingStopOrderRequest,
+    ],
+)
+def test_order_request_extended_hours_doc_type_matches_annotation(request_cls):
+    assert "extended_hours (Optional[bool])" in request_cls.__doc__
+
+
+@pytest.mark.parametrize("field_name", ["strike_price_gte", "strike_price_lte"])
+def test_get_option_contracts_strike_price_filter_type_matches_spec(field_name):
+    assert GetOptionContractsRequest.model_fields[field_name].annotation == Optional[
+        float
+    ]
+    assert f"{field_name} (Optional[float])" in GetOptionContractsRequest.__doc__
 
 
 def test_has_qty_or_notional_but_not_both():
@@ -374,6 +415,11 @@ def test_trade_update_events() -> None:
             "updated_at": "2025-01-01T11:11:11.123456Z",
             "submitted_at": "2025-01-01T11:11:11.123456Z",
             "order_class": "simple",
+            "symbol": "AAPL",
+            "notional": "0",
+            "qty": "1",
+            "type": "market",
+            "side": "buy",
             "time_in_force": "day",
             "status": "accepted",
             "extended_hours": False,
@@ -384,3 +430,130 @@ def test_trade_update_events() -> None:
         msg = base.copy()
         msg["event"] = event
         TradeUpdate(**msg)
+
+
+def test_activity_type_matches_trading_api_values() -> None:
+    assert [activity_type.value for activity_type in ActivityType] == [
+        "FILL",
+        "TRANS",
+        "MISC",
+        "ACATC",
+        "ACATS",
+        "CFEE",
+        "CGD",
+        "CSD",
+        "CSW",
+        "DIV",
+        "DIVCGL",
+        "DIVCGS",
+        "DIVFEE",
+        "DIVFT",
+        "DIVNRA",
+        "DIVROC",
+        "DIVTW",
+        "DIVTXEX",
+        "FEE",
+        "INT",
+        "INTNRA",
+        "INTTW",
+        "JNL",
+        "JNLC",
+        "JNLS",
+        "MA",
+        "NC",
+        "OPASN",
+        "OPCA",
+        "OPCSH",
+        "OPEXC",
+        "OPEXP",
+        "OPTRD",
+        "PTC",
+        "PTR",
+        "REORG",
+        "SPIN",
+        "SPLIT",
+        "FOPT",
+    ]
+
+
+def test_activity_models_use_activity_type_and_trade_activity_type() -> None:
+    trade_activity = TradingActivities(activity_type="FILL", type="partial_fill")
+    non_trade_activity = NonTradeActivities(activity_type="TRANS")
+
+    assert trade_activity.activity_type == ActivityType.FILL
+    assert trade_activity.type == TradeActivityType.PARTIAL_FILL
+    assert non_trade_activity.activity_type == ActivityType.TRANS
+
+
+def test_spec_optional_trading_response_fields_can_be_absent() -> None:
+    account = TradeAccount(id=uuid.uuid4(), status="ACTIVE")
+    canceled_order = CanceledOrderResponse()
+    error_response = ErrorResponse()
+    order = Order(notional="100", type="market", time_in_force="day")
+    leg = OrderLeg(
+        symbol="AAPL",
+        notional="100",
+        qty="1",
+        type="market",
+        side="buy",
+        time_in_force="day",
+    )
+
+    assert account.account_number is None
+    assert canceled_order.id is None
+    assert canceled_order.status is None
+    assert error_response.message is None
+    assert order.id is None
+    assert order.symbol is None
+    assert order.qty is None
+    assert order.side is None
+    assert leg.id is None
+
+
+def test_required_nullable_order_fields_accept_none() -> None:
+    order = Order(notional=None, type="market", time_in_force="day")
+    leg = OrderLeg(
+        symbol="AAPL",
+        notional=None,
+        qty=None,
+        type="market",
+        side="buy",
+        time_in_force="day",
+    )
+
+    assert order.notional is None
+    assert leg.notional is None
+    assert leg.qty is None
+
+
+def test_spec_string_fields_accept_raw_values() -> None:
+    activity = ActivityEventV2CommonFields(
+        at="2025-01-01T11:11:11.123456Z",
+        event_id="01JGFJJ9M7W6M8H1N3K2P5R9Q0",
+        activity_type="FILL",
+        executed_at="2025-01-01T11:11:11.123456Z",
+        status="executed",
+        settle_date="2025-01-02",
+        currency="USD",
+        ref_id=uuid.uuid4(),
+        activity_subtype="custom-subtype",
+    )
+
+    assert activity.activity_subtype == "custom-subtype"
+
+
+def test_spec_added_activity_and_request_fields() -> None:
+    non_trade_activity = NonTradeActivities(activity_type="TRANS", currency="USD")
+    locate_request = CreateLocateRequest(symbol="AAPL", qty=1, all_or_none=None)
+
+    assert non_trade_activity.currency == "USD"
+    assert locate_request.to_request_fields() == {"symbol": "AAPL", "qty": 1}
+
+
+def test_locates_response_requires_nullable_next_page_token() -> None:
+    with pytest.raises(ValidationError):
+        ListLocatesResponse(locates=[])
+
+    response = ListLocatesResponse(locates=[], next_page_token=None)
+
+    assert response.next_page_token is None

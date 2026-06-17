@@ -12,9 +12,11 @@ from alpaca.trading.enums import (
     PositionIntent,
     TimeInForce,
 )
-from alpaca.trading.models import Order
+from alpaca.trading.models import (
+    CanceledOrderResponse,
+    Order,
+)
 from alpaca.trading.requests import (
-    CancelOrderResponse,
     GetOrderByIdRequest,
     GetOrdersRequest,
     LimitOrderRequest,
@@ -46,7 +48,7 @@ def test_market_order(reqmock, trading_client):
           "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
           "symbol": "AAPL`",
           "asset_class": "us_equity",
-          "notional": null,
+          "notional": "0",
           "qty": 1,
           "filled_qty": "0",
           "filled_avg_price": null,
@@ -103,7 +105,7 @@ def test_get_orders(reqmock, trading_client: TradingClient):
                 "asset_id": "b4695157-0d1d-4da0-8f9e-5c53149389e4",
                 "symbol": "SPY",
                 "asset_class": "us_equity",
-                "notional": null,
+                "notional": "0",
                 "qty": 1,
                 "filled_qty": 0,
                 "filled_avg_price": 0,
@@ -154,7 +156,7 @@ def test_get_order_by_id(reqmock, trading_client: TradingClient):
         "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
         "symbol": "AAPL`",
         "asset_class": "us_equity",
-        "notional": null,
+        "notional": "0",
         "qty": 1,
         "filled_qty": "0",
         "filled_avg_price": null,
@@ -206,7 +208,7 @@ def test_get_order_by_client_id(reqmock, trading_client: TradingClient):
         "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
         "symbol": "AAPL`",
         "asset_class": "us_equity",
-        "notional": null,
+        "notional": "0",
         "qty": 1,
         "filled_qty": "0",
         "filled_avg_price": null,
@@ -256,7 +258,7 @@ def test_replace_order(reqmock, trading_client: TradingClient):
         "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
         "symbol": "AAPL`",
         "asset_class": "us_equity",
-        "notional": null,
+        "notional": "0",
         "qty": 1,
         "filled_qty": "0",
         "filled_avg_price": null,
@@ -382,7 +384,7 @@ def test_cancel_orders(reqmock, trading_client: TradingClient):
     response = trading_client.cancel_orders()
 
     assert type(response) is list
-    assert type(response[0]) is CancelOrderResponse
+    assert type(response[0]) is CanceledOrderResponse
     assert response[0].status == 200
     assert response[0].id == UUID("497f6eca-6276-4993-bfeb-53cbbbba6f08")
     assert response[1].status == 404
@@ -412,7 +414,7 @@ def test_limit_order(reqmock, trading_client):
           "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
           "symbol": "AAPL`",
           "asset_class": "us_equity",
-          "notional": null,
+          "notional": "0",
           "qty": 1,
           "filled_qty": "0",
           "filled_avg_price": null,
@@ -530,7 +532,7 @@ def test_order_position_intent(reqmock, trading_client: TradingClient):
           "asset_id": "b4695157-0d1d-4da0-8f9e-5c53149389e4",
           "symbol": "SPY`",
           "asset_class": "us_equity",
-          "notional": null,
+          "notional": "0",
           "qty": 1,
           "filled_qty": "0",
           "filled_avg_price": null,
@@ -587,7 +589,7 @@ def test_order_position_intent(reqmock, trading_client: TradingClient):
           "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
           "symbol": "AAPL`",
           "asset_class": "us_equity",
-          "notional": null,
+          "notional": "0",
           "qty": 1,
           "filled_qty": "0",
           "filled_avg_price": null,

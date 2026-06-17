@@ -17,28 +17,42 @@ from alpaca.trading.models import (
     AccountConfiguration,
     Asset,
     Calendar,
+    CanceledOrderResponse,
     Clock,
     ClosePositionResponse,
     CorporateActionAnnouncement,
+    Locate,
+    LocateQuotesResponse,
+    LocatesResponse,
     OptionContract,
     OptionContractsResponse,
     Order,
     PortfolioHistory,
     Position,
     TradeAccount,
+    USCorporate,
+    USCorporatesResp,
+    USTreasury,
+    USTreasuriesResp,
+    WalletFeeEstimate,
     Watchlist,
 )
 from alpaca.trading.requests import (
-    CancelOrderResponse,
     ClosePositionRequest,
+    CreateLocateRequest,
     CreateWatchlistRequest,
     GetAssetsRequest,
     GetCalendarRequest,
     GetCorporateAnnouncementsRequest,
+    GetLocateQuotesRequest,
+    GetLocatesRequest,
     GetOptionContractsRequest,
     GetOrderByIdRequest,
     GetOrdersRequest,
     GetPortfolioHistoryRequest,
+    GetUSCorporatesRequest,
+    GetUSTreasuriesRequest,
+    GetWalletFeeEstimateRequest,
     OrderRequest,
     ReplaceOrderRequest,
     UpdateWatchlistRequest,
@@ -200,19 +214,19 @@ class TradingClient(RESTClient):
 
         return Order(**response)
 
-    def cancel_orders(self) -> Union[List[CancelOrderResponse], RawData]:
+    def cancel_orders(self) -> Union[List[CanceledOrderResponse], RawData]:
         """
         Cancels all orders.
 
         Returns:
-            List[CancelOrderResponse]: The list of HTTP statuses for each order attempted to be cancelled.
+            List[CanceledOrderResponse]: The list of HTTP statuses for each order attempted to be cancelled.
         """
         response = self.delete(f"/orders")
 
         if self._use_raw_data:
             return response
 
-        return TypeAdapter(List[CancelOrderResponse]).validate_python(response)
+        return TypeAdapter(List[CanceledOrderResponse]).validate_python(response)
 
     def cancel_order_by_id(self, order_id: Union[UUID, str]) -> None:
         """
@@ -782,3 +796,144 @@ class TradingClient(RESTClient):
             return response
 
         return TypeAdapter(OptionContract).validate_python(response)
+
+    # ####################### FIXED INCOME #################################### #
+
+    def get_us_treasuries(
+        self, filter: Optional[GetUSTreasuriesRequest] = None
+    ) -> Union[USTreasuriesResp, RawData]:
+        """
+        Returns the list of US Treasury securities available at Alpaca,
+        optionally filtered by subtype, bond status, CUSIPs, or ISINs.
+
+        Args:
+            filter (Optional[GetUSTreasuriesRequest]): Query parameters to
+                filter the returned treasuries.
+
+        Returns:
+            Union[USTreasuriesResp, RawData]: The response wrapping the list
+                of treasury securities.
+        """
+        params = filter.to_request_fields() if filter is not None else {}
+
+        response = self.get("/assets/fixed_income/us_treasuries", params)
+
+        if self._use_raw_data:
+            return response
+
+        return TypeAdapter(USTreasuriesResp).validate_python(response)
+
+    def get_us_corporates(
+        self, filter: Optional[GetUSCorporatesRequest] = None
+    ) -> Union[USCorporatesResp, RawData]:
+        """
+        Returns the list of US corporate bonds available at Alpaca,
+        optionally filtered by bond status, ISINs, CUSIPs, or tickers.
+
+        Args:
+            filter (Optional[GetUSCorporatesRequest]): Query parameters to
+                filter the returned corporate bonds.
+
+        Returns:
+            Union[USCorporatesResp, RawData]: The response wrapping the list
+                of corporate bonds.
+        """
+        params = filter.to_request_fields() if filter is not None else {}
+
+        response = self.get("/assets/fixed_income/us_corporates", params)
+
+        if self._use_raw_data:
+            return response
+
+        return TypeAdapter(USCorporatesResp).validate_python(response)
+
+    # ####################### CRYPTO WALLETS ################################## #
+
+    def get_wallet_fee_estimate(
+        self, request: Optional[GetWalletFeeEstimateRequest] = None
+    ) -> Union[WalletFeeEstimate, RawData]:
+        """
+        Returns the estimated gas fee for a proposed crypto transfer.
+
+        Args:
+            request (Optional[GetWalletFeeEstimateRequest]): Optional query
+                parameters (asset, from_address, to_address, amount).
+
+        Returns:
+            Union[WalletFeeEstimate, RawData]: The estimated fee.
+        """
+        params = request.to_request_fields() if request is not None else {}
+
+        response = self.get("/wallets/fees/estimate", params)
+
+        if self._use_raw_data:
+            return response
+
+        return WalletFeeEstimate(**response)
+
+    # ############################## LOCATES ################################# #
+
+    def get_locates(
+        self, filter: Optional[GetLocatesRequest] = None
+    ) -> Union[LocatesResponse, RawData]:
+        """
+        Returns locates filtered by status, symbol, or date range.
+
+        Args:
+            filter (Optional[GetLocatesRequest]): Optional query parameters
+                used to filter locate requests.
+
+        Returns:
+            Union[LocatesResponse, RawData]: The response wrapping the list
+                of locates.
+        """
+        params = filter.to_request_fields() if filter is not None else {}
+
+        response = self.get("/locates", params, api_version="v1")
+
+        if self._use_raw_data:
+            return response
+
+        return TypeAdapter(LocatesResponse).validate_python(response)
+
+    def create_locate(self, request: CreateLocateRequest) -> Union[Locate, RawData]:
+        """
+        Creates a locate request for a short sale.
+
+        Args:
+            request (CreateLocateRequest): The locate request details.
+
+        Returns:
+            Union[Locate, RawData]: The created locate request.
+        """
+        data = request.to_request_fields()
+        response = self._request("POST", "/locates", data, api_version="v1")
+
+        if self._use_raw_data:
+            return response
+
+        return TypeAdapter(Locate).validate_python(response)
+
+    def get_locate_quotes(
+        self, request: GetLocateQuotesRequest
+    ) -> Union[LocateQuotesResponse, RawData]:
+        """
+        Returns locate availability and pricing for one or more symbols.
+
+        Args:
+            request (GetLocateQuotesRequest): Symbols to request quotes for.
+
+        Returns:
+            Union[LocateQuotesResponse, RawData]: The locate quotes response.
+        """
+        params = request.to_request_fields()
+
+        if "symbols" in params and isinstance(params["symbols"], list):
+            params["symbols"] = ",".join(params["symbols"])
+
+        response = self.get("/locates/quotes", params, api_version="v1")
+
+        if self._use_raw_data:
+            return response
+
+        return TypeAdapter(LocateQuotesResponse).validate_python(response)

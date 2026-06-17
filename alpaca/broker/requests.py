@@ -669,7 +669,7 @@ class OrderRequest(BaseOrderRequest):
         side (OrderSide): Whether the order will buy or sell the asset.
         type (OrderType): The execution logic type of the order (market, limit, etc).
         time_in_force (TimeInForce): The expiration logic of the order.
-        extended_hours (Optional[bool]): Whether the order can be executed during extended hours.
+        extended_hours (Optional[bool]): Whether the order can be executed during regular market hours.
         client_order_id (Optional[float]): A string to identify which client submitted the order.
         order_class (Optional[OrderClass]): The class of the order. Simple orders have no other legs.
         take_profit (Optional[TakeProfitRequest]): For orders with multiple legs, an order to exit a profitable trade.
@@ -712,7 +712,7 @@ class MarketOrderRequest(BaseMarketOrderRequest):
         side (OrderSide): Whether the order will buy or sell the asset.
         type (OrderType): The execution logic type of the order (market, limit, etc).
         time_in_force (TimeInForce): The expiration logic of the order.
-        extended_hours (Optional[bool]): Whether the order can be executed during extended hours.
+        extended_hours (Optional[bool]): Whether the order can be executed during regular market hours.
         client_order_id (Optional[float]): A string to identify which client submitted the order.
         order_class (Optional[OrderClass]): The class of the order. Simple orders have no other legs.
         take_profit (Optional[TakeProfitRequest]): For orders with multiple legs, an order to exit a profitable trade.
@@ -735,7 +735,7 @@ class LimitOrderRequest(BaseLimitOrderRequest):
         side (OrderSide): Whether the order will buy or sell the asset.
         type (OrderType): The execution logic type of the order (market, limit, etc).
         time_in_force (TimeInForce): The expiration logic of the order.
-        extended_hours (Optional[bool]): Whether the order can be executed during extended hours.
+        extended_hours (Optional[bool]): Whether the order can be executed during regular market hours.
         client_order_id (Optional[float]): A string to identify which client submitted the order.
         order_class (Optional[OrderClass]): The class of the order. Simple orders have no other legs.
         take_profit (Optional[TakeProfitRequest]): For orders with multiple legs, an order to exit a profitable trade.
@@ -759,7 +759,7 @@ class StopOrderRequest(BaseStopOrderRequest):
         side (OrderSide): Whether the order will buy or sell the asset.
         type (OrderType): The execution logic type of the order (market, limit, etc).
         time_in_force (TimeInForce): The expiration logic of the order.
-        extended_hours (Optional[bool]): Whether the order can be executed during extended hours.
+        extended_hours (Optional[bool]): Whether the order can be executed during regular market hours.
         client_order_id (Optional[float]): A string to identify which client submitted the order.
         order_class (Optional[OrderClass]): The class of the order. Simple orders have no other legs.
         take_profit (Optional[TakeProfitRequest]): For orders with multiple legs, an order to exit a profitable trade.
@@ -784,7 +784,7 @@ class StopLimitOrderRequest(BaseStopLimitOrderRequest):
         side (OrderSide): Whether the order will buy or sell the asset.
         type (OrderType): The execution logic type of the order (market, limit, etc).
         time_in_force (TimeInForce): The expiration logic of the order.
-        extended_hours (Optional[bool]): Whether the order can be executed during extended hours.
+        extended_hours (Optional[bool]): Whether the order can be executed during regular market hours.
         client_order_id (Optional[float]): A string to identify which client submitted the order.
         order_class (Optional[OrderClass]): The class of the order. Simple orders have no other legs.
         take_profit (Optional[TakeProfitRequest]): For orders with multiple legs, an order to exit a profitable trade.
@@ -810,7 +810,7 @@ class TrailingStopOrderRequest(BaseTrailingStopOrderRequest):
         side (OrderSide): Whether the order will buy or sell the asset.
         type (OrderType): The execution logic type of the order (market, limit, etc).
         time_in_force (TimeInForce): The expiration logic of the order.
-        extended_hours (Optional[bool]): Whether the order can be executed during extended hours.
+        extended_hours (Optional[bool]): Whether the order can be executed during regular market hours.
         client_order_id (Optional[float]): A string to identify which client submitted the order.
         order_class (Optional[OrderClass]): The class of the order. Simple orders have no other legs.
         take_profit (Optional[TakeProfitRequest]): For orders with multiple legs, an order to exit a profitable trade.

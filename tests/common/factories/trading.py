@@ -57,7 +57,7 @@ def create_dummy_order() -> Order:
         symbol="AAPL",
         asset_class=AssetClass.US_EQUITY,
         notional="500",
-        qty=None,
+        qty="1",
         filled_qty="0",
         filled_avg_price=None,
         order_class=OrderClass.SIMPLE,

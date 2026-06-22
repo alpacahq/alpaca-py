@@ -335,8 +335,10 @@ class TradeAccount(BaseTradeAccount):
         last_cash (Optional[str]): Value of all cash as of previous trading day at 16:00:00 ET
         last_initial_margin (Optional[str]): Value of initial_margin as of previous trading day at 16:00:00 ET
         last_regt_buying_power (Optional[str]): Value of regt_buying_power as of previous trading day at 16:00:00 ET
-        last_daytrading_buying_power (Optional[str]): Value of daytrading_buying_power as of previous trading day at 16:00:00 ET
-        last_daytrade_count (Optional[int]): Value of daytrade_count as of previous trading day at 16:00:00 ET
+        last_daytrading_buying_power (Optional[str]): Value of daytrading_buying_power as of previous trading day at 16:00:00 ET.
+          Deprecated; removed from Alpaca responses on 2026-07-06 (FINRA intraday-margin migration) and defaults to None.
+        last_daytrade_count (Optional[int]): Value of daytrade_count as of previous trading day at 16:00:00 ET.
+          Deprecated; removed from Alpaca responses on 2026-07-06 (FINRA intraday-margin migration) and defaults to None.
         last_buying_power (Optional[str]): Value of buying_power as of previous trading day at 16:00:00 ET
         clearing_broker (Optional[ClearingBroker]): The Clearing broker for this account
     """
@@ -349,7 +351,7 @@ class TradeAccount(BaseTradeAccount):
     last_cash: Optional[str]
     last_initial_margin: Optional[str]
     last_regt_buying_power: Optional[str]
-    last_daytrading_buying_power: Optional[str]
-    last_daytrade_count: Optional[int]
+    last_daytrading_buying_power: Optional[str] = None
+    last_daytrade_count: Optional[int] = None
     last_buying_power: Optional[str]
     clearing_broker: Optional[ClearingBroker]

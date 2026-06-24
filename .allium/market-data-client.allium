@@ -151,7 +151,12 @@ external entity CorporateActionEvent {
 
 entity DataStream {
     asset_class: AssetClass
+    feed: DataFeed?
     status: StreamStatus
+
+    invariant StockStreamFeedConstraint {
+        asset_class = stock implies (feed = iex or feed = sip)
+    }
 
     transitions status {
         idle -> connecting
@@ -187,6 +192,8 @@ config {
     news_query_page_size: Integer = 50
     stream_ping_interval: Duration = 10.seconds
     stream_ping_timeout: Duration = 180.seconds
+    screener_default_top: Integer = 10
+    corporate_actions_query_page_size: Integer = 1_000
 }
 
 ------------------------------------------------------------
@@ -194,19 +201,44 @@ config {
 ------------------------------------------------------------
 
 rule FetchBars {
-    when: FetchBars(symbols, timeframe, start?, end?, feed?, adjustment?, sort?, limit?, currency?)
+    when: FetchBars(symbols, timeframe, start?, end?, feed?, adjustment?, sort?, limit?, currency?, asof?)
     requires: timeframe.is_valid
     ensures: BarsReturned(symbols: symbols)
 }
 
 rule FetchQuotes {
-    when: FetchQuotes(symbols, start?, end?, feed?, sort?, limit?, currency?)
+    when: FetchQuotes(symbols, start?, end?, feed?, sort?, limit?, currency?, asof?)
     ensures: QuotesReturned(symbols: symbols)
 }
 
 rule FetchTrades {
-    when: FetchTrades(symbols, start?, end?, feed?, sort?, limit?, currency?)
+    when: FetchTrades(symbols, start?, end?, feed?, sort?, limit?, currency?, asof?)
     ensures: TradesReturned(symbols: symbols)
+}
+
+rule FetchLatestTrade {
+    when: FetchLatestTrade(symbols, feed?, currency?)
+    ensures: LatestTradeReturned(symbols: symbols)
+
+    @guidance
+        -- Returns the single most recent trade for each requested symbol.
+        -- No time range parameters; always returns the current latest data point.
+}
+
+rule FetchLatestQuote {
+    when: FetchLatestQuote(symbols, feed?, currency?)
+    ensures: LatestQuoteReturned(symbols: symbols)
+
+    @guidance
+        -- Returns the single most recent quote for each requested symbol.
+}
+
+rule FetchLatestBar {
+    when: FetchLatestBar(symbols, feed?, currency?)
+    ensures: LatestBarReturned(symbols: symbols)
+
+    @guidance
+        -- Returns the single most recent minute bar for each requested symbol.
 }
 
 rule FetchSnapshots {
@@ -337,16 +369,21 @@ surface HistoricalStockData {
     facing caller: ApiClient
 
     provides:
-        FetchBars(symbols, timeframe, start?, end?, feed?, adjustment?, sort?, limit?, currency?)
-        FetchQuotes(symbols, start?, end?, feed?, sort?, limit?, currency?)
-        FetchTrades(symbols, start?, end?, feed?, sort?, limit?, currency?)
+        FetchBars(symbols, timeframe, start?, end?, feed?, adjustment?, sort?, limit?, currency?, asof?)
+        FetchQuotes(symbols, start?, end?, feed?, sort?, limit?, currency?, asof?)
+        FetchTrades(symbols, start?, end?, feed?, sort?, limit?, currency?, asof?)
         FetchSnapshots(symbols, feed?, currency?)
+        FetchLatestTrade(symbols, feed?, currency?)
+        FetchLatestQuote(symbols, feed?, currency?)
+        FetchLatestBar(symbols, feed?, currency?)
 
     @guidance
         -- Default feed is IEX (free). SIP, DELAYED_SIP, and OTC feeds require
         -- a premium market data subscription.
         -- Adjustment defaults to RAW when not specified. Applies to stocks only.
         -- Results paginate automatically at config.bar_query_page_size data points per page.
+        -- asof allows point-in-time symbol lookups (YYYY-MM-DD). Useful for querying a symbol
+        -- by its name at a specific historical date when corporate actions (e.g. renames) occurred.
 }
 
 surface HistoricalCryptoData {
@@ -358,6 +395,9 @@ surface HistoricalCryptoData {
         FetchTrades(symbols, start?, end?, sort?, limit?, currency?)
         FetchSnapshots(symbols, currency?)
         FetchCryptoOrderbooks(symbols)
+        FetchLatestTrade(symbols)
+        FetchLatestQuote(symbols)
+        FetchLatestBar(symbols)
 
     @guidance
         -- Crypto data does not require credentials; unauthenticated requests
@@ -372,6 +412,8 @@ surface HistoricalOptionsData {
         FetchQuotes(symbols, start?, end?, feed?, sort?, limit?)
         FetchSnapshots(symbols, feed?)
         FetchOptionChain(underlying_symbol, feed?, expiration_gte?, expiration_lte?, strike_gte?, strike_lte?, contract_type?, root_symbol?, updated_since?)
+        FetchLatestTrade(symbols, feed?)
+        FetchLatestQuote(symbols, feed?)
 
     @guidance
         -- Default feed (INDICATIVE) does not require a subscription.
@@ -391,7 +433,9 @@ surface MarketIntelligence {
     @guidance
         -- News results use token-based pagination via page_token.
         -- Screener results (most actives, market movers) are pre-computed rankings refreshed periodically.
+        -- Most actives defaults to top 10 by volume when by and top are not specified.
         -- Corporate action queries by ID are exclusive with filter-based queries.
+        -- Corporate actions pagination uses config.corporate_actions_query_page_size items per page.
 }
 
 surface LiveStockStream {
@@ -411,6 +455,7 @@ surface LiveStockStream {
         -- Supported data types: trades, quotes, bars, updated_bars, daily_bars, trading_statuses.
         -- Trade corrections and cancels are delivered on the trades channel without separate subscription.
         -- Wildcard symbol "*" subscribes to all symbols for the given data type.
+        -- Only IEX and SIP feeds are supported for stock streaming; SIP requires a premium subscription.
 }
 
 surface LiveCryptoStream {

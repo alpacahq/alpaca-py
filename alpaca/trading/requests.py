@@ -229,6 +229,57 @@ class GetOrderByIdRequest(NonEmptyRequest):
     nested: bool
 
 
+def _enum_value_matches(value: Any, expected: Union[OrderClass, OrderType]) -> bool:
+    # OrderClass/OrderType are (str, Enum) subclasses, so plain `==` already treats a
+    # raw string like "bracket" and OrderClass.BRACKET as equal. This wrapper exists
+    # purely for readability at call sites, not because it adds extra matching logic.
+    return value == expected
+
+
+def _field_is_set(values: dict, field: str) -> bool:
+    return values.get(field, None) is not None
+
+
+def _validate_mleg_order_type(values: dict) -> None:
+    if not _enum_value_matches(values.get("order_class"), OrderClass.MLEG):
+        return
+
+    order_type = values.get("type")
+    if not (
+        _enum_value_matches(order_type, OrderType.MARKET)
+        or _enum_value_matches(order_type, OrderType.LIMIT)
+    ):
+        raise ValueError("mleg order class only supports market and limit orders.")
+
+
+def _validate_advanced_order_class_requirements(values: dict) -> None:
+    order_class = values.get("order_class")
+    # Normalize to the plain string label (e.g. "bracket") whether the caller passed
+    # the raw string or the OrderClass enum member, since formatting an enum member
+    # directly would render as "OrderClass.BRACKET" instead of "bracket".
+    order_class_label = (
+        order_class.value if isinstance(order_class, OrderClass) else order_class
+    )
+
+    if _enum_value_matches(order_class, OrderClass.BRACKET) or _enum_value_matches(
+        order_class, OrderClass.OCO
+    ):
+        if not _field_is_set(values, "take_profit"):
+            raise ValueError(
+                f"{order_class_label} orders require take_profit.limit_price."
+            )
+        if not _field_is_set(values, "stop_loss"):
+            raise ValueError(
+                f"{order_class_label} orders require stop_loss.stop_price."
+            )
+
+    elif _enum_value_matches(order_class, OrderClass.OTO):
+        if not _field_is_set(values, "take_profit") and not _field_is_set(
+            values, "stop_loss"
+        ):
+            raise ValueError("oto orders require either take_profit or stop_loss.")
+
+
 class ReplaceOrderRequest(NonEmptyRequest):
     """Contains data for submitting a request to replace an order.
 
@@ -319,16 +370,19 @@ class OrderRequest(NonEmptyRequest):
 
     @model_validator(mode="before")
     def root_validator(cls, values: dict) -> dict:
-        qty_set = "qty" in values and values["qty"] is not None
-        notional_set = "notional" in values and values["notional"] is not None
+        qty_set = _field_is_set(values, "qty")
+        notional_set = _field_is_set(values, "notional")
 
         if not qty_set and not notional_set:
             raise ValueError("At least one of qty or notional must be provided")
         elif qty_set and notional_set:
             raise ValueError("Both qty and notional can not be set.")
 
+        _validate_mleg_order_type(values)
+        _validate_advanced_order_class_requirements(values)
+
         # mleg-related checks
-        if "order_class" in values and values["order_class"] == OrderClass.MLEG:
+        if _enum_value_matches(values.get("order_class"), OrderClass.MLEG):
             if not qty_set:
                 raise ValueError("qty is required for the mleg order class.")
             if "legs" not in values or values["legs"] is None:
@@ -354,6 +408,29 @@ class OrderRequest(NonEmptyRequest):
                 )
 
         return values
+
+
+# All order-type-specific price/trail fields across the OrderRequest subclasses.
+# Any field in this set that isn't in a given order type's `allowed_fields` is
+# rejected outright rather than silently ignored (pydantic's default `extra="ignore"`
+# would otherwise drop it without telling the caller their input had no effect).
+_ORDER_TYPE_SPECIFIC_FIELDS = (
+    "limit_price",
+    "stop_price",
+    "trail_price",
+    "trail_percent",
+)
+
+
+def _raise_for_unsupported_price_fields(
+    values: dict, order_type: OrderType, allowed_fields: List[str]
+) -> None:
+    unsupported_fields = [
+        field for field in _ORDER_TYPE_SPECIFIC_FIELDS if field not in allowed_fields
+    ]
+    for field in unsupported_fields:
+        if values.get(field, None) is not None:
+            raise ValueError(f"{field} is not supported for {order_type.value} orders.")
 
 
 class MarketOrderRequest(OrderRequest):
@@ -382,6 +459,13 @@ class MarketOrderRequest(OrderRequest):
         data["type"] = OrderType.MARKET
 
         super().__init__(**data)
+
+    @model_validator(mode="before")
+    def root_validator(cls, values: dict) -> dict:
+        # noinspection PyCallingNonCallable
+        super().root_validator(values)
+        _raise_for_unsupported_price_fields(values, OrderType.MARKET, [])
+        return values
 
 
 class StopOrderRequest(OrderRequest):
@@ -414,6 +498,13 @@ class StopOrderRequest(OrderRequest):
 
         super().__init__(**data)
 
+    @model_validator(mode="before")
+    def root_validator(cls, values: dict) -> dict:
+        # noinspection PyCallingNonCallable
+        super().root_validator(values)
+        _raise_for_unsupported_price_fields(values, OrderType.STOP, ["stop_price"])
+        return values
+
 
 class LimitOrderRequest(OrderRequest):
     """
@@ -433,9 +524,12 @@ class LimitOrderRequest(OrderRequest):
         legs (Optional[List[OptionLegRequest]]): For multi-leg option orders, the legs of the order. At most 4 legs are allowed for options.
         take_profit (Optional[TakeProfitRequest]): For orders with multiple legs, an order to exit a profitable trade.
         stop_loss (Optional[StopLossRequest]): For orders with multiple legs, an order to exit a losing trade.
-        limit_price (Optional[float]): The worst fill price for a limit or stop limit order. For the mleg order class, this
-            is specified such that a positive value indicates a debit (representing a cost or payment to be made) while a
-            negative value signifies a credit (reflecting an amount to be received).
+        limit_price (Optional[float]): The worst fill price for a limit or stop limit order. This field is optional
+            at the model-field level because the requirement depends on the order class. It is required for simple,
+            bracket, oto, and mleg limit orders, but may be omitted for oco orders when the exit limit price is supplied
+            via take_profit.limit_price. For the mleg order class, this is specified such that a positive value indicates
+            a debit (representing a cost or payment to be made) while a negative value signifies a credit (reflecting an
+            amount to be received).
         position_intent (Optional[PositionIntent]): An enum to indicate the desired position strategy: BTO, BTC, STO, STC.
     """
 
@@ -450,6 +544,7 @@ class LimitOrderRequest(OrderRequest):
     def root_validator(cls, values: dict) -> dict:
         # noinspection PyCallingNonCallable
         super().root_validator(values)
+        _raise_for_unsupported_price_fields(values, OrderType.LIMIT, ["limit_price"])
         if values.get("order_class", "") != OrderClass.OCO:
             limit_price = values.get("limit_price", None)
             if limit_price is None:
@@ -491,6 +586,15 @@ class StopLimitOrderRequest(OrderRequest):
 
         super().__init__(**data)
 
+    @model_validator(mode="before")
+    def root_validator(cls, values: dict) -> dict:
+        # noinspection PyCallingNonCallable
+        super().root_validator(values)
+        _raise_for_unsupported_price_fields(
+            values, OrderType.STOP_LIMIT, ["limit_price", "stop_price"]
+        )
+        return values
+
 
 class TrailingStopOrderRequest(OrderRequest):
     """
@@ -527,10 +631,11 @@ class TrailingStopOrderRequest(OrderRequest):
     def root_validator(cls, values: dict) -> dict:
         # noinspection PyCallingNonCallable
         super().root_validator(values)
-        trail_percent_set = (
-            "trail_percent" in values and values["trail_percent"] is not None
+        _raise_for_unsupported_price_fields(
+            values, OrderType.TRAILING_STOP, ["trail_price", "trail_percent"]
         )
-        trail_price_set = "trail_price" in values and values["trail_price"] is not None
+        trail_percent_set = _field_is_set(values, "trail_percent")
+        trail_price_set = _field_is_set(values, "trail_price")
 
         if not trail_percent_set and not trail_price_set:
             raise ValueError(

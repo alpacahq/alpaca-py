@@ -15,6 +15,10 @@ from alpaca.trading.requests import (
     LimitOrderRequest,
     MarketOrderRequest,
     OptionLegRequest,
+    StopLossRequest,
+    StopLimitOrderRequest,
+    StopOrderRequest,
+    TakeProfitRequest,
     TrailingStopOrderRequest,
 )
 
@@ -87,6 +91,149 @@ def test_trailing_stop_order_type():
         )
 
     assert "Both trail_percent and trail_price cannot be set." in str(e.value)
+
+
+def test_order_requests_reject_incompatible_price_fields():
+    base_kwargs = {
+        "symbol": "SPY",
+        "side": OrderSide.BUY,
+        "time_in_force": TimeInForce.DAY,
+        "qty": 1,
+    }
+
+    with pytest.raises(ValueError, match="limit_price is not supported"):
+        MarketOrderRequest(**base_kwargs, limit_price=100)
+
+    with pytest.raises(ValueError, match="stop_price is not supported"):
+        MarketOrderRequest(**base_kwargs, stop_price=95)
+
+    with pytest.raises(ValueError, match="stop_price is not supported"):
+        LimitOrderRequest(**base_kwargs, limit_price=100, stop_price=95)
+
+    with pytest.raises(ValueError, match="limit_price is not supported"):
+        StopOrderRequest(**base_kwargs, limit_price=100, stop_price=95)
+
+    with pytest.raises(ValueError, match="limit_price is not supported"):
+        TrailingStopOrderRequest(**base_kwargs, limit_price=100, trail_price=1)
+
+    with pytest.raises(ValueError, match="stop_price is not supported"):
+        TrailingStopOrderRequest(**base_kwargs, stop_price=95, trail_price=1)
+
+    with pytest.raises(ValueError, match="trail_price is not supported"):
+        MarketOrderRequest(**base_kwargs, trail_price=1)
+
+    with pytest.raises(ValueError, match="trail_percent is not supported"):
+        MarketOrderRequest(**base_kwargs, trail_percent=1)
+
+    with pytest.raises(ValueError, match="trail_price is not supported"):
+        StopOrderRequest(**base_kwargs, stop_price=95, trail_price=1)
+
+    with pytest.raises(ValueError, match="trail_percent is not supported"):
+        LimitOrderRequest(**base_kwargs, limit_price=100, trail_percent=1)
+
+    with pytest.raises(ValueError, match="trail_price is not supported"):
+        StopLimitOrderRequest(
+            **base_kwargs, limit_price=100, stop_price=95, trail_price=1
+        )
+
+    StopLimitOrderRequest(**base_kwargs, limit_price=100, stop_price=95)
+
+
+def test_advanced_order_classes_require_exit_legs():
+    base_kwargs = {
+        "symbol": "SPY",
+        "side": OrderSide.BUY,
+        "time_in_force": TimeInForce.DAY,
+        "qty": 1,
+    }
+
+    with pytest.raises(ValueError, match="bracket orders require take_profit"):
+        MarketOrderRequest(**base_kwargs, order_class=OrderClass.BRACKET)
+
+    with pytest.raises(ValueError, match="bracket orders require stop_loss"):
+        MarketOrderRequest(
+            **base_kwargs,
+            order_class=OrderClass.BRACKET,
+            take_profit=TakeProfitRequest(limit_price=110),
+        )
+
+    with pytest.raises(ValueError, match="oco orders require take_profit"):
+        LimitOrderRequest(
+            **base_kwargs,
+            order_class=OrderClass.OCO,
+            stop_loss=StopLossRequest(stop_price=90),
+        )
+
+    with pytest.raises(ValueError, match="oco orders require stop_loss"):
+        LimitOrderRequest(
+            **base_kwargs,
+            order_class=OrderClass.OCO,
+            take_profit=TakeProfitRequest(limit_price=110),
+        )
+
+    with pytest.raises(
+        ValueError, match="oto orders require either take_profit or stop_loss"
+    ):
+        MarketOrderRequest(**base_kwargs, order_class=OrderClass.OTO)
+
+    MarketOrderRequest(
+        **base_kwargs,
+        order_class=OrderClass.OTO,
+        take_profit=TakeProfitRequest(limit_price=110),
+    )
+
+
+def test_advanced_order_class_error_message_uses_plain_string_label():
+    # Regression test: the error message must read "bracket orders require ..."
+    # rather than "OrderClass.BRACKET orders require ...", whether the caller
+    # passes the OrderClass enum member or the equivalent raw string.
+    base_kwargs = {
+        "symbol": "SPY",
+        "side": OrderSide.BUY,
+        "time_in_force": TimeInForce.DAY,
+        "qty": 1,
+    }
+
+    with pytest.raises(ValueError, match="bracket orders require take_profit") as e:
+        MarketOrderRequest(**base_kwargs, order_class=OrderClass.BRACKET)
+    assert "OrderClass.BRACKET" not in str(e.value)
+
+    with pytest.raises(ValueError, match="bracket orders require take_profit") as e:
+        MarketOrderRequest(**base_kwargs, order_class="bracket")
+    assert "OrderClass.BRACKET" not in str(e.value)
+
+
+def test_mleg_order_class_only_supports_market_and_limit_requests():
+    legs = [
+        OptionLegRequest(symbol="AAPL250117P00200000", ratio_qty=1, side=OrderSide.BUY),
+        OptionLegRequest(
+            symbol="AAPL250117P00250000", ratio_qty=1, side=OrderSide.SELL
+        ),
+    ]
+    base_kwargs = {
+        "qty": 1,
+        "time_in_force": TimeInForce.DAY,
+        "order_class": OrderClass.MLEG,
+        "legs": legs,
+    }
+
+    MarketOrderRequest(**base_kwargs)
+    LimitOrderRequest(**base_kwargs, limit_price=1)
+
+    with pytest.raises(
+        ValueError, match="mleg order class only supports market and limit orders"
+    ):
+        StopOrderRequest(**base_kwargs, stop_price=1)
+
+    with pytest.raises(
+        ValueError, match="mleg order class only supports market and limit orders"
+    ):
+        StopLimitOrderRequest(**base_kwargs, stop_price=1, limit_price=1)
+
+    with pytest.raises(
+        ValueError, match="mleg order class only supports market and limit orders"
+    ):
+        TrailingStopOrderRequest(**base_kwargs, trail_price=1)
 
 
 def test_mleg_options() -> None:

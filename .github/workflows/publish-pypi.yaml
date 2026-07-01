@@ -4,6 +4,9 @@ on:
     tags:
       - "v*.*.*"
 
+permissions:
+  contents: read
+
 jobs:
 
   tests-ci:

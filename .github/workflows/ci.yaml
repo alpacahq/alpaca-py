@@ -4,6 +4,9 @@ on:
   - push
   - pull_request
 
+permissions:
+  contents: read
+
 jobs:
   lints-ci:
     #The lint jobs don't need to run on other OS's or python versions

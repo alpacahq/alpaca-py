@@ -12,7 +12,10 @@ from alpaca.data.historical.news import NewsClient
 from alpaca.data.historical.option import OptionHistoricalDataClient
 from alpaca.data.historical.screener import ScreenerClient
 from alpaca.trading.client import TradingClient
-from alpaca.trading.models import Order, OrderLeg  # noqa: F401 – resolve OrderLeg forward ref
+from alpaca.trading.models import (
+    Order,
+    OrderLeg,
+)  # noqa: F401 – resolve OrderLeg forward ref
 from alpaca.broker.models import Order as BrokerOrder
 from alpaca.broker.models.rebalancing import RebalancingRun
 

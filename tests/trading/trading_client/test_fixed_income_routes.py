@@ -11,7 +11,12 @@ import pytest
 from alpaca.common.enums import BaseURL
 from alpaca.trading.client import TradingClient
 from alpaca.trading.enums import BondStatus, TreasurySubtype
-from alpaca.trading.models import USCorporate, USCorporatesResp, USTreasuriesResp, USTreasury
+from alpaca.trading.models import (
+    USCorporate,
+    USCorporatesResp,
+    USTreasuriesResp,
+    USTreasury,
+)
 from alpaca.trading.requests import GetUSCorporatesRequest, GetUSTreasuriesRequest
 
 # ---------------------------------------------------------------------------
@@ -181,9 +186,7 @@ def test_get_us_corporates_with_tickers(reqmock, trading_client: TradingClient):
         text=f'{{"us_corporates": [{_CORPORATE_JSON}]}}',
     )
 
-    result = trading_client.get_us_corporates(
-        GetUSCorporatesRequest(tickers="GS,JPM")
-    )
+    result = trading_client.get_us_corporates(GetUSCorporatesRequest(tickers="GS,JPM"))
 
     assert reqmock.called_once
     assert isinstance(result, USCorporatesResp)

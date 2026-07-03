@@ -58,9 +58,9 @@ def test_order_request_extended_hours_doc_type_matches_annotation(request_cls):
 
 @pytest.mark.parametrize("field_name", ["strike_price_gte", "strike_price_lte"])
 def test_get_option_contracts_strike_price_filter_type_matches_spec(field_name):
-    assert GetOptionContractsRequest.model_fields[field_name].annotation == Optional[
-        float
-    ]
+    assert (
+        GetOptionContractsRequest.model_fields[field_name].annotation == Optional[float]
+    )
     assert f"{field_name} (Optional[float])" in GetOptionContractsRequest.__doc__
 
 

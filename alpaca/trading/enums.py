@@ -255,6 +255,7 @@ class AssetExchange(str, Enum):
     NASDAQ = "NASDAQ"
     NYSEARCA = "NYSEARCA"
     OTC = "OTC"
+    CRYPTO = "CRYPTO"
 
 
 class PositionSide(str, Enum):

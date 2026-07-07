@@ -1,3 +1,4 @@
+from datetime import date
 from typing import List
 
 import pytest
@@ -78,3 +79,66 @@ def test_get_announcements(reqmock, trading_client: TradingClient):
     assert isinstance(response, List)
     assert len(response) > 0
     assert isinstance(response[0], CorporateActionAnnouncement)
+    assert response[0].expiration_date == date(2021, 1, 12)
+
+
+def test_get_announcements_preserves_corporate_actions_id_and_expiration_date(
+    reqmock, trading_client: TradingClient
+):
+    reqmock.get(
+        f"{BaseURL.TRADING_PAPER.value}/v2/corporate_actions/announcements",
+        json=[
+            {
+                "id": "be3c368a-4c7c-4384-808e-f02c9f5a8afe",
+                "corporate_action_id": "F58684224_XY37",
+                "corporate_actions_id": "F58684224_XY37",
+                "ca_type": "dividend",
+                "ca_sub_type": "cash",
+                "initiating_symbol": "MLLAX",
+                "initiating_original_cusip": "55275E101",
+                "expiration_date": "2021-01-12",
+                "cash": "0.018",
+                "old_rate": "1",
+                "new_rate": "1",
+            }
+        ],
+    )
+
+    with pytest.deprecated_call():
+        response = trading_client.get_corporate_announcements(
+            GetCorporateAnnouncementsRequest(
+                ca_types=[CorporateActionType.DIVIDEND.value],
+                since="2021-01-01",
+                until="2021-02-01",
+            )
+        )
+
+    assert response[0].corporate_actions_id == "F58684224_XY37"
+    assert response[0].expiration_date == date(2021, 1, 12)
+
+
+def test_get_announcement_by_id_preserves_corporate_actions_id_and_expiration_date(
+    reqmock, trading_client: TradingClient
+):
+    announcement_id = "be3c368a-4c7c-4384-808e-f02c9f5a8afe"
+    reqmock.get(
+        f"{BaseURL.TRADING_PAPER.value}/v2/corporate_actions/announcements/{announcement_id}",
+        json={
+            "id": announcement_id,
+            "corporate_action_id": "F58684224_XY37",
+            "corporate_actions_id": "F58684224_XY37",
+            "ca_type": "dividend",
+            "ca_sub_type": "cash",
+            "initiating_symbol": "MLLAX",
+            "initiating_original_cusip": "55275E101",
+            "expiration_date": "2021-01-12",
+            "cash": "0.018",
+            "old_rate": "1",
+            "new_rate": "1",
+        },
+    )
+
+    response = trading_client.get_corporate_announcement_by_id(announcement_id)
+
+    assert response.corporate_actions_id == "F58684224_XY37"
+    assert response.expiration_date == date(2021, 1, 12)

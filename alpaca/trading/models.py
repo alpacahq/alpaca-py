@@ -653,6 +653,7 @@ class CorporateActionAnnouncement(ModelWithID):
     Attributes:
         id (UUID): The unique identifier for this single announcement.
         corporate_action_id (str): ID that remains consistent across all announcements for the same corporate action.
+        corporate_actions_id (Optional[str]): API response alias for the corporate action ID.
         ca_type (CorporateActionType): The type of corporate action that was announced.
         ca_sub_type (CorporateActionSubType): The specific subtype of corporate action that was announced.
         initiating_symbol (str): Symbol of the company initiating the announcement.
@@ -665,12 +666,14 @@ class CorporateActionAnnouncement(ModelWithID):
             corporate action entitlement.
         payable_date (Optional[date]): The date the announcement will take effect. On this date, account stock and cash
             balances are expected to be processed accordingly.
+        expiration_date (Optional[date]): Expiration date for the corporate action announcement.
         cash (float): The amount of cash to be paid per share held by an account on the record date.
         old_rate (float): The denominator to determine any quantity change ratios in positions.
         new_rate (float): The numerator to determine any quantity change ratios in positions.
     """
 
     corporate_action_id: str
+    corporate_actions_id: Optional[str] = None
     ca_type: CorporateActionType
     ca_sub_type: CorporateActionSubType
     initiating_symbol: str
@@ -679,6 +682,7 @@ class CorporateActionAnnouncement(ModelWithID):
     target_original_cusip: Optional[str] = None
     declaration_date: Optional[date] = None
     ex_date: Optional[date] = None
+    expiration_date: Optional[date] = None
     record_date: Optional[date] = None
     payable_date: Optional[date] = None
     cash: float

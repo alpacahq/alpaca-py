@@ -21,24 +21,38 @@ from alpaca.trading.models import (
     Clock,
     ClosePositionResponse,
     CorporateActionAnnouncement,
+    Locate,
+    LocateQuotesResponse,
+    LocatesResponse,
     OptionContract,
     OptionContractsResponse,
     Order,
     PortfolioHistory,
     Position,
     TradeAccount,
+    USCorporate,
+    USCorporatesResp,
+    USTreasury,
+    USTreasuriesResp,
+    WalletFeeEstimate,
     Watchlist,
 )
 from alpaca.trading.requests import (
     ClosePositionRequest,
+    CreateLocateRequest,
     CreateWatchlistRequest,
     GetAssetsRequest,
     GetCalendarRequest,
     GetCorporateAnnouncementsRequest,
+    GetLocateQuotesRequest,
+    GetLocatesRequest,
     GetOptionContractsRequest,
     GetOrderByIdRequest,
     GetOrdersRequest,
     GetPortfolioHistoryRequest,
+    GetUSCorporatesRequest,
+    GetUSTreasuriesRequest,
+    GetWalletFeeEstimateRequest,
     OrderRequest,
     ReplaceOrderRequest,
     UpdateWatchlistRequest,
@@ -782,3 +796,53 @@ class TradingClient(RESTClient):
             return response
 
         return TypeAdapter(OptionContract).validate_python(response)
+
+    # ####################### FIXED INCOME #################################### #
+
+    def get_us_treasuries(
+        self, filter: Optional[GetUSTreasuriesRequest] = None
+    ) -> Union[USTreasuriesResp, RawData]:
+        """
+        Returns the list of US Treasury securities available at Alpaca,
+        optionally filtered by subtype, bond status, CUSIPs, or ISINs.
+
+        Args:
+            filter (Optional[GetUSTreasuriesRequest]): Query parameters to
+                filter the returned treasuries.
+
+        Returns:
+            Union[USTreasuriesResp, RawData]: The response wrapping the list
+                of treasury securities.
+        """
+        params = filter.to_request_fields() if filter is not None else {}
+
+        response = self.get("/assets/fixed_income/us_treasuries", params)
+
+        if self._use_raw_data:
+            return response
+
+        return TypeAdapter(USTreasuriesResp).validate_python(response)
+
+    def get_us_corporates(
+        self, filter: Optional[GetUSCorporatesRequest] = None
+    ) -> Union[USCorporatesResp, RawData]:
+        """
+        Returns the list of US corporate bonds available at Alpaca,
+        optionally filtered by bond status, ISINs, CUSIPs, or tickers.
+
+        Args:
+            filter (Optional[GetUSCorporatesRequest]): Query parameters to
+                filter the returned corporate bonds.
+
+        Returns:
+            Union[USCorporatesResp, RawData]: The response wrapping the list
+                of corporate bonds.
+        """
+        params = filter.to_request_fields() if filter is not None else {}
+
+        response = self.get("/assets/fixed_income/us_corporates", params)
+
+        if self._use_raw_data:
+            return response
+
+        return TypeAdapter(USCorporatesResp).validate_python(response)

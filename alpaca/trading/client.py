@@ -846,3 +846,70 @@ class TradingClient(RESTClient):
             return response
 
         return TypeAdapter(USCorporatesResp).validate_python(response)
+
+    # ############################## LOCATES ################################# #
+
+    def get_locates(
+        self, filter: Optional[GetLocatesRequest] = None
+    ) -> Union[LocatesResponse, RawData]:
+        """
+        Returns locates filtered by status, symbol, or date range.
+
+        Args:
+            filter (Optional[GetLocatesRequest]): Optional query parameters
+                used to filter locate requests.
+
+        Returns:
+            Union[LocatesResponse, RawData]: The response wrapping the list
+                of locates.
+        """
+        params = filter.to_request_fields() if filter is not None else {}
+
+        response = self.get("/locates", params, api_version="v1")
+
+        if self._use_raw_data:
+            return response
+
+        return TypeAdapter(LocatesResponse).validate_python(response)
+
+    def create_locate(self, request: CreateLocateRequest) -> Union[Locate, RawData]:
+        """
+        Creates a locate request for a short sale.
+
+        Args:
+            request (CreateLocateRequest): The locate request details.
+
+        Returns:
+            Union[Locate, RawData]: The created locate request.
+        """
+        data = request.to_request_fields()
+        response = self._request("POST", "/locates", data, api_version="v1")
+
+        if self._use_raw_data:
+            return response
+
+        return TypeAdapter(Locate).validate_python(response)
+
+    def get_locate_quotes(
+        self, request: GetLocateQuotesRequest
+    ) -> Union[LocateQuotesResponse, RawData]:
+        """
+        Returns locate availability and pricing for one or more symbols.
+
+        Args:
+            request (GetLocateQuotesRequest): Symbols to request quotes for.
+
+        Returns:
+            Union[LocateQuotesResponse, RawData]: The locate quotes response.
+        """
+        params = request.to_request_fields()
+
+        if "symbols" in params and isinstance(params["symbols"], list):
+            params["symbols"] = ",".join(params["symbols"])
+
+        response = self.get("/locates/quotes", params, api_version="v1")
+
+        if self._use_raw_data:
+            return response
+
+        return TypeAdapter(LocateQuotesResponse).validate_python(response)

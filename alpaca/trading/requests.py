@@ -21,6 +21,7 @@ from alpaca.trading.enums import (
     CreateCryptoTransferRequestChain,
     ExerciseStyle,
     LocateStatus,
+    Market,
     OrderClass,
     OrderSide,
     OrderType,
@@ -98,6 +99,37 @@ class GetCalendarRequest(NonEmptyRequest):
     start: Optional[date] = None
     end: Optional[date] = None
     date_type: Optional[Literal["TRADING", "SETTLEMENT"]] = "TRADING"
+
+
+class GetV3CalendarRequest(NonEmptyRequest):
+    """
+    Represents the optional filtering you can do when requesting a v3 market calendar.
+    """
+
+    start: Optional[date] = None
+    end: Optional[date] = None
+    timezone: Optional[Literal["UTC"]] = None
+
+
+class GetV3ClockRequest(NonEmptyRequest):
+    """
+    Represents the optional filtering you can do when requesting v3 market clocks.
+    """
+
+    markets: Optional[Union[str, List[Union[Market, str]]]] = None
+    time: Optional[datetime] = None
+
+    def to_request_fields(self) -> dict:
+        fields = super().to_request_fields()
+        markets = fields.get("markets")
+
+        if isinstance(markets, list):
+            fields["markets"] = ",".join(
+                market.value if isinstance(market, Market) else market
+                for market in markets
+            )
+
+        return fields
 
 
 class CreateWatchlistRequest(NonEmptyRequest):

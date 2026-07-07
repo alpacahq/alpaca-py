@@ -13,14 +13,16 @@ from alpaca.common.utils import (
     validate_symbol_or_contract_id,
     validate_uuid_id_param,
 )
+from alpaca.trading.enums import Market
 from alpaca.trading.models import (
     AccountConfiguration,
     Asset,
-    Calendar,
     CanceledOrderResponse,
     Clock,
+    ClockResp,
     ClosePositionResponse,
     CorporateActionAnnouncement,
+    LegacyCalendarDay,
     Locate,
     LocateQuotesResponse,
     LocatesResponse,
@@ -29,11 +31,12 @@ from alpaca.trading.models import (
     Order,
     PortfolioHistory,
     Position,
+    PublicCalendarResp,
     TradeAccount,
     USCorporate,
     USCorporatesResp,
-    USTreasury,
     USTreasuriesResp,
+    USTreasury,
     WalletFeeEstimate,
     Watchlist,
 )
@@ -52,6 +55,8 @@ from alpaca.trading.requests import (
     GetPortfolioHistoryRequest,
     GetUSCorporatesRequest,
     GetUSTreasuriesRequest,
+    GetV3CalendarRequest,
+    GetV3ClockRequest,
     GetWalletFeeEstimateRequest,
     OrderRequest,
     ReplaceOrderRequest,
@@ -435,6 +440,16 @@ class TradingClient(RESTClient):
 
     def get_clock(self) -> Union[Clock, RawData]:
         """
+        Gets the legacy v2 market clock.
+
+        Returns:
+            Clock: The market Clock data
+        """
+
+        return self.get_v2_clock()
+
+    def get_v2_clock(self) -> Union[Clock, RawData]:
+        """
         Gets the current market timestamp, whether or not the market is currently open, as well as the times
         of the next market open and close.
 
@@ -452,7 +467,23 @@ class TradingClient(RESTClient):
     def get_calendar(
         self,
         filters: Optional[GetCalendarRequest] = None,
-    ) -> Union[List[Calendar], RawData]:
+    ) -> Union[List[LegacyCalendarDay], RawData]:
+        """
+        Gets the legacy v2 market calendar.
+
+        Args:
+            filters: Any optional filters to limit the returned market days
+
+        Returns:
+            List[LegacyCalendarDay]: A list of legacy calendar day objects representing the market days.
+        """
+
+        return self.get_v2_calendar(filters)
+
+    def get_v2_calendar(
+        self,
+        filters: Optional[GetCalendarRequest] = None,
+    ) -> Union[List[LegacyCalendarDay], RawData]:
         """
         The calendar API serves the full list of market days from 1970 to 2029. It can also be queried by specifying a
         start and/or end time to narrow down the results.
@@ -464,7 +495,7 @@ class TradingClient(RESTClient):
             filters: Any optional filters to limit the returned market days
 
         Returns:
-            List[Calendar]: A list of Calendar objects representing the market days.
+            List[LegacyCalendarDay]: A list of legacy calendar day objects representing the market days.
         """
 
         result = self.get("/calendar", filters.to_request_fields() if filters else {})
@@ -472,7 +503,60 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return result
 
-        return TypeAdapter(List[Calendar]).validate_python(result)
+        return TypeAdapter(List[LegacyCalendarDay]).validate_python(result)
+
+    def get_v3_calendar(
+        self,
+        market: Union[Market, str],
+        filters: Optional[GetV3CalendarRequest] = None,
+    ) -> Union[PublicCalendarResp, RawData]:
+        """
+        Gets the calendar for a specific market.
+
+        Args:
+            market: The market identifier to retrieve calendar days for.
+            filters: Any optional filters to limit the returned market days.
+
+        Returns:
+            PublicCalendarResp: The market metadata and trading calendar days.
+        """
+
+        market_value = market.value if isinstance(market, Market) else market
+        response = self.get(
+            f"/calendar/{market_value}",
+            filters.to_request_fields() if filters else {},
+            api_version="v3",
+        )
+
+        if self._use_raw_data:
+            return response
+
+        return PublicCalendarResp(**response)
+
+    def get_v3_clock(
+        self,
+        filters: Optional[GetV3ClockRequest] = None,
+    ) -> Union[ClockResp, RawData]:
+        """
+        Gets clock information for one or more markets.
+
+        Args:
+            filters: Any optional filters to limit the returned market clocks.
+
+        Returns:
+            ClockResp: A response containing clock information for one or more markets.
+        """
+
+        response = self.get(
+            "/clock",
+            filters.to_request_fields() if filters else {},
+            api_version="v3",
+        )
+
+        if self._use_raw_data:
+            return response
+
+        return ClockResp(**response)
 
     # ############################## ACCOUNT ################################# #
 

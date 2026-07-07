@@ -40,7 +40,11 @@ def test_get_calendar(reqmock, client: BrokerClient):
     )
 
     assert reqmock.called_once
-    assert reqmock.request_history[0].qs == {"start": [start], "end": [end]}
+    assert reqmock.request_history[0].qs == {
+        "start": [start],
+        "end": [end],
+        "date_type": ["trading"],
+    }
 
     assert isinstance(result, List)
     assert len(result) == 2

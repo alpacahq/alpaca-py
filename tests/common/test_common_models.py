@@ -26,6 +26,7 @@ from alpaca.trading.models import (
     Position,
     ClosePositionResponse,
     Order,
+    OrderLeg,
 )
 from factories import create_dummy_order
 
@@ -62,6 +63,7 @@ def test_position_uuid():
         symbol="AAPL",
         exchange=AssetExchange.NYSE,
         asset_class=AssetClass.US_EQUITY,
+        asset_marginable=True,
         avg_entry_price="100.0",
         qty="5",
         side=PositionSide.LONG,
@@ -139,7 +141,17 @@ def test_order_uuids():
 def test_order_legs():
     """Tests recursive Order object with legs field"""
 
-    order = create_dummy_order()
+    leg = OrderLeg(
+        id="b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+        symbol="AAPL",
+        asset_class=AssetClass.US_EQUITY,
+        notional="0",
+        qty="1",
+        type=OrderType.MARKET,
+        side=OrderSide.BUY,
+        time_in_force=TimeInForce.DAY,
+        status="accepted",
+    )
 
     order_with_legs = Order(
         id="61e69015-8549-4bfd-b9c3-01e75843f47d",
@@ -158,7 +170,7 @@ def test_order_legs():
         symbol="AAPL",
         asset_class=AssetClass.US_EQUITY,
         notional="500",
-        qty=None,
+        qty="1",
         filled_qty="0",
         filled_avg_price=None,
         order_class=OrderClass.SIMPLE,
@@ -170,7 +182,7 @@ def test_order_legs():
         stop_price=None,
         status="accepted",
         extended_hours=False,
-        legs=[order],
+        legs=[leg],
         trail_percent=None,
         trail_price=None,
         hwm=None,
@@ -178,7 +190,7 @@ def test_order_legs():
     )
 
     assert isinstance(order_with_legs.legs, list)
-    assert isinstance(order_with_legs.legs[0], Order)
+    assert isinstance(order_with_legs.legs[0], OrderLeg)
 
 
 def test_close_position_request_with_qty():

@@ -847,6 +847,30 @@ class TradingClient(RESTClient):
 
         return TypeAdapter(USCorporatesResp).validate_python(response)
 
+    # ####################### CRYPTO WALLETS ################################## #
+
+    def get_wallet_fee_estimate(
+        self, request: Optional[GetWalletFeeEstimateRequest] = None
+    ) -> Union[WalletFeeEstimate, RawData]:
+        """
+        Returns the estimated gas fee for a proposed crypto transfer.
+
+        Args:
+            request (Optional[GetWalletFeeEstimateRequest]): Optional query
+                parameters (asset, from_address, to_address, amount).
+
+        Returns:
+            Union[WalletFeeEstimate, RawData]: The estimated fee.
+        """
+        params = request.to_request_fields() if request is not None else {}
+
+        response = self.get("/wallets/fees/estimate", params)
+
+        if self._use_raw_data:
+            return response
+
+        return WalletFeeEstimate(**response)
+
     # ############################## LOCATES ################################# #
 
     def get_locates(

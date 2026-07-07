@@ -330,37 +330,69 @@ def _validate_advanced_order_class_requirements(values: dict) -> None:
 
 
 class ReplaceOrderRequest(NonEmptyRequest):
-    """Contains data for submitting a request to replace an order.
+    """
+    Request to replace (patch) an existing open order.
+
+    Note: ``qty`` and ``notional`` are mutually exclusive. ``notional`` is only valid for
+    IPO indications of interest (``asset_class: "ipo"``); non-IPO notional orders cannot
+    be replaced at all.
 
     Attributes:
-        qty (Optional[int]): Number of shares to trade
-        time_in_force (Optional[TimeInForce]): The new expiration logic of the order.
-        limit_price (Optional[float]): Required if type of order being replaced is limit or stop_limit
-        stop_price (Optional[float]): Required if type of order being replaced is stop or stop_limit
-        trail (Optional[float]): The new value of the trail_price or trail_percent value (works only for type=“trailing_stop”)
-        client_order_id (Optional[str]): A unique identifier for the order.
+        qty (Optional[str]): Number of shares to trade.
+        notional (Optional[str]): New dollar amount for IPO orders only.
+        time_in_force (Optional[TimeInForce]): New time-in-force for the order.
+        limit_price (Optional[str]): Required if the original order type is ``limit`` or
+            ``stop_limit``. For multi-leg orders, positive = debit, negative = credit.
+        stop_price (Optional[str]): Required if the original order type is ``stop`` or
+            ``stop_limit``.
+        trail (Optional[str]): New ``trail_price`` or ``trail_percent`` value
+            (trailing-stop orders only).
+        client_order_id (Optional[str]): Unique identifier for the replacement order.
+        advanced_instructions (Optional[AdvancedInstructions]): Elite Smart Router
+            instructions for the replacement order.
     """
 
-    qty: Optional[int] = None
+    qty: Optional[str] = None
+    notional: Optional[str] = None
     time_in_force: Optional[TimeInForce] = None
-    limit_price: Optional[float] = None
-    stop_price: Optional[float] = None
-    trail: Optional[float] = None
+    limit_price: Optional[str] = None
+    stop_price: Optional[str] = None
+    trail: Optional[str] = None
     client_order_id: Optional[str] = None
+    advanced_instructions: Optional[AdvancedInstructions] = None
 
     @model_validator(mode="before")
     def root_validator(cls, values: dict) -> dict:
+        values = dict(values)
+
+        for field in ("qty", "notional", "limit_price", "stop_price", "trail"):
+            value = values.get(field)
+            if value is not None and not isinstance(value, str):
+                values[field] = str(value)
+
         qty = values.get("qty", None)
-        limit_price = values.get("limit_price", None)
+        notional = values.get("notional", None)
         stop_price = values.get("stop_price", None)
         trail = values.get("trail", None)
 
-        if (qty is not None) and (qty <= 0):
-            raise ValueError("qty must be greater than 0")
-        if (stop_price is not None) and (stop_price <= 0):
-            raise ValueError("stop_price must be greater than 0")
-        if (trail is not None) and (trail <= 0):
-            raise ValueError("trail must be greater than 0")
+        if qty is not None and notional is not None:
+            raise ValueError("Both qty and notional can not be set.")
+
+        def validate_greater_than_zero(value: str, name: str) -> None:
+            try:
+                numeric_value = float(value)
+            except (TypeError, ValueError):
+                raise ValueError(f"{name} must be greater than 0")
+
+            if numeric_value <= 0:
+                raise ValueError(f"{name} must be greater than 0")
+
+        if qty is not None:
+            validate_greater_than_zero(qty, "qty")
+        if stop_price is not None:
+            validate_greater_than_zero(stop_price, "stop_price")
+        if trail is not None:
+            validate_greater_than_zero(trail, "trail")
 
         return values
 
@@ -799,41 +831,6 @@ class CreateCryptoTransferRequest(NonEmptyRequest):
             CreateCryptoTransferRequestChain, Literal["SOL", "ETH", "BTC", "XRP", "ARB"]
         ]
     ] = None
-
-
-class PatchOrderRequest(NonEmptyRequest):
-    """
-    Request to patch (replace) an existing open order.
-
-    Note: ``qty`` and ``notional`` are mutually exclusive. ``notional`` is only valid for
-    IPO indications of interest (``asset_class: "ipo"``); non-IPO notional orders cannot
-    be replaced at all — cancel and resubmit instead.
-
-    Attributes:
-        qty (Optional[str]): Number of shares to trade (full shares only). Fractional qty
-            and non-IPO notional orders cannot be changed via patch.
-        notional (Optional[str]): New dollar amount for IPO orders only.
-        time_in_force (Optional[TimeInForce]): New time-in-force for the order.
-        limit_price (Optional[str]): Required if the original order type is ``limit`` or
-            ``stop_limit``. For multi-leg orders, positive = debit, negative = credit.
-        stop_price (Optional[str]): Required if the original order type is ``stop`` or
-            ``stop_limit``.
-        trail (Optional[str]): New ``trail_price`` or ``trail_percent`` value
-            (trailing-stop orders only).
-        client_order_id (Optional[str]): Unique identifier for the replacement order
-            (max 128 characters).
-        advanced_instructions (Optional[AdvancedInstructions]): Elite Smart Router
-            instructions for the replacement order.
-    """
-
-    qty: Optional[str] = None
-    notional: Optional[str] = None
-    time_in_force: Optional[TimeInForce] = None
-    limit_price: Optional[str] = None
-    stop_price: Optional[str] = None
-    trail: Optional[str] = None
-    client_order_id: Optional[str] = None
-    advanced_instructions: Optional[AdvancedInstructions] = None
 
 
 class TokenizationMintRequest(NonEmptyRequest):

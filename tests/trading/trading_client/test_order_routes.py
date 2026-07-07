@@ -1,4 +1,6 @@
+import inspect
 import warnings
+from typing import Optional
 from uuid import UUID
 import pytest
 
@@ -286,6 +288,113 @@ def test_replace_order(reqmock, trading_client: TradingClient):
     order = trading_client.replace_order_by_id(order_id, replace_order_request)
 
     assert type(order) is Order
+
+
+def test_replace_order_accepts_patch_request_string_fields(
+    reqmock, trading_client: TradingClient
+):
+    order_id = "61e69015-8549-4bfd-b9c3-01e75843f47d"
+
+    reqmock.patch(
+        f"{BaseURL.TRADING_PAPER.value}/v2/orders/{order_id}",
+        text="""
+        {
+            "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
+            "client_order_id": "eb9e2aaa-f71a-4f51-b5b4-52a6c565dad4",
+            "created_at": "2021-03-16T18:38:01.942282Z",
+            "updated_at": "2021-03-16T18:38:01.942282Z",
+            "submitted_at": "2021-03-16T18:38:01.937734Z",
+            "filled_at": null,
+            "expired_at": null,
+            "canceled_at": null,
+            "failed_at": null,
+            "replaced_at": null,
+            "replaced_by": null,
+            "replaces": null,
+            "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
+            "symbol": "AAPL",
+            "asset_class": "us_equity",
+            "notional": "0",
+            "qty": "4",
+            "filled_qty": "0",
+            "filled_avg_price": null,
+            "order_class": "simple",
+            "order_type": "limit",
+            "type": "limit",
+            "side": "buy",
+            "time_in_force": "gtc",
+            "limit_price": "155",
+            "stop_price": null,
+            "status": "accepted",
+            "extended_hours": false,
+            "legs": null,
+            "trail_percent": null,
+            "trail_price": null,
+            "hwm": null,
+            "position_intent": "buy_to_open",
+            "commission": 1.25
+        }
+        """,
+    )
+
+    order = trading_client.replace_order_by_id(
+        order_id,
+        ReplaceOrderRequest(qty="4", limit_price="155", time_in_force="gtc"),
+    )
+
+    assert type(order) is Order
+    assert reqmock.request_history[0].json() == {
+        "qty": "4",
+        "time_in_force": "gtc",
+        "limit_price": "155",
+    }
+
+
+def test_replace_order_by_id_uses_replace_order_request_annotation() -> None:
+    signature = inspect.signature(TradingClient.replace_order_by_id)
+
+    assert (
+        signature.parameters["order_data"].annotation == Optional[ReplaceOrderRequest]
+    )
+
+
+def test_replace_order_request_accepts_spec_string_fields() -> None:
+    request = ReplaceOrderRequest(qty="4", limit_price="155", time_in_force="gtc")
+
+    assert request.to_request_fields() == {
+        "qty": "4",
+        "time_in_force": "gtc",
+        "limit_price": "155",
+    }
+
+
+def test_replace_order_request_matches_patch_order_oas_fields() -> None:
+    assert set(ReplaceOrderRequest.model_fields) == {
+        "qty",
+        "notional",
+        "time_in_force",
+        "limit_price",
+        "stop_price",
+        "trail",
+        "client_order_id",
+        "advanced_instructions",
+    }
+
+
+def test_replace_order_request_converts_numeric_inputs_to_oas_strings() -> None:
+    request = ReplaceOrderRequest(qty=4, limit_price=155, stop_price=150.5, trail=1)
+
+    assert request.to_request_fields() == {
+        "qty": "4",
+        "limit_price": "155",
+        "stop_price": "150.5",
+        "trail": "1",
+    }
+
+
+def test_replace_order_request_rejects_qty_and_notional_together() -> None:
+    with pytest.raises(ValueError):
+        ReplaceOrderRequest(qty="4", notional="750")
 
 
 def test_replace_order_validate_replace_request() -> None:

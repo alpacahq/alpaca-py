@@ -16,9 +16,11 @@ def test_get_account(reqmock: Mocker, trading_client: TradingClient):
           "buying_power": "262113.632",
           "cash": "-23140.2",
           "created_at": "2019-06-12T22:47:07.99658Z",
+          "crypto_tier": 1,
           "currency": "USD",
           "daytrade_count": 0,
           "daytrading_buying_power": "262113.632",
+          "effective_buying_power": "262113.632",
           "equity": "103820.56",
           "id": "e6fe16f3-64a4-4921-8928-cadf02f92f98",
           "initial_margin": "63480.38",
@@ -40,7 +42,8 @@ def test_get_account(reqmock: Mocker, trading_client: TradingClient):
           "transfers_blocked": false,
           "options_buying_power": "262113.632",
           "options_approved_level": "1",
-          "options_trading_level": "1"
+          "options_trading_level": "1",
+          "position_market_value": "126960.76"
         }
       """,
     )
@@ -52,6 +55,9 @@ def test_get_account(reqmock: Mocker, trading_client: TradingClient):
     assert account.options_buying_power == "262113.632"
     assert account.options_approved_level == 1
     assert account.options_trading_level == 1
+    assert account.crypto_tier == 1
+    assert account.effective_buying_power == "262113.632"
+    assert account.position_market_value == "126960.76"
 
 
 def test_get_account_configurations(reqmock: Mocker, trading_client: TradingClient):

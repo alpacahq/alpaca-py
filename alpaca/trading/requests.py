@@ -122,7 +122,7 @@ class UpdateWatchlistRequest(NonEmptyRequest):
         symbols(Optional[List[str]]): Symbols of Assets to watch
     """
 
-    name: Optional[str]
+    name: Optional[str] = None
     symbols: Optional[List[str]] = None
 
     @model_validator(mode="before")

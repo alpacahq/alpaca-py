@@ -106,11 +106,11 @@ class CreateWatchlistRequest(NonEmptyRequest):
 
     Attributes:
         name(str): Name of the Watchlist
-        symbols(List[str]): Symbols of Assets to watch
+        symbols(Optional[List[str]]): Symbols of Assets to watch
     """
 
     name: str
-    symbols: List[str]
+    symbols: Optional[List[str]] = None
 
 
 class UpdateWatchlistRequest(NonEmptyRequest):
@@ -118,11 +118,11 @@ class UpdateWatchlistRequest(NonEmptyRequest):
     Represents the fields you can specify when updating a Watchlist
 
     Attributes:
-        name(str): Name of the Watchlist
+        name(Optional[str]): Name of the Watchlist
         symbols(Optional[List[str]]): Symbols of Assets to watch
     """
 
-    name: str
+    name: Optional[str]
     symbols: Optional[List[str]] = None
 
     @model_validator(mode="before")

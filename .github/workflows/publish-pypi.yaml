@@ -22,7 +22,7 @@ jobs:
       # install poetry first for cache
       - name: setup poetry
         run: pipx install poetry
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
           cache: "poetry"

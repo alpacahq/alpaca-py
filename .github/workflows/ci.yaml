@@ -12,7 +12,7 @@ jobs:
     #The lint jobs don't need to run on other OS's or python versions
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # install poetry first for cache
       - name: setup poetry
         run: pipx install poetry
@@ -35,7 +35,7 @@ jobs:
         os: [ ubuntu-latest ] #in the future we should add windows here
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # install poetry first for cache
       - name: setup poetry
         run: pipx install poetry

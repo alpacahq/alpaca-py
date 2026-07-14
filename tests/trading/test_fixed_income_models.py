@@ -104,15 +104,30 @@ def test_us_corporate_response_parses_security():
 
 def test_fixed_income_requests_parse_filters():
     treasury_request = GetUSTreasuriesRequest(
-        subtype="bill", bond_status="outstanding", cusips="912797PM3"
+        subtype="bill",
+        bond_status="outstanding",
+        cusips="912797PM3,912810UG1",
+        isins="US912797PM34,US912810UG12",
     )
     corporate_request = GetUSCorporatesRequest(
-        bond_status=BondStatus.OUTSTANDING, tickers="MSFT"
+        bond_status=BondStatus.OUTSTANDING,
+        cusips="594918CV0,037833ET3",
+        isins="US594918CV00,US037833ET34",
+        tickers="MSFT,AAPL",
     )
 
-    assert treasury_request.subtype is TreasurySubtype.BILL
-    assert treasury_request.bond_status is BondStatus.OUTSTANDING
-    assert corporate_request.tickers == "MSFT"
+    assert treasury_request.to_request_fields() == {
+        "subtype": TreasurySubtype.BILL,
+        "bond_status": BondStatus.OUTSTANDING,
+        "cusips": "912797PM3,912810UG1",
+        "isins": "US912797PM34,US912810UG12",
+    }
+    assert corporate_request.to_request_fields() == {
+        "bond_status": BondStatus.OUTSTANDING,
+        "isins": "US594918CV00,US037833ET34",
+        "cusips": "594918CV0,037833ET3",
+        "tickers": "MSFT,AAPL",
+    }
 
 
 def test_fixed_income_requests_omit_unset_filters():

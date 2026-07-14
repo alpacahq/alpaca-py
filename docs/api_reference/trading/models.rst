@@ -96,3 +96,27 @@ OptionContractsResponse
 -----------------------
 
 .. autoclass:: alpaca.trading.models.OptionContractsResponse
+
+
+USTreasury
+----------
+
+.. autoclass:: alpaca.trading.models.USTreasury
+
+
+USCorporate
+-----------
+
+.. autoclass:: alpaca.trading.models.USCorporate
+
+
+USTreasuriesResp
+----------------
+
+.. autoclass:: alpaca.trading.models.USTreasuriesResp
+
+
+USCorporatesResp
+----------------
+
+.. autoclass:: alpaca.trading.models.USCorporatesResp

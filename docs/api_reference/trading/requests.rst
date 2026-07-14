@@ -126,3 +126,15 @@ GetCorporateAnnouncementsRequest
 --------------------------------
 
 .. autoclass:: alpaca.trading.requests.GetCorporateAnnouncementsRequest
+
+
+GetUSTreasuriesRequest
+----------------------
+
+.. autoclass:: alpaca.trading.requests.GetUSTreasuriesRequest
+
+
+GetUSCorporatesRequest
+----------------------
+
+.. autoclass:: alpaca.trading.requests.GetUSCorporatesRequest

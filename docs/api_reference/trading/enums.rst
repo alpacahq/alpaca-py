@@ -120,3 +120,45 @@ PositionIntent
 ----------------------
 
 .. autoenum:: alpaca.trading.enums.PositionIntent
+
+
+BondStatus
+----------
+
+.. autoenum:: alpaca.trading.enums.BondStatus
+
+
+CallType
+--------
+
+.. autoenum:: alpaca.trading.enums.CallType
+
+
+CouponFrequency
+---------------
+
+.. autoenum:: alpaca.trading.enums.CouponFrequency
+
+
+CouponType
+----------
+
+.. autoenum:: alpaca.trading.enums.CouponType
+
+
+DayCount
+--------
+
+.. autoenum:: alpaca.trading.enums.DayCount
+
+
+SpOutlook
+---------
+
+.. autoenum:: alpaca.trading.enums.SpOutlook
+
+
+TreasurySubtype
+---------------
+
+.. autoenum:: alpaca.trading.enums.TreasurySubtype

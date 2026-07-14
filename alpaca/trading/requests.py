@@ -1,5 +1,5 @@
 from datetime import date, datetime, timedelta
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Literal, Optional, Union
 
 import pandas as pd
 from pydantic import model_validator
@@ -87,6 +87,7 @@ class GetCalendarRequest(NonEmptyRequest):
 
     start: Optional[date] = None
     end: Optional[date] = None
+    date_type: Optional[Literal["TRADING", "SETTLEMENT"]] = "TRADING"
 
 
 class CreateWatchlistRequest(NonEmptyRequest):

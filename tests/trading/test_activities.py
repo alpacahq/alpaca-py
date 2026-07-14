@@ -1,6 +1,8 @@
 from datetime import date, datetime
 from uuid import UUID
 
+import pytest
+
 from alpaca.trading.enums import (
     ActivityCategory,
     ActivitySubType,
@@ -9,12 +11,18 @@ from alpaca.trading.enums import (
     TradeActivityType,
 )
 from alpaca.trading.models import (
+    AcatcActivityV2,
     ActivityEventV2,
     ActivityV2DetailNTA,
     ActivityV2DetailTRD,
+    CDIVActivityV2,
     CommonSplitStockActivityV2,
+    ExchangeOfferActivityV2,
+    FixedIncomeRedemptionActivityV2,
+    ForwardSplitActivityV2,
     NonTradeActivities,
     NonTradeActivity,
+    OpcaCDIVActivityV2,
     TradingActivities,
 )
 from alpaca.trading.requests import GetActivitiesRequest
@@ -166,6 +174,102 @@ def test_activity_v2_common_base_parses_inherited_fields():
     assert activity.position_date == date(2026, 7, 11)
     assert activity.payable_date == date(2026, 7, 15)
     assert activity.new_qty == "10"
+
+
+@pytest.mark.parametrize(
+    ("model", "payload", "field", "expected"),
+    [
+        (
+            AcatcActivityV2,
+            {
+                "system_date": "2026-07-14",
+                "external_id": "acat-1",
+                "request_id": "4ce24134-3d0c-4f61-aef5-1807a3391380",
+            },
+            "request_id",
+            UUID("4ce24134-3d0c-4f61-aef5-1807a3391380"),
+        ),
+        (
+            CDIVActivityV2,
+            {
+                "system_date": "2026-07-14",
+                "position_date": "2026-07-11",
+                "entitled_qty": "10",
+                "cash_payout": "2.50",
+                "symbol": "AAPL",
+                "cusip": "037833100",
+                "rate": "0.25",
+                "foreign": False,
+                "special": False,
+            },
+            "position_date",
+            date(2026, 7, 11),
+        ),
+        (
+            OpcaCDIVActivityV2,
+            {
+                "system_date": "2026-07-14",
+                "position_date": "2026-07-11",
+                "old_contract_symbol": "AAPL260717C00150000",
+                "new_contract_symbol": "AAPL1260717C00150000",
+                "symbol": "AAPL",
+                "cusip": "037833100",
+                "rate": "0.25",
+                "foreign": False,
+                "special": True,
+            },
+            "special",
+            True,
+        ),
+        (
+            ForwardSplitActivityV2,
+            {
+                "system_date": "2026-07-14",
+                "position_date": "2026-07-11",
+                "old_cusip": "old",
+                "new_cusip": "new",
+                "old_rate": "1",
+                "new_rate": "2",
+                "old_qty": "5",
+                "new_qty": "10",
+                "symbol": "AAPL",
+            },
+            "new_qty",
+            "10",
+        ),
+        (
+            ExchangeOfferActivityV2,
+            {
+                "system_date": "2026-07-14",
+                "source_cusip": "old",
+                "source_symbol": "OLD",
+                "new_cusip": "new",
+                "new_symbol": "NEW",
+            },
+            "new_symbol",
+            "NEW",
+        ),
+        (
+            FixedIncomeRedemptionActivityV2,
+            {
+                "system_date": "2026-07-14",
+                "ca_id": "8f027b04-755e-4e33-88c8-66c5aa1e8109",
+                "payment_date": "2026-07-15",
+                "cusip": "91282CKQ3",
+                "qty": "10",
+                "cash_payout": "10000",
+            },
+            "payment_date",
+            date(2026, 7, 15),
+        ),
+    ],
+)
+def test_concrete_activity_v2_models_parse_representative_payloads(
+    model, payload, field, expected
+):
+    activity = model(**payload)
+
+    assert getattr(activity, field) == expected
 
 
 def test_activity_v2_event_envelope_parses_trade_details():

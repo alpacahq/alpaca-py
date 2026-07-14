@@ -924,3 +924,254 @@ class ActivityEventV2(ActivityEventV2CommonFields):
     """Account activity delivered over the Event Streaming API V2."""
 
     details: Union[ActivityV2DetailTRD, ActivityV2DetailNTA]
+
+
+class AcatcActivityV2(CommonNTAActivityV2, CommonAcatActivityV2):
+    """Automated customer account transfer service (cash)."""
+
+
+class AcatsActivityV2(CommonNTAActivityV2, CommonAcatActivityV2):
+    """Automated customer account transfer service (stock)."""
+
+    symbol: str
+
+
+class DIVSPDActivityV2(CommonCaActivityV2):
+    """Substitute payment in lieu of dividend."""
+
+    entitled_qty: str
+    cash_payout: str
+    symbol: str
+    cusip: str
+    rate: str
+    foreign: bool
+    special: bool
+    due_bill_on_date: Optional[date] = None
+    due_bill_off_date: Optional[date] = None
+    ex_date: Optional[date] = None
+    record_date: Optional[date] = None
+    payable_date: Optional[date] = None
+
+
+class CDIVActivityV2(CommonCaActivityV2, CommonCDIVActivityV2):
+    """Cash dividend."""
+
+    entitled_qty: str
+    cash_payout: str
+
+
+class DIVNRAActivityV2(CommonNTAActivityV2):
+    """Dividend withholding for non-resident aliens."""
+
+    cusip: str
+    symbol: str
+    parent_id: str
+
+
+class CSWActivityV2(CommonNTAActivityV2):
+    """Cash withdrawal."""
+
+    bank_transaction_id: Optional[UUID] = None
+
+
+class SDIVActivityV2(CommonCaActivityV2, CommonSDIVActivityV2):
+    """Stock dividend."""
+
+    entitled_qty: str
+    paid_qty: str
+    new_qty: str
+
+
+class SpinoffActivityV2(CommonCaActivityV2, CommonSpinoffActivityV2):
+    """Spinoff."""
+
+    source_qty: str
+    new_qty: str
+
+
+class MAActivityV2(CommonCaActivityV2, CommonMAActivityV2):
+    """Merger and acquisition."""
+
+    acquiree_qty: str
+    acquirer_qty: Optional[str] = None
+    cash_rate: Optional[str] = None
+    cash_payout: Optional[str] = None
+
+
+class NCActivityV2(CommonCaActivityV2, CommonNCActivityV2):
+    """Name change."""
+
+    position_qty: str
+
+
+class WRMActivityV2(CommonCaActivityV2):
+    """Worthless removal."""
+
+    cusip: str
+    symbol: str
+    removed_qty: str
+
+
+class TenderOfferActivityV2(CommonNTAActivityV2, CommonVOFSubtypeActivityV2):
+    """Tender offer voluntary offering activity."""
+
+
+class FOPTActivityV2(CommonNTAActivityV2):
+    """Free-of-payment transfer."""
+
+    external_id: str
+    contra: str
+    symbol: str
+
+
+class JNLSActivityV2(CommonJournalActivityV2):
+    """Journal entry (stock)."""
+
+    symbol: str
+
+
+class JNLCActivityV2(CommonJournalActivityV2):
+    """Journal entry (cash)."""
+
+
+class FEEActivityV2(CommonNTAActivityV2):
+    """Fee activity."""
+
+    parent_id: UUID
+
+
+class OPASNActivityV2(CommonOptionsActivityV2):
+    """Option assignment."""
+
+
+class OPEXCActivityV2(CommonOptionsActivityV2):
+    """Option exercise."""
+
+
+class OPEXPActivityV2(CommonOptionsActivityV2):
+    """Option expiry."""
+
+
+class OPTRDActivityV2(CommonOptionsActivityV2):
+    """Trading activity paired with an option assignment or exercise."""
+
+
+class OpcaCDIVActivityV2(CommonOPCAActivityV2, CommonCDIVActivityV2):
+    """Options corporate action cash dividend."""
+
+
+class OpcaSDIVActivityV2(CommonOPCAActivityV2, CommonSDIVActivityV2):
+    """Options corporate action stock dividend."""
+
+
+class OpcaMAActivityV2(CommonOPCAActivityV2, CommonMAActivityV2):
+    """Options corporate action merger and acquisition."""
+
+
+class OpcaNCActivityV2(CommonOPCAActivityV2, CommonNCActivityV2):
+    """Options corporate action name change."""
+
+
+class OpcaSPINActivityV2(CommonOPCAActivityV2, CommonSpinoffActivityV2):
+    """Options corporate action spinoff."""
+
+
+class OpcaFSPLITActivityV2(CommonOPCAActivityV2, CommonSplitActivityV2):
+    """Options corporate action forward stock split."""
+
+    symbol: str
+    due_bill_redemption_date: Optional[date] = None
+    ex_date: Optional[date] = None
+    record_date: Optional[date] = None
+
+
+class OpcaRSPLITActivityV2(CommonOPCAActivityV2, CommonSplitActivityV2):
+    """Options corporate action reverse stock split."""
+
+    symbol: str
+    new_symbol: Optional[str] = None
+    ex_date: Optional[date] = None
+    record_date: Optional[date] = None
+
+
+class OpcaUSPLITActivityV2(CommonOPCAActivityV2, CommonSplitActivityV2):
+    """Options corporate action unit split."""
+
+    old_symbol: str
+    new_symbol: str
+    alternate_cusip: str
+    alternate_symbol: str
+    alternate_rate: str
+    effective_date: date
+
+
+class UnitSplitActivityV2(CommonSplitStockActivityV2):
+    """Unit split."""
+
+    old_symbol: str
+    new_symbol: str
+    alternate_cusip: str
+    alternate_symbol: str
+    alternate_rate: str
+    alternate_qty: str
+    effective_date: date
+
+
+class ExchangeOfferActivityV2(CommonNTAActivityV2, CommonVOFSubtypeActivityV2):
+    """Exchange offer voluntary corporate action."""
+
+
+class RightsSubscriptionElectionActivityV2(
+    CommonNTAActivityV2, CommonVOFSubtypeActivityV2
+):
+    """Rights subscription election voluntary corporate action."""
+
+
+class FixedIncomeRedemptionActivityV2(CommonNTAActivityV2):
+    """Fixed income redemption."""
+
+    ca_id: UUID
+    payment_date: date
+    cusip: str
+    qty: str
+    cash_payout: str
+
+
+class ForwardSplitActivityV2(CommonSplitStockActivityV2):
+    """Forward stock split."""
+
+    symbol: str
+    due_bill_redemption_date: Optional[date] = None
+    ex_date: Optional[date] = None
+    record_date: Optional[date] = None
+
+
+class ReverseSplitActivityV2(CommonSplitStockActivityV2):
+    """Reverse stock split."""
+
+    symbol: str
+    new_symbol: Optional[str] = None
+    ex_date: Optional[date] = None
+    record_date: Optional[date] = None
+
+
+class RightsDistributionActivityV2(CommonCaActivityV2):
+    """Rights distribution corporate action."""
+
+    source_cusip: str
+    source_symbol: str
+    source_qty: str
+    new_cusip: str
+    new_symbol: str
+    new_qty: str
+    rate: str
+    expiration_date: Optional[date] = None
+    ex_date: Optional[date] = None
+    record_date: Optional[date] = None
+    payable_date: Optional[date] = None
+
+
+class WarrantExerciseElectionActivityV2(
+    CommonNTAActivityV2, CommonVOFSubtypeActivityV2
+):
+    """Warrant exercise election voluntary corporate action."""

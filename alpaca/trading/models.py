@@ -332,6 +332,9 @@ class OrderLeg(ModelWithID):
     ratio_qty: Optional[Union[str, float]] = None
 
 
+Order.model_rebuild()
+
+
 class CanceledOrderResponse(BaseModel):
     """
     Result of a request to cancel an order.

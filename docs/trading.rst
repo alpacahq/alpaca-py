@@ -175,8 +175,9 @@ Cancel All Orders
 ^^^^^^^^^^^^^^^^^
 
 We can attempt to cancel all open orders with this method. The method takes no parameters and returns a list
-of ``CancelOrderResponse`` objects. The cancellation of an order is not guaranteed. The ``CancelOrderResponse`` objects
-contain information about the cancel status of each attempted order cancellation.
+of ``CanceledOrderResponse`` objects from ``alpaca.trading.models``. The cancellation of an order is not
+guaranteed. Each ``CanceledOrderResponse`` contains information about the cancel status of an attempted
+order cancellation.
 
 .. code-block:: python
 

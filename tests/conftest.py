@@ -12,9 +12,6 @@ from alpaca.data.historical.news import NewsClient
 from alpaca.data.historical.option import OptionHistoricalDataClient
 from alpaca.data.historical.screener import ScreenerClient
 from alpaca.trading.client import TradingClient
-from alpaca.trading.models import Order, OrderLeg  # noqa: F401
-
-Order.model_rebuild()
 
 pytest_plugins = ("pytest_asyncio",)
 

@@ -13,8 +13,10 @@ from alpaca.broker.requests import (
 )
 from alpaca.broker.models import (
     AccountDocument,
+    Order as BrokerOrder,
     TradeDocument,
 )
+from alpaca.broker.models.rebalancing import RebalancingRun
 from alpaca.broker.requests import (
     UpdateAccountRequest,
     UpdatableTrustedContact,
@@ -35,6 +37,7 @@ from alpaca.broker.enums import (
     JournalEntryType,
 )
 from alpaca.trading.enums import ActivityType
+from alpaca.trading.models import OrderLeg
 from tests.broker.factories import create_dummy_w8ben_document
 from uuid import uuid4
 
@@ -483,3 +486,41 @@ def test_journal_with_amount_and_qty():
         )
 
     assert "Cash journals must contain an amount to transfer." in str(e.value)
+
+
+def test_broker_order_and_rebalancing_models_resolve_order_legs():
+    order_payload = {
+        "notional": None,
+        "type": "market",
+        "time_in_force": "day",
+        "legs": [
+            {
+                "symbol": "AAPL260717C00200000",
+                "notional": None,
+                "qty": "1",
+                "type": "market",
+                "side": "buy",
+                "time_in_force": "day",
+                "ratio_qty": "1",
+            }
+        ],
+    }
+
+    order = BrokerOrder(**order_payload)
+    run = RebalancingRun(
+        id=uuid4(),
+        account_id=uuid4(),
+        type="full_rebalance",
+        portfolio_id=uuid4(),
+        weights=[],
+        created_at="2026-07-14T10:00:00Z",
+        updated_at="2026-07-14T10:00:00Z",
+        status="COMPLETED_SUCCESS",
+        orders=[order_payload],
+        failed_orders=[order_payload],
+    )
+
+    assert isinstance(order.legs[0], OrderLeg)
+    assert isinstance(run.orders[0], BrokerOrder)
+    assert isinstance(run.orders[0].legs[0], OrderLeg)
+    assert isinstance(run.failed_orders[0].legs[0], OrderLeg)

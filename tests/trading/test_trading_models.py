@@ -41,6 +41,10 @@ def test_order_response_schema_matches_current_spec():
     assert order.extended_hours is None
 
 
+def test_order_forward_references_are_rebuilt_in_production():
+    assert Order.__pydantic_complete__
+
+
 @pytest.mark.parametrize("type_fields", [{}, {"type": ""}])
 def test_order_response_parses_realistic_mleg_payload(type_fields):
     payload = {

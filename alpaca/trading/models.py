@@ -194,7 +194,7 @@ class Order(ModelWithID):
           passed outside of market hours.
         order_class (Optional[OrderClass]): Valid values: simple, bracket, oco or oto.
         order_type (Optional[OrderType]): Deprecated with just type field below. Omitted from legs of mleg orders.
-        type (OrderType): Valid values: market, limit, stop, stop_limit, trailing_stop. Omitted from legs of mleg orders.
+        type (Optional[OrderType]): Valid values: market, limit, stop, stop_limit, trailing_stop. Omitted from legs of mleg orders.
         side (Optional[OrderSide]): Valid values: buy and sell. Omitted from top-level of response if the order is of mleg class.
         time_in_force (TimeInForce): Length of time the order is in force.
         limit_price (Optional[str]): Limit price of the order.
@@ -232,7 +232,7 @@ class Order(ModelWithID):
     filled_avg_price: Optional[Union[str, float]] = None
     order_class: Optional[OrderClass] = None
     order_type: Optional[OrderType] = None
-    type: OrderType
+    type: Optional[OrderType] = None
     side: Optional[OrderSide] = None
     time_in_force: TimeInForce
     limit_price: Optional[Union[str, float]] = None
@@ -290,6 +290,10 @@ class OrderLeg(ModelWithID):
     A single leg of a multi-leg order as returned by the API.
 
     This schema mirrors ``Order`` but omits recursive leg nesting.
+
+    Attributes:
+        ratio_qty (Optional[Union[str, float]]): Proportional quantity of this leg
+            relative to the overall multi-leg order quantity.
     """
 
     id: Optional[UUID] = None
@@ -325,6 +329,7 @@ class OrderLeg(ModelWithID):
     hwm: Optional[str] = None
     position_intent: Optional[PositionIntent] = None
     legs: Optional[List[Any]] = None
+    ratio_qty: Optional[Union[str, float]] = None
 
 
 class CanceledOrderResponse(BaseModel):

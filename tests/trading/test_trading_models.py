@@ -36,8 +36,44 @@ def test_order_response_schema_matches_current_spec():
 
     assert order.id is None
     assert order.order_class == OrderClass.SIMPLE
+    assert order.type is OrderType.MARKET
     assert order.status is None
     assert order.extended_hours is None
+
+
+@pytest.mark.parametrize("type_fields", [{}, {"type": ""}])
+def test_order_response_parses_realistic_mleg_payload(type_fields):
+    payload = {
+        "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
+        "client_order_id": "mleg-order",
+        "created_at": "2026-07-14T10:00:00Z",
+        "updated_at": "2026-07-14T10:00:00Z",
+        "submitted_at": "2026-07-14T10:00:00Z",
+        "notional": None,
+        "qty": "1",
+        "order_class": "mleg",
+        "time_in_force": "day",
+        "status": "new",
+        "extended_hours": False,
+        "legs": [
+            {
+                "symbol": "AAPL260717C00200000",
+                "notional": None,
+                "qty": "1",
+                "type": "market",
+                "side": "buy",
+                "time_in_force": "day",
+                "ratio_qty": 2,
+            }
+        ],
+        **type_fields,
+    }
+
+    order = Order(**payload)
+
+    assert order.order_class is OrderClass.MLEG
+    assert order.type is None
+    assert order.legs[0].type is OrderType.MARKET
 
 
 def test_order_response_parses_distinct_order_legs():
@@ -77,6 +113,28 @@ def test_mleg_order_leg_matches_current_spec():
     assert leg.position_intent == "buy_to_open"
 
 
+@pytest.mark.parametrize(
+    ("ratio_qty", "expected"),
+    [
+        ("2", "2"),
+        (2, 2.0),
+        (None, None),
+    ],
+)
+def test_order_leg_retains_or_coerces_ratio_qty(ratio_qty, expected):
+    leg = OrderLeg(
+        symbol="AAPL260717C00200000",
+        notional=None,
+        qty="1",
+        type="market",
+        side="buy",
+        time_in_force="day",
+        ratio_qty=ratio_qty,
+    )
+
+    assert leg.ratio_qty == expected
+
+
 def test_get_orders_request_supports_cursor_and_asset_class_filters():
     after_order_id = uuid.uuid4()
     before_order_id = uuid.uuid4()
@@ -102,6 +160,13 @@ def test_canceled_order_response_allows_nullable_body():
     )
 
     assert response.body is None
+
+
+def test_canceled_order_response_allows_missing_id_and_status():
+    response = CanceledOrderResponse(body=None)
+
+    assert response.id is None
+    assert response.status is None
 
 
 def test_has_qty_or_notional_but_not_both():

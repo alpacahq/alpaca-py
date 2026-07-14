@@ -11,6 +11,7 @@ from alpaca.trading.enums import (
     AssetClass,
     AssetExchange,
     AssetStatus,
+    BondStatus,
     ContractType,
     CorporateActionDateType,
     CorporateActionType,
@@ -21,6 +22,7 @@ from alpaca.trading.enums import (
     PositionIntent,
     QueryOrderStatus,
     TimeInForce,
+    TreasurySubtype,
 )
 
 
@@ -716,3 +718,29 @@ class GetOptionContractsRequest(NonEmptyRequest):
 
     limit: Optional[int] = None
     page_token: Optional[str] = None
+
+
+class GetUSTreasuriesRequest(NonEmptyRequest):
+    """
+    Parameters for fetching US Treasury securities.
+
+    CUSIPs and ISINs are comma-separated lists with a limit of 1000 values.
+    """
+
+    subtype: Optional[TreasurySubtype] = None
+    bond_status: Optional[BondStatus] = None
+    cusips: Optional[str] = None
+    isins: Optional[str] = None
+
+
+class GetUSCorporatesRequest(NonEmptyRequest):
+    """
+    Parameters for fetching US corporate bonds.
+
+    ISINs, CUSIPs, and tickers are comma-separated lists.
+    """
+
+    bond_status: Optional[BondStatus] = None
+    isins: Optional[str] = None
+    cusips: Optional[str] = None
+    tickers: Optional[str] = None

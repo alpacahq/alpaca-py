@@ -6,7 +6,12 @@ from alpaca.trading.enums import (
     AssetClass,
     AssetStatus,
     AssetExchange,
+    BondStatus,
+    CallType,
     ContractType,
+    CouponFrequency,
+    CouponType,
+    DayCount,
     DTBPCheck,
     ExerciseStyle,
     OrderStatus,
@@ -17,6 +22,7 @@ from alpaca.trading.enums import (
     TimeInForce,
     OrderSide,
     PositionSide,
+    SpOutlook,
     AccountStatus,
     TradeActivityType,
     NonTradeActivityStatus,
@@ -25,6 +31,7 @@ from alpaca.trading.enums import (
     CorporateActionSubType,
     TradeConfirmationEmail,
     TradeEvent,
+    TreasurySubtype,
 )
 from pydantic import Field, model_validator
 
@@ -700,3 +707,109 @@ class OptionContractsResponse(BaseModel):
 
     option_contracts: Optional[List[OptionContract]] = None
     next_page_token: Optional[str] = None
+
+
+class USTreasury(BaseModel):
+    """
+    A US Treasury security.
+
+    Prices are percentages of par value and coupon is the annual interest rate.
+    """
+
+    cusip: str
+    isin: str
+    bond_status: BondStatus
+    tradable: bool
+    subtype: TreasurySubtype
+    issue_date: date
+    maturity_date: date
+    description: str
+    description_short: str
+    coupon: float
+    coupon_type: CouponType
+    coupon_frequency: CouponFrequency
+    close_price: Optional[float] = None
+    close_price_date: Optional[date] = None
+    close_yield_to_maturity: Optional[float] = None
+    close_yield_to_worst: Optional[float] = None
+    first_coupon_date: Optional[date] = None
+    next_coupon_date: Optional[date] = None
+    last_coupon_date: Optional[date] = None
+
+
+class USCorporate(BaseModel):
+    """
+    A US corporate bond.
+
+    Prices are percentages of par value and coupon is the annual interest rate.
+    """
+
+    cusip: str
+    isin: str
+    bond_status: BondStatus
+    tradable: bool
+    marginable: bool
+    issue_date: date
+    country_domicile: str
+    ticker: str
+    seniority: str
+    issuer: str
+    sector: str
+    description: str
+    description_short: str
+    coupon: float
+    coupon_type: CouponType
+    coupon_frequency: CouponFrequency
+    perpetual: bool
+    day_count: DayCount
+    dated_date: date
+    issue_size: float
+    issue_price: float
+    issue_minimum_denomination: float
+    par_value: float
+    callable: bool
+    puttable: bool
+    convertible: bool
+    reg_s: bool
+    maturity_date: Optional[date] = None
+    reissue_date: Optional[date] = None
+    reissue_size: Optional[float] = None
+    reissue_price: Optional[float] = None
+    first_coupon_date: Optional[date] = None
+    next_coupon_date: Optional[date] = None
+    last_coupon_date: Optional[date] = None
+    next_call_date: Optional[date] = None
+    next_call_price: Optional[float] = None
+    close_price: Optional[float] = None
+    close_price_date: Optional[date] = None
+    close_yield_to_maturity: Optional[float] = None
+    close_yield_to_worst: Optional[float] = None
+    accrued_interest: Optional[float] = None
+    call_type: Optional[CallType] = None
+    sp_rating: Optional[str] = None
+    sp_rating_date: Optional[date] = None
+    sp_creditwatch: Optional[str] = None
+    sp_creditwatch_date: Optional[date] = None
+    sp_outlook: Optional[SpOutlook] = None
+    sp_outlook_date: Optional[date] = None
+    liquidity_micro_buy: Optional[float] = None
+    liquidity_micro_sell: Optional[float] = None
+    liquidity_micro_aggregate: Optional[float] = None
+    liquidity_retail_buy: Optional[float] = None
+    liquidity_retail_sell: Optional[float] = None
+    liquidity_retail_aggregate: Optional[float] = None
+    liquidity_institutional_buy: Optional[float] = None
+    liquidity_institutional_sell: Optional[float] = None
+    liquidity_institutional_aggregate: Optional[float] = None
+
+
+class USTreasuriesResp(BaseModel):
+    """Response containing US Treasury securities."""
+
+    us_treasuries: List[USTreasury]
+
+
+class USCorporatesResp(BaseModel):
+    """Response containing US corporate bonds."""
+
+    us_corporates: List[USCorporate]

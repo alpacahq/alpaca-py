@@ -417,3 +417,73 @@ class PositionIntent(str, Enum):
     BUY_TO_CLOSE = "buy_to_close"
     SELL_TO_OPEN = "sell_to_open"
     SELL_TO_CLOSE = "sell_to_close"
+
+
+class BondStatus(str, Enum):
+    """Status of a bond."""
+
+    OUTSTANDING = "outstanding"
+    MATURED = "matured"
+    PRE_ISSUANCE = "pre_issuance"
+
+
+class CallType(str, Enum):
+    """Type of call on a callable bond."""
+
+    ORDINARY = "ordinary"
+    MAKE_WHOLE = "make_whole"
+    REGULATORY = "regulatory"
+    SPECIAL = "special"
+
+
+class CouponFrequency(str, Enum):
+    """How often the bond coupon is paid."""
+
+    ANNUAL = "annual"
+    SEMI_ANNUAL = "semi_annual"
+    QUARTERLY = "quarterly"
+    MONTHLY = "monthly"
+    ZERO = "zero"
+
+
+class CouponType(str, Enum):
+    """Type of the bond coupon rate."""
+
+    FIXED = "fixed"
+    FLOATING = "floating"
+    ZERO = "zero"
+
+
+class DayCount(str, Enum):
+    """Day count convention used to calculate accrued interest."""
+
+    A_360 = "A/360"
+    A_365 = "A/365"
+    THIRTY_360 = "30/360"
+    THIRTY_365 = "30/365"
+    A_A = "A/A"
+    THIRTY_E_360 = "30E/360"
+    B_252 = "B/252"
+    A_364 = "A/364"
+
+
+class SpOutlook(str, Enum):
+    """Standard & Poor's rating outlook."""
+
+    POSITIVE = "positive"
+    NEGATIVE = "negative"
+    DEVELOPING = "developing"
+    STABLE = "stable"
+    NOT_RATED = "not_rated"
+    NOT_MEANINGFUL = "not_meaningful"
+
+
+class TreasurySubtype(str, Enum):
+    """Subtype of a US Treasury security."""
+
+    BOND = "bond"
+    BILL = "bill"
+    NOTE = "note"
+    STRIPS = "strips"
+    TIPS = "tips"
+    FLOATING = "floating"

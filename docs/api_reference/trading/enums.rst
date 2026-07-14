@@ -120,3 +120,21 @@ PositionIntent
 ----------------------
 
 .. autoenum:: alpaca.trading.enums.PositionIntent
+
+
+OptionDeliverableType
+---------------------
+
+.. autoenum:: alpaca.trading.enums.OptionDeliverableType
+
+
+OptionDeliverableSettlementType
+-------------------------------
+
+.. autoenum:: alpaca.trading.enums.OptionDeliverableSettlementType
+
+
+OptionDeliverableSettlementMethod
+---------------------------------
+
+.. autoenum:: alpaca.trading.enums.OptionDeliverableSettlementMethod

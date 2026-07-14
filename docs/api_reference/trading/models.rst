@@ -92,6 +92,12 @@ OptionContract
 .. autoclass:: alpaca.trading.models.OptionContract
 
 
+OptionDeliverable
+-----------------
+
+.. autoclass:: alpaca.trading.models.OptionDeliverable
+
+
 OptionContractsResponse
 -----------------------
 

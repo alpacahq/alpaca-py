@@ -672,7 +672,12 @@ class OptionContract(BaseModel):
         open_interest_date (Optional[date]): The date of the open interest data.
         close_price (Optional[str]): The close price of the option contract.
         close_price_date (Optional[date]): The date of the close price data.
-        deliverables (Optional[array]): Represents the deliverables tied to the option contract. While standard contracts entail a single deliverable, non-standard ones can encompass multiple deliverables, each potentially customized with distinct parameters.
+        deliverables (Optional[List[OptionDeliverable]]): Represents the deliverables tied to the option contract. While standard contracts entail a single deliverable, non-standard ones can encompass multiple deliverables, each potentially customized with distinct parameters.
+
+    Note:
+        This model retains the intentional breaking schema alignments approved in
+        PR #698: ``id`` is parsed as a UUID, ``strike_price`` accepts strings or
+        floats, and ``multiplier`` is required.
     """
 
     id: UUID
@@ -724,6 +729,12 @@ class OptionDeliverable(BaseModel):
     settlement_method: OptionDeliverableSettlementMethod
     delayed_settlement: bool
     asset_id: Optional[UUID] = None
+
+    @model_validator(mode="after")
+    def validate_amount_for_settlement(self) -> "OptionDeliverable":
+        if self.amount is None and not self.delayed_settlement:
+            raise ValueError("amount may be None only when delayed_settlement is True")
+        return self
 
 
 OptionContract.model_rebuild()

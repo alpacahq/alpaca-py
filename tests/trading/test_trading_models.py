@@ -6,6 +6,7 @@ import pytest
 from pydantic import ValidationError
 
 from alpaca.trading.enums import (
+    AssetStatus,
     OptionDeliverableSettlementMethod,
     OptionDeliverableSettlementType,
     OptionDeliverableType,
@@ -112,6 +113,24 @@ def test_option_contract_rejects_invalid_deliverables():
         )
 
 
+def test_option_contract_preserves_approved_schema_compatibility_changes():
+    contract_data = _option_contract_data(None)
+    contract_data["id"] = str(contract_data["id"])
+    contract = OptionContract(**contract_data)
+
+    assert isinstance(contract.id, uuid.UUID)
+    assert contract.strike_price == "200"
+    assert contract.multiplier == "100"
+
+
+def test_option_contract_requires_multiplier():
+    contract_data = _option_contract_data(None)
+    del contract_data["multiplier"]
+
+    with pytest.raises(ValidationError):
+        OptionContract(**contract_data)
+
+
 def test_delayed_option_deliverable_accepts_none_amount():
     deliverable = OptionDeliverable(
         type="cash",
@@ -126,6 +145,19 @@ def test_delayed_option_deliverable_accepts_none_amount():
     assert deliverable.amount is None
 
 
+def test_non_delayed_option_deliverable_rejects_none_amount():
+    with pytest.raises(ValidationError, match="amount may be None only"):
+        OptionDeliverable(
+            type="cash",
+            symbol="USD",
+            amount=None,
+            allocation_percentage="100",
+            settlement_type="T+1",
+            settlement_method="CAFX",
+            delayed_settlement=False,
+        )
+
+
 def test_get_option_contracts_request_added_fields():
     request = GetOptionContractsRequest(
         strike_price_gte=100.5,
@@ -137,6 +169,40 @@ def test_get_option_contracts_request_added_fields():
     assert request.show_deliverables is True
     assert request.ppind is True
     assert request.page_token == "next"
+
+
+def test_get_option_contracts_request_fields_include_default_show_deliverables():
+    assert GetOptionContractsRequest().to_request_fields() == {
+        "show_deliverables": True,
+        "status": AssetStatus.ACTIVE,
+    }
+
+
+def test_get_option_contracts_request_fields_include_explicit_false():
+    assert GetOptionContractsRequest(show_deliverables=False).to_request_fields() == {
+        "show_deliverables": False,
+        "status": AssetStatus.ACTIVE,
+    }
+
+
+def test_get_option_contracts_request_fields_include_ppind():
+    assert GetOptionContractsRequest(ppind=True).to_request_fields() == {
+        "show_deliverables": True,
+        "status": AssetStatus.ACTIVE,
+        "ppind": True,
+    }
+
+
+def test_get_option_contracts_request_fields_omit_none():
+    assert (
+        GetOptionContractsRequest(
+            show_deliverables=None,
+            status=None,
+            ppind=None,
+            page_token=None,
+        ).to_request_fields()
+        == {}
+    )
 
 
 def test_has_qty_or_notional_but_not_both():

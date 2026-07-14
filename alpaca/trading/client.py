@@ -17,6 +17,7 @@ from alpaca.trading.models import (
     AccountConfiguration,
     Asset,
     Calendar,
+    CanceledOrderResponse,
     Clock,
     ClosePositionResponse,
     CorporateActionAnnouncement,
@@ -29,7 +30,6 @@ from alpaca.trading.models import (
     Watchlist,
 )
 from alpaca.trading.requests import (
-    CancelOrderResponse,
     ClosePositionRequest,
     CreateWatchlistRequest,
     GetAssetsRequest,
@@ -200,19 +200,19 @@ class TradingClient(RESTClient):
 
         return Order(**response)
 
-    def cancel_orders(self) -> Union[List[CancelOrderResponse], RawData]:
+    def cancel_orders(self) -> Union[List[CanceledOrderResponse], RawData]:
         """
         Cancels all orders.
 
         Returns:
-            List[CancelOrderResponse]: The list of HTTP statuses for each order attempted to be cancelled.
+            List[CanceledOrderResponse]: The list of HTTP statuses for each order attempted to be cancelled.
         """
         response = self.delete(f"/orders")
 
         if self._use_raw_data:
             return response
 
-        return TypeAdapter(List[CancelOrderResponse]).validate_python(response)
+        return TypeAdapter(List[CanceledOrderResponse]).validate_python(response)
 
     def cancel_order_by_id(self, order_id: Union[UUID, str]) -> None:
         """

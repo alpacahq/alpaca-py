@@ -1,5 +1,6 @@
 from datetime import date, datetime, timedelta
 from typing import Any, Dict, List, Optional, Union
+from uuid import UUID
 
 import pandas as pd
 from pydantic import model_validator
@@ -207,6 +208,9 @@ class GetOrdersRequest(NonEmptyRequest):
         nested (Optional[bool]): If true, the result will roll up multi-leg orders under the legs field of primary order.
         side (Optional[OrderSide]): Filters down to orders that have a matching side field set.
         symbols (Optional[List[str]]): List of symbols to filter by.
+        asset_class (Optional[AssetClass]): Asset class to filter by.
+        after_order_id (Optional[UUID]): Return orders submitted after this order ID.
+        before_order_id (Optional[UUID]): Return orders submitted before this order ID.
     """
 
     status: Optional[QueryOrderStatus] = None
@@ -217,6 +221,9 @@ class GetOrdersRequest(NonEmptyRequest):
     nested: Optional[bool] = None
     side: Optional[OrderSide] = None
     symbols: Optional[List[str]] = None
+    after_order_id: Optional[UUID] = None
+    before_order_id: Optional[UUID] = None
+    asset_class: Optional[AssetClass] = None
 
 
 class GetOrderByIdRequest(NonEmptyRequest):
@@ -323,7 +330,7 @@ class CancelOrderResponse(ModelWithID):
     Attributes:
         id (UUID): The order id
         status (int): The HTTP status returned after attempting to cancel the order.
-        body (Dict[str, Any]): an error description
+        body (Optional[Dict[str, Any]]): An error description when the cancellation failed.
     """
 
     status: int

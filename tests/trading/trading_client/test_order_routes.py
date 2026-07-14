@@ -12,9 +12,8 @@ from alpaca.trading.enums import (
     PositionIntent,
     TimeInForce,
 )
-from alpaca.trading.models import Order
+from alpaca.trading.models import CanceledOrderResponse, Order
 from alpaca.trading.requests import (
-    CancelOrderResponse,
     GetOrderByIdRequest,
     GetOrdersRequest,
     LimitOrderRequest,
@@ -382,9 +381,10 @@ def test_cancel_orders(reqmock, trading_client: TradingClient):
     response = trading_client.cancel_orders()
 
     assert type(response) is list
-    assert type(response[0]) is CancelOrderResponse
+    assert type(response[0]) is CanceledOrderResponse
     assert response[0].status == 200
     assert response[0].id == UUID("497f6eca-6276-4993-bfeb-53cbbbba6f08")
+    assert response[0].body is None
     assert response[1].status == 404
     assert response[1].id == UUID("72249bb6-6c89-4ea7-b8cf-73f1a140812b")
     assert response[1].body is not None

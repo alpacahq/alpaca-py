@@ -27,6 +27,7 @@ from alpaca.trading.models import (
     Position,
     TradeAccount,
     Watchlist,
+    WatchlistWithoutAsset,
 )
 from alpaca.trading.requests import (
     CancelOrderResponse,
@@ -516,12 +517,13 @@ class TradingClient(RESTClient):
 
     def get_watchlists(
         self,
-    ) -> Union[List[Watchlist], RawData]:
+    ) -> Union[List[WatchlistWithoutAsset], RawData]:
         """
         Returns all watchlists.
 
         Returns:
-            List[Watchlist]: The list of all watchlists.
+            List[WatchlistWithoutAsset]: The list of all watchlists without
+                their assets.
         """
 
         result = self.get(f"/watchlists")
@@ -529,7 +531,7 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return result
 
-        return TypeAdapter(List[Watchlist]).validate_python(result)
+        return TypeAdapter(List[WatchlistWithoutAsset]).validate_python(result)
 
     def get_watchlist_by_id(
         self,

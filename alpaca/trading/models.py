@@ -610,16 +610,16 @@ class AccountConfiguration(BaseModel):
     Attributes:
         dtbp_check (Optional[DTBPCheck]): Day Trade Buying Power Check. Controls Day Trading Margin Call (DTMC) checks.
           Deprecated; removed from Alpaca responses on 2026-07-06 (FINRA intraday-margin migration) and defaults to None.
-        fractional_trading (bool): If true, account is able to participate in fractional trading
-        max_margin_multiplier (str): A number between 1-4 that represents your max margin multiplier
-        no_shorting (bool): If true then Account becomes long-only mode.
+        fractional_trading (Optional[bool]): Whether the account can participate in fractional trading.
+        max_margin_multiplier (Optional[str]): Maximum margin multiplier, from 1 to 4.
+        no_shorting (Optional[bool]): Whether the account is in long-only mode.
         pdt_check (Optional[PDTCheck]): Controls Pattern Day Trader (PDT) checks.
           Deprecated; removed from Alpaca responses on 2026-07-06 (FINRA intraday-margin migration) and defaults to None.
-        suspend_trade (bool): If true Account becomes unable to submit new orders
-        trade_confirm_email (TradeConfirmationEmail): Controls whether Trade confirmation emails are sent.
-        ptp_no_exception_entry (bool): If set to true then Alpaca will accept orders for PTP symbols with no exception. Default is false.
+        suspend_trade (Optional[bool]): Whether the account is unable to submit new orders.
+        trade_confirm_email (Optional[TradeConfirmationEmail]): Controls trade confirmation emails.
+        ptp_no_exception_entry (Optional[bool]): Whether Alpaca accepts PTP orders without an exception.
         max_options_trading_level (Optional[int]): The desired maximum options trading level. 0=disabled, 1=Covered Call/Cash-Secured Put, 2=Long Call/Put, 3=Spreads/Straddles.
-        disable_overnight_trading (bool): If true, overnight trading is disabled.
+        disable_overnight_trading (Optional[bool]): Whether overnight trading is disabled.
     """
 
     dtbp_check: Optional[DTBPCheck] = None

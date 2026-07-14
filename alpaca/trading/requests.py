@@ -82,7 +82,15 @@ class GetPortfolioHistoryRequest(NonEmptyRequest):
 
 class GetCalendarRequest(NonEmptyRequest):
     """
-    Represents the optional filtering you can do when requesting a Calendar object
+    Represents the optional filtering you can do when requesting a Calendar object.
+
+    Attributes:
+        start (Optional[date]): The first calendar date to include.
+        end (Optional[date]): The last calendar date to include.
+        date_type (Optional[Literal["TRADING", "SETTLEMENT"]]): Whether start and
+            end select trading dates or trade settlement dates. Defaults to
+            ``"TRADING"``; ``"SETTLEMENT"`` returns days for trades settling in
+            the requested date range.
     """
 
     start: Optional[date] = None

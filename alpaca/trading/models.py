@@ -649,36 +649,6 @@ class TradeUpdate(BaseModel):
     qty: Optional[float] = None
 
 
-class OptionDeliverable(BaseModel):
-    """
-    Describes what is delivered when an option contract is exercised or assigned.
-
-    Attributes:
-        type (OptionDeliverableType): Whether the deliverable is cash or equity.
-        symbol (str): Symbol of the deliverable asset.
-        amount (str): Deliverable amount (100 for standard contracts; may be null if
-            delayed settlement is pending determination).
-        allocation_percentage (str): Cost allocation percentage used to determine the
-            cost basis of equity shares received from exercise.
-        settlement_type (OptionDeliverableSettlementType): Settlement timing relative to
-            the exercise/assignment date.
-        settlement_method (OptionDeliverableSettlementMethod): Settlement method (BTOB,
-            CADF, CAFX, or CCC).
-        delayed_settlement (bool): If ``True``, settlement of the deliverable is delayed.
-        asset_id (Optional[UUID]): Unique identifier of the deliverable asset. Not
-            returned for cash deliverables.
-    """
-
-    type: OptionDeliverableType
-    symbol: str
-    amount: str
-    allocation_percentage: str
-    settlement_type: OptionDeliverableSettlementType
-    settlement_method: OptionDeliverableSettlementMethod
-    delayed_settlement: bool
-    asset_id: Optional[UUID] = None
-
-
 class OptionContract(BaseModel):
     """
     Represents an option contract.
@@ -723,7 +693,40 @@ class OptionContract(BaseModel):
     open_interest_date: Optional[date] = None
     close_price: Optional[str] = None
     close_price_date: Optional[date] = None
-    deliverables: Optional[List[Any]] = None
+    deliverables: Optional[List["OptionDeliverable"]] = None
+
+
+class OptionDeliverable(BaseModel):
+    """
+    Describes what is delivered when an option contract is exercised or assigned.
+
+    Attributes:
+        type (OptionDeliverableType): Whether the deliverable is cash or equity.
+        symbol (str): Symbol of the deliverable asset.
+        amount (Optional[str]): Deliverable amount (100 for standard contracts; may be
+            null if delayed settlement is pending determination).
+        allocation_percentage (str): Cost allocation percentage used to determine the
+            cost basis of equity shares received from exercise.
+        settlement_type (OptionDeliverableSettlementType): Settlement timing relative to
+            the exercise/assignment date.
+        settlement_method (OptionDeliverableSettlementMethod): Settlement method (BTOB,
+            CADF, CAFX, or CCC).
+        delayed_settlement (bool): If ``True``, settlement of the deliverable is delayed.
+        asset_id (Optional[UUID]): Unique identifier of the deliverable asset. Not
+            returned for cash deliverables.
+    """
+
+    type: OptionDeliverableType
+    symbol: str
+    amount: Optional[str] = None
+    allocation_percentage: str
+    settlement_type: OptionDeliverableSettlementType
+    settlement_method: OptionDeliverableSettlementMethod
+    delayed_settlement: bool
+    asset_id: Optional[UUID] = None
+
+
+OptionContract.model_rebuild()
 
 
 class OptionContractsResponse(BaseModel):

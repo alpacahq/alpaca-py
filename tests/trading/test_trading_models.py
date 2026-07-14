@@ -3,6 +3,7 @@ import warnings
 from typing import Optional
 
 import pytest
+from pydantic import ValidationError
 
 from alpaca.trading.enums import (
     OptionDeliverableSettlementMethod,
@@ -14,7 +15,7 @@ from alpaca.trading.enums import (
     TimeInForce,
     TradeEvent,
 )
-from alpaca.trading.models import OptionDeliverable, TradeUpdate
+from alpaca.trading.models import OptionContract, OptionDeliverable, TradeUpdate
 from alpaca.trading.requests import (
     GetOptionContractsRequest,
     LimitOrderRequest,
@@ -51,6 +52,78 @@ def test_option_deliverable_matches_spec():
     assert deliverable.type == OptionDeliverableType.EQUITY
     assert deliverable.settlement_type == OptionDeliverableSettlementType.T_PLUS_1
     assert deliverable.settlement_method == OptionDeliverableSettlementMethod.BTOB
+
+
+def _option_contract_data(deliverables):
+    return {
+        "id": uuid.UUID(int=0),
+        "symbol": "AAPL260116C00200000",
+        "name": "AAPL Jan 16 2026 200 Call",
+        "status": "active",
+        "tradable": True,
+        "expiration_date": "2026-01-16",
+        "root_symbol": "AAPL",
+        "underlying_symbol": "AAPL",
+        "underlying_asset_id": uuid.UUID(int=1),
+        "type": "call",
+        "style": "american",
+        "strike_price": "200",
+        "multiplier": "100",
+        "size": "100",
+        "deliverables": deliverables,
+    }
+
+
+def test_option_contract_coerces_nested_deliverables():
+    contract = OptionContract(
+        **_option_contract_data(
+            [
+                {
+                    "type": "equity",
+                    "symbol": "AAPL",
+                    "amount": "100",
+                    "allocation_percentage": "100",
+                    "settlement_type": "T+1",
+                    "settlement_method": "BTOB",
+                    "delayed_settlement": False,
+                }
+            ]
+        )
+    )
+
+    assert isinstance(contract.deliverables[0], OptionDeliverable)
+
+
+def test_option_contract_rejects_invalid_deliverables():
+    with pytest.raises(ValidationError):
+        OptionContract(
+            **_option_contract_data(
+                [
+                    {
+                        "type": "equity",
+                        "amount": "100",
+                        "allocation_percentage": "100",
+                        "settlement_type": "T+1",
+                        "settlement_method": "BTOB",
+                        "delayed_settlement": False,
+                    }
+                ]
+            )
+        )
+
+
+def test_delayed_option_deliverable_accepts_none_amount():
+    deliverable = OptionDeliverable(
+        type="cash",
+        symbol="USD",
+        amount=None,
+        allocation_percentage="100",
+        settlement_type="T+1",
+        settlement_method="CAFX",
+        delayed_settlement=True,
+    )
+
+    assert deliverable.amount is None
 
 
 def test_get_option_contracts_request_added_fields():

@@ -689,6 +689,7 @@ class GetOptionContractsRequest(NonEmptyRequest):
 
     Attributes:
         underlying_symbols (Optional[List[str]]): The underlying symbols for the option contracts to be returned. (e.g. ["AAPL", "SPY"])
+        show_deliverables (Optional[bool]): Include deliverables array in the response.
         status (Optional[AssetStatus]): The status of the asset.
         expiration_date (Optional[Union[date, str]]): The expiration date of the option contract. (YYYY-MM-DD)
         expiration_date_gte (Optional[Union[date, str]]): The expiration date of the option contract greater than or equal to. (YYYY-MM-DD)
@@ -696,14 +697,16 @@ class GetOptionContractsRequest(NonEmptyRequest):
         root_symbol (Optional[str]): The option root symbol.
         type (Optional[ContractType]): The option contract type.
         style (Optional[ExerciseStyle]): The option contract style.
-        strike_price_gte (Optional[str]): The option contract strike price greater than or equal to.
-        strike_price_lte (Optional[str]): The option contract strike price less than or equal to.
+        strike_price_gte (Optional[float]): The option contract strike price greater than or equal to.
+        strike_price_lte (Optional[float]): The option contract strike price less than or equal to.
         limit (Optional[int]): The number of contracts to limit per page (default=100, max=10000).
+        ppind (Optional[bool]): The ppind(Penny Program Indicator) field indicates whether an option contract is eligible for penny price increments, with `true` meaning it is part of the Penny Program and `false` meaning it is not.
         page_token (Optional[str]): Pagination token to continue from. The value to pass here is returned in specific
             requests when more data is available than the request limit allows.
     """
 
     underlying_symbols: Optional[List[str]] = None
+    show_deliverables: Optional[bool] = True
     status: Optional[AssetStatus] = AssetStatus.ACTIVE
     expiration_date: Optional[Union[date, str]] = None
     expiration_date_gte: Optional[Union[date, str]] = None
@@ -711,8 +714,9 @@ class GetOptionContractsRequest(NonEmptyRequest):
     root_symbol: Optional[str] = None
     type: Optional[ContractType] = None
     style: Optional[ExerciseStyle] = None
-    strike_price_gte: Optional[str] = None
-    strike_price_lte: Optional[str] = None
+    strike_price_gte: Optional[float] = None
+    strike_price_lte: Optional[float] = None
 
     limit: Optional[int] = None
+    ppind: Optional[bool] = None
     page_token: Optional[str] = None

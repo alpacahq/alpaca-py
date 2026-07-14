@@ -399,6 +399,45 @@ class ExerciseStyle(str, Enum):
     EUROPEAN = "european"
 
 
+class OptionDeliverableType(str, Enum):
+    """Type of deliverable for an option contract (OptionDeliverable)."""
+
+    CASH = "cash"
+    EQUITY = "equity"
+
+
+class OptionDeliverableSettlementType(str, Enum):
+    """
+    Settlement timing for an option deliverable (OptionDeliverable).
+
+    Values use ``T_PLUS_N`` naming because the spec values (``T+0`` … ``T+5``)
+    contain a ``+`` character that is not valid in Python identifiers.
+    """
+
+    T_PLUS_0 = "T+0"
+    T_PLUS_1 = "T+1"
+    T_PLUS_2 = "T+2"
+    T_PLUS_3 = "T+3"
+    T_PLUS_4 = "T+4"
+    T_PLUS_5 = "T+5"
+
+
+class OptionDeliverableSettlementMethod(str, Enum):
+    """
+    Settlement method for an option deliverable (OptionDeliverable).
+
+    - BTOB: Broker to Broker
+    - CADF: Cash Difference
+    - CAFX: Cash Fixed
+    - CCC: Correspondent Clearing Corp
+    """
+
+    BTOB = "BTOB"
+    CADF = "CADF"
+    CAFX = "CAFX"
+    CCC = "CCC"
+
+
 class ActivityCategory(str, Enum):
     """
     Represents the category of an Activity

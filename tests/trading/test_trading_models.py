@@ -1,17 +1,22 @@
 import uuid
 import warnings
+from typing import Optional
 
 import pytest
 
 from alpaca.trading.enums import (
+    OptionDeliverableSettlementMethod,
+    OptionDeliverableSettlementType,
+    OptionDeliverableType,
     OrderClass,
     OrderSide,
     OrderType,
     TimeInForce,
     TradeEvent,
 )
-from alpaca.trading.models import TradeUpdate
+from alpaca.trading.models import OptionDeliverable, TradeUpdate
 from alpaca.trading.requests import (
+    GetOptionContractsRequest,
     LimitOrderRequest,
     MarketOrderRequest,
     OptionLegRequest,
@@ -21,6 +26,44 @@ from alpaca.trading.requests import (
     TakeProfitRequest,
     TrailingStopOrderRequest,
 )
+
+
+@pytest.mark.parametrize("field_name", ["strike_price_gte", "strike_price_lte"])
+def test_get_option_contracts_strike_price_filter_type_matches_spec(field_name):
+    assert (
+        GetOptionContractsRequest.model_fields[field_name].annotation == Optional[float]
+    )
+    assert f"{field_name} (Optional[float])" in GetOptionContractsRequest.__doc__
+
+
+def test_option_deliverable_matches_spec():
+    deliverable = OptionDeliverable(
+        type="equity",
+        symbol="AAPL",
+        amount="100",
+        allocation_percentage="100",
+        settlement_type="T+1",
+        settlement_method="BTOB",
+        delayed_settlement=False,
+        asset_id=uuid.UUID(int=0),
+    )
+
+    assert deliverable.type == OptionDeliverableType.EQUITY
+    assert deliverable.settlement_type == OptionDeliverableSettlementType.T_PLUS_1
+    assert deliverable.settlement_method == OptionDeliverableSettlementMethod.BTOB
+
+
+def test_get_option_contracts_request_added_fields():
+    request = GetOptionContractsRequest(
+        strike_price_gte=100.5,
+        strike_price_lte=200.5,
+        ppind=True,
+        page_token="next",
+    )
+
+    assert request.show_deliverables is True
+    assert request.ppind is True
+    assert request.page_token == "next"
 
 
 def test_has_qty_or_notional_but_not_both():

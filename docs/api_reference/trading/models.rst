@@ -96,3 +96,9 @@ OptionContractsResponse
 -----------------------
 
 .. autoclass:: alpaca.trading.models.OptionContractsResponse
+
+
+AdvancedInstructions
+--------------------
+
+.. autoclass:: alpaca.trading.models.AdvancedInstructions

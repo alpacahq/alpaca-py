@@ -117,3 +117,11 @@ def test_patch_order_request_rejects_qty_and_notional_together() -> None:
         match="Only one of qty or notional may be provided to PatchOrderRequest, got both",
     ):
         PatchOrderRequest(qty="100", notional="2500.00")
+
+
+def test_patch_order_request_rejects_falsey_qty_with_notional() -> None:
+    with pytest.raises(
+        ValidationError,
+        match="Only one of qty or notional may be provided to PatchOrderRequest, got both",
+    ):
+        PatchOrderRequest(qty="", notional="1")

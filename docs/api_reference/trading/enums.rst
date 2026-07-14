@@ -120,3 +120,15 @@ PositionIntent
 ----------------------
 
 .. autoenum:: alpaca.trading.enums.PositionIntent
+
+
+AdvancedInstructionsAlgorithm
+-----------------------------
+
+.. autoenum:: alpaca.trading.enums.AdvancedInstructionsAlgorithm
+
+
+AdvancedInstructionsDestination
+-------------------------------
+
+.. autoenum:: alpaca.trading.enums.AdvancedInstructionsDestination

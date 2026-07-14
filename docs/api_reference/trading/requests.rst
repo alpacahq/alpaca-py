@@ -56,6 +56,12 @@ ReplaceOrderRequest
 .. autoclass:: alpaca.trading.requests.ReplaceOrderRequest
 
 
+PatchOrderRequest
+-----------------
+
+.. autoclass:: alpaca.trading.requests.PatchOrderRequest
+
+
 TakeProfitRequest
 -----------------
 

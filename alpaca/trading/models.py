@@ -727,10 +727,9 @@ class AdvancedInstructions(BaseModel):
         max_percentage (Optional[str]): Maximum percentage of the ticker's period volume
             this order may participate in (0 < value < 1, up to 3 decimal points).
 
-    .. todo::
-        Simplify ``algorithm`` to ``AdvancedInstructionsAlgorithm`` and ``destination`` to
-        ``AdvancedInstructionsDestination`` (drop the ``Literal`` fallback) on the next
-        breaking release.
+    Compatibility note: simplify ``algorithm`` to ``AdvancedInstructionsAlgorithm`` and
+    ``destination`` to ``AdvancedInstructionsDestination`` (drop the ``Literal`` fallback)
+    on the next breaking release.
     """
 
     # TODO: simplify to just AdvancedInstructionsAlgorithm / AdvancedInstructionsDestination

@@ -38,6 +38,12 @@ Watchlist
 .. autoclass:: alpaca.trading.models.Watchlist
 
 
+WatchlistWithoutAsset
+---------------------
+
+.. autoclass:: alpaca.trading.models.WatchlistWithoutAsset
+
+
 Clock
 -----
 

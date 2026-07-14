@@ -70,6 +70,18 @@ ActivityType
 .. autoenum:: alpaca.trading.enums.ActivityType
 
 
+ActivitySubType
+---------------
+
+.. autoenum:: alpaca.trading.enums.ActivitySubType
+
+
+ExecutionType
+-------------
+
+.. autoenum:: alpaca.trading.enums.ExecutionType
+
+
 TradeActivityType
 -----------------
 

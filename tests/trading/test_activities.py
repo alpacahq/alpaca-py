@@ -9,6 +9,10 @@ from alpaca.trading.enums import (
     TradeActivityType,
 )
 from alpaca.trading.models import (
+    ActivityEventV2,
+    ActivityV2DetailNTA,
+    ActivityV2DetailTRD,
+    CommonSplitStockActivityV2,
     NonTradeActivities,
     NonTradeActivity,
     TradingActivities,
@@ -139,6 +143,77 @@ def test_activity_response_models_parse_current_schema():
     assert trading_activity.activity_type is ActivityType.FILL
     assert trading_activity.type is TradeActivityType.PARTIAL_FILL
     assert isinstance(trading_activity.order_id, UUID)
+
+
+def test_activity_v2_common_base_parses_inherited_fields():
+    group_id = UUID("4ce24134-3d0c-4f61-aef5-1807a3391380")
+
+    activity = CommonSplitStockActivityV2(
+        system_date="2026-07-14",
+        group_id=str(group_id),
+        position_date="2026-07-11",
+        old_cusip="old-cusip",
+        new_cusip="new-cusip",
+        old_rate="1",
+        new_rate="2",
+        payable_date="2026-07-15",
+        old_qty="5",
+        new_qty="10",
+    )
+
+    assert activity.system_date == date(2026, 7, 14)
+    assert activity.group_id == group_id
+    assert activity.position_date == date(2026, 7, 11)
+    assert activity.payable_date == date(2026, 7, 15)
+    assert activity.new_qty == "10"
+
+
+def test_activity_v2_event_envelope_parses_trade_details():
+    event = ActivityEventV2(
+        at="2026-07-14T10:00:01Z",
+        event_id="01J2Y7YQJFM6V3J5A8YF0P0M0A",
+        activity_type="FILL",
+        activity_subtype="CDIV",
+        executed_at="2026-07-14T10:00:00Z",
+        status="executed",
+        settle_date="2026-07-16",
+        currency="USD",
+        ref_id="4ce24134-3d0c-4f61-aef5-1807a3391380",
+        details={
+            "order_id": "8f027b04-755e-4e33-88c8-66c5aa1e8109",
+            "side": "buy",
+            "symbol": "AAPL",
+            "asset_id": "3b7f98a8-941a-4c59-9b12-1c728c1131ac",
+            "leaves_qty": "0",
+            "cum_qty": "2",
+            "order_status": "filled",
+            "execution_type": "fill",
+        },
+    )
+
+    assert isinstance(event.at, datetime)
+    assert event.activity_type is ActivityType.FILL
+    assert event.activity_subtype is ActivitySubType.CDIV
+    assert isinstance(event.details, ActivityV2DetailTRD)
+    assert event.details.execution_type == ExecutionType.FILL
+
+
+def test_activity_v2_event_envelope_parses_non_trade_details():
+    event = ActivityEventV2(
+        at="2026-07-14T10:00:01Z",
+        event_id="01J2Y7YQJFM6V3J5A8YF0P0M0B",
+        activity_type="DIV",
+        executed_at="2026-07-14T10:00:00Z",
+        status="executed",
+        settle_date="2026-07-16",
+        currency="USD",
+        ref_id="4ce24134-3d0c-4f61-aef5-1807a3391380",
+        net_amount="12.34",
+        details={"system_date": "2026-07-14"},
+    )
+
+    assert isinstance(event.details, ActivityV2DetailNTA)
+    assert event.details.system_date == date(2026, 7, 14)
 
 
 def test_get_activities_request_serializes_filters():

@@ -26,6 +26,7 @@ from alpaca.trading.enums import (
     CorporateActionSubType,
     TradeConfirmationEmail,
     TradeEvent,
+    ExecutionType,
 )
 from pydantic import Field, model_validator
 
@@ -741,3 +742,185 @@ class OptionContractsResponse(BaseModel):
 
     option_contracts: Optional[List[OptionContract]] = None
     next_page_token: Optional[str] = None
+
+
+class CommonNTAActivityV2(BaseModel):
+    """Common fields for all non-trade Activity V2 events."""
+
+    system_date: date
+    group_id: Optional[UUID] = None
+
+
+class CommonCaActivityV2(CommonNTAActivityV2):
+    """Common fields for corporate action Activity V2 events."""
+
+    position_date: date
+    ca_id: Optional[UUID] = None
+    reorg_id: Optional[str] = None
+
+
+class CommonCDIVActivityV2(BaseModel):
+    """Common fields for cash dividend Activity V2 events."""
+
+    symbol: str
+    cusip: str
+    rate: str
+    foreign: bool
+    special: bool
+    due_bill_on_date: Optional[date] = None
+    due_bill_off_date: Optional[date] = None
+    ex_date: Optional[date] = None
+    record_date: Optional[date] = None
+    payable_date: Optional[date] = None
+
+
+class CommonSDIVActivityV2(BaseModel):
+    """Common fields for stock dividend Activity V2 events."""
+
+    symbol: str
+    cusip: str
+    rate: str
+    ex_date: Optional[date] = None
+    record_date: Optional[date] = None
+    payable_date: Optional[date] = None
+
+
+class CommonSplitActivityV2(BaseModel):
+    """Common fields for stock split Activity V2 events."""
+
+    old_cusip: str
+    new_cusip: str
+    old_rate: str
+    new_rate: str
+    payable_date: Optional[date] = None
+
+
+class CommonSplitStockActivityV2(CommonCaActivityV2, CommonSplitActivityV2):
+    """Common fields for stock splits that affect share counts."""
+
+    old_qty: str
+    new_qty: str
+
+
+class CommonSpinoffActivityV2(BaseModel):
+    """Common fields for spinoff Activity V2 events."""
+
+    source_cusip: str
+    source_symbol: str
+    source_rate: str
+    source_price: str
+    new_cusip: str
+    new_symbol: str
+    new_rate: str
+    new_price: str
+    due_bill_redemption_date: Optional[date] = None
+    ex_date: Optional[date] = None
+    record_date: Optional[date] = None
+    payable_date: Optional[date] = None
+
+
+class CommonMAActivityV2(BaseModel):
+    """Common fields for merger and acquisition Activity V2 events."""
+
+    acquiree_cusip: str
+    acquiree_symbol: str
+    effective_date: date
+    payable_date: date
+    acquiree_rate: Optional[str] = None
+    acquirer_cusip: Optional[str] = None
+    acquirer_symbol: Optional[str] = None
+    acquirer_rate: Optional[str] = None
+
+
+class CommonNCActivityV2(BaseModel):
+    """Common fields for name change Activity V2 events."""
+
+    old_cusip: str
+    old_symbol: str
+    new_cusip: str
+    new_symbol: str
+
+
+class CommonVOFSubtypeActivityV2(BaseModel):
+    """Common fields for voluntary offering Activity V2 events."""
+
+    source_cusip: str
+    source_symbol: str
+    new_cusip: Optional[str] = None
+    new_symbol: Optional[str] = None
+
+
+class CommonOptionsActivityV2(CommonNTAActivityV2):
+    """Common fields for options Activity V2 events."""
+
+    group_id: UUID  # type: ignore[assignment]
+
+
+class CommonOPCAActivityV2(CommonCaActivityV2):
+    """Common fields for options corporate action Activity V2 events."""
+
+    old_contract_symbol: str
+    new_contract_symbol: str
+    qty: Optional[str] = None
+    old_qty: Optional[str] = None
+    new_qty: Optional[str] = None
+
+
+class CommonAcatActivityV2(BaseModel):
+    """Common fields for ACATS transfer Activity V2 events."""
+
+    external_id: str
+    request_id: UUID
+    hold_date: Optional[date] = None
+
+
+class CommonJournalActivityV2(CommonNTAActivityV2):
+    """Common fields for journal Activity V2 events."""
+
+    journal_id: Optional[UUID] = None
+
+
+class ActivityV2DetailTRD(BaseModel):
+    """Activity details for a fill or partial-fill trade event."""
+
+    order_id: UUID
+    side: Union[OrderSide, str]
+    symbol: str
+    asset_id: UUID
+    leaves_qty: str
+    cum_qty: str
+    order_status: str
+    execution_type: Union[ExecutionType, str]
+    client_order_id: Optional[str] = None
+    cusip: Optional[str] = None
+    commission: Optional[str] = None
+
+
+class ActivityV2DetailNTA(CommonNTAActivityV2):
+    """Minimum common details for a non-trade activity event."""
+
+
+class ActivityEventV2CommonFields(BaseModel):
+    """Common fields shared by Activity V2 streaming events."""
+
+    at: datetime
+    event_id: str
+    activity_type: ActivityType
+    executed_at: datetime
+    status: str
+    settle_date: date
+    currency: str
+    ref_id: UUID
+    activity_subtype: Optional[ActivitySubType] = None
+    price: Optional[str] = None
+    qty: Optional[str] = None
+    net_amount: Optional[str] = None
+    swap_rate: Optional[str] = None
+    swap_fee_bps: Optional[str] = None
+    previous_id: Optional[UUID] = None
+
+
+class ActivityEventV2(ActivityEventV2CommonFields):
+    """Account activity delivered over the Event Streaming API V2."""
+
+    details: Union[ActivityV2DetailTRD, ActivityV2DetailNTA]

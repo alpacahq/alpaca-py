@@ -26,6 +26,8 @@ from alpaca.trading.models import (
     PortfolioHistory,
     Position,
     TradeAccount,
+    USCorporatesResp,
+    USTreasuriesResp,
     Watchlist,
 )
 from alpaca.trading.requests import (
@@ -39,6 +41,8 @@ from alpaca.trading.requests import (
     GetOrderByIdRequest,
     GetOrdersRequest,
     GetPortfolioHistoryRequest,
+    GetUSCorporatesRequest,
+    GetUSTreasuriesRequest,
     OrderRequest,
     ReplaceOrderRequest,
     UpdateWatchlistRequest,
@@ -416,6 +420,46 @@ class TradingClient(RESTClient):
             return response
 
         return Asset(**response)
+
+    def get_us_treasuries(
+        self, request: Optional[GetUSTreasuriesRequest] = None
+    ) -> Union[USTreasuriesResp, RawData]:
+        """
+        Returns US Treasury securities available at Alpaca.
+
+        Args:
+            request: Optional filters for the returned Treasury securities.
+
+        Returns:
+            USTreasuriesResp: The available US Treasury securities.
+        """
+        params = request.to_request_fields() if request is not None else {}
+        response = self.get("/assets/fixed_income/us_treasuries", params)
+
+        if self._use_raw_data:
+            return response
+
+        return USTreasuriesResp(**response)
+
+    def get_us_corporates(
+        self, request: Optional[GetUSCorporatesRequest] = None
+    ) -> Union[USCorporatesResp, RawData]:
+        """
+        Returns US corporate bonds available at Alpaca.
+
+        Args:
+            request: Optional filters for the returned corporate bonds.
+
+        Returns:
+            USCorporatesResp: The available US corporate bonds.
+        """
+        params = request.to_request_fields() if request is not None else {}
+        response = self.get("/assets/fixed_income/us_corporates", params)
+
+        if self._use_raw_data:
+            return response
+
+        return USCorporatesResp(**response)
 
     # ############################## CLOCK & CALENDAR ################################# #
 

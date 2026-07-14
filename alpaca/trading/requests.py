@@ -95,11 +95,11 @@ class CreateWatchlistRequest(NonEmptyRequest):
 
     Attributes:
         name(str): Name of the Watchlist
-        symbols(List[str]): Symbols of Assets to watch
+        symbols(Optional[List[str]]): Symbols of Assets to watch
     """
 
     name: str
-    symbols: List[str]
+    symbols: Optional[List[str]] = None
 
 
 class UpdateWatchlistRequest(NonEmptyRequest):

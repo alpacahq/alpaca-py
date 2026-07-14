@@ -345,6 +345,27 @@ class Watchlist(ModelWithID):
     assets: Optional[List[Asset]] = None
 
 
+class WatchlistWithoutAsset(ModelWithID):
+    """
+    A watchlist without its asset list — returned by endpoints that do not include
+    the asset details.
+
+    See also ``Watchlist`` which extends this with an optional ``assets`` field.
+
+    Attributes:
+        id (UUID): Unique watchlist identifier.
+        account_id (UUID): ID of the account that owns the watchlist.
+        name (str): User-defined watchlist name (up to 64 characters).
+        created_at (datetime): When the watchlist was created.
+        updated_at (datetime): When the watchlist was last updated.
+    """
+
+    account_id: UUID
+    name: str
+    created_at: datetime
+    updated_at: datetime
+
+
 class Clock(BaseModel):
     """
     The market clock for US equity markets. Timestamps are in eastern time.

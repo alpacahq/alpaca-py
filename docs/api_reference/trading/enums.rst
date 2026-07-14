@@ -64,6 +64,18 @@ AccountStatus
 
 
 
+Market
+------
+
+.. autoenum:: alpaca.trading.enums.Market
+
+
+Phase
+-----
+
+.. autoenum:: alpaca.trading.enums.Phase
+
+
 ActivityType
 ------------
 

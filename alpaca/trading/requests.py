@@ -22,6 +22,7 @@ from alpaca.trading.enums import (
     QueryOrderStatus,
     TimeInForce,
 )
+from alpaca.trading.models import AdvancedInstructions
 
 
 class ClosePositionRequest(NonEmptyRequest):
@@ -314,6 +315,41 @@ class ReplaceOrderRequest(NonEmptyRequest):
             raise ValueError("trail must be greater than 0")
 
         return values
+
+
+class PatchOrderRequest(NonEmptyRequest):
+    """
+    Request to patch (replace) an existing open order.
+
+    Note: ``qty`` and ``notional`` are mutually exclusive. ``notional`` is only valid for
+    IPO indications of interest (``asset_class: "ipo"``); non-IPO notional orders cannot
+    be replaced at all — cancel and resubmit instead.
+
+    Attributes:
+        qty (Optional[str]): Number of shares to trade (full shares only). Fractional qty
+            and non-IPO notional orders cannot be changed via patch.
+        notional (Optional[str]): New dollar amount for IPO orders only.
+        time_in_force (Optional[TimeInForce]): New time-in-force for the order.
+        limit_price (Optional[str]): Required if the original order type is ``limit`` or
+            ``stop_limit``. For multi-leg orders, positive = debit, negative = credit.
+        stop_price (Optional[str]): Required if the original order type is ``stop`` or
+            ``stop_limit``.
+        trail (Optional[str]): New ``trail_price`` or ``trail_percent`` value
+            (trailing-stop orders only).
+        client_order_id (Optional[str]): Unique identifier for the replacement order
+            (max 128 characters).
+        advanced_instructions (Optional[AdvancedInstructions]): Elite Smart Router
+            instructions for the replacement order.
+    """
+
+    qty: Optional[str] = None
+    notional: Optional[str] = None
+    time_in_force: Optional[TimeInForce] = None
+    limit_price: Optional[str] = None
+    stop_price: Optional[str] = None
+    trail: Optional[str] = None
+    client_order_id: Optional[str] = None
+    advanced_instructions: Optional[AdvancedInstructions] = None
 
 
 class CancelOrderResponse(ModelWithID):

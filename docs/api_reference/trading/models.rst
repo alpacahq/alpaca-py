@@ -32,6 +32,12 @@ AccountConfiguration
 .. autoclass:: alpaca.trading.models.AccountConfiguration
 
 
+AccountConfigurations
+---------------------
+
+.. autoclass:: alpaca.trading.models.AccountConfigurations
+
+
 Watchlist
 ---------
 
@@ -72,6 +78,12 @@ ClosePositionResponse
 ---------------------
 
 .. autoclass:: alpaca.trading.models.ClosePositionResponse
+
+
+PositionClosedReponse
+---------------------
+
+.. autoclass:: alpaca.trading.models.PositionClosedReponse
 
 
 FailedClosePositionDetails

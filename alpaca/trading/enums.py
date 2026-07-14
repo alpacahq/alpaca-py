@@ -417,3 +417,70 @@ class PositionIntent(str, Enum):
     BUY_TO_CLOSE = "buy_to_close"
     SELL_TO_OPEN = "sell_to_open"
     SELL_TO_CLOSE = "sell_to_close"
+
+
+class CreateCryptoTransferRequestChain(str, Enum):
+    """Blockchain network for a crypto withdrawal transfer."""
+
+    SOL = "SOL"
+    ETH = "ETH"
+    BTC = "BTC"
+    XRP = "XRP"
+    ARB = "ARB"
+
+
+class TransferDirection(str, Enum):
+    """Direction of a crypto transfer."""
+
+    INCOMING = "INCOMING"
+    OUTGOING = "OUTGOING"
+
+
+class CryptoTransferStatus(str, Enum):
+    """Processing status of a crypto transfer."""
+
+    PROCESSING = "PROCESSING"
+    FAILED = "FAILED"
+    COMPLETE = "COMPLETE"
+
+
+class WhitelistedAddressStatus(str, Enum):
+    """Approval status of a whitelisted crypto address."""
+
+    APPROVED = "APPROVED"
+    PENDING = "PENDING"
+
+
+class TokenizationIssuer(str, Enum):
+    """Issuer of a tokenized asset."""
+
+    XSTOCKS = "xstocks"
+    ST0X = "st0x"
+
+
+class TokenizationNetwork(str, Enum):
+    """Blockchain network for a tokenized asset."""
+
+    SOLANA = "solana"
+    ARBITRUM = "arbitrum"
+    ETHEREUM = "ethereum"
+    BINANCE = "binance"
+    BASE = "base"
+    TON = "ton"
+    TRON = "tron"
+    MANTLE = "mantle"
+
+
+class TokenizationRequestType(str, Enum):
+    """Direction of a tokenization request."""
+
+    MINT = "mint"
+    REDEEM = "redeem"
+
+
+class TokenizationRequestStatus(str, Enum):
+    """Processing status of a tokenization request."""
+
+    PENDING = "pending"
+    REJECTED = "rejected"
+    COMPLETED = "completed"

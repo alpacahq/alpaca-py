@@ -93,3 +93,27 @@ def test_patch_order_request_serializes_advanced_instructions() -> None:
             "max_percentage": "0.125",
         },
     }
+
+
+@pytest.mark.parametrize(
+    ("fields", "expected"),
+    [
+        ({"qty": "001.250"}, {"qty": "001.250"}),
+        ({"notional": "1250.00"}, {"notional": "1250.00"}),
+        ({}, {}),
+    ],
+)
+def test_patch_order_request_accepts_at_most_one_quantity_field(
+    fields: dict[str, str], expected: dict[str, str]
+) -> None:
+    request = PatchOrderRequest(**fields)
+
+    assert request.to_request_fields() == expected
+
+
+def test_patch_order_request_rejects_qty_and_notional_together() -> None:
+    with pytest.raises(
+        ValidationError,
+        match="Only one of qty or notional may be provided to PatchOrderRequest, got both",
+    ):
+        PatchOrderRequest(qty="100", notional="2500.00")

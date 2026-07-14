@@ -351,6 +351,18 @@ class PatchOrderRequest(NonEmptyRequest):
     client_order_id: Optional[str] = None
     advanced_instructions: Optional[AdvancedInstructions] = None
 
+    @model_validator(mode="before")
+    def root_validator(cls, values: dict) -> dict:
+        qty = values.get("qty", None)
+        notional = values.get("notional", None)
+
+        if qty is not None and notional is not None:
+            raise ValueError(
+                "Only one of qty or notional may be provided to PatchOrderRequest, got both."
+            )
+
+        return values
+
 
 class CancelOrderResponse(ModelWithID):
     """

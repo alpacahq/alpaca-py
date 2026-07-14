@@ -8,6 +8,7 @@ from alpaca.trading.enums import (
     AssetBorrowStatus,
     AssetClass,
     AssetExchange,
+    DTBPCheck,
     OrderClass,
     OrderSide,
     OrderType,
@@ -16,6 +17,7 @@ from alpaca.trading.enums import (
     TradeEvent,
 )
 from alpaca.trading.models import (
+    AccountConfigurations,
     Asset,
     PortfolioHistory,
     Position,
@@ -502,3 +504,19 @@ def test_position_closed_response_accepts_empty_body() -> None:
     assert response.symbol == "AAPL"
     assert response.status == 200
     assert response.body is None
+
+
+def test_account_configurations_parses_enum_and_raw_values() -> None:
+    enum_config = AccountConfigurations(dtbp_check=DTBPCheck.ENTRY)
+    raw_config = AccountConfigurations(
+        dtbp_check="exit",
+        pdt_check="custom",
+        trade_confirm_email="custom",
+        suspend_trade=False,
+    )
+
+    assert enum_config.dtbp_check == DTBPCheck.ENTRY
+    assert raw_config.dtbp_check == DTBPCheck.EXIT
+    assert raw_config.pdt_check == "custom"
+    assert raw_config.trade_confirm_email == "custom"
+    assert raw_config.suspend_trade is False

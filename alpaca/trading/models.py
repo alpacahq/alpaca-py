@@ -1,7 +1,7 @@
 from alpaca.common.models import ModelWithID, ValidateBaseModel as BaseModel
 from uuid import UUID
 from datetime import datetime, date
-from typing import Any, Optional, List, Union, Dict
+from typing import Any, Literal, Optional, List, Union, Dict
 from alpaca.trading.enums import (
     AssetBorrowStatus,
     AssetClass,
@@ -631,6 +631,48 @@ class AccountConfiguration(BaseModel):
     trade_confirm_email: Optional[TradeConfirmationEmail] = None
     ptp_no_exception_entry: Optional[bool] = None
     max_options_trading_level: Optional[int] = None
+    disable_overnight_trading: Optional[bool] = None
+
+
+class AccountConfigurations(BaseModel):
+    """
+    Account configuration settings returned by the Trading API.
+
+    All fields are optional because the API may omit any setting that has
+    not been explicitly configured. The account configuration API provides
+    custom configurations about your trading account settings.
+
+    Attributes:
+        dtbp_check (Optional[Union[DTBPCheck, str]]): Controls Day Trading Margin
+            Call (DTMC) checks. Accepts ``DTBPCheck`` enum values or the raw
+            strings ``"both"``, ``"entry"``, ``"exit"``.
+        trade_confirm_email (Optional[str]): ``all`` or ``none``. Controls whether
+            trade confirmation emails are sent.
+        suspend_trade (Optional[bool]): If ``True``, new orders are blocked.
+        no_shorting (Optional[bool]): If ``True``, account becomes long-only.
+        fractional_trading (Optional[bool]): If ``True``, account can participate
+            in fractional trading.
+        max_margin_multiplier (Optional[str]): ``"1"``, ``"2"``, or ``"4"``.
+        max_options_trading_level (Optional[int]): Maximum options trading level.
+            0=disabled, 1=Covered Call/Cash-Secured Put, 2=Long Call/Put,
+            3=Spreads/Straddles.
+        pdt_check (Optional[str]): ``both``, ``entry``, or ``exit``.
+            Controls Pattern Day Trader (PDT) checks.
+        ptp_no_exception_entry (Optional[bool]): If ``True``, Alpaca accepts orders
+            for PTP symbols with no exception.
+        disable_overnight_trading (Optional[bool]): If ``True``, overnight trading
+            is disabled.
+    """
+
+    dtbp_check: Optional[Union[DTBPCheck, Literal["both", "entry", "exit"]]] = None
+    trade_confirm_email: Optional[str] = None
+    suspend_trade: Optional[bool] = None
+    no_shorting: Optional[bool] = None
+    fractional_trading: Optional[bool] = None
+    max_margin_multiplier: Optional[str] = None
+    max_options_trading_level: Optional[int] = None
+    pdt_check: Optional[str] = None
+    ptp_no_exception_entry: Optional[bool] = None
     disable_overnight_trading: Optional[bool] = None
 
 

@@ -120,3 +120,51 @@ PositionIntent
 ----------------------
 
 .. autoenum:: alpaca.trading.enums.PositionIntent
+
+
+CreateCryptoTransferRequestChain
+--------------------------------
+
+.. autoenum:: alpaca.trading.enums.CreateCryptoTransferRequestChain
+
+
+TransferDirection
+-----------------
+
+.. autoenum:: alpaca.trading.enums.TransferDirection
+
+
+CryptoTransferStatus
+--------------------
+
+.. autoenum:: alpaca.trading.enums.CryptoTransferStatus
+
+
+WhitelistedAddressStatus
+------------------------
+
+.. autoenum:: alpaca.trading.enums.WhitelistedAddressStatus
+
+
+TokenizationIssuer
+------------------
+
+.. autoenum:: alpaca.trading.enums.TokenizationIssuer
+
+
+TokenizationNetwork
+-------------------
+
+.. autoenum:: alpaca.trading.enums.TokenizationNetwork
+
+
+TokenizationRequestType
+-----------------------
+
+.. autoenum:: alpaca.trading.enums.TokenizationRequestType
+
+
+TokenizationRequestStatus
+-------------------------
+
+.. autoenum:: alpaca.trading.enums.TokenizationRequestStatus

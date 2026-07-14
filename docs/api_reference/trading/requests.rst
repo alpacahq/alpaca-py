@@ -126,3 +126,21 @@ GetCorporateAnnouncementsRequest
 --------------------------------
 
 .. autoclass:: alpaca.trading.requests.GetCorporateAnnouncementsRequest
+
+
+CreateCryptoTransferRequest
+---------------------------
+
+.. autoclass:: alpaca.trading.requests.CreateCryptoTransferRequest
+
+
+GetWalletFeeEstimateRequest
+---------------------------
+
+.. autoclass:: alpaca.trading.requests.GetWalletFeeEstimateRequest
+
+
+TokenizationMintRequest
+-----------------------
+
+.. autoclass:: alpaca.trading.requests.TokenizationMintRequest

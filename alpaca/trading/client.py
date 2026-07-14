@@ -20,18 +20,21 @@ from alpaca.trading.models import (
     Clock,
     ClosePositionResponse,
     CorporateActionAnnouncement,
+    NonTradeActivities,
     OptionContract,
     OptionContractsResponse,
     Order,
     PortfolioHistory,
     Position,
     TradeAccount,
+    TradingActivities,
     Watchlist,
 )
 from alpaca.trading.requests import (
     CancelOrderResponse,
     ClosePositionRequest,
     CreateWatchlistRequest,
+    GetActivitiesRequest,
     GetAssetsRequest,
     GetCalendarRequest,
     GetCorporateAnnouncementsRequest,
@@ -511,6 +514,33 @@ class TradingClient(RESTClient):
             return response
 
         return AccountConfiguration(**response)
+
+    def get_activities(
+        self, request: Optional[GetActivitiesRequest] = None
+    ) -> Union[List[Union[TradingActivities, NonTradeActivities]], RawData]:
+        """
+        Returns account activities.
+
+        Args:
+            request: Optional filters for the returned activities.
+
+        Returns:
+            A list of trade and non-trade account activities.
+        """
+        params = request.to_request_fields() if request is not None else {}
+        response = self.get("/account/activities", params)
+
+        if self._use_raw_data:
+            return response
+
+        return [
+            (
+                TradingActivities(**activity)
+                if activity.get("activity_type") == "FILL"
+                else NonTradeActivities(**activity)
+            )
+            for activity in response
+        ]
 
     # ############################## WATCHLIST ################################# #
 

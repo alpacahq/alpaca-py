@@ -3,6 +3,7 @@ from uuid import UUID
 from datetime import datetime, date
 from typing import Any, Optional, List, Union, Dict
 from alpaca.trading.enums import (
+    AssetBorrowStatus,
     AssetClass,
     AssetStatus,
     AssetExchange,
@@ -37,37 +38,50 @@ class Asset(ModelWithID):
     For more info, visit https://alpaca.markets/docs/api-references/trading-api/assets/
 
     Attributes:
-        id (UUID): Unique id of asset
-        asset_class (AssetClass): The name of the asset class.
+        id (UUID): Unique id of asset.
+        asset_class (AssetClass): The name of the asset class (spec field: ``class``).
+        cusip (Optional[str]): CUSIP identifier for US Equities.
         exchange (AssetExchange): Which exchange this asset is available through.
         symbol (str): The symbol identifier of the asset.
-        name (Optional[str]): The name of the asset.
+        name (str): The official name of the asset.
         status (AssetStatus): The active status of the asset.
         tradable (bool): Whether the asset can be traded.
         marginable (bool): Whether the asset can be traded on margin.
         shortable (bool): Whether the asset can be shorted.
-        easy_to_borrow (bool): When shorting, whether the asset is easy to borrow
-        fractionable (bool): Whether fractional shares are available
-        attributes (Optional[List[str]]): One of ptp_no_exception or ptp_with_exception. It will include unique characteristics of the asset here.
+        easy_to_borrow (bool): Deprecated. Use ``borrow_status`` instead.
+        borrow_status (Optional[AssetBorrowStatus]): Borrow status for US equity assets.
+        fractionable (bool): Whether fractional shares are available.
+        margin_requirement_long (Optional[str]): Margin requirement % for long positions.
+        margin_requirement_short (Optional[str]): Margin requirement % for short positions.
+        maintenance_margin_requirement (Optional[float]): Deprecated. Use margin_requirement_long/short.
+        attributes (Optional[List[str]]): Unique asset characteristics.
+        min_order_size (Optional[Union[str, float]]): Minimum order size. Field available for crypto only.
+        min_trade_increment (Optional[Union[str, float]]): Amount a trade quantity can be incremented by. Field available for crypto only.
+        price_increment (Optional[Union[str, float]]): Amount the price can be incremented by. Field available for crypto only.
     """
 
     asset_class: AssetClass = Field(
         alias="class"
     )  # using a pydantic alias to allow parsing data with the `class` keyword field
+    cusip: Optional[str] = None
     exchange: AssetExchange
     symbol: str
-    name: Optional[str] = None
+    name: str
     status: AssetStatus
     tradable: bool
     marginable: bool
     shortable: bool
     easy_to_borrow: bool
+    borrow_status: Optional[AssetBorrowStatus] = None
     fractionable: bool
-    min_order_size: Optional[float] = None
-    min_trade_increment: Optional[float] = None
-    price_increment: Optional[float] = None
+    margin_requirement_long: Optional[str] = None
+    margin_requirement_short: Optional[str] = None
     maintenance_margin_requirement: Optional[float] = None
     attributes: Optional[List[str]] = None
+    # SDK-extension fields: not in the spec but retained for backward compatibility.
+    min_order_size: Optional[Union[str, float]] = None
+    min_trade_increment: Optional[Union[str, float]] = None
+    price_increment: Optional[Union[str, float]] = None
 
 
 class USDPositionValues(BaseModel):
@@ -76,28 +90,28 @@ class USDPositionValues(BaseModel):
 
     Attributes:
         avg_entry_price (str): The average entry price of the position.
-        market_value (str): Total dollar amount of the position.
+        market_value (Optional[str]): Total dollar amount of the position.
         cost_basis (str): Total cost basis in dollars.
-        unrealized_pl (str): Unrealized profit/loss in dollars.
-        unrealized_plpc (str): Unrealized profit/loss percent.
-        unrealized_intraday_pl (str): Unrealized profit/loss in dollars for the day.
-        unrealized_intraday_plpc (str): Unrealized profit/loss percent for the day.
-        current_price (str): Current asset price per share.
-        lastday_price (str): Last day’s asset price per share based on the closing value of the last trading day.
-        change_today (str): Percent change from last day's price.
+        unrealized_pl (Optional[str]): Unrealized profit/loss in dollars.
+        unrealized_plpc (Optional[str]): Unrealized profit/loss percent.
+        unrealized_intraday_pl (Optional[str]): Unrealized profit/loss in dollars for the day.
+        unrealized_intraday_plpc (Optional[str]): Unrealized profit/loss percent for the day.
+        current_price (Optional[str]): Current asset price per share.
+        lastday_price (Optional[str]): Last day’s asset price per share based on the closing value of the last trading day.
+        change_today (Optional[str]): Percent change from last day's price.
 
     """
 
     avg_entry_price: str
-    market_value: str
+    market_value: Optional[str]
     cost_basis: str
-    unrealized_pl: str
-    unrealized_plpc: str
-    unrealized_intraday_pl: str
-    unrealized_intraday_plpc: str
-    current_price: str
-    lastday_price: str
-    change_today: str
+    unrealized_pl: Optional[str]
+    unrealized_plpc: Optional[str]
+    unrealized_intraday_pl: Optional[str]
+    unrealized_intraday_plpc: Optional[str]
+    current_price: Optional[str]
+    lastday_price: Optional[str]
+    change_today: Optional[str]
 
 
 class Position(BaseModel):
@@ -109,21 +123,22 @@ class Position(BaseModel):
         symbol (str): Symbol of the asset.
         exchange (AssetExchange): Exchange name of the asset.
         asset_class (AssetClass): Name of the asset's asset class.
-        asset_marginable (Optional[bool]): Indicates if this asset is marginable.
+        asset_marginable (bool): Indicates if this asset is marginable.
         avg_entry_price (str): The average entry price of the position.
         qty (str): The number of shares of the position.
         side (PositionSide): "long" or "short" representing the side of the position.
-        market_value (Optional[str]): Total dollar amount of the position.
+        market_value (str): Total dollar amount of the position.
         cost_basis (str): Total cost basis in dollars.
-        unrealized_pl (Optional[str]): Unrealized profit/loss in dollars.
-        unrealized_plpc (Optional[str]): Unrealized profit/loss percent.
-        unrealized_intraday_pl (Optional[str]): Unrealized profit/loss in dollars for the day.
-        unrealized_intraday_plpc (Optional[str]): Unrealized profit/loss percent for the day.
-        current_price (Optional[str]): Current asset price per share.
-        lastday_price (Optional[str]): Last day’s asset price per share based on the closing value of the last trading day.
-        change_today (Optional[str]): Percent change from last day's price.
+        unrealized_pl (str): Unrealized profit/loss in dollars.
+        unrealized_plpc (str): Unrealized profit/loss percent.
+        unrealized_intraday_pl (str): Unrealized profit/loss in dollars for the day.
+        unrealized_intraday_plpc (str): Unrealized profit/loss percent for the day.
+        current_price (str): Current asset price per share.
+        lastday_price (str): Last day’s asset price per share based on the closing value of the last trading day.
+        change_today (str): Percent change from last day's price.
         swap_rate (Optional[str]): Swap rate is the exchange rate (without mark-up) used to convert the price into local currency or crypto asset.
         avg_entry_swap_rate (Optional[str]): The average exchange rate the price was converted into the local currency at.
+        prev_swap_rate (Optional[str]): The average exchange rate the price was converted into the local currency at.
         usd (USDPositionValues): Represents the position in USD values.
         qty_available (Optional[str]): Total number of shares available minus open orders.
 
@@ -133,21 +148,22 @@ class Position(BaseModel):
     symbol: str
     exchange: AssetExchange
     asset_class: AssetClass
-    asset_marginable: Optional[bool] = None
+    asset_marginable: bool
     avg_entry_price: str
     qty: str
     side: PositionSide
-    market_value: Optional[str] = None
+    market_value: str
     cost_basis: str
-    unrealized_pl: Optional[str] = None
-    unrealized_plpc: Optional[str] = None
-    unrealized_intraday_pl: Optional[str] = None
-    unrealized_intraday_plpc: Optional[str] = None
-    current_price: Optional[str] = None
-    lastday_price: Optional[str] = None
-    change_today: Optional[str] = None
+    unrealized_pl: str
+    unrealized_plpc: str
+    unrealized_intraday_pl: str
+    unrealized_intraday_plpc: str
+    current_price: str
+    lastday_price: str
+    change_today: str
     swap_rate: Optional[str] = None
     avg_entry_swap_rate: Optional[str] = None
+    prev_swap_rate: Optional[str] = None
     usd: Optional[USDPositionValues] = None
     qty_available: Optional[str] = None
 
@@ -301,6 +317,23 @@ class ClosePositionResponse(BaseModel):
     body: Union[FailedClosePositionDetails, Order]
 
 
+class PositionClosedReponse(BaseModel):
+    """
+    Result of asking the API to close a single position.
+
+    Note: the class name preserves the typo ("Reponse") present in the OpenAPI spec.
+
+    Attributes:
+        symbol (str): Symbol name of the asset.
+        status (int): HTTP status code for the close attempt.
+        body (Optional[Order]): The resulting sell order when the close succeeded.
+    """
+
+    symbol: str
+    status: int
+    body: Optional[Order] = None
+
+
 class PortfolioHistory(BaseModel):
     """
     Contains information about the value of a portfolio over time.
@@ -310,18 +343,20 @@ class PortfolioHistory(BaseModel):
         equity (List[float]): Equity value of the account in dollar amount as of the end of each time window.
         profit_loss (List[float]): Profit/loss in dollar from the base value.
         profit_loss_pct (List[Optional[float]]): Profit/loss in percentage from the base value.
-        base_value (Optional[float]): Basis in dollar of the profit loss calculation.
+        base_value (float): Basis in dollar of the profit loss calculation.
+        base_value_asof (Optional[date]): If included, then it indicates that the base_value is the account's closing equity value at this trading date.
         timeframe (str): Time window size of each data element.
-        cashflow (Dict[ActivityType, List[float]]): Cash flow amounts per activity type, if any.
+        cashflow (Optional[Dict[ActivityType, List[float]]]): Cash flow amounts per activity type, if any.
     """
 
     timestamp: List[int]
     equity: List[float]
     profit_loss: List[float]
     profit_loss_pct: List[Optional[float]]
-    base_value: Optional[float] = None
+    base_value: float
+    base_value_asof: Optional[date] = None
     timeframe: str
-    cashflow: Dict[ActivityType, List[float]] = {}
+    cashflow: Optional[Dict[ActivityType, List[float]]] = {}
 
 
 class Watchlist(ModelWithID):
@@ -480,7 +515,7 @@ class TradeAccount(ModelWithID):
 
     Attributes:
         id (UUID): The account ID
-        account_number (str): The account number
+        account_number (Optional[str]): The account number
         status (AccountStatus): The current status of the account
         crypto_status (Optional[AccountStatus]): The status of the account in regards to trading crypto. Only present if
           crypto trading is enabled for your brokerage account.
@@ -488,7 +523,7 @@ class TradeAccount(ModelWithID):
         buying_power (Optional[str]): Current available cash buying power. If multiplier = 2 then
           buying_power = max(equity-initial_margin(0) * 2). If multiplier = 1 then buying_power = cash.
         regt_buying_power (Optional[str]): User’s buying power under Regulation T
-          (excess equity - (equity - margin value) - * margin multiplier)
+          (excess equity - (equity - margin value) * margin multiplier)
         daytrading_buying_power (Optional[str]): The buying power for day trades for the account.
           Deprecated; removed from Alpaca responses on 2026-07-06 (FINRA intraday-margin migration) and defaults to None.
         non_marginable_buying_power (Optional[str]): The non marginable buying power for the account
@@ -514,6 +549,7 @@ class TradeAccount(ModelWithID):
         short_market_value (Optional[str]): Real-time MtM value of all short positions held in the account
         initial_margin (Optional[str]): Reg T initial margin requirement
         maintenance_margin (Optional[str]): Maintenance margin requirement
+        balance_asof (Optional[str]): The date of the snapshot for `last_*` fields
         last_maintenance_margin (Optional[str]): Maintenance margin requirement on the previous trading day
         sma (Optional[str]): Value of Special Memorandum Account (will be used at a later date to provide additional buying_power)
         daytrade_count (Optional[int]): The current number of daytrades that have been made in the last 5 trading days
@@ -524,9 +560,12 @@ class TradeAccount(ModelWithID):
           0=disabled, 1=Covered Call/Cash-Secured Put, 2=Long Call/Put, 3=Spreads/Straddles.
         options_trading_level (Optional[int]): The effective options trading level of the account. This is the minimum between account options_approved_level and account configurations max_options_trading_level.
           0=disabled, 1=Covered Call/Cash-Secured Put, 2=Long, 3=Spreads/Straddles.
+        intraday_adjustments (Optional[str]): The intraday adjustment by non_trade_activities such as fund deposit/withdraw.
+        pending_reg_taf_fees (Optional[str]): Pending regulatory fees for the account.
     """
 
-    account_number: str
+    id: UUID
+    account_number: Optional[str] = None
     status: AccountStatus
     crypto_status: Optional[AccountStatus] = None
     currency: Optional[str] = None
@@ -553,12 +592,15 @@ class TradeAccount(ModelWithID):
     short_market_value: Optional[str] = None
     initial_margin: Optional[str] = None
     maintenance_margin: Optional[str] = None
+    balance_asof: Optional[str] = None
     last_maintenance_margin: Optional[str] = None
     sma: Optional[str] = None
     daytrade_count: Optional[int] = None
     options_buying_power: Optional[str] = None
     options_approved_level: Optional[int] = None
     options_trading_level: Optional[int] = None
+    intraday_adjustments: Optional[str] = None
+    pending_reg_taf_fees: Optional[str] = None
 
 
 class AccountConfiguration(BaseModel):
@@ -577,17 +619,19 @@ class AccountConfiguration(BaseModel):
         trade_confirm_email (TradeConfirmationEmail): Controls whether Trade confirmation emails are sent.
         ptp_no_exception_entry (bool): If set to true then Alpaca will accept orders for PTP symbols with no exception. Default is false.
         max_options_trading_level (Optional[int]): The desired maximum options trading level. 0=disabled, 1=Covered Call/Cash-Secured Put, 2=Long Call/Put, 3=Spreads/Straddles.
+        disable_overnight_trading (bool): If true, overnight trading is disabled.
     """
 
     dtbp_check: Optional[DTBPCheck] = None
-    fractional_trading: bool
-    max_margin_multiplier: str
-    no_shorting: bool
+    fractional_trading: Optional[bool] = None
+    max_margin_multiplier: Optional[str] = None
+    no_shorting: Optional[bool] = None
     pdt_check: Optional[PDTCheck] = None
-    suspend_trade: bool
-    trade_confirm_email: TradeConfirmationEmail
-    ptp_no_exception_entry: bool
+    suspend_trade: Optional[bool] = None
+    trade_confirm_email: Optional[TradeConfirmationEmail] = None
+    ptp_no_exception_entry: Optional[bool] = None
     max_options_trading_level: Optional[int] = None
+    disable_overnight_trading: Optional[bool] = None
 
 
 class CorporateActionAnnouncement(ModelWithID):

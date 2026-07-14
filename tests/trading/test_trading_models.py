@@ -10,7 +10,7 @@ from alpaca.trading.enums import (
     TimeInForce,
     TradeEvent,
 )
-from alpaca.trading.models import TradeUpdate
+from alpaca.trading.models import TradeAccount, TradeUpdate
 from alpaca.trading.requests import (
     LimitOrderRequest,
     MarketOrderRequest,
@@ -384,3 +384,9 @@ def test_trade_update_events() -> None:
         msg = base.copy()
         msg["event"] = event
         TradeUpdate(**msg)
+
+
+def test_trade_account_allows_missing_account_number() -> None:
+    account = TradeAccount(id=uuid.uuid4(), status="ACTIVE")
+
+    assert account.account_number is None

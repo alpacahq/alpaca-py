@@ -183,7 +183,7 @@ class AssetClass(str, Enum):
     US_EQUITY = "us_equity"
     US_OPTION = "us_option"
     CRYPTO = "crypto"
-    CRYPTO_PERP = "crypto_perp"
+    IPO = "ipo"
 
 
 class AssetStatus(str, Enum):
@@ -195,6 +195,15 @@ class AssetStatus(str, Enum):
     INACTIVE = "inactive"
 
 
+class AssetBorrowStatus(str, Enum):
+    """
+    Borrow status for US equity assets. This field is omitted for non-US-equity assets.
+    """
+
+    EASY_TO_BORROW = "easy_to_borrow"
+    HARD_TO_BORROW = "hard_to_borrow"
+
+
 class AssetExchange(str, Enum):
     """
     Represents the current exchanges Alpaca supports.
@@ -202,18 +211,12 @@ class AssetExchange(str, Enum):
 
     AMEX = "AMEX"
     ARCA = "ARCA"
-    ASCX = "ASCX"
     BATS = "BATS"
     NYSE = "NYSE"
     NASDAQ = "NASDAQ"
     NYSEARCA = "NYSEARCA"
-    FTXU = "FTXU"
-    CBSE = "CBSE"
-    GNSS = "GNSS"
-    ERSX = "ERSX"
     OTC = "OTC"
     CRYPTO = "CRYPTO"
-    EMPTY = ""
 
 
 class PositionSide(str, Enum):
@@ -288,27 +291,20 @@ class AccountStatus(str, Enum):
     see https://alpaca.markets/docs/broker/api-references/accounts/accounts/#account-status
     """
 
-    ACCOUNT_CLOSED = "ACCOUNT_CLOSED"
-    ACCOUNT_UPDATED = "ACCOUNT_UPDATED"
-    ACTION_REQUIRED = "ACTION_REQUIRED"
-    ACTIVE = "ACTIVE"
-    AML_REVIEW = "AML_REVIEW"
-    APPROVAL_PENDING = "APPROVAL_PENDING"
-    APPROVED = "APPROVED"
-    DISABLED = "DISABLED"
-    DISABLE_PENDING = "DISABLE_PENDING"
-    EDITED = "EDITED"
     INACTIVE = "INACTIVE"
-    KYC_SUBMITTED = "KYC_SUBMITTED"
-    LIMITED = "LIMITED"
-    ONBOARDING = "ONBOARDING"
     PAPER_ONLY = "PAPER_ONLY"
-    REAPPROVAL_PENDING = "REAPPROVAL_PENDING"
-    REJECTED = "REJECTED"
-    RESUBMITTED = "RESUBMITTED"
-    SIGNED_UP = "SIGNED_UP"
+    ONBOARDING = "ONBOARDING"
     SUBMISSION_FAILED = "SUBMISSION_FAILED"
     SUBMITTED = "SUBMITTED"
+    ACCOUNT_UPDATED = "ACCOUNT_UPDATED"
+    APPROVAL_PENDING = "APPROVAL_PENDING"
+    ACTIVE = "ACTIVE"
+    REJECTED = "REJECTED"
+    ACCOUNT_CLOSED = "ACCOUNT_CLOSED"
+    APPROVED = "APPROVED"
+    ACCOUNT_CLOSED_PENDING = "ACCOUNT_CLOSED_PENDING"
+    ACTION_REQUIRED = "ACTION_REQUIRED"
+    LIMITED = "LIMITED"
 
 
 class CorporateActionDateType(str, Enum):

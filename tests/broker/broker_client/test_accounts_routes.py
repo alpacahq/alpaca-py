@@ -1081,6 +1081,7 @@ def test_update_trade_configuration_for_account(reqmock, client: BrokerClient):
             "trade_confirm_email": "all",
             "ptp_no_exception_entry": False,
             "max_options_trading_level": None,
+            "disable_overnight_trading": None,
         }
 
     reqmock.patch(

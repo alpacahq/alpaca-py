@@ -76,6 +76,47 @@ def test_get_bars(reqmock, stock_client: StockHistoricalDataClient):
     assert reqmock.called_once
 
 
+def test_barset_contains(reqmock, stock_client: StockHistoricalDataClient):
+    # Test that `symbol in barset` reflects whether data exists for the symbol
+
+    symbol = "AAPL"
+    timeframe = TimeFrame.Day
+    start = datetime(2022, 2, 1)
+    limit = 2
+    _start_in_url = urllib.parse.quote_plus(
+        start.replace(tzinfo=timezone.utc).isoformat()
+    )
+    reqmock.get(
+        f"https://data.alpaca.markets/v2/stocks/bars?symbols=AAPL&start={_start_in_url}&timeframe={timeframe}&limit={limit}",
+        text="""
+{
+    "bars": {
+        "AAPL": [
+            {
+                "t": "2022-02-01T05:00:00Z",
+                "o": 174,
+                "h": 174.84,
+                "l": 172.31,
+                "c": 174.61,
+                "v": 85998033,
+                "n": 732412,
+                "vw": 173.703516
+            }
+        ]
+    },
+    "next_page_token": null
+}
+        """,
+    )
+    request = StockBarsRequest(
+        symbol_or_symbols=symbol, timeframe=timeframe, start=start, limit=limit
+    )
+    barset = stock_client.get_stock_bars(request_params=request)
+
+    assert symbol in barset
+    assert "TSLA" not in barset
+
+
 def test_get_bars_desc(reqmock, stock_client: StockHistoricalDataClient):
     symbol = "TSLA"
     timeframe = TimeFrame.Day

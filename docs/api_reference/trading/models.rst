@@ -56,10 +56,22 @@ NonTradeActivity
 .. autoclass:: alpaca.trading.models.NonTradeActivity
 
 
+NonTradeActivities
+------------------
+
+.. autoclass:: alpaca.trading.models.NonTradeActivities
+
+
 TradeActivity
 -------------
 
 .. autoclass:: alpaca.trading.models.TradeActivity
+
+
+TradingActivities
+-----------------
+
+.. autoclass:: alpaca.trading.models.TradingActivities
 
 
 PortfolioHistory

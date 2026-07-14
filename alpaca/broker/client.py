@@ -491,7 +491,7 @@ class BrokerClient(RESTClient):
 
         result = self.patch(
             f"/trading/accounts/{account_id}/account/configurations",
-            config.model_dump(),
+            config.model_dump(exclude_unset=True),
         )
 
         if self._use_raw_data:

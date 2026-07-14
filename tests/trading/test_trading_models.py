@@ -1,16 +1,29 @@
 import uuid
 import warnings
+from datetime import date
 
 import pytest
 
 from alpaca.trading.enums import (
+    AssetBorrowStatus,
+    AssetClass,
+    AssetExchange,
     OrderClass,
     OrderSide,
     OrderType,
+    PositionSide,
     TimeInForce,
     TradeEvent,
 )
-from alpaca.trading.models import TradeAccount, TradeUpdate
+from alpaca.trading.models import (
+    Asset,
+    PortfolioHistory,
+    Position,
+    PositionClosedReponse,
+    TradeAccount,
+    TradeUpdate,
+    USDPositionValues,
+)
 from alpaca.trading.requests import (
     LimitOrderRequest,
     MarketOrderRequest,
@@ -387,6 +400,105 @@ def test_trade_update_events() -> None:
 
 
 def test_trade_account_allows_missing_account_number() -> None:
-    account = TradeAccount(id=uuid.uuid4(), status="ACTIVE")
+    account = TradeAccount(
+        id=uuid.uuid4(),
+        status="ACTIVE",
+        balance_asof="2026-07-13",
+        intraday_adjustments="12.50",
+        pending_reg_taf_fees="0.01",
+    )
 
     assert account.account_number is None
+    assert account.balance_asof == "2026-07-13"
+    assert account.intraday_adjustments == "12.50"
+    assert account.pending_reg_taf_fees == "0.01"
+
+
+def test_asset_schema_supports_borrow_and_margin_fields() -> None:
+    asset = Asset(
+        **{
+            "id": uuid.uuid4(),
+            "class": AssetClass.US_EQUITY,
+            "exchange": AssetExchange.NYSE,
+            "symbol": "AAPL",
+            "name": "Apple Inc.",
+            "status": "active",
+            "tradable": True,
+            "marginable": True,
+            "shortable": True,
+            "easy_to_borrow": False,
+            "borrow_status": "hard_to_borrow",
+            "fractionable": True,
+            "cusip": "037833100",
+            "margin_requirement_long": "30",
+            "min_order_size": "0.0001",
+        }
+    )
+
+    assert asset.borrow_status == AssetBorrowStatus.HARD_TO_BORROW
+    assert asset.cusip == "037833100"
+    assert asset.margin_requirement_long == "30"
+    assert asset.min_order_size == "0.0001"
+
+
+def test_position_supports_nullable_usd_values_and_previous_swap_rate() -> None:
+    usd = USDPositionValues(
+        avg_entry_price="100",
+        market_value=None,
+        cost_basis="100",
+        unrealized_pl=None,
+        unrealized_plpc=None,
+        unrealized_intraday_pl=None,
+        unrealized_intraday_plpc=None,
+        current_price=None,
+        lastday_price=None,
+        change_today=None,
+    )
+    position = Position(
+        asset_id=uuid.uuid4(),
+        symbol="AAPL",
+        exchange=AssetExchange.NYSE,
+        asset_class=AssetClass.US_EQUITY,
+        asset_marginable=True,
+        avg_entry_price="100",
+        qty="1",
+        side=PositionSide.LONG,
+        market_value="101",
+        cost_basis="100",
+        unrealized_pl="1",
+        unrealized_plpc="0.01",
+        unrealized_intraday_pl="1",
+        unrealized_intraday_plpc="0.01",
+        current_price="101",
+        lastday_price="100",
+        change_today="0.01",
+        prev_swap_rate="1.2",
+        usd=usd,
+    )
+
+    assert position.usd.market_value is None
+    assert position.prev_swap_rate == "1.2"
+
+
+def test_portfolio_history_supports_base_date_and_null_cashflow() -> None:
+    history = PortfolioHistory(
+        timestamp=[1],
+        equity=[100.0],
+        profit_loss=[0.0],
+        profit_loss_pct=[None],
+        base_value=100.0,
+        base_value_asof="2026-07-13",
+        timeframe="1D",
+        cashflow=None,
+    )
+
+    assert history.base_value_asof == date(2026, 7, 13)
+    assert history.cashflow is None
+
+
+def test_position_closed_response_accepts_empty_body() -> None:
+    response = PositionClosedReponse(symbol="AAPL", status=200)
+
+    assert response.symbol == "AAPL"
+    assert response.status == 200
+    assert response.body is None

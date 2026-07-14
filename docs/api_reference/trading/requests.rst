@@ -74,6 +74,12 @@ GetOptionContractsRequest
 .. autoclass:: alpaca.trading.requests.GetOptionContractsRequest
 
 
+GetActivitiesRequest
+--------------------
+
+.. autoclass:: alpaca.trading.requests.GetActivitiesRequest
+
+
 OptionLegRequest
 ----------------
 

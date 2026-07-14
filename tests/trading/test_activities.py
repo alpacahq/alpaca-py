@@ -2,7 +2,9 @@ from datetime import date, datetime
 from uuid import UUID
 
 import pytest
+from pydantic import ValidationError
 
+from alpaca.common.enums import Sort
 from alpaca.trading.enums import (
     ActivityCategory,
     ActivitySubType,
@@ -296,8 +298,8 @@ def test_activity_v2_event_envelope_parses_trade_details():
     )
 
     assert isinstance(event.at, datetime)
-    assert event.activity_type is ActivityType.FILL
-    assert event.activity_subtype is ActivitySubType.CDIV
+    assert event.activity_type == "FILL"
+    assert event.activity_subtype == "CDIV"
     assert isinstance(event.details, ActivityV2DetailTRD)
     assert event.details.execution_type == ExecutionType.FILL
 
@@ -320,17 +322,35 @@ def test_activity_v2_event_envelope_parses_non_trade_details():
     assert event.details.system_date == date(2026, 7, 14)
 
 
+def test_activity_v2_event_envelope_accepts_unknown_activity_values():
+    event = ActivityEventV2(
+        at="2026-07-14T10:00:01Z",
+        event_id="01J2Y7YQJFM6V3J5A8YF0P0M0C",
+        activity_type="CUSTOM_ACTIVITY",
+        activity_subtype="CUSTOM_SUBTYPE",
+        executed_at="2026-07-14T10:00:00Z",
+        status="executed",
+        settle_date="2026-07-16",
+        currency="USD",
+        ref_id="4ce24134-3d0c-4f61-aef5-1807a3391380",
+        details={"system_date": "2026-07-14"},
+    )
+
+    assert event.activity_type == "CUSTOM_ACTIVITY"
+    assert event.activity_subtype == "CUSTOM_SUBTYPE"
+
+
 def test_get_activities_request_serializes_filters():
     request = GetActivitiesRequest(
         activity_types=[ActivityType.FILL, ActivityType.DIV],
         date=date(2026, 7, 14),
-        direction="desc",
+        direction=Sort.DESC,
         page_size=25,
         page_token="next",
     )
 
     assert request.to_request_fields() == {
-        "activity_types": ["FILL", "DIV"],
+        "activity_types": "FILL,DIV",
         "date": "2026-07-14T00:00:00+00:00",
         "direction": "desc",
         "page_size": 25,
@@ -339,6 +359,25 @@ def test_get_activities_request_serializes_filters():
     assert GetActivitiesRequest(
         category=ActivityCategory.TRADE_ACTIVITY
     ).to_request_fields() == {"category": "trade_activity"}
+
+
+def test_get_activities_request_rejects_conflicting_filters():
+    with pytest.raises(ValidationError, match="activity_types and category"):
+        GetActivitiesRequest(
+            activity_types=[ActivityType.FILL],
+            category=ActivityCategory.TRADE_ACTIVITY,
+        )
+
+
+@pytest.mark.parametrize("page_size", [0, 101])
+def test_get_activities_request_rejects_page_size_out_of_bounds(page_size):
+    with pytest.raises(ValidationError):
+        GetActivitiesRequest(page_size=page_size)
+
+
+def test_get_activities_request_rejects_invalid_direction():
+    with pytest.raises(ValidationError):
+        GetActivitiesRequest(direction="sideways")
 
 
 def test_legacy_non_trade_activity_retains_price_fields():

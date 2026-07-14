@@ -905,13 +905,13 @@ class ActivityEventV2CommonFields(BaseModel):
 
     at: datetime
     event_id: str
-    activity_type: ActivityType
+    activity_type: str
     executed_at: datetime
     status: str
     settle_date: date
     currency: str
     ref_id: UUID
-    activity_subtype: Optional[ActivitySubType] = None
+    activity_subtype: Optional[str] = None
     price: Optional[str] = None
     qty: Optional[str] = None
     net_amount: Optional[str] = None

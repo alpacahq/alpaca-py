@@ -56,10 +56,22 @@ NonTradeActivity
 .. autoclass:: alpaca.trading.models.NonTradeActivity
 
 
+NonTradeActivities
+------------------
+
+.. autoclass:: alpaca.trading.models.NonTradeActivities
+
+
 TradeActivity
 -------------
 
 .. autoclass:: alpaca.trading.models.TradeActivity
+
+
+TradingActivities
+-----------------
+
+.. autoclass:: alpaca.trading.models.TradingActivities
 
 
 PortfolioHistory
@@ -96,6 +108,46 @@ OptionContractsResponse
 -----------------------
 
 .. autoclass:: alpaca.trading.models.OptionContractsResponse
+
+
+Activity V2 Models
+------------------
+
+.. autoclass:: alpaca.trading.models.CommonNTAActivityV2
+
+.. autoclass:: alpaca.trading.models.CommonCaActivityV2
+
+.. autoclass:: alpaca.trading.models.CommonCDIVActivityV2
+
+.. autoclass:: alpaca.trading.models.CommonSDIVActivityV2
+
+.. autoclass:: alpaca.trading.models.CommonSplitActivityV2
+
+.. autoclass:: alpaca.trading.models.CommonSplitStockActivityV2
+
+.. autoclass:: alpaca.trading.models.CommonSpinoffActivityV2
+
+.. autoclass:: alpaca.trading.models.CommonMAActivityV2
+
+.. autoclass:: alpaca.trading.models.CommonNCActivityV2
+
+.. autoclass:: alpaca.trading.models.CommonVOFSubtypeActivityV2
+
+.. autoclass:: alpaca.trading.models.CommonOptionsActivityV2
+
+.. autoclass:: alpaca.trading.models.CommonOPCAActivityV2
+
+.. autoclass:: alpaca.trading.models.CommonAcatActivityV2
+
+.. autoclass:: alpaca.trading.models.CommonJournalActivityV2
+
+.. autoclass:: alpaca.trading.models.ActivityV2DetailTRD
+
+.. autoclass:: alpaca.trading.models.ActivityV2DetailNTA
+
+.. autoclass:: alpaca.trading.models.ActivityEventV2CommonFields
+
+.. autoclass:: alpaca.trading.models.ActivityEventV2
 
 
 Concrete Activity V2 Models

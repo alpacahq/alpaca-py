@@ -2,6 +2,7 @@ from alpaca.common.models import ModelWithID, ValidateBaseModel as BaseModel
 from uuid import UUID
 from datetime import datetime, date
 from typing import Any, Optional, List, Union, Dict
+from pydantic import model_validator
 from alpaca.trading.enums import (
     AssetClass,
     AssetStatus,
@@ -923,7 +924,65 @@ class ActivityEventV2CommonFields(BaseModel):
 class ActivityEventV2(ActivityEventV2CommonFields):
     """Account activity delivered over the Event Streaming API V2."""
 
-    details: Union[ActivityV2DetailTRD, ActivityV2DetailNTA]
+    details: Union[ActivityV2DetailTRD, "_ConcreteActivityV2", ActivityV2DetailNTA]
+
+    @model_validator(mode="before")
+    @classmethod
+    def select_detail_model(cls, values):
+        if not isinstance(values, dict) or not isinstance(values.get("details"), dict):
+            return values
+
+        activity_type = values.get("activity_type")
+        activity_subtype = values.get("activity_subtype")
+        detail_models = {
+            ("DIV", "SPD"): DIVSPDActivityV2,
+            ("DIV", "CDIV"): CDIVActivityV2,
+            ("DIV", "SDIV"): SDIVActivityV2,
+            ("REORG", "WRM"): WRMActivityV2,
+            ("VOF", "VTND"): TenderOfferActivityV2,
+            ("VOF", "VEXH"): ExchangeOfferActivityV2,
+            ("VOF", "VRGT"): RightsSubscriptionElectionActivityV2,
+            ("VOF", "VWRT"): WarrantExerciseElectionActivityV2,
+            ("OPCA", "DIV.CDIV"): OpcaCDIVActivityV2,
+            ("OPCA", "DIV.SDIV"): OpcaSDIVActivityV2,
+            ("OPCA", "MA.CMA"): OpcaMAActivityV2,
+            ("OPCA", "MA.SMA"): OpcaMAActivityV2,
+            ("OPCA", "MA.SCMA"): OpcaMAActivityV2,
+            ("OPCA", "NC.CNC"): OpcaNCActivityV2,
+            ("OPCA", "NC.SNC"): OpcaNCActivityV2,
+            ("OPCA", "NC.SCNC"): OpcaNCActivityV2,
+            ("OPCA", "SPIN"): OpcaSPINActivityV2,
+            ("OPCA", "SPLIT.FSPLIT"): OpcaFSPLITActivityV2,
+            ("OPCA", "SPLIT.RSPLIT"): OpcaRSPLITActivityV2,
+            ("OPCA", "SPLIT.USPLIT"): OpcaUSPLITActivityV2,
+            ("SPLIT", "FSPLIT"): ForwardSplitActivityV2,
+            ("SPLIT", "RSPLIT"): ReverseSplitActivityV2,
+            ("SPLIT", "USPLIT"): UnitSplitActivityV2,
+        }
+        direct_models = {
+            "ACATC": AcatcActivityV2,
+            "ACATS": AcatsActivityV2,
+            "DIVNRA": DIVNRAActivityV2,
+            "CSW": CSWActivityV2,
+            "SPIN": SpinoffActivityV2,
+            "MA": MAActivityV2,
+            "NC": NCActivityV2,
+            "FOPT": FOPTActivityV2,
+            "JNLS": JNLSActivityV2,
+            "JNLC": JNLCActivityV2,
+            "FEE": FEEActivityV2,
+            "OPASN": OPASNActivityV2,
+            "OPEXC": OPEXCActivityV2,
+            "OPEXP": OPEXPActivityV2,
+            "OPTRD": OPTRDActivityV2,
+        }
+        detail_model = detail_models.get(
+            (activity_type, activity_subtype)
+        ) or direct_models.get(activity_type)
+        if detail_model is not None:
+            values = dict(values)
+            values["details"] = detail_model(**values["details"])
+        return values
 
 
 class AcatcActivityV2(CommonNTAActivityV2, CommonAcatActivityV2):
@@ -1175,3 +1234,45 @@ class WarrantExerciseElectionActivityV2(
     CommonNTAActivityV2, CommonVOFSubtypeActivityV2
 ):
     """Warrant exercise election voluntary corporate action."""
+
+
+_ConcreteActivityV2 = Union[
+    AcatcActivityV2,
+    AcatsActivityV2,
+    DIVSPDActivityV2,
+    CDIVActivityV2,
+    DIVNRAActivityV2,
+    CSWActivityV2,
+    SDIVActivityV2,
+    SpinoffActivityV2,
+    MAActivityV2,
+    NCActivityV2,
+    WRMActivityV2,
+    TenderOfferActivityV2,
+    FOPTActivityV2,
+    JNLSActivityV2,
+    JNLCActivityV2,
+    FEEActivityV2,
+    OPASNActivityV2,
+    OPEXCActivityV2,
+    OPEXPActivityV2,
+    OPTRDActivityV2,
+    OpcaCDIVActivityV2,
+    OpcaSDIVActivityV2,
+    OpcaMAActivityV2,
+    OpcaNCActivityV2,
+    OpcaSPINActivityV2,
+    OpcaFSPLITActivityV2,
+    OpcaRSPLITActivityV2,
+    OpcaUSPLITActivityV2,
+    UnitSplitActivityV2,
+    ExchangeOfferActivityV2,
+    RightsSubscriptionElectionActivityV2,
+    FixedIncomeRedemptionActivityV2,
+    ForwardSplitActivityV2,
+    ReverseSplitActivityV2,
+    RightsDistributionActivityV2,
+    WarrantExerciseElectionActivityV2,
+]
+
+ActivityEventV2.model_rebuild()

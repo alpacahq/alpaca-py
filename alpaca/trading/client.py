@@ -1,8 +1,9 @@
 import json
 import warnings
-from typing import List, Optional, Union
+from typing import Iterator, List, Optional, Union
 from uuid import UUID
 
+import sseclient
 from pydantic import TypeAdapter
 
 from alpaca.common import RawData
@@ -15,6 +16,7 @@ from alpaca.common.utils import (
 )
 from alpaca.trading.models import (
     AccountConfiguration,
+    ActivityEventV2,
     Asset,
     Calendar,
     Clock,
@@ -32,6 +34,7 @@ from alpaca.trading.requests import (
     CancelOrderResponse,
     ClosePositionRequest,
     CreateWatchlistRequest,
+    GetActivityEventsRequest,
     GetAssetsRequest,
     GetCalendarRequest,
     GetCorporateAnnouncementsRequest,
@@ -511,6 +514,48 @@ class TradingClient(RESTClient):
             return response
 
         return AccountConfiguration(**response)
+
+    def get_activity_events(
+        self, request: Optional[GetActivityEventsRequest] = None
+    ) -> Iterator[Union[ActivityEventV2, RawData]]:
+        """
+        Subscribes to the Activity V2 server-sent event stream.
+
+        Args:
+            request: Optional historical event range.
+
+        Yields:
+            ActivityEventV2 models as events arrive, or raw event dictionaries
+            when raw data mode is enabled.
+        """
+        params = request.to_request_fields() if request is not None else {}
+        headers = self._get_default_headers()
+        headers.update(
+            {
+                "Connection": "keep-alive",
+                "Cache-Control": "no-cache",
+                "Accept": "text/event-stream",
+            }
+        )
+        base_url = (
+            self._base_url.value
+            if isinstance(self._base_url, BaseURL)
+            else self._base_url
+        )
+        response = self._session.get(
+            url=f"{base_url}/v2beta1/events/activities",
+            params=params,
+            stream=True,
+            headers=headers,
+        )
+        response.raise_for_status()
+
+        try:
+            for event in sseclient.SSEClient(response).events():
+                data = json.loads(event.data)
+                yield data if self._use_raw_data else ActivityEventV2(**data)
+        finally:
+            response.close()
 
     # ############################## WATCHLIST ################################# #
 

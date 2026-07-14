@@ -27,7 +27,7 @@ from alpaca.trading.models import (
     OpcaCDIVActivityV2,
     TradingActivities,
 )
-from alpaca.trading.requests import GetActivitiesRequest
+from alpaca.trading.requests import GetActivitiesRequest, GetActivityEventsRequest
 
 
 def test_activity_type_matches_trading_api_schema():
@@ -309,16 +309,27 @@ def test_activity_v2_event_envelope_parses_non_trade_details():
         at="2026-07-14T10:00:01Z",
         event_id="01J2Y7YQJFM6V3J5A8YF0P0M0B",
         activity_type="DIV",
+        activity_subtype="CDIV",
         executed_at="2026-07-14T10:00:00Z",
         status="executed",
         settle_date="2026-07-16",
         currency="USD",
         ref_id="4ce24134-3d0c-4f61-aef5-1807a3391380",
         net_amount="12.34",
-        details={"system_date": "2026-07-14"},
+        details={
+            "system_date": "2026-07-14",
+            "position_date": "2026-07-11",
+            "symbol": "AAPL",
+            "cusip": "037833100",
+            "rate": "0.25",
+            "foreign": False,
+            "special": False,
+            "entitled_qty": "10",
+            "cash_payout": "2.50",
+        },
     )
 
-    assert isinstance(event.details, ActivityV2DetailNTA)
+    assert isinstance(event.details, CDIVActivityV2)
     assert event.details.system_date == date(2026, 7, 14)
 
 
@@ -378,6 +389,22 @@ def test_get_activities_request_rejects_page_size_out_of_bounds(page_size):
 def test_get_activities_request_rejects_invalid_direction():
     with pytest.raises(ValidationError):
         GetActivitiesRequest(direction="sideways")
+
+
+@pytest.mark.parametrize(
+    "values",
+    [
+        {"until": "2026-07-14"},
+        {"until_id": "01J2Y7YQJFM6V3J5A8YF0P0M0B"},
+        {
+            "since": "2026-07-14",
+            "since_id": "01J2Y7YQJFM6V3J5A8YF0P0M0A",
+        },
+    ],
+)
+def test_activity_event_request_rejects_invalid_ranges(values):
+    with pytest.raises(ValidationError):
+        GetActivityEventsRequest(**values)
 
 
 def test_legacy_non_trade_activity_retains_price_fields():

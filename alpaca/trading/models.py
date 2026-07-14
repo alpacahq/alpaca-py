@@ -350,7 +350,8 @@ class WatchlistWithoutAsset(ModelWithID):
     A watchlist without its asset list — returned by endpoints that do not include
     the asset details.
 
-    See also ``Watchlist`` which extends this with an optional ``assets`` field.
+    See also the related ``Watchlist`` response model, which includes an optional
+    ``assets`` field.
 
     Attributes:
         id (UUID): Unique watchlist identifier.

@@ -8,7 +8,14 @@ import pytest
 
 from alpaca.broker.client import BrokerClient
 from alpaca.broker.enums import AccountEntities, AccountSubType, AccountType
-from alpaca.broker.models import Account, Contact, Identity, TradeAccount
+from alpaca.broker.models import (
+    Account,
+    CashInterest,
+    CashInterestProgram,
+    Contact,
+    Identity,
+    TradeAccount,
+)
 from alpaca.broker.requests import (
     CreateAccountRequest,
     ListAccountsRequest,
@@ -131,6 +138,58 @@ def test_create_account(reqmock, client: BrokerClient):
     assert returned_account.kyc_results is None
     assert returned_account.account_type == AccountType.TRADING
     assert returned_account.account_sub_type is None
+    assert returned_account.cash_interest is None
+
+
+def test_create_account_with_cash_interest(reqmock, client: BrokerClient):
+    created_id = "0d969814-40d6-4b2b-99ac-2e37427f1ad2"
+
+    reqmock.post(
+        "https://broker-api.sandbox.alpaca.markets/v1/accounts",
+        text="""
+        {
+          "id": "0d969814-40d6-4b2b-99ac-2e37427f1ad2",
+          "account_number": "682389557",
+          "status": "SUBMITTED",
+          "crypto_status": "INACTIVE",
+          "currency": "USD",
+          "last_equity": "0",
+          "created_at": "2022-04-12T17:24:31.30283Z",
+          "account_type": "trading",
+          "trading_configurations": null,
+          "cash_interest": {
+            "USD": {
+              "apr_tier_name": "gold",
+              "status": "PENDING_CHANGE"
+            }
+          }
+        }
+        """,
+    )
+
+    create_data = CreateAccountRequest(
+        agreements=factory.create_dummy_agreements(),
+        contact=factory.create_dummy_contact(),
+        disclosures=factory.create_dummy_disclosures(),
+        documents=factory.create_dummy_account_documents(),
+        identity=factory.create_dummy_identity(),
+        trusted_contact=factory.create_dummy_trusted_contact(),
+        cash_interest=CashInterest(
+            USD=CashInterestProgram(apr_tier_name="gold"),
+        ),
+    )
+
+    returned_account = client.create_account(create_data)
+
+    assert reqmock.called_once
+    request_body = reqmock.request_history[0].json()
+    # status should not be specified on enrollment, only the desired apr_tier_name
+    assert request_body["cash_interest"] == {"USD": {"apr_tier_name": "gold"}}
+    assert type(returned_account) == Account
+    assert returned_account.id == UUID(created_id)
+    assert returned_account.cash_interest == CashInterest(
+        USD=CashInterestProgram(apr_tier_name="gold", status="PENDING_CHANGE"),
+    )
 
 
 def test_create_ira_account(reqmock, client: BrokerClient):
@@ -643,6 +702,87 @@ def test_update_account_validates_non_empty_request(reqmock, client: BrokerClien
         client.update_account(account_id, update_data)
 
     assert str(e.value) == "update_data must contain at least 1 field to change"
+
+
+def test_update_account_cash_interest_unenroll(reqmock, client: BrokerClient):
+    account_id = "0d969814-40d6-4b2b-99ac-2e37427f1ad2"
+
+    reqmock.patch(
+        f"https://broker-api.sandbox.alpaca.markets/v1/accounts/{account_id}",
+        text="""
+        {
+          "id": "0d969814-40d6-4b2b-99ac-2e37427f1ad2",
+          "account_number": "682389557",
+          "status": "ACTIVE",
+          "currency": "USD",
+          "last_equity": "0",
+          "created_at": "2022-04-12T17:24:31.30283Z",
+          "account_type": "trading",
+          "trading_configurations": null,
+          "cash_interest": {
+            "USD": {
+              "apr_tier_name": "gold",
+              "status": "PENDING_CHANGE"
+            }
+          }
+        }
+        """,
+    )
+
+    update_data = UpdateAccountRequest(
+        cash_interest=CashInterest(
+            USD=CashInterestProgram(status="INACTIVE"),
+        ),
+    )
+
+    account = client.update_account(account_id, update_data)
+
+    assert reqmock.called_once
+    request_body = reqmock.request_history[0].json()
+    assert request_body["cash_interest"] == {"USD": {"status": "INACTIVE"}}
+    assert account.cash_interest == CashInterest(
+        USD=CashInterestProgram(apr_tier_name="gold", status="PENDING_CHANGE"),
+    )
+
+
+def test_create_account_validates_cash_interest(reqmock, client: BrokerClient):
+    # status should not be specified on enrollment
+    with pytest.raises(ValueError):
+        CreateAccountRequest(
+            agreements=factory.create_dummy_agreements(),
+            contact=factory.create_dummy_contact(),
+            disclosures=factory.create_dummy_disclosures(),
+            identity=factory.create_dummy_identity(),
+            cash_interest=CashInterest(
+                USD=CashInterestProgram(apr_tier_name="gold", status="ACTIVE"),
+            ),
+        )
+
+    # an empty program is not a valid enrollment
+    with pytest.raises(ValueError):
+        CreateAccountRequest(
+            agreements=factory.create_dummy_agreements(),
+            contact=factory.create_dummy_contact(),
+            disclosures=factory.create_dummy_disclosures(),
+            identity=factory.create_dummy_identity(),
+            cash_interest=CashInterest(USD=CashInterestProgram()),
+        )
+
+
+def test_update_account_validates_cash_interest(reqmock, client: BrokerClient):
+    # status should not be specified when enrolling or changing APR tiers
+    with pytest.raises(ValueError):
+        UpdateAccountRequest(
+            cash_interest=CashInterest(
+                USD=CashInterestProgram(apr_tier_name="gold", status="INACTIVE"),
+            ),
+        )
+
+    # an empty program is neither an enrollment, tier change, nor unenrollment
+    with pytest.raises(ValueError):
+        UpdateAccountRequest(
+            cash_interest=CashInterest(USD=CashInterestProgram()),
+        )
 
 
 def test_delete_account(reqmock, client: BrokerClient):

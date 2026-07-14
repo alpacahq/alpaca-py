@@ -751,3 +751,23 @@ class GetActivitiesRequest(NonEmptyRequest):
         if activity_types:
             return ",".join(activity_type.value for activity_type in activity_types)
         return None
+
+
+class GetActivityEventsRequest(NonEmptyRequest):
+    """Parameters for subscribing to Activity V2 events."""
+
+    since: Optional[Union[date, datetime, str]] = None
+    until: Optional[Union[date, datetime, str]] = None
+    since_id: Optional[str] = None
+    until_id: Optional[str] = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def validate_event_range(cls, values: dict) -> dict:
+        if values.get("until") is not None and values.get("since") is None:
+            raise ValueError("since is required when until is specified")
+        if values.get("until_id") is not None and values.get("since_id") is None:
+            raise ValueError("since_id is required when until_id is specified")
+        if values.get("since") is not None and values.get("since_id") is not None:
+            raise ValueError("since and since_id are mutually exclusive")
+        return values

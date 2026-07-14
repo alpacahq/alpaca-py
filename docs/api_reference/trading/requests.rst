@@ -80,6 +80,12 @@ GetActivitiesRequest
 .. autoclass:: alpaca.trading.requests.GetActivitiesRequest
 
 
+GetActivityEventsRequest
+------------------------
+
+.. autoclass:: alpaca.trading.requests.GetActivityEventsRequest
+
+
 OptionLegRequest
 ----------------
 

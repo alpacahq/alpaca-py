@@ -1,3 +1,5 @@
+from datetime import date, datetime
+
 from alpaca.trading.enums import Market, Phase
 from alpaca.trading.models import (
     CalendarDay,
@@ -136,8 +138,43 @@ def test_calendar_day_optional_sessions_default_to_none() -> None:
     assert day.post_end is None
 
 
+def test_calendar_day_coerces_all_session_and_settlement_fields() -> None:
+    day = CalendarDay(
+        date="2026-07-14",
+        core_start="2026-07-14T09:30:00-04:00",
+        core_end="2026-07-14T16:00:00-04:00",
+        pre_start="2026-07-14T04:00:00-04:00",
+        pre_end="2026-07-14T09:30:00-04:00",
+        lunch_start="2026-07-14T12:00:00-04:00",
+        lunch_end="2026-07-14T13:00:00-04:00",
+        post_start="2026-07-14T16:00:00-04:00",
+        post_end="2026-07-14T20:00:00-04:00",
+        settlement_date="2026-07-15",
+    )
+
+    assert isinstance(day.date, date)
+    assert isinstance(day.settlement_date, date)
+    for field in (
+        "core_start",
+        "core_end",
+        "pre_start",
+        "pre_end",
+        "lunch_start",
+        "lunch_end",
+        "post_start",
+        "post_end",
+    ):
+        assert isinstance(getattr(day, field), datetime)
+
+
 def test_get_calendar_request_defaults_to_trading_dates() -> None:
     request = GetCalendarRequest()
 
     assert request.date_type == "TRADING"
     assert request.to_request_fields() == {"date_type": "TRADING"}
+
+
+def test_get_calendar_request_serializes_settlement_date_type() -> None:
+    request = GetCalendarRequest(date_type="SETTLEMENT")
+
+    assert request.to_request_fields() == {"date_type": "SETTLEMENT"}

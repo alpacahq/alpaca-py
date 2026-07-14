@@ -9,6 +9,9 @@ from alpaca.trading.enums import (
     ContractType,
     DTBPCheck,
     ExerciseStyle,
+    LocateErrorCode,
+    LocateQuoteErrorCode,
+    LocateStatus,
     OrderStatus,
     OrderType,
     OrderClass,
@@ -700,3 +703,121 @@ class OptionContractsResponse(BaseModel):
 
     option_contracts: Optional[List[OptionContract]] = None
     next_page_token: Optional[str] = None
+
+
+class Locate(ModelWithID):
+    """
+    A locate request and its current lifecycle status.
+
+    Attributes:
+        id (UUID): Locate ID.
+        symbol (str): Stock symbol.
+        requested_qty (int): Number of shares requested.
+        all_or_none (bool): Whether the request required the full quantity.
+        status (LocateStatus): Locate status.
+        created_at (datetime): Time when the locate was created.
+        expires_at (Optional[datetime]): Time when the active locate expires.
+        limit_price (Optional[str]): Maximum acceptable fee per share from the request.
+        located_price (Optional[str]): Locate fee per share in USD.
+        located_qty (Optional[int]): Number of shares located.
+        total_fee (Optional[str]): Total locate fee in USD.
+        rejection_reason (Optional[str]): Machine-readable rejection reason.
+    """
+
+    symbol: str
+    requested_qty: int
+    all_or_none: bool
+    status: LocateStatus
+    created_at: datetime
+    expires_at: Optional[datetime] = None
+    limit_price: Optional[str] = None
+    located_price: Optional[str] = None
+    located_qty: Optional[int] = None
+    total_fee: Optional[str] = None
+    rejection_reason: Optional[str] = None
+
+
+class ErrorResponse(BaseModel):
+    """
+    API error response.
+
+    Attributes:
+        message (Optional[str]): Human-readable error message.
+    """
+
+    message: Optional[str] = None
+
+
+class LocateError(BaseModel):
+    """
+    Locates API error response.
+
+    Attributes:
+        message (str): Error message.
+        code (Optional[LocateErrorCode]): Machine-readable locate error code.
+    """
+
+    message: str
+    code: Optional[LocateErrorCode] = None
+
+
+class ListLocatesResponse(BaseModel):
+    """
+    Response returned when listing locate requests.
+
+    Attributes:
+        locates (List[Locate]): Locates matching the filter criteria.
+        next_page_token (Optional[str]): Pagination token for the next page.
+    """
+
+    locates: List[Locate]
+    next_page_token: Optional[str]
+
+
+class LocateQuote(BaseModel):
+    """
+    Current locate pricing and availability for a symbol.
+
+    Attributes:
+        symbol (str): Stock symbol.
+        available_qty (int): Available locate quantity.
+        quoted_at (datetime): Time when the quote was issued.
+        price (Optional[str]): Locate fee per share.
+    """
+
+    symbol: str
+    available_qty: int
+    quoted_at: datetime
+    price: Optional[str] = None
+
+
+class LocateQuoteError(BaseModel):
+    """
+    Error returned for a symbol that could not be quoted.
+
+    Attributes:
+        symbol (str): Requested stock symbol that could not be quoted.
+        code (LocateQuoteErrorCode): Error code.
+        message (str): Error message.
+    """
+
+    symbol: str
+    code: LocateQuoteErrorCode
+    message: str
+
+
+class ListLocateQuotesResponse(BaseModel):
+    """
+    Response returned when fetching locate quotes.
+
+    Attributes:
+        quotes (List[LocateQuote]): Locate quotes returned for requested symbols.
+        errors (Optional[List[LocateQuoteError]]): Symbols that could not be quoted.
+    """
+
+    quotes: List[LocateQuote]
+    errors: Optional[List[LocateQuoteError]] = None
+
+
+LocatesResponse = ListLocatesResponse
+LocateQuotesResponse = ListLocateQuotesResponse

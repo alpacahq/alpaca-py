@@ -15,6 +15,7 @@ from alpaca.trading.enums import (
     CorporateActionDateType,
     CorporateActionType,
     ExerciseStyle,
+    LocateStatus,
     OrderClass,
     OrderSide,
     OrderType,
@@ -716,3 +717,53 @@ class GetOptionContractsRequest(NonEmptyRequest):
 
     limit: Optional[int] = None
     page_token: Optional[str] = None
+
+
+class GetLocatesRequest(NonEmptyRequest):
+    """
+    Parameters for fetching locate requests.
+
+    Attributes:
+        page_token (Optional[str]): Pagination token to continue from.
+        limit (Optional[int]): Maximum number of results to return.
+        status (Optional[LocateStatus]): Filter by locate status.
+        symbol (Optional[str]): Filter by stock symbol.
+        start (Optional[date]): Filter locates with trading date on or after this date.
+        end (Optional[date]): Filter locates with trading date before this date.
+    """
+
+    page_token: Optional[str] = None
+    limit: Optional[int] = None
+    status: Optional[LocateStatus] = None
+    symbol: Optional[str] = None
+    start: Optional[date] = None
+    end: Optional[date] = None
+
+
+class CreateLocateRequest(NonEmptyRequest):
+    """
+    Request to locate shares for a short sale.
+
+    Attributes:
+        symbol (str): Stock symbol.
+        qty (int): Number of shares to locate.
+        all_or_none (Optional[bool]): Reject unless the full requested quantity is available.
+        limit_price (Optional[str]): Maximum acceptable locate fee per share in USD.
+    """
+
+    symbol: str
+    qty: int
+    all_or_none: Optional[bool] = False
+    limit_price: Optional[str] = None
+
+
+class GetLocateQuotesRequest(NonEmptyRequest):
+    """
+    Parameters for fetching locate availability and pricing.
+
+    Attributes:
+        symbols (Union[str, List[str]]): Comma-separated stock symbols or a list
+            of stock symbols to quote.
+    """
+
+    symbols: Union[str, List[str]]

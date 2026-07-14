@@ -3,49 +3,51 @@ from enum import Enum
 
 class ActivityType(str, Enum):
     """
-    Represents what kind of Activity an instance of TradeActivity or NonTradeActivity is.
+    Represents the type of account activity returned by the Trading API.
 
-    Please see https://alpaca.markets/docs/api-references/broker-api/accounts/account-activities/#enumactivitytype
+    Please see https://alpaca.markets/docs/api-references/trading-api/account-activities/
     for descriptions of each of the types
     """
 
     FILL = "FILL"
+    TRANS = "TRANS"
+    MISC = "MISC"
     ACATC = "ACATC"
     ACATS = "ACATS"
     CFEE = "CFEE"
-    CIL = "CIL"
+    CGD = "CGD"
     CSD = "CSD"
     CSW = "CSW"
     DIV = "DIV"
     DIVCGL = "DIVCGL"
     DIVCGS = "DIVCGS"
+    DIVFEE = "DIVFEE"
+    DIVFT = "DIVFT"
     DIVNRA = "DIVNRA"
     DIVROC = "DIVROC"
+    DIVTW = "DIVTW"
     DIVTXEX = "DIVTXEX"
-    DIVWH = "DIVWH"
-    EXTRD = "EXTRD"
     FEE = "FEE"
-    FXTRD = "FXTRD"
     INT = "INT"
-    INTPNL = "INTPNL"
+    INTNRA = "INTNRA"
+    INTTW = "INTTW"
+    JNL = "JNL"
     JNLC = "JNLC"
     JNLS = "JNLS"
     MA = "MA"
-    MEM = "MEM"
     NC = "NC"
-    OCT = "OCT"
     OPASN = "OPASN"
+    OPCA = "OPCA"
     OPCSH = "OPCSH"
     OPEXC = "OPEXC"
     OPEXP = "OPEXP"
     OPTRD = "OPTRD"
     PTC = "PTC"
+    PTR = "PTR"
     REORG = "REORG"
     SPIN = "SPIN"
     SPLIT = "SPLIT"
-    SWP = "SWP"
-    VOF = "VOF"
-    WH = "WH"
+    FOPT = "FOPT"
 
     def is_trade_activity(self) -> bool:
         """
@@ -417,3 +419,90 @@ class PositionIntent(str, Enum):
     BUY_TO_CLOSE = "buy_to_close"
     SELL_TO_OPEN = "sell_to_open"
     SELL_TO_CLOSE = "sell_to_close"
+
+
+class ActivitySubType(str, Enum):
+    """
+    Represents a more specific classification to the activity_type field.
+    This field is optional and may not always be populated, depending on the
+    activity type and the available data.
+
+    Values are grouped by the parent activity_type they belong to.
+    OPCA sub-types that contain a dot separator are rendered with an underscore
+    in the Python name (e.g. DIV_CDIV = "DIV.CDIV").
+    """
+
+    # DIV — Dividend
+    CDIV = "CDIV"
+    SDIV = "SDIV"
+    SPD = "SPD"
+
+    # FEE — Fee-related
+    REG = "REG"
+    TAF = "TAF"
+    LCT = "LCT"
+    ORF = "ORF"
+    OCC = "OCC"
+    NRC = "NRC"
+    NRV = "NRV"
+    COM = "COM"
+    CAT = "CAT"
+
+    # INT — Interest
+    MGN = "MGN"
+    CDT = "CDT"
+    SWP = "SWP"
+    QII = "QII"
+
+    # MA — Merger and Acquisition
+    CMA = "CMA"
+    SMA = "SMA"
+    SCMA = "SCMA"
+
+    # NC — Name Change
+    SNC = "SNC"
+    CNC = "CNC"
+    SCNC = "SCNC"
+
+    # OPCA — Option Corporate Action (dot-separated values)
+    DIV_CDIV = "DIV.CDIV"
+    DIV_SDIV = "DIV.SDIV"
+    MA_CMA = "MA.CMA"
+    MA_SMA = "MA.SMA"
+    MA_SCMA = "MA.SCMA"
+    NC_CNC = "NC.CNC"
+    NC_SNC = "NC.SNC"
+    NC_SCNC = "NC.SCNC"
+    SPIN = "SPIN"
+    SPLIT_FSPLIT = "SPLIT.FSPLIT"
+    SPLIT_RSPLIT = "SPLIT.RSPLIT"
+    SPLIT_USPLIT = "SPLIT.USPLIT"
+
+    # REORG — Reorganization
+    WRM = "WRM"
+
+    # SPLIT — Stock Split
+    FSPLIT = "FSPLIT"
+    RSPLIT = "RSPLIT"
+    USPLIT = "USPLIT"
+
+    # VOF — Voluntary Offering
+    VTND = "VTND"
+    VWRT = "VWRT"
+    VRGT = "VRGT"
+    VEXH = "VEXH"
+
+    # WH — Withholding
+    SWH = "SWH"
+    FWH = "FWH"
+    SLWH = "SLWH"
+
+
+class ExecutionType(str, Enum):
+    """
+    Execution type for a trade activity event.
+    """
+
+    FILL = "fill"
+    TRADE_CORRECT = "trade_correct"
+    TRADE_BUST = "trade_bust"

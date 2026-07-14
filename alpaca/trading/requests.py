@@ -8,6 +8,8 @@ from alpaca.common.enums import Sort
 from alpaca.common.models import ModelWithID
 from alpaca.common.requests import NonEmptyRequest
 from alpaca.trading.enums import (
+    ActivityCategory,
+    ActivityType,
     AssetClass,
     AssetExchange,
     AssetStatus,
@@ -715,4 +717,20 @@ class GetOptionContractsRequest(NonEmptyRequest):
     strike_price_lte: Optional[str] = None
 
     limit: Optional[int] = None
+    page_token: Optional[str] = None
+
+
+class GetActivitiesRequest(NonEmptyRequest):
+    """
+    Parameters for fetching account activity history from
+    ``GET /v2/account/activities``.
+    """
+
+    activity_types: Optional[List[ActivityType]] = None
+    category: Optional[ActivityCategory] = None
+    date: Optional[Union[date, datetime, str]] = None
+    until: Optional[Union[date, datetime, str]] = None
+    after: Optional[Union[date, datetime, str]] = None
+    direction: Optional[str] = None
+    page_size: Optional[int] = None
     page_token: Optional[str] = None

@@ -1,3 +1,4 @@
+import random
 from typing import Union, Optional
 from uuid import UUID
 from datetime import datetime
@@ -17,6 +18,38 @@ def get_default_user_agent() -> str:
         str: The formatted User-Agent string
     """
     return f"APCA-PY/{__version__} Python/{platform.python_version()}"
+
+
+def reconnect_delay(
+    retries: int,
+    min_backoff: float,
+    max_backoff: float,
+) -> float:
+    """Computes the delay before the next websocket reconnection attempt.
+
+    Uses exponential backoff with equal jitter so repeated failures (e.g. a
+    stream that only allows a single connection and is being rejected while a
+    stale connection is reaped) do not turn into a tight reconnect/HTTP 429 storm.
+
+    Args:
+        retries (int): The number of consecutive failed attempts (>= 1).
+        min_backoff (float): The base delay in seconds for the first retry.
+        max_backoff (float): The maximum delay in seconds to cap the backoff at.
+
+    Returns:
+        float: The number of seconds to wait before retrying, in the range
+        [capped / 2, capped] where ``capped`` is the exponentially-grown,
+        max-capped delay.
+    """
+    capped = min_backoff
+    for _ in range(max(0, retries - 1)):
+        if capped >= max_backoff / 2:
+            capped = max_backoff
+            break
+        capped *= 2
+    capped = min(max_backoff, capped)
+    # equal jitter: wait between half and the full computed delay
+    return capped / 2 + random.uniform(0, capped / 2)
 
 
 def validate_uuid_id_param(

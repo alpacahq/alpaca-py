@@ -22,6 +22,7 @@ class CryptoDataStream(DataStream):
         feed: CryptoFeed = CryptoFeed.US,
         url_override: Optional[str] = None,
         websocket_params: Optional[Dict] = None,
+        data_timeout: Optional[float] = 60,
     ) -> None:
         """
         Instantiates a WebSocket client for accessing live cryptocurrency data.
@@ -34,6 +35,10 @@ class CryptoDataStream(DataStream):
             websocket_params (Optional[Dict], optional): Any parameters for configuring websocket connection. Defaults to None.
             url_override (Optional[str]): If specified allows you to override the base url the client
               points to for proxy/testing. Defaults to None.
+            data_timeout (Optional[float], optional): Maximum number of seconds to wait without
+                receiving market data before treating the connection as stale and forcing a
+                reconnect. Detects "connected-but-mute" sockets. Defaults to ``60``.
+                Pass ``None`` to disable for sparse subscriptions.
         """
         super().__init__(
             endpoint=(
@@ -45,6 +50,7 @@ class CryptoDataStream(DataStream):
             secret_key=secret_key,
             raw_data=raw_data,
             websocket_params=websocket_params,
+            data_timeout=data_timeout,
         )
 
     def subscribe_trades(

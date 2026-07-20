@@ -10,6 +10,7 @@ from websockets.legacy import client as websockets_legacy
 
 from alpaca.common import RawData
 from alpaca.common.enums import BaseURL
+from alpaca.common.utils import reconnect_delay
 from alpaca.trading import TradeUpdate
 
 log = logging.getLogger(__name__)
@@ -46,7 +47,11 @@ class TradingStream:
         self._loop = None
         self._raw_data = raw_data
         self._stop_stream_queue = queue.Queue()
+        self._stop_stream_event: Optional[asyncio.Event] = None
         self._should_run = True
+        self._data_received = False
+        self._reconnect_min_backoff = 1.0
+        self._reconnect_max_backoff = 30.0
         self._websocket_params = {
             "ping_interval": 10,
             "ping_timeout": 180,
@@ -55,6 +60,30 @@ class TradingStream:
 
         if websocket_params:
             self._websocket_params = websocket_params
+
+    def _reconnect_delay(self, retries: int) -> float:
+        """Computes the delay before the next reconnection attempt.
+
+        Args:
+            retries (int): The number of consecutive failed attempts (>= 1).
+
+        Returns:
+            float: The number of seconds to wait before retrying.
+        """
+        return reconnect_delay(
+            retries, self._reconnect_min_backoff, self._reconnect_max_backoff
+        )
+
+    async def _wait_before_reconnect(self, retries: int) -> None:
+        if self._stop_stream_event is None or self._stop_stream_event.is_set():
+            return
+        try:
+            await asyncio.wait_for(
+                self._stop_stream_event.wait(),
+                timeout=self._reconnect_delay(retries),
+            )
+        except asyncio.TimeoutError:
+            pass
 
     async def _connect(self):
         self._ws = await websockets_legacy.connect(
@@ -143,6 +172,8 @@ class TradingStream:
                 try:
                     r = await asyncio.wait_for(self._ws.recv(), 5)
                     msg = json.loads(r)
+                    if msg.get("stream") == "trade_updates":
+                        self._data_received = True
                     await self._dispatch(msg)
                 except asyncio.TimeoutError:
                     # ws.recv is hanging when no data is received. by using
@@ -160,7 +191,11 @@ class TradingStream:
             await asyncio.sleep(0.1)
         log.info("started trading stream")
         self._should_run = True
+        while not self._stop_stream_queue.empty():
+            self._stop_stream_queue.get_nowait()
+        self._stop_stream_event = asyncio.Event()
         self._running = False
+        retries = 0
         while True:
             try:
                 if not self._should_run:
@@ -168,34 +203,54 @@ class TradingStream:
                     return
                 if not self._running:
                     log.info("starting trading websocket connection")
+                    self._data_received = False
                     await self._start_ws()
                     self._running = True
-                    await self._consume()
+                await self._consume()
             except websockets.WebSocketException as wse:
                 await self.close()
                 self._running = False
+                if self._data_received:
+                    retries = 0
+                retries += 1
                 log.warning(
                     "trading stream websocket error, restarting "
                     + " connection: "
                     + str(wse)
                 )
+                await self._wait_before_reconnect(retries)
             except Exception as e:
                 log.exception(
                     "error during websocket " "communication: {}".format(str(e))
                 )
+                if not self._running:
+                    # Close any half-open socket from a failed connect/auth so
+                    # abandoned sessions do not keep consuming the
+                    # single-connection slot and cause HTTP 429s.
+                    await self.close()
+                    retries += 1
+                    await self._wait_before_reconnect(retries)
+                elif self._data_received:
+                    retries = 0
             finally:
                 await asyncio.sleep(0.01)
 
     async def close(self) -> None:
         """Closes the websocket connection."""
         if self._ws:
-            await self._ws.close()
-            self._ws = None
+            try:
+                await self._ws.close()
+            finally:
+                self._ws = None
+                self._running = False
+        else:
             self._running = False
 
     async def stop_ws(self) -> None:
         """Signals websocket connection should close by adding a closing message to the stop_stream_queue"""
         self._should_run = False
+        if self._stop_stream_event is not None:
+            self._stop_stream_event.set()
         if self._stop_stream_queue.empty():
             self._stop_stream_queue.put_nowait({"should_stop": True})
 

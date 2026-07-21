@@ -17,10 +17,13 @@ behavior after the fixes:
 
 import asyncio
 import json
+from datetime import datetime, timezone
+from typing import Dict
 
 import msgpack
 import pytest
 import websockets
+from msgpack import Timestamp
 
 from alpaca.data.enums import DataFeed
 from alpaca.data.live.crypto import CryptoDataStream
@@ -28,6 +31,7 @@ from alpaca.data.live.news import NewsDataStream
 from alpaca.data.live.option import OptionDataStream
 from alpaca.data.live.stock import StockDataStream
 from alpaca.data.live.websocket import DataStream
+from alpaca.data.models import News
 from alpaca.trading.stream import TradingStream
 
 # ---------------------------------------------------------------------------
@@ -193,6 +197,81 @@ async def test_news_without_symbols_is_dispatched_to_wildcard_handler():
 
     assert stale is False
     assert received == [{"T": "n", "headline": "global"}]
+
+
+def _unsymbolized_news_frame(created_at: datetime, omit_symbols_key: bool) -> Dict:
+    frame = {
+        "T": "n",
+        "id": 1,
+        "headline": "global",
+        "summary": "",
+        "author": "desk",
+        "created_at": Timestamp.from_datetime(created_at),
+        "updated_at": Timestamp.from_datetime(created_at),
+        "url": "https://example.com",
+        "content": "",
+        "source": "benzinga",
+    }
+    if not omit_symbols_key:
+        # This is the shape the real Alpaca API actually sends for
+        # unsymbolized/global news: the "symbols" key is always present,
+        # just with an empty list. See docs.alpaca.markets streaming-real-time-news.
+        frame["symbols"] = []
+    return frame
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "omit_symbols_key",
+    [
+        pytest.param(False, id="empty_symbols_list"),
+        # Defense-in-depth: the real API always sends the "symbols" key, but
+        # we tolerate a fully missing key too rather than assuming the
+        # documented shape everywhere.
+        pytest.param(True, id="missing_symbols_key"),
+    ],
+)
+async def test_parsed_news_without_symbols_reaches_wildcard_handler(
+    omit_symbols_key: bool,
+):
+    """Default raw_data=False path must parse unsymbolized news, not reconnect."""
+    received = []
+    created_at = datetime(2024, 6, 1, tzinfo=timezone.utc)
+
+    class Socket:
+        def __init__(self):
+            self.recv_calls = 0
+
+        async def recv(self):
+            self.recv_calls += 1
+            if self.recv_calls == 1:
+                return msgpack.packb(
+                    [_unsymbolized_news_frame(created_at, omit_symbols_key)]
+                )
+            await stream.stop_ws()
+            return msgpack.packb([{"T": "subscription", "news": ["*"]}])
+
+        async def close(self):
+            pass
+
+    stream = DataStream(
+        "endpoint", "key-id", "secret-key", raw_data=False, data_timeout=0.05
+    )
+
+    async def handler(msg):
+        received.append(msg)
+
+    stream._handlers["news"]["*"] = handler
+    stream._ws = Socket()
+    stream._running = True
+
+    stale = await asyncio.wait_for(stream._consume(), timeout=1)
+
+    assert stale is False
+    assert len(received) == 1
+    assert isinstance(received[0], News)
+    assert received[0].headline == "global"
+    assert received[0].symbols == []
 
 
 @pytest.mark.asyncio

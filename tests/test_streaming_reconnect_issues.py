@@ -3,10 +3,11 @@
 These originally reproduced the buggy behavior; they now assert the corrected
 behavior after the fixes:
 
-* Silent-but-open data socket: ``DataStream`` gained a ``data_timeout`` (default
-  ``60``; pass ``None`` to disable). When set, a connected socket that stops
-  delivering data (but still answers transport pings) now breaks the consume
-  loop and reconnects instead of looping forever with ``_running`` stuck True.
+* Silent-but-open data socket: ``DataStream`` gained an opt-in ``data_timeout``
+  (default ``None``; pass a positive number of seconds to enable). When set, a
+  connected socket that stops delivering data (but still answers transport pings)
+  breaks the consume loop and reconnects instead of looping forever with
+  ``_running`` stuck True.
 
 * Reconnect backoff: both ``DataStream`` and ``TradingStream`` now reconnect with
   exponential backoff + jitter (``_reconnect_delay``) instead of a fixed ~10ms
@@ -378,9 +379,9 @@ async def test_data_stream_surfaces_transport_exception_for_reconnect():
 
 
 def test_data_timeout_defaults_and_is_configurable():
-    """Active streams default to 60s; ``None`` disables; overrides are honored."""
+    """Staleness detection is opt-in (default ``None``); overrides are honored."""
     default = DataStream("endpoint", "key-id", "secret-key")
-    assert default._data_timeout == 60
+    assert default._data_timeout is None
 
     disabled = DataStream("endpoint", "key-id", "secret-key", data_timeout=None)
     assert disabled._data_timeout is None
@@ -388,10 +389,11 @@ def test_data_timeout_defaults_and_is_configurable():
     configured = DataStream("endpoint", "key-id", "secret-key", data_timeout=30)
     assert configured._data_timeout == 30
 
-    assert StockDataStream("key-id", "secret-key")._data_timeout == 60
-    assert CryptoDataStream("key-id", "secret-key")._data_timeout == 60
-    assert OptionDataStream("key-id", "secret-key")._data_timeout == 60
-    # News is sparse by default.
+    # All stream clients default to disabled so quiet subscriptions are not
+    # reconnected; callers opt in per subscription.
+    assert StockDataStream("key-id", "secret-key")._data_timeout is None
+    assert CryptoDataStream("key-id", "secret-key")._data_timeout is None
+    assert OptionDataStream("key-id", "secret-key")._data_timeout is None
     assert NewsDataStream("key-id", "secret-key")._data_timeout is None
 
     subclass_streams = [

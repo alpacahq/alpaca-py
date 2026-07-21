@@ -61,7 +61,7 @@ class DataStream:
         secret_key: str,
         raw_data: bool = False,
         websocket_params: Optional[Dict] = None,
-        data_timeout: Optional[float] = 60,
+        data_timeout: Optional[float] = None,
     ) -> None:
         """Creates a new DataStream instance.
 
@@ -74,9 +74,10 @@ class DataStream:
             data_timeout (Optional[float], optional): Maximum number of seconds to wait without
                 receiving market data before treating the connection as stale and forcing a
                 reconnect. This detects "connected-but-mute" sockets that the transport-level
-                ping/pong keepalive cannot catch. Defaults to ``60``. Pass ``None`` to disable
-                for sparse subscriptions (for example news or infrequent bars), since a
-                legitimately quiet market would otherwise trigger periodic reconnects.
+                ping/pong keepalive cannot catch. Defaults to ``None`` (disabled), since a
+                legitimately quiet subscription (for example news or infrequent bars) would
+                otherwise trigger periodic reconnects. Pass a positive number of seconds to
+                opt in for subscriptions that are expected to receive frequent data.
         """
         self._endpoint = endpoint
         self._api_key = api_key

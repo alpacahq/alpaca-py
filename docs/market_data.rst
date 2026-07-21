@@ -155,18 +155,18 @@ for crypto data, stock data and option data. These clients are different from th
 have methods which return data immediately. Instead, the methods in these clients allow you to assign
 methods to receive real-time data.
 
-Stock, crypto, and option stream clients default ``data_timeout`` to ``60`` seconds so the
-client reconnects if the socket stays open but stops delivering market data. Pass
-``data_timeout=None`` for sparse subscriptions (for example infrequently updated bars) so a
-quiet market does not trigger unnecessary reconnects. ``NewsDataStream`` defaults to
-``None`` because news is typically sparse.
+All stream clients default ``data_timeout`` to ``None`` (disabled), so a quiet subscription
+(for example statuses or infrequently updated bars) does not trigger unnecessary reconnects.
+Pass a positive number of seconds (for example ``data_timeout=60``) to opt in to staleness
+detection for subscriptions that are expected to receive frequent market data; the client
+then reconnects if the socket stays open but stops delivering data.
 
 
 .. code-block:: python
 
     from alpaca.data.live import CryptoDataStream, OptionDataStream, StockDataStream
 
-    # keys are required for live data; data_timeout defaults to 60
+    # keys are required for live data; data_timeout defaults to None (disabled)
     crypto_stream = CryptoDataStream("api-key", "secret-key")
 
     # keys required

@@ -22,7 +22,7 @@ class StockDataStream(DataStream):
         feed: DataFeed = DataFeed.IEX,
         websocket_params: Optional[Dict] = None,
         url_override: Optional[str] = None,
-        data_timeout: Optional[float] = 60,
+        data_timeout: Optional[float] = None,
     ) -> None:
         """
         Instantiates a WebSocket client for accessing live stock data.
@@ -38,8 +38,8 @@ class StockDataStream(DataStream):
                 points to for proxy/testing. Defaults to None.
             data_timeout (Optional[float], optional): Maximum number of seconds to wait without
                 receiving market data before treating the connection as stale and forcing a
-                reconnect. Detects "connected-but-mute" sockets. Defaults to ``60``.
-                Pass ``None`` to disable for sparse subscriptions (for example infrequent bars).
+                reconnect. Detects "connected-but-mute" sockets. Defaults to ``None`` (disabled).
+                Pass a positive number of seconds to opt in for frequently-updated subscriptions.
 
         Raises:
             ValueError: Only IEX or SIP market data feeds are supported

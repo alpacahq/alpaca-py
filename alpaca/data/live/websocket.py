@@ -288,6 +288,10 @@ class DataStream:
         if msg_type == "n":
             msg["created_at"] = msg["created_at"].to_datetime()
             msg["updated_at"] = msg["updated_at"].to_datetime()
+            # The API always sends "symbols" (possibly []), but normalize
+            # defensively here rather than loosening the shared News model,
+            # which is also used by the strict historical REST client.
+            msg.setdefault("symbols", [])
             return News(msg)
         if "S" not in msg:
             return msg
@@ -324,7 +328,9 @@ class DataStream:
             return
 
         if msg_type == "n":
-            symbols = msg.get("symbols", "*")
+            # Missing or empty symbols -> wildcard so unsymbolized/global news
+            # still reaches the "*" handler under both raw and parsed modes.
+            symbols = msg.get("symbols") or ["*"]
             star_handler_called = False
             handlers_to_call = []
             news = self._cast(msg)

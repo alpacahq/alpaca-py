@@ -136,7 +136,6 @@ async def test_slow_handler_does_not_make_active_stream_stale():
         {"T": "heartbeat"},
         {},
         {"T": "t"},
-        {"T": "n"},
     ],
 )
 async def test_continuous_control_frames_do_not_hide_stale_data(control_message):
@@ -158,6 +157,42 @@ async def test_continuous_control_frames_do_not_hide_stale_data(control_message)
     stale = await asyncio.wait_for(stream._consume(), timeout=0.5)
 
     assert stale is True
+
+
+@pytest.mark.asyncio
+async def test_news_without_symbols_is_dispatched_to_wildcard_handler():
+    """News frames may omit symbols; they must still reach the '*' handler."""
+    received = []
+
+    class Socket:
+        def __init__(self):
+            self.recv_calls = 0
+
+        async def recv(self):
+            self.recv_calls += 1
+            if self.recv_calls == 1:
+                return msgpack.packb([{"T": "n", "headline": "global"}])
+            await stream.stop_ws()
+            return msgpack.packb([{"T": "subscription", "news": ["*"]}])
+
+        async def close(self):
+            pass
+
+    stream = DataStream(
+        "endpoint", "key-id", "secret-key", raw_data=True, data_timeout=0.05
+    )
+
+    async def handler(msg):
+        received.append(msg)
+
+    stream._handlers["news"]["*"] = handler
+    stream._ws = Socket()
+    stream._running = True
+
+    stale = await asyncio.wait_for(stream._consume(), timeout=1)
+
+    assert stale is False
+    assert received == [{"T": "n", "headline": "global"}]
 
 
 @pytest.mark.asyncio

@@ -45,7 +45,7 @@ _CHANNEL_TYPES = {
 def _is_market_data(msg: Dict) -> bool:
     msg_type = msg.get("T")
     if msg_type == "n":
-        return "symbols" in msg
+        return True
     return msg_type in _CHANNEL_TYPES and "S" in msg
 
 

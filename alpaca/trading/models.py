@@ -25,6 +25,7 @@ from alpaca.trading.enums import (
     CorporateActionSubType,
     TradeConfirmationEmail,
     TradeEvent,
+    Phase,
 )
 from pydantic import Field, model_validator
 
@@ -386,6 +387,141 @@ class Calendar(BaseModel):
             data["close"] = datetime.strptime(start_datetime_str, "%Y-%m-%d %H:%M")
 
         super().__init__(**data)
+
+
+class CalendarDay(BaseModel):
+    """
+    A single trading calendar day with session times.
+
+    Attributes:
+        date (date): The calendar date.
+        core_start (datetime): Start of the core market session.
+        core_end (datetime): End of the core market session.
+        pre_start (Optional[datetime]): Start of the pre-market session.
+        pre_end (Optional[datetime]): End of the pre-market session.
+        lunch_start (Optional[datetime]): Start of the lunch session.
+        lunch_end (Optional[datetime]): End of the lunch session.
+        post_start (Optional[datetime]): Start of the after-hours session.
+        post_end (Optional[datetime]): End of the after-hours session.
+        settlement_date (Optional[date]): Settlement date for trades on this day.
+    """
+
+    date: date
+    core_start: datetime
+    core_end: datetime
+    pre_start: Optional[datetime] = None
+    pre_end: Optional[datetime] = None
+    lunch_start: Optional[datetime] = None
+    lunch_end: Optional[datetime] = None
+    post_start: Optional[datetime] = None
+    post_end: Optional[datetime] = None
+    settlement_date: Optional[date] = None
+
+
+class LegacyCalendarDay(BaseModel):
+    """
+    A single trading calendar day in the legacy calendar format.
+
+    Attributes:
+        date (date): The calendar date (YYYY-MM-DD).
+        open (str): Market open time in ``HH:MM`` format.
+        close (str): Market close time in ``HH:MM`` format.
+        session_open (str): Session open time in ``HHMM`` format.
+        session_close (str): Session close time in ``HHMM`` format.
+        settlement_date (date): Settlement date for trades on this day.
+    """
+
+    date: date
+    open: str
+    close: str
+    session_open: str
+    session_close: str
+    settlement_date: date
+
+
+class LegacyClock(BaseModel):
+    """
+    Market clock in the legacy format.
+
+    See also ``Clock`` which is the existing SDK alias for this schema.
+
+    Attributes:
+        timestamp (datetime): Current timestamp.
+        is_open (bool): Whether the market is currently open.
+        next_open (datetime): Next market open timestamp.
+        next_close (datetime): Next market close timestamp.
+    """
+
+    timestamp: datetime
+    is_open: bool
+    next_open: datetime
+    next_close: datetime
+
+
+class PublicMarket(BaseModel):
+    """
+    Market metadata as returned in clock responses.
+
+    Attributes:
+        acronym (str): The market's acronym (e.g. ``NYSE``).
+        name (str): Full name of the market.
+        timezone (str): IANA timezone identifier (e.g. ``America/New_York``).
+        mic (Optional[str]): Market Identifier Code (ISO 10383, 4 characters).
+        bic (Optional[str]): Business Identifier Code / SWIFT code (11 characters).
+    """
+
+    acronym: str
+    name: str
+    timezone: str
+    mic: Optional[str] = None
+    bic: Optional[str] = None
+
+
+class MarketClock(BaseModel):
+    """
+    Clock for a specific market, including current phase information.
+
+    Attributes:
+        market (PublicMarket): The market this clock applies to.
+        timestamp (datetime): The current time on the clock.
+        is_market_day (bool): Whether today is a trading day for this market.
+        next_market_open (datetime): Next time this market opens.
+        next_market_close (datetime): Next time this market closes.
+        phase (Phase): The current trading session phase.
+        phase_until (datetime): When the current phase ends.
+    """
+
+    market: PublicMarket
+    timestamp: datetime
+    is_market_day: bool
+    next_market_open: datetime
+    next_market_close: datetime
+    phase: Phase
+    phase_until: datetime
+
+
+class ClockResp(BaseModel):
+    """
+    Response containing clocks for one or more markets.
+
+    Attributes:
+        clocks (List[MarketClock]): One clock entry per requested market.
+    """
+
+    clocks: List[MarketClock]
+
+
+class PublicCalendarResp(BaseModel):
+    """
+    Calendar response for a specific market.
+
+    Attributes:
+        market (PublicMarket): The market this calendar applies to.
+        calendar (List[CalendarDay]): Ordered list of trading calendar days.
+    """
+
+    market: PublicMarket
+    calendar: List[CalendarDay]
 
 
 class BaseActivity(BaseModel):

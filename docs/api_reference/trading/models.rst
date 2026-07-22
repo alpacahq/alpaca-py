@@ -50,6 +50,48 @@ Calendar
 .. autoclass:: alpaca.trading.models.Calendar
 
 
+LegacyClock
+-----------
+
+.. autoclass:: alpaca.trading.models.LegacyClock
+
+
+PublicMarket
+------------
+
+.. autoclass:: alpaca.trading.models.PublicMarket
+
+
+MarketClock
+-----------
+
+.. autoclass:: alpaca.trading.models.MarketClock
+
+
+ClockResp
+---------
+
+.. autoclass:: alpaca.trading.models.ClockResp
+
+
+CalendarDay
+-----------
+
+.. autoclass:: alpaca.trading.models.CalendarDay
+
+
+LegacyCalendarDay
+-----------------
+
+.. autoclass:: alpaca.trading.models.LegacyCalendarDay
+
+
+PublicCalendarResp
+------------------
+
+.. autoclass:: alpaca.trading.models.PublicCalendarResp
+
+
 NonTradeActivity
 ----------------
 

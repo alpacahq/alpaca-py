@@ -333,6 +333,55 @@ class TradeEvent(str, Enum):
     RESTATED = "restated"
 
 
+class Market(str, Enum):
+    """
+    Market identifier (MIC, BIC, or acronym) used in clock and calendar APIs.
+    """
+
+    BMO = "BMO"
+    BNYM = "BNYM"
+    BOATS = "BOATS"
+    CEUX = "CEUX"
+    CHIX = "CHIX"
+    HKEX = "HKEX"
+    IEX = "IEX"
+    IEXG = "IEXG"
+    ISE = "ISE"
+    LSE = "LSE"
+    MTA = "MTA"
+    MTAA = "MTAA"
+    NASDAQ = "NASDAQ"
+    NYSE = "NYSE"
+    OCEA = "OCEA"
+    OPRA = "OPRA"
+    OTC = "OTC"
+    OTCM = "OTCM"
+    SIFMA = "SIFMA"
+    TADAWUL = "TADAWUL"
+    XAMS = "XAMS"
+    XBRU = "XBRU"
+    XDUB = "XDUB"
+    XETR = "XETR"
+    XETRA = "XETRA"
+    XHKG = "XHKG"
+    XLIS = "XLIS"
+    XLON = "XLON"
+    XNAS = "XNAS"
+    XNYS = "XNYS"
+    XPAR = "XPAR"
+    XSAU = "XSAU"
+
+
+class Phase(str, Enum):
+    """Trading session phase reported by the clock API."""
+
+    CLOSED = "closed"
+    PRE = "pre"
+    CORE = "core"
+    LUNCH = "lunch"
+    POST = "post"
+
+
 class QueryOrderStatus(str, Enum):
     OPEN = "open"
     CLOSED = "closed"

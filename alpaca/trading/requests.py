@@ -1,5 +1,5 @@
 from datetime import date, datetime, timedelta
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Literal, Optional, Union
 
 import pandas as pd
 from pydantic import model_validator
@@ -14,12 +14,15 @@ from alpaca.trading.enums import (
     ContractType,
     CorporateActionDateType,
     CorporateActionType,
+    CreateCryptoTransferRequestChain,
     ExerciseStyle,
     OrderClass,
     OrderSide,
     OrderType,
     PositionIntent,
     QueryOrderStatus,
+    TokenizationIssuer,
+    TokenizationNetwork,
     TimeInForce,
 )
 
@@ -716,3 +719,36 @@ class GetOptionContractsRequest(NonEmptyRequest):
 
     limit: Optional[int] = None
     page_token: Optional[str] = None
+
+
+class CreateCryptoTransferRequest(NonEmptyRequest):
+    """Request to initiate a crypto withdrawal transfer."""
+
+    amount: str
+    address: str
+    asset: str
+    # TODO: simplify to CreateCryptoTransferRequestChain on the next breaking release.
+    chain: Optional[
+        Union[
+            CreateCryptoTransferRequestChain, Literal["SOL", "ETH", "BTC", "XRP", "ARB"]
+        ]
+    ] = None
+
+
+class GetWalletFeeEstimateRequest(NonEmptyRequest):
+    """Parameters for estimating the gas fee for a crypto transfer."""
+
+    asset: Optional[str] = None
+    from_address: Optional[str] = None
+    to_address: Optional[str] = None
+    amount: Optional[str] = None
+
+
+class TokenizationMintRequest(NonEmptyRequest):
+    """Request to convert an underlying asset into a tokenized asset."""
+
+    underlying_symbol: str
+    qty: str
+    issuer: TokenizationIssuer
+    network: TokenizationNetwork
+    wallet_address: str

@@ -89,7 +89,7 @@ class Transfer(ModelWithID):
         amount (str): The amount the recipient will receive after any applicable fees are deducted.
         type (TransferType): The type of transfer.
         status (TransferStatus): The status of the transfer.
-        direction (TransferDirection): The direction of the transfer.
+        direction (alpaca.broker.enums.TransferDirection): The direction of the transfer.
         reason (Optional[str]): Reasoning associated with the current status.
         requested_amount (Optional[str]): Amount entered upon creation of a transfer entity.
         fee (Optional[str]): Dollar amount of any applicable fees.

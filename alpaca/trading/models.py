@@ -25,6 +25,13 @@ from alpaca.trading.enums import (
     CorporateActionSubType,
     TradeConfirmationEmail,
     TradeEvent,
+    CryptoTransferStatus,
+    TokenizationIssuer,
+    TokenizationNetwork,
+    TokenizationRequestStatus,
+    TokenizationRequestType,
+    TransferDirection,
+    WhitelistedAddressStatus,
 )
 from pydantic import Field, model_validator
 
@@ -700,3 +707,81 @@ class OptionContractsResponse(BaseModel):
 
     option_contracts: Optional[List[OptionContract]] = None
     next_page_token: Optional[str] = None
+
+
+class CryptoTransfer(BaseModel):
+    """A crypto asset transfer into or out of an account."""
+
+    id: Optional[UUID] = None
+    tx_hash: Optional[str] = None
+    direction: Optional[TransferDirection] = None
+    status: Optional[CryptoTransferStatus] = None
+    amount: Optional[str] = None
+    usd_value: Optional[str] = None
+    network_fee: Optional[str] = None
+    fees: Optional[str] = None
+    chain: Optional[str] = None
+    asset: Optional[str] = None
+    from_address: Optional[str] = None
+    to_address: Optional[str] = None
+    created_at: Optional[datetime] = None
+
+
+class CryptoWallet(BaseModel):
+    """A crypto wallet associated with an account."""
+
+    chain: Optional[str] = None
+    address: Optional[str] = None
+    created_at: Optional[datetime] = None
+
+
+class WhitelistedAddress(BaseModel):
+    """A whitelisted crypto wallet address for withdrawals."""
+
+    id: Optional[str] = None
+    chain: Optional[str] = None
+    asset: Optional[str] = None
+    address: Optional[str] = None
+    status: Optional[WhitelistedAddressStatus] = None
+    created_at: Optional[datetime] = None
+
+
+class WalletFeeEstimate(BaseModel):
+    """Estimated gas fee for a proposed crypto transfer."""
+
+    fee: Optional[str] = None
+    network_fee: Optional[str] = None
+
+
+class TokenizationMintResponse(BaseModel):
+    """Response returned after submitting a tokenization mint request."""
+
+    tokenization_request_id: str
+    status: TokenizationRequestStatus
+    underlying_symbol: str
+    token_symbol: str
+    qty: str
+    created_at: datetime
+    issuer: TokenizationIssuer
+    network: TokenizationNetwork
+
+
+class TokenizationRequest(BaseModel):
+    """A tokenization request record returned by the API."""
+
+    tokenization_request_id: str
+    created_at: datetime
+    type: TokenizationRequestType
+    status: TokenizationRequestStatus
+    underlying_symbol: str
+    token_symbol: str
+    qty: str
+    issuer: TokenizationIssuer
+    network: TokenizationNetwork
+    wallet_address: str
+    issuer_request_id: Optional[str] = None
+    account: Optional[str] = None
+    issuer_account: Optional[str] = None
+    updated_at: Optional[datetime] = None
+    tx_hash: Optional[str] = None
+    fees: Optional[str] = None

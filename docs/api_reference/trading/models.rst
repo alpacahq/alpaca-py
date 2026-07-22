@@ -96,3 +96,39 @@ OptionContractsResponse
 -----------------------
 
 .. autoclass:: alpaca.trading.models.OptionContractsResponse
+
+
+CryptoTransfer
+--------------
+
+.. autoclass:: alpaca.trading.models.CryptoTransfer
+
+
+CryptoWallet
+------------
+
+.. autoclass:: alpaca.trading.models.CryptoWallet
+
+
+WhitelistedAddress
+------------------
+
+.. autoclass:: alpaca.trading.models.WhitelistedAddress
+
+
+WalletFeeEstimate
+-----------------
+
+.. autoclass:: alpaca.trading.models.WalletFeeEstimate
+
+
+TokenizationMintResponse
+------------------------
+
+.. autoclass:: alpaca.trading.models.TokenizationMintResponse
+
+
+TokenizationRequest
+-------------------
+
+.. autoclass:: alpaca.trading.models.TokenizationRequest

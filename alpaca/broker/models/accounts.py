@@ -41,6 +41,33 @@ class KycResults(BaseModel):
     summary: Optional[str] = None
 
 
+class CashInterestProgram(BaseModel):
+    """
+    The configuration and status of an account within a cash interest program.
+    ref. https://docs.alpaca.markets/reference/createaccount
+
+    Attributes:
+        apr_tier_name (Optional[str]): The unique name of the APR tier for a specific program
+        status (Optional[str]): The status of the account within a cash interest program. One of
+         ACTIVE, INACTIVE, or PENDING_CHANGE. Should not be specified on enrollment or tier changes.
+    """
+
+    apr_tier_name: Optional[str] = None
+    status: Optional[str] = None
+
+
+class CashInterest(BaseModel):
+    """
+    The configuration of the account's cash interest program per currency.
+    ref. https://docs.alpaca.markets/reference/createaccount
+
+    Attributes:
+        USD (Optional[CashInterestProgram]): The configuration of the account's USD cash interest program
+    """
+
+    USD: Optional[CashInterestProgram] = None
+
+
 class Contact(BaseModel):
     """User contact details within Account Model
 
@@ -250,6 +277,7 @@ class Account(ModelWithID):
         agreements (Optional[List[Agreement]]): The agreements the account holder has signed
         documents (Optional[List[AccountDocument]]): The documents the account holder has submitted
         trusted_contact (Optional[TrustedContact]): The account holder's trusted contact details
+        cash_interest (Optional[CashInterest]): The configuration and status of the account's cash interest program
     """
 
     account_number: str
@@ -267,6 +295,7 @@ class Account(ModelWithID):
     agreements: Optional[List[Agreement]] = None
     documents: Optional[List[AccountDocument]] = None
     trusted_contact: Optional[TrustedContact] = None
+    cash_interest: Optional[CashInterest] = None
 
     def __init__(self, **response):
         super().__init__(
@@ -316,6 +345,11 @@ class Account(ModelWithID):
             trusted_contact=(
                 TypeAdapter(TrustedContact).validate_python(response["trusted_contact"])
                 if "trusted_contact" in response
+                else None
+            ),
+            cash_interest=(
+                TypeAdapter(CashInterest).validate_python(response["cash_interest"])
+                if "cash_interest" in response and response["cash_interest"] is not None
                 else None
             ),
         )

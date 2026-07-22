@@ -32,6 +32,7 @@ from alpaca.broker.enums import (
 from alpaca.broker.models.accounts import (
     AccountDocument,
     Agreement,
+    CashInterest,
     Contact,
     Disclosures,
     Identity,
@@ -130,6 +131,8 @@ class CreateAccountRequest(NonEmptyRequest):
         agreements (List[Agreement]): The agreements the account holder has signed
         documents (List[Union[AccountDocument, UploadW8BenDocumentRequest]]): The documents the account holder has submitted
         trusted_contact (TrustedContact): The account holder's trusted contact details
+        cash_interest (Optional[CashInterest]): The configuration of the account's cash interest program.
+         If not provided and there is a default APR tier defined, that tier will be used.
     """
 
     account_type: Optional[Union[AccountType, str]] = None
@@ -142,6 +145,7 @@ class CreateAccountRequest(NonEmptyRequest):
     trusted_contact: Optional[TrustedContact] = None
     currency: Optional[SupportedCurrencies] = None  # None = USD
     enabled_assets: Optional[List[AssetClass]] = None  # None = Default to server
+    cash_interest: Optional[CashInterest] = None
 
     @model_validator(mode="before")
     def validate_parameters_only_optional_in_response(cls, values: dict) -> dict:
@@ -159,6 +163,25 @@ class CreateAccountRequest(NonEmptyRequest):
             if dict(values[model]).get(field, None) is None:
                 raise ValueError(f"{field} is required to create a new account.")
         return values
+
+    @field_validator("cash_interest")
+    def cash_interest_specifies_only_apr_tier_name(
+        cls, v: Optional[CashInterest]
+    ) -> Optional[CashInterest]:
+        """
+        Validate that a cash_interest enrollment only specifies the desired apr_tier_name.
+        The status should not be specified on enrollment.
+        """
+        if v is not None and v.USD is not None:
+            if v.USD.status is not None:
+                raise ValueError(
+                    "status should not be specified when enrolling in a cash interest program."
+                )
+            if v.USD.apr_tier_name is None:
+                raise ValueError(
+                    "apr_tier_name is required to enroll in a cash interest program."
+                )
+        return v
 
 
 class UpdatableContact(Contact):
@@ -290,12 +313,37 @@ class UpdateAccountRequest(NonEmptyRequest):
         identity (Optional[UpdatableIdentity]): Identity details to update to
         disclosures (Optional[UpdatableDisclosures]): Disclosure details to update to
         trusted_contact (Optional[UpdatableTrustedContact]): TrustedContact details to update to
+        cash_interest (Optional[CashInterest]): Cash interest program configuration to update to.
+         To enroll or change tiers, specify the apr_tier_name. To unenroll, set the status to INACTIVE.
     """
 
     contact: Optional[UpdatableContact] = None
     identity: Optional[UpdatableIdentity] = None
     disclosures: Optional[UpdatableDisclosures] = None
     trusted_contact: Optional[UpdatableTrustedContact] = None
+    cash_interest: Optional[CashInterest] = None
+
+    @field_validator("cash_interest")
+    def cash_interest_specifies_a_single_change(
+        cls, v: Optional[CashInterest]
+    ) -> Optional[CashInterest]:
+        """
+        Validate that a cash_interest update either specifies the apr_tier_name to
+        enroll or change tiers, or the status to unenroll, but not both. The status
+        should not be specified on enrollment or tier changes.
+        """
+        if v is not None and v.USD is not None:
+            if v.USD.apr_tier_name is not None and v.USD.status is not None:
+                raise ValueError(
+                    "status should not be specified when enrolling in a cash interest"
+                    " program or changing APR tiers."
+                )
+            if v.USD.apr_tier_name is None and v.USD.status is None:
+                raise ValueError(
+                    "cash_interest must specify either an apr_tier_name to enroll or"
+                    " change APR tiers, or a status to unenroll."
+                )
+        return v
 
 
 class ListAccountsRequest(NonEmptyRequest):

@@ -65,6 +65,17 @@ class BaseDataSet(BaseModel):
 
         return self.data[symbol]
 
+    def __contains__(self, symbol: str) -> bool:
+        """Checks if data exists for a given symbol
+
+        Args:
+            symbol (str): The ticker identifier to check for
+
+        Returns:
+            bool: Whether data exists for the given symbol
+        """
+        return symbol in self.data
+
     def dict(self, **kwargs) -> dict:
         """
         Gives dictionary representation of data.

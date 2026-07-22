@@ -96,6 +96,18 @@ class TradingClient(RESTClient):
         Returns:
             alpaca.trading.models.Order: The resulting submitted order.
         """
+        # Validate fractional orders: fractional qty requires market order type and day time_in_force
+        if order_data.qty is not None and order_data.qty != int(order_data.qty):
+            from alpaca.trading.enums import OrderType, TimeInForce
+            if hasattr(order_data, 'type') and order_data.type != OrderType.MARKET:
+                raise ValueError(
+                    "Fractional orders must be market orders. "
+                    "Please use OrderType.MARKET for fractional quantities."
+                )
+            if hasattr(order_data, 'time_in_force') and order_data.time_in_force != TimeInForce.DAY:
+                raise ValueError(
+                    "Fractional orders must have time_in_force set to TimeInForce.DAY."
+                )
         data = order_data.to_request_fields()
         response = self.post("/orders", data)
 

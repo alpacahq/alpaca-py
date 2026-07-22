@@ -267,8 +267,8 @@ rule FetchMostActives {
 }
 
 rule FetchMarketMovers {
-    when: FetchMarketMovers(market_type, top?)
-    ensures: MarketMoversReturned(market_type: market_type, top: top)
+    when: FetchMarketMovers(market_type?, top?)
+    ensures: MarketMoversReturned(market_type: market_type ?? stocks, top: top)
 }
 
 rule FetchCorporateActionsById {
@@ -277,8 +277,8 @@ rule FetchCorporateActionsById {
     ensures: CorporateActionsReturned(ids: ids)
 
     @guidance
-        -- When IDs are provided, all other filter parameters (symbols, CUSIPs,
-        -- types, date range) are ignored.
+        -- The ID filter is mutually exclusive with all other filter
+        -- parameters (symbols, CUSIPs, types, date range).
 }
 
 rule FetchCorporateActionsByFilter {
@@ -393,7 +393,7 @@ surface HistoricalCryptoData {
         FetchBars(symbols, timeframe, start?, end?, sort?, limit?, currency?)
         FetchQuotes(symbols, start?, end?, sort?, limit?, currency?)
         FetchTrades(symbols, start?, end?, sort?, limit?, currency?)
-        FetchSnapshots(symbols, currency?)
+        FetchSnapshots(symbols)
         FetchCryptoOrderbooks(symbols)
         FetchLatestTrade(symbols)
         FetchLatestQuote(symbols)
@@ -408,6 +408,7 @@ surface HistoricalOptionsData {
     facing caller: ApiClient
 
     provides:
+        FetchBars(symbols, timeframe, start?, end?, sort?, limit?)
         FetchTrades(symbols, start?, end?, feed?, sort?, limit?)
         FetchQuotes(symbols, start?, end?, feed?, sort?, limit?)
         FetchSnapshots(symbols, feed?)
@@ -416,8 +417,10 @@ surface HistoricalOptionsData {
         FetchLatestQuote(symbols, feed?)
 
     @guidance
-        -- Default feed (INDICATIVE) does not require a subscription.
-        -- OPRA feed requires an options market data subscription.
+        -- When no feed is specified the server defaults to OPRA if the caller
+        -- has an options market data subscription, INDICATIVE otherwise.
+        -- The INDICATIVE feed does not require a subscription; OPRA does.
+        -- Option bars have no feed parameter.
         -- OptionsSnapshot includes greeks and implied volatility alongside the standard snapshot fields.
 }
 
@@ -427,7 +430,7 @@ surface MarketIntelligence {
     provides:
         FetchNews(symbols?, start?, end?, limit?, sort?, include_content?, exclude_contentless?, page_token?)
         FetchMostActives(by?, top?)
-        FetchMarketMovers(market_type, top?)
+        FetchMarketMovers(market_type?, top?)
         FetchCorporateActions(ids?, symbols?, cusips?, types?, start?, end?)
 
     @guidance

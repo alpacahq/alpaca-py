@@ -291,11 +291,13 @@ entity CipSubmission {
 entity AchRelationship {
     -- A linked US bank account used for ACH deposits and withdrawals. The
     -- correspondent submits it; the broker validates and approves it; the
-    -- correspondent may unlink it.
+    -- correspondent may unlink it. Unlinking removes the relationship
+    -- outright (there is no observable canceled state, unlike recipient
+    -- wire banks); transfers that already reference it are unaffected.
     account: brokerageaccount/BrokerageAccount
     nickname: String?
     bank_account_kind: BankAccountKind
-    status: queued | pending | approved | canceled
+    status: queued | pending | approved
 }
 
 entity RecipientBank {
@@ -360,7 +362,7 @@ entity Journal {
     -- Security journal payload
     security: TradableSecurity?
     quantity: Decimal?
-    price: Decimal?
+    price: Decimal?    -- assigned by the broker when the journal executes; not requestable
     -- Travel-rule fields (required by FinCEN for cash journals over the
     -- regulatory threshold)
     transmitter_name: String?
@@ -707,13 +709,12 @@ rule EstablishAchRelationship {
 
 rule RemoveAchRelationship {
     -- The correspondent unlinks an ACH relationship from an account. The
-    -- relationship enters a canceled terminal state; outstanding transfers
-    -- that already reference it are unaffected.
+    -- relationship is removed outright; outstanding transfers that already
+    -- reference it are unaffected.
     when: RemoveAchRelationship(correspondent, account, relationship)
     requires: account.correspondent = correspondent
     requires: relationship.account = account
-    requires: relationship.status != canceled
-    ensures: relationship.status = canceled
+    ensures: not exists relationship
 }
 
 rule BrokerApprovesAchRelationship {
@@ -937,7 +938,6 @@ rule RequestJournal {
         base_currency?,
         security?,
         quantity?,
-        price?,
         description?,
         transmitter_name?,
         transmitter_account_number?,
@@ -968,7 +968,6 @@ rule RequestJournal {
             base_currency: base_currency,
             security: security,
             quantity: quantity,
-            price: price,
             description: description,
             transmitter_name: transmitter_name,
             transmitter_account_number: transmitter_account_number,
@@ -1455,7 +1454,7 @@ surface InterAccountJournals {
         RequestJournal(
             partner, from_account, to_account, kind,
             cash_amount?, base_currency?,
-            security?, quantity?, price?,
+            security?, quantity?,
             description?,
             transmitter_name?, transmitter_account_number?,
             transmitter_address?, transmitter_financial_institution?,
@@ -1518,3 +1517,5 @@ open question "Rebalancing trigger semantics — exact conditions under which a 
 open question "Travel-rule threshold currency — config.travel_rule_threshold_amount is expressed in USD, but cash journals support multiple base currencies. Threshold may need to be per-currency."
 
 open question "OAuth B2B authorization flow — referenced in scope description but not present in the surveyed code; assumed to live in a separate authorization service."
+
+open question "CIP submission implementation — the surveyed client's CIP upload and retrieval methods are unimplemented stubs (the sandbox CIP routes return 404), so SubmitCipResults models the documented Broker API behaviour rather than exercised code. Revisit once the client implements the CIP routes."

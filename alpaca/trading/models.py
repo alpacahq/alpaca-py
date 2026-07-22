@@ -21,6 +21,7 @@ from alpaca.trading.enums import (
     TradeActivityType,
     NonTradeActivityStatus,
     ActivityType,
+    ActivitySubType,
     CorporateActionType,
     CorporateActionSubType,
     TradeConfirmationEmail,
@@ -442,6 +443,27 @@ class NonTradeActivity(BaseActivity):
     per_share_amount: Optional[float] = None
 
 
+class NonTradeActivities(BaseModel):
+    """
+    Represents a non-trade account activity such as a dividend, fee, interest,
+    or corporate action.
+    """
+
+    activity_type: Optional[ActivityType] = None
+    activity_sub_type: Optional[ActivitySubType] = None
+    id: Optional[str] = None
+    date: Optional[datetime] = None
+    net_amount: Optional[str] = None
+    currency: Optional[str] = None
+    symbol: Optional[str] = None
+    cusip: Optional[str] = None
+    qty: Optional[str] = None
+    per_share_amount: Optional[str] = None
+    group_id: Optional[str] = None
+    status: Optional[NonTradeActivityStatus] = None
+    created_at: Optional[datetime] = None
+
+
 class TradeActivity(BaseActivity):
     """
     Represents information for TradeActivities. TradeActivities are Activities that pertain to trades that happened for
@@ -472,6 +494,25 @@ class TradeActivity(BaseActivity):
     order_id: UUID
     cum_qty: float
     order_status: OrderStatus
+
+
+class TradingActivities(BaseModel):
+    """
+    Represents a fill or partial-fill account activity.
+    """
+
+    activity_type: Optional[ActivityType] = None
+    id: Optional[str] = None
+    cum_qty: Optional[str] = None
+    leaves_qty: Optional[str] = None
+    price: Optional[str] = None
+    qty: Optional[str] = None
+    side: Optional[str] = None
+    symbol: Optional[str] = None
+    transaction_time: Optional[datetime] = None
+    order_id: Optional[UUID] = None
+    type: Optional[TradeActivityType] = None
+    order_status: Optional[OrderStatus] = None
 
 
 class TradeAccount(ModelWithID):

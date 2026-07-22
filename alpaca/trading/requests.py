@@ -2,12 +2,14 @@ from datetime import date, datetime, timedelta
 from typing import Any, Dict, List, Optional, Union
 
 import pandas as pd
-from pydantic import model_validator
+from pydantic import Field, field_serializer, model_validator
 
 from alpaca.common.enums import Sort
 from alpaca.common.models import ModelWithID
 from alpaca.common.requests import NonEmptyRequest
 from alpaca.trading.enums import (
+    ActivityCategory,
+    ActivityType,
     AssetClass,
     AssetExchange,
     AssetStatus,
@@ -716,3 +718,36 @@ class GetOptionContractsRequest(NonEmptyRequest):
 
     limit: Optional[int] = None
     page_token: Optional[str] = None
+
+
+class GetActivitiesRequest(NonEmptyRequest):
+    """
+    Parameters for fetching account activity history from
+    ``GET /v2/account/activities``.
+    """
+
+    activity_types: Optional[List[ActivityType]] = None
+    category: Optional[ActivityCategory] = None
+    date: Optional[Union[date, datetime, str]] = None
+    until: Optional[Union[date, datetime, str]] = None
+    after: Optional[Union[date, datetime, str]] = None
+    direction: Optional[Sort] = None
+    page_size: Optional[int] = Field(default=None, ge=1, le=100)
+    page_token: Optional[str] = None
+
+    @model_validator(mode="before")
+    def validate_activity_filter(cls, values: dict) -> dict:
+        if (
+            values.get("activity_types") is not None
+            and values.get("category") is not None
+        ):
+            raise ValueError("activity_types and category are mutually exclusive")
+        return values
+
+    @field_serializer("activity_types")
+    def serialize_activity_types(
+        self, activity_types: Optional[List[ActivityType]]
+    ) -> Optional[str]:
+        if activity_types:
+            return ",".join(activity_type.value for activity_type in activity_types)
+        return None

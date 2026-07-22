@@ -1066,21 +1066,17 @@ def test_get_trade_configuration_for_account_validates_id(
         client.get_trade_configuration_for_account(account_id=334)
 
 
-def test_update_trade_configuration_for_account(reqmock, client: BrokerClient):
+def test_update_partial_trade_configuration_for_account(reqmock, client: BrokerClient):
     account_id = "5fc0795e-1f16-40cc-aa90-ede67c39d7a9"
-    config = factory.create_dummy_trade_account_configuration()
+    config = TradeAccountConfiguration(
+        fractional_trading=False,
+        max_options_trading_level=0,
+    )
 
     def match_request_json(request):
         return request.json() == {
-            "dtbp_check": "both",
             "fractional_trading": False,
-            "max_margin_multiplier": "4",
-            "no_shorting": False,
-            "pdt_check": "entry",
-            "suspend_trade": False,
-            "trade_confirm_email": "all",
-            "ptp_no_exception_entry": False,
-            "max_options_trading_level": None,
+            "max_options_trading_level": 0,
         }
 
     reqmock.patch(
@@ -1088,19 +1084,11 @@ def test_update_trade_configuration_for_account(reqmock, client: BrokerClient):
         additional_matcher=match_request_json,
         text="""
         {
-          "dtbp_check": "both",
           "fractional_trading": false,
-          "max_margin_multiplier": "4",
-          "no_shorting": false,
-          "pdt_check": "entry",
-          "suspend_trade": false,
-          "trade_confirm_email": "all",
-          "ptp_no_exception_entry": false
+          "max_options_trading_level": 0
         }
         """,
     )
-
-    config.fractional_trading = False
 
     result = client.update_trade_configuration_for_account(
         account_id=account_id, config=config
@@ -1109,6 +1097,7 @@ def test_update_trade_configuration_for_account(reqmock, client: BrokerClient):
     assert reqmock.called_once
     assert isinstance(result, TradeAccountConfiguration)
     assert result.fractional_trading is False
+    assert result.max_options_trading_level == 0
 
 
 def test_update_trade_configuration_for_account_validates_id(

@@ -106,23 +106,27 @@ def test_get_account_configurations_without_deprecated_pdt_fields(
     assert account_configurations.pdt_check is None
 
 
-def test_set_account_configurations(reqmock: Mocker, trading_client: TradingClient):
+def test_set_partial_account_configurations(
+    reqmock: Mocker, trading_client: TradingClient
+):
     new_account_configurations = AccountConfiguration(
-        **{
-            "dtbp_check": "entry",
-            "no_shorting": True,
-            "suspend_trade": False,
-            "fractional_trading": True,
-            "max_margin_multiplier": "1",
-            "pdt_check": "both",
-            "trade_confirm_email": "all",
-            "ptp_no_exception_entry": False,
-            "max_options_trading_level": 1,
-        }
+        suspend_trade=False,
+        max_options_trading_level=0,
     )
+
+    def match_request_json(request):
+        return request.json() == {
+            "suspend_trade": False,
+            "max_options_trading_level": 0,
+        }
+
     reqmock.patch(
         f"{BaseURL.TRADING_PAPER.value}/v2/account/configurations",
-        json=new_account_configurations.model_dump(),
+        additional_matcher=match_request_json,
+        json={
+            "suspend_trade": False,
+            "max_options_trading_level": 0,
+        },
     )
 
     account_configurations = trading_client.set_account_configurations(

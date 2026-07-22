@@ -504,7 +504,8 @@ class TradingClient(RESTClient):
             alpaca.broker.models.TradeAccountConfiguration: The account configuration details
         """
         response = self.patch(
-            "/account/configurations", data=account_configurations.model_dump()
+            "/account/configurations",
+            data=account_configurations.model_dump(exclude_unset=True),
         )
 
         if self._use_raw_data:

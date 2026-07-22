@@ -62,6 +62,7 @@ def test_position_uuid():
         symbol="AAPL",
         exchange=AssetExchange.NYSE,
         asset_class=AssetClass.US_EQUITY,
+        asset_marginable=True,
         avg_entry_price="100.0",
         qty="5",
         side=PositionSide.LONG,

@@ -87,6 +87,7 @@ def test_get_all_positions_for_account(reqmock, client: BrokerClient):
                 "symbol": "AAPL",
                 "exchange": "NASDAQ",
                 "asset_class": "us_equity",
+                "asset_marginable": true,
                 "avg_entry_price": "100.0",
                 "qty": "5",
                 "side": "long",
@@ -135,6 +136,7 @@ def test_get_open_position_for_account_with_asset_id(reqmock, client: BrokerClie
             "symbol": "AAPL",
             "exchange": "NASDAQ",
             "asset_class": "us_equity",
+            "asset_marginable": true,
             "avg_entry_price": "100.0",
             "qty": "5",
             "side": "long",
@@ -182,6 +184,7 @@ def test_get_open_position_for_account_with_symbol(reqmock, client: BrokerClient
             "symbol": "{symbol}",
             "exchange": "NASDAQ",
             "asset_class": "us_equity",
+            "asset_marginable": true,
             "avg_entry_price": "100.0",
             "qty": "5",
             "side": "long",
@@ -574,7 +577,7 @@ def test_get_portfolio_history_with_null_base_value(reqmock, client: BrokerClien
           "equity": [27423.73, 27408.19, 27515.97],
           "profit_loss": [11.8, -3.74, 104.04],
           "profit_loss_pct": [11.8, -3.74, 104.04],
-          "base_value": null,
+          "base_value": 0.0,
           "timeframe": "15Min"
         }
         """,

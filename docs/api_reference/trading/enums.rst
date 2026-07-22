@@ -45,6 +45,12 @@ AssetStatus
 .. autoenum:: alpaca.trading.enums.AssetStatus
 
 
+AssetBorrowStatus
+-----------------
+
+.. autoenum:: alpaca.trading.enums.AssetBorrowStatus
+
+
 AssetExchange
 -------------
 

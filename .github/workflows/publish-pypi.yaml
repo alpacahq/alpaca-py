@@ -4,22 +4,25 @@ on:
     tags:
       - "v*.*.*"
 
+permissions:
+  contents: read
+
 jobs:
 
   tests-ci:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ 3.8 ] #we'll want to add other versions down the road
-        poetry-version: [ 1.1.13 ]
+        python-version: [ 3.10 ] #we'll want to add other versions down the road
+        poetry-version: [ 2.4.1 ]
         os: [ ubuntu-latest ] #in the future we should add windows here
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # install poetry first for cache
       - name: setup poetry
         run: pipx install poetry
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
           cache: "poetry"
@@ -30,7 +33,7 @@ jobs:
   build-and-publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Build and publish to pypi
         uses: JRubics/poetry-publish@v1.16
         with:

@@ -1,6 +1,10 @@
 from alpaca.trading.enums import ActivityType
 
 
+def test_activity_type_parses_capital_gain_distribution():
+    assert ActivityType("CGD") == "CGD"
+
+
 def test_activity_type_is_trade_activity():
     """This seems like an overly simple test right now but will probably be more useful in the future"""
 

@@ -13,6 +13,7 @@ class ActivityType(str, Enum):
     ACATC = "ACATC"
     ACATS = "ACATS"
     CFEE = "CFEE"
+    CGD = "CGD"
     CIL = "CIL"
     CSD = "CSD"
     CSW = "CSW"

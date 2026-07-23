@@ -32,7 +32,9 @@ class News(BaseModel):
         summary (str): Summary text for the article (may be first sentence of content)
         created_at (datetime): Date article was created (RFC 3339)
         updated_at (datetime): Date article was updated (RFC 3339)
-        symbols (List[str]): List of related or mentioned symbols
+        symbols (List[str]): List of related or mentioned symbols. May be
+            empty for unsymbolized/global news, but the API always includes
+            the key, so it is intentionally not defaulted here.
         content (str): Content of the news article (might contain HTML)
         author (str): Original author of news article
         images (List[NewsImage]): List of images (URLs) related to given article (may be empty)

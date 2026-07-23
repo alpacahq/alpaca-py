@@ -116,6 +116,7 @@ class OrderClass(str, Enum):
     BRACKET = "bracket"
     OCO = "oco"
     OTO = "oto"
+    EMPTY = ""
 
 
 class OrderType(str, Enum):
@@ -161,7 +162,6 @@ class OrderStatus(str, Enum):
     REPLACED = "replaced"
     PENDING_CANCEL = "pending_cancel"
     PENDING_REPLACE = "pending_replace"
-    PENDING_REVIEW = "pending_review"
     ACCEPTED = "accepted"
     PENDING_NEW = "pending_new"
     ACCEPTED_FOR_BIDDING = "accepted_for_bidding"

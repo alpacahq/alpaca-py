@@ -21,6 +21,24 @@ Order
 .. autoclass:: alpaca.trading.models.Order
 
 
+OrderLeg
+--------
+
+.. autoclass:: alpaca.trading.models.OrderLeg
+
+
+MLegOrderLeg
+------------
+
+.. autoclass:: alpaca.trading.models.MLegOrderLeg
+
+
+CanceledOrderResponse
+---------------------
+
+.. autoclass:: alpaca.trading.models.CanceledOrderResponse
+
+
 TradeAccount
 ------------
 

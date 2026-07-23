@@ -3,49 +3,51 @@ from enum import Enum
 
 class ActivityType(str, Enum):
     """
-    Represents what kind of Activity an instance of TradeActivity or NonTradeActivity is.
+    Represents the type of account activity returned by the Trading API.
 
-    Please see https://alpaca.markets/docs/api-references/broker-api/accounts/account-activities/#enumactivitytype
+    Please see https://alpaca.markets/docs/api-references/trading-api/account-activities/
     for descriptions of each of the types
     """
 
     FILL = "FILL"
+    TRANS = "TRANS"
+    MISC = "MISC"
     ACATC = "ACATC"
     ACATS = "ACATS"
     CFEE = "CFEE"
-    CIL = "CIL"
+    CGD = "CGD"
     CSD = "CSD"
     CSW = "CSW"
     DIV = "DIV"
     DIVCGL = "DIVCGL"
     DIVCGS = "DIVCGS"
+    DIVFEE = "DIVFEE"
+    DIVFT = "DIVFT"
     DIVNRA = "DIVNRA"
     DIVROC = "DIVROC"
+    DIVTW = "DIVTW"
     DIVTXEX = "DIVTXEX"
-    DIVWH = "DIVWH"
-    EXTRD = "EXTRD"
     FEE = "FEE"
-    FXTRD = "FXTRD"
     INT = "INT"
-    INTPNL = "INTPNL"
+    INTNRA = "INTNRA"
+    INTTW = "INTTW"
+    JNL = "JNL"
     JNLC = "JNLC"
     JNLS = "JNLS"
     MA = "MA"
-    MEM = "MEM"
     NC = "NC"
-    OCT = "OCT"
     OPASN = "OPASN"
+    OPCA = "OPCA"
     OPCSH = "OPCSH"
     OPEXC = "OPEXC"
     OPEXP = "OPEXP"
     OPTRD = "OPTRD"
     PTC = "PTC"
+    PTR = "PTR"
     REORG = "REORG"
     SPIN = "SPIN"
     SPLIT = "SPLIT"
-    SWP = "SWP"
-    VOF = "VOF"
-    WH = "WH"
+    FOPT = "FOPT"
 
     def is_trade_activity(self) -> bool:
         """
@@ -116,6 +118,7 @@ class OrderClass(str, Enum):
     BRACKET = "bracket"
     OCO = "oco"
     OTO = "oto"
+    EMPTY = ""
 
 
 class OrderType(str, Enum):
@@ -161,7 +164,6 @@ class OrderStatus(str, Enum):
     REPLACED = "replaced"
     PENDING_CANCEL = "pending_cancel"
     PENDING_REPLACE = "pending_replace"
-    PENDING_REVIEW = "pending_review"
     ACCEPTED = "accepted"
     PENDING_NEW = "pending_new"
     ACCEPTED_FOR_BIDDING = "accepted_for_bidding"
@@ -183,7 +185,7 @@ class AssetClass(str, Enum):
     US_EQUITY = "us_equity"
     US_OPTION = "us_option"
     CRYPTO = "crypto"
-    CRYPTO_PERP = "crypto_perp"
+    IPO = "ipo"
 
 
 class AssetStatus(str, Enum):
@@ -195,6 +197,52 @@ class AssetStatus(str, Enum):
     INACTIVE = "inactive"
 
 
+class LocateStatus(str, Enum):
+    """
+    Represents the lifecycle status of a locate request.
+    """
+
+    ACTIVE = "active"
+    EXPIRED = "expired"
+    REJECTED = "rejected"
+
+
+class LocateErrorCode(str, Enum):
+    """
+    Represents machine-readable error codes returned by the Locates API.
+    """
+
+    INVALID_INPUT = "invalid_input"
+    INVALID_REQUEST_BODY = "invalid_request_body"
+    INVALID_LIMIT_PRICE = "invalid_limit_price"
+    INVALID_SYMBOLS = "invalid_symbols"
+    SYMBOL_NOT_FOUND = "symbol_not_found"
+    SECURITY_NOT_FOUND = "security_not_found"
+    INSUFFICIENT_BUYING_POWER = "insufficient_buying_power"
+    EASY_TO_BORROW = "easy_to_borrow"
+    THRESHOLD_SECURITY = "threshold_security"
+
+
+class LocateQuoteErrorCode(str, Enum):
+    """
+    Represents machine-readable quote-level error codes returned by the Locates API.
+    """
+
+    SYMBOL_NOT_FOUND = "symbol_not_found"
+    EASY_TO_BORROW = "easy_to_borrow"
+    THRESHOLD_SECURITY = "threshold_security"
+    CORPORATE_ACTION = "corporate_action"
+
+
+class AssetBorrowStatus(str, Enum):
+    """
+    Borrow status for US equity assets. This field is omitted for non-US-equity assets.
+    """
+
+    EASY_TO_BORROW = "easy_to_borrow"
+    HARD_TO_BORROW = "hard_to_borrow"
+
+
 class AssetExchange(str, Enum):
     """
     Represents the current exchanges Alpaca supports.
@@ -202,18 +250,12 @@ class AssetExchange(str, Enum):
 
     AMEX = "AMEX"
     ARCA = "ARCA"
-    ASCX = "ASCX"
     BATS = "BATS"
     NYSE = "NYSE"
     NASDAQ = "NASDAQ"
     NYSEARCA = "NYSEARCA"
-    FTXU = "FTXU"
-    CBSE = "CBSE"
-    GNSS = "GNSS"
-    ERSX = "ERSX"
     OTC = "OTC"
     CRYPTO = "CRYPTO"
-    EMPTY = ""
 
 
 class PositionSide(str, Enum):
@@ -288,27 +330,20 @@ class AccountStatus(str, Enum):
     see https://alpaca.markets/docs/broker/api-references/accounts/accounts/#account-status
     """
 
-    ACCOUNT_CLOSED = "ACCOUNT_CLOSED"
-    ACCOUNT_UPDATED = "ACCOUNT_UPDATED"
-    ACTION_REQUIRED = "ACTION_REQUIRED"
-    ACTIVE = "ACTIVE"
-    AML_REVIEW = "AML_REVIEW"
-    APPROVAL_PENDING = "APPROVAL_PENDING"
-    APPROVED = "APPROVED"
-    DISABLED = "DISABLED"
-    DISABLE_PENDING = "DISABLE_PENDING"
-    EDITED = "EDITED"
     INACTIVE = "INACTIVE"
-    KYC_SUBMITTED = "KYC_SUBMITTED"
-    LIMITED = "LIMITED"
-    ONBOARDING = "ONBOARDING"
     PAPER_ONLY = "PAPER_ONLY"
-    REAPPROVAL_PENDING = "REAPPROVAL_PENDING"
-    REJECTED = "REJECTED"
-    RESUBMITTED = "RESUBMITTED"
-    SIGNED_UP = "SIGNED_UP"
+    ONBOARDING = "ONBOARDING"
     SUBMISSION_FAILED = "SUBMISSION_FAILED"
     SUBMITTED = "SUBMITTED"
+    ACCOUNT_UPDATED = "ACCOUNT_UPDATED"
+    APPROVAL_PENDING = "APPROVAL_PENDING"
+    ACTIVE = "ACTIVE"
+    REJECTED = "REJECTED"
+    ACCOUNT_CLOSED = "ACCOUNT_CLOSED"
+    APPROVED = "APPROVED"
+    ACCOUNT_CLOSED_PENDING = "ACCOUNT_CLOSED_PENDING"
+    ACTION_REQUIRED = "ACTION_REQUIRED"
+    LIMITED = "LIMITED"
 
 
 class CorporateActionDateType(str, Enum):
@@ -417,3 +452,363 @@ class PositionIntent(str, Enum):
     BUY_TO_CLOSE = "buy_to_close"
     SELL_TO_OPEN = "sell_to_open"
     SELL_TO_CLOSE = "sell_to_close"
+
+
+class ActivitySubType(str, Enum):
+    """
+    Represents a more specific classification to the activity_type field.
+    This field is optional and may not always be populated, depending on the
+    activity type and the available data.
+
+    Values are grouped by the parent activity_type they belong to.
+    OPCA sub-types that contain a dot separator are rendered with an underscore
+    in the Python name (e.g. DIV_CDIV = "DIV.CDIV").
+    """
+
+    # DIV — Dividend
+    CDIV = "CDIV"
+    SDIV = "SDIV"
+    SPD = "SPD"
+
+    # FEE — Fee-related
+    REG = "REG"
+    TAF = "TAF"
+    LCT = "LCT"
+    ORF = "ORF"
+    OCC = "OCC"
+    NRC = "NRC"
+    NRV = "NRV"
+    COM = "COM"
+    CAT = "CAT"
+
+    # INT — Interest
+    MGN = "MGN"
+    CDT = "CDT"
+    SWP = "SWP"
+    QII = "QII"
+
+    # MA — Merger and Acquisition
+    CMA = "CMA"
+    SMA = "SMA"
+    SCMA = "SCMA"
+
+    # NC — Name Change
+    SNC = "SNC"
+    CNC = "CNC"
+    SCNC = "SCNC"
+
+    # OPCA — Option Corporate Action (dot-separated values)
+    DIV_CDIV = "DIV.CDIV"
+    DIV_SDIV = "DIV.SDIV"
+    MA_CMA = "MA.CMA"
+    MA_SMA = "MA.SMA"
+    MA_SCMA = "MA.SCMA"
+    NC_CNC = "NC.CNC"
+    NC_SNC = "NC.SNC"
+    NC_SCNC = "NC.SCNC"
+    SPIN = "SPIN"
+    SPLIT_FSPLIT = "SPLIT.FSPLIT"
+    SPLIT_RSPLIT = "SPLIT.RSPLIT"
+    SPLIT_USPLIT = "SPLIT.USPLIT"
+
+    # REORG — Reorganization
+    WRM = "WRM"
+
+    # SPLIT — Stock Split
+    FSPLIT = "FSPLIT"
+    RSPLIT = "RSPLIT"
+    USPLIT = "USPLIT"
+
+    # VOF — Voluntary Offering
+    VTND = "VTND"
+    VWRT = "VWRT"
+    VRGT = "VRGT"
+    VEXH = "VEXH"
+
+    # WH — Withholding
+    SWH = "SWH"
+    FWH = "FWH"
+    SLWH = "SLWH"
+
+
+class ExecutionType(str, Enum):
+    """
+    Execution type for a trade activity event (ActivityV2DetailTRD).
+
+    Values correspond to the ``execution_type`` field in the ActivityV2DetailTRD schema.
+    """
+
+    FILL = "fill"
+    TRADE_CORRECT = "trade_correct"
+    TRADE_BUST = "trade_bust"
+
+
+class AdvancedInstructionsAlgorithm(str, Enum):
+    """
+    Routing algorithm for the Alpaca Elite Smart Router (AdvancedInstructions).
+
+    See https://docs.alpaca.markets/docs/alpaca-elite-smart-router
+    """
+
+    DMA = "DMA"
+    TWAP = "TWAP"
+    VWAP = "VWAP"
+
+
+class AdvancedInstructionsDestination(str, Enum):
+    """
+    Target exchange destination for the Alpaca Elite Smart Router (AdvancedInstructions).
+
+    See https://docs.alpaca.markets/docs/alpaca-elite-smart-router
+    """
+
+    NYSE = "NYSE"
+    NASDAQ = "NASDAQ"
+    ARCA = "ARCA"
+
+
+class CreateCryptoTransferRequestChain(str, Enum):
+    """
+    Blockchain network for a crypto withdrawal transfer (CreateCryptoTransferRequest).
+    """
+
+    SOL = "SOL"
+    ETH = "ETH"
+    BTC = "BTC"
+    XRP = "XRP"
+    ARB = "ARB"
+
+
+class TransferDirection(str, Enum):
+    """Direction of a crypto transfer."""
+
+    INCOMING = "INCOMING"
+    OUTGOING = "OUTGOING"
+
+
+class CryptoTransferStatus(str, Enum):
+    """Processing status of a crypto transfer."""
+
+    PROCESSING = "PROCESSING"
+    FAILED = "FAILED"
+    COMPLETE = "COMPLETE"
+
+
+class OptionDeliverableType(str, Enum):
+    """Type of deliverable for an option contract (OptionDeliverable)."""
+
+    CASH = "cash"
+    EQUITY = "equity"
+
+
+class OptionDeliverableSettlementType(str, Enum):
+    """
+    Settlement timing for an option deliverable (OptionDeliverable).
+
+    Values use ``T_PLUS_N`` naming because the spec values (``T+0`` … ``T+5``)
+    contain a ``+`` character that is not valid in Python identifiers.
+    """
+
+    T_PLUS_0 = "T+0"
+    T_PLUS_1 = "T+1"
+    T_PLUS_2 = "T+2"
+    T_PLUS_3 = "T+3"
+    T_PLUS_4 = "T+4"
+    T_PLUS_5 = "T+5"
+
+
+class OptionDeliverableSettlementMethod(str, Enum):
+    """
+    Settlement method for an option deliverable (OptionDeliverable).
+
+    - BTOB: Broker to Broker
+    - CADF: Cash Difference
+    - CAFX: Cash Fixed
+    - CCC: Correspondent Clearing Corp
+    """
+
+    BTOB = "BTOB"
+    CADF = "CADF"
+    CAFX = "CAFX"
+    CCC = "CCC"
+
+
+class TokenizationIssuer(str, Enum):
+    """Issuer of a tokenized asset."""
+
+    XSTOCKS = "xstocks"
+    ST0X = "st0x"
+
+
+class TokenizationNetwork(str, Enum):
+    """Blockchain network for a tokenized asset."""
+
+    SOLANA = "solana"
+    ARBITRUM = "arbitrum"
+    ETHEREUM = "ethereum"
+    BINANCE = "binance"
+    BASE = "base"
+    TON = "ton"
+    TRON = "tron"
+    MANTLE = "mantle"
+
+
+class TokenizationRequestType(str, Enum):
+    """Direction of a tokenization request."""
+
+    MINT = "mint"
+    REDEEM = "redeem"
+
+
+class TokenizationRequestStatus(str, Enum):
+    """Processing status of a tokenization request."""
+
+    PENDING = "pending"
+    REJECTED = "rejected"
+    COMPLETED = "completed"
+
+
+class WhitelistedAddressStatus(str, Enum):
+    """
+    Approval status of a whitelisted crypto address.
+
+    Newly added addresses enter PENDING and transition to APPROVED after a 24-hour
+    waiting period.
+    """
+
+    APPROVED = "APPROVED"
+    PENDING = "PENDING"
+
+
+class BondStatus(str, Enum):
+    """Status of a bond."""
+
+    OUTSTANDING = "outstanding"
+    MATURED = "matured"
+    PRE_ISSUANCE = "pre_issuance"
+
+
+class CallType(str, Enum):
+    """
+    Type of call on a callable bond.
+
+    Describes the circumstances under which the bond may be called.
+    """
+
+    ORDINARY = "ordinary"
+    MAKE_WHOLE = "make_whole"
+    REGULATORY = "regulatory"
+    SPECIAL = "special"
+
+
+class CouponFrequency(str, Enum):
+    """How often the bond coupon is paid."""
+
+    ANNUAL = "annual"
+    SEMI_ANNUAL = "semi_annual"
+    QUARTERLY = "quarterly"
+    MONTHLY = "monthly"
+    ZERO = "zero"
+
+
+class CouponType(str, Enum):
+    """Type of the bond coupon rate."""
+
+    FIXED = "fixed"
+    FLOATING = "floating"
+    ZERO = "zero"
+
+
+class DayCount(str, Enum):
+    """
+    Day count convention used to calculate accrued interest.
+
+    Python member names replace ``/`` with ``_`` and prefix numeric-starting
+    values to form valid identifiers (e.g. ``30/360`` → ``THIRTY_360``).
+    """
+
+    A_360 = "A/360"
+    A_365 = "A/365"
+    THIRTY_360 = "30/360"
+    THIRTY_365 = "30/365"
+    A_A = "A/A"
+    THIRTY_E_360 = "30E/360"
+    B_252 = "B/252"
+    A_364 = "A/364"
+
+
+class Market(str, Enum):
+    """
+    Market identifier (MIC, BIC, or acronym) used in clock and calendar APIs.
+    """
+
+    BMO = "BMO"
+    BNYM = "BNYM"
+    BOATS = "BOATS"
+    CEUX = "CEUX"
+    CHIX = "CHIX"
+    HKEX = "HKEX"
+    IEX = "IEX"
+    IEXG = "IEXG"
+    ISE = "ISE"
+    LSE = "LSE"
+    MTA = "MTA"
+    MTAA = "MTAA"
+    NASDAQ = "NASDAQ"
+    NYSE = "NYSE"
+    OCEA = "OCEA"
+    OPRA = "OPRA"
+    OTC = "OTC"
+    OTCM = "OTCM"
+    SIFMA = "SIFMA"
+    TADAWUL = "TADAWUL"
+    XAMS = "XAMS"
+    XBRU = "XBRU"
+    XDUB = "XDUB"
+    XETR = "XETR"
+    XETRA = "XETRA"
+    XHKG = "XHKG"
+    XLIS = "XLIS"
+    XLON = "XLON"
+    XNAS = "XNAS"
+    XNYS = "XNYS"
+    XPAR = "XPAR"
+    XSAU = "XSAU"
+
+
+class Phase(str, Enum):
+    """Trading session phase reported by the clock API."""
+
+    CLOSED = "closed"
+    PRE = "pre"
+    CORE = "core"
+    LUNCH = "lunch"
+    POST = "post"
+
+
+class SpOutlook(str, Enum):
+    """
+    Standard & Poor's rating outlook.
+
+    Indicates S&P's view regarding the potential direction of a long-term
+    credit rating over the intermediate term (2 years for investment grade,
+    1 year for speculative grade).
+    """
+
+    POSITIVE = "positive"
+    NEGATIVE = "negative"
+    DEVELOPING = "developing"
+    STABLE = "stable"
+    NOT_RATED = "not_rated"
+    NOT_MEANINGFUL = "not_meaningful"
+
+
+class TreasurySubtype(str, Enum):
+    """Subtype of a US Treasury security."""
+
+    BOND = "bond"
+    BILL = "bill"
+    NOTE = "note"
+    STRIPS = "strips"
+    TIPS = "tips"
+    FLOATING = "floating"

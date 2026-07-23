@@ -417,3 +417,27 @@ class PositionIntent(str, Enum):
     BUY_TO_CLOSE = "buy_to_close"
     SELL_TO_OPEN = "sell_to_open"
     SELL_TO_CLOSE = "sell_to_close"
+
+
+class AdvancedInstructionsAlgorithm(str, Enum):
+    """
+    Routing algorithm for the Alpaca Elite Smart Router (AdvancedInstructions).
+
+    See https://docs.alpaca.markets/docs/alpaca-elite-smart-router
+    """
+
+    DMA = "DMA"
+    TWAP = "TWAP"
+    VWAP = "VWAP"
+
+
+class AdvancedInstructionsDestination(str, Enum):
+    """
+    Target exchange destination for the Alpaca Elite Smart Router (AdvancedInstructions).
+
+    See https://docs.alpaca.markets/docs/alpaca-elite-smart-router
+    """
+
+    NYSE = "NYSE"
+    NASDAQ = "NASDAQ"
+    ARCA = "ARCA"

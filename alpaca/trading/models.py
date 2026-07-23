@@ -1,8 +1,10 @@
 from alpaca.common.models import ModelWithID, ValidateBaseModel as BaseModel
 from uuid import UUID
 from datetime import datetime, date
-from typing import Any, Optional, List, Union, Dict
+from typing import Any, Literal, Optional, List, Union, Dict
 from alpaca.trading.enums import (
+    AdvancedInstructionsAlgorithm,
+    AdvancedInstructionsDestination,
     AssetClass,
     AssetStatus,
     AssetExchange,
@@ -700,3 +702,46 @@ class OptionContractsResponse(BaseModel):
 
     option_contracts: Optional[List[OptionContract]] = None
     next_page_token: Optional[str] = None
+
+
+class AdvancedInstructions(BaseModel):
+    """
+    Advanced instructions for the Alpaca Elite Smart Router.
+    See https://docs.alpaca.markets/docs/alpaca-elite-smart-router
+
+    Attributes:
+        algorithm (Optional[Union[AdvancedInstructionsAlgorithm, Literal["DMA","TWAP","VWAP"]]]):
+            Advanced routing algorithm to use. Accepts the ``AdvancedInstructionsAlgorithm``
+            enum or a raw string; values are still validated against the allowed set for
+            backward compatibility.
+        destination (Optional[Union[AdvancedInstructionsDestination, Literal["NYSE","NASDAQ","ARCA"]]]):
+            Target exchange for execution. Accepts the ``AdvancedInstructionsDestination``
+            enum or a raw string; values are still validated against the allowed set for
+            backward compatibility.
+        display_qty (Optional[str]): Maximum shares displayed on the exchange at any time
+            (must be in round-lot increments).
+        start_time (Optional[datetime]): When the algorithm starts executing
+            (must be within current market trading hours).
+        end_time (Optional[datetime]): When the algorithm finishes executing
+            (must be within current market trading hours).
+        max_percentage (Optional[str]): Maximum percentage of the ticker's period volume
+            this order may participate in (0 < value < 1, up to 3 decimal points).
+
+    Compatibility note: simplify ``algorithm`` to ``AdvancedInstructionsAlgorithm`` and
+    ``destination`` to ``AdvancedInstructionsDestination`` (drop the ``Literal`` fallback)
+    on the next breaking release.
+    """
+
+    # TODO: simplify to just AdvancedInstructionsAlgorithm / AdvancedInstructionsDestination
+    # on next breaking release (drop the Literal fallback — it exists only so callers passing
+    # raw strings still get validated against the allowed set, matching the original strictness).
+    algorithm: Optional[
+        Union[AdvancedInstructionsAlgorithm, Literal["DMA", "TWAP", "VWAP"]]
+    ] = None
+    destination: Optional[
+        Union[AdvancedInstructionsDestination, Literal["NYSE", "NASDAQ", "ARCA"]]
+    ] = None
+    display_qty: Optional[str] = None
+    start_time: Optional[datetime] = None
+    end_time: Optional[datetime] = None
+    max_percentage: Optional[str] = None

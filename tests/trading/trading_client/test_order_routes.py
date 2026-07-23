@@ -1,5 +1,7 @@
 import warnings
+from typing import get_args, get_type_hints
 from uuid import UUID
+
 import pytest
 
 from alpaca.common.enums import BaseURL
@@ -12,7 +14,7 @@ from alpaca.trading.enums import (
     PositionIntent,
     TimeInForce,
 )
-from alpaca.trading.models import Order
+from alpaca.trading.models import AdvancedInstructions, Order
 from alpaca.trading.requests import (
     CancelOrderResponse,
     GetOrderByIdRequest,
@@ -20,6 +22,7 @@ from alpaca.trading.requests import (
     LimitOrderRequest,
     MarketOrderRequest,
     OptionLegRequest,
+    PatchOrderRequest,
     ReplaceOrderRequest,
     StopLossRequest,
     TakeProfitRequest,
@@ -284,6 +287,37 @@ def test_replace_order(reqmock, trading_client: TradingClient):
     order = trading_client.replace_order_by_id(order_id, replace_order_request)
 
     assert type(order) is Order
+
+
+def test_replace_order_accepts_patch_order_request(reqmock):
+    order_id = "61e69015-8549-4bfd-b9c3-01e75843f47d"
+    trading_client = TradingClient("key-id", "secret-key", raw_data=True)
+    reqmock.patch(
+        f"{BaseURL.TRADING_PAPER.value}/v2/orders/{order_id}",
+        json={},
+    )
+    request = PatchOrderRequest(
+        notional="1000.00",
+        advanced_instructions=AdvancedInstructions(
+            algorithm="TWAP",
+            destination="NASDAQ",
+            max_percentage="0.125",
+        ),
+    )
+
+    response = trading_client.replace_order_by_id(order_id, request)
+
+    order_data_type = get_type_hints(TradingClient.replace_order_by_id)["order_data"]
+    assert PatchOrderRequest in get_args(order_data_type)
+    assert reqmock.last_request.json() == {
+        "notional": "1000.00",
+        "advanced_instructions": {
+            "algorithm": "TWAP",
+            "destination": "NASDAQ",
+            "max_percentage": "0.125",
+        },
+    }
+    assert response == {}
 
 
 def test_replace_order_validate_replace_request() -> None:

@@ -40,6 +40,7 @@ from alpaca.trading.requests import (
     GetOrdersRequest,
     GetPortfolioHistoryRequest,
     OrderRequest,
+    PatchOrderRequest,
     ReplaceOrderRequest,
     UpdateWatchlistRequest,
 )
@@ -176,14 +177,14 @@ class TradingClient(RESTClient):
     def replace_order_by_id(
         self,
         order_id: Union[UUID, str],
-        order_data: Optional[ReplaceOrderRequest] = None,
+        order_data: Optional[Union[ReplaceOrderRequest, PatchOrderRequest]] = None,
     ) -> Union[Order, RawData]:
         """
         Updates an order with new parameters.
 
         Args:
             order_id (Union[UUID, str]): The unique uuid identifier for the order being replaced.
-            order_data (Optional[ReplaceOrderRequest]): The parameters we wish to update.
+            order_data (Optional[Union[ReplaceOrderRequest, PatchOrderRequest]]): The parameters we wish to update.
 
         Returns:
             alpaca.trading.models.Order: The updated order.

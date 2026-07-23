@@ -9,6 +9,9 @@ from alpaca.trading.enums import (
     ContractType,
     DTBPCheck,
     ExerciseStyle,
+    OptionDeliverableSettlementMethod,
+    OptionDeliverableSettlementType,
+    OptionDeliverableType,
     OrderStatus,
     OrderType,
     OrderClass,
@@ -651,7 +654,7 @@ class OptionContract(BaseModel):
     Represents an option contract.
 
     Attributes:
-        id (str): The unique identifier of the option contract.
+        id (uuid): The unique identifier of the option contract.
         symbol (str): The symbol representing the option contract.
         name (str): The name of the option contract.
         status (AssetStatus): The status of the option contract.
@@ -662,31 +665,79 @@ class OptionContract(BaseModel):
         underlying_asset_id (UUID): The unique identifier of the underlying asset.
         type (ContractType): The type of the option contract.
         style (ExerciseStyle): The style of the option contract.
-        strike_price (float): The strike price of the option contract.
+        strike_price (Union[str, float]): The strike price of the option contract.
+        multiplier (Union[str, float]): The multiplier of the option contract is crucial for calculating both the trade premium and the extended strike price. In standard contracts, the multiplier is always set to 100.
         size (str): The size of the option contract. Usually contracts have size=100.
         open_interest (Optional[str]): The open interest of the option contract.
         open_interest_date (Optional[date]): The date of the open interest data.
         close_price (Optional[str]): The close price of the option contract.
         close_price_date (Optional[date]): The date of the close price data.
+        deliverables (Optional[List[OptionDeliverable]]): Represents the deliverables tied to the option contract. While standard contracts entail a single deliverable, non-standard ones can encompass multiple deliverables, each potentially customized with distinct parameters.
+
+    Note:
+        This model retains the intentional breaking schema alignments approved in
+        PR #698: ``id`` is parsed as a UUID, ``strike_price`` accepts strings or
+        floats, and ``multiplier`` is required.
     """
 
-    id: str
+    id: UUID
     symbol: str
     name: str
     status: AssetStatus
     tradable: bool
     expiration_date: date
-    root_symbol: str
+    root_symbol: Optional[str]
     underlying_symbol: str
     underlying_asset_id: UUID
     type: ContractType
     style: ExerciseStyle
-    strike_price: float
+    strike_price: Union[str, float]
+    multiplier: Union[str, float]
     size: str
     open_interest: Optional[str] = None
     open_interest_date: Optional[date] = None
     close_price: Optional[str] = None
     close_price_date: Optional[date] = None
+    deliverables: Optional[List["OptionDeliverable"]] = None
+
+
+class OptionDeliverable(BaseModel):
+    """
+    Describes what is delivered when an option contract is exercised or assigned.
+
+    Attributes:
+        type (OptionDeliverableType): Whether the deliverable is cash or equity.
+        symbol (str): Symbol of the deliverable asset.
+        amount (Optional[str]): Deliverable amount (100 for standard contracts; may be
+            null if delayed settlement is pending determination).
+        allocation_percentage (str): Cost allocation percentage used to determine the
+            cost basis of equity shares received from exercise.
+        settlement_type (OptionDeliverableSettlementType): Settlement timing relative to
+            the exercise/assignment date.
+        settlement_method (OptionDeliverableSettlementMethod): Settlement method (BTOB,
+            CADF, CAFX, or CCC).
+        delayed_settlement (bool): If ``True``, settlement of the deliverable is delayed.
+        asset_id (Optional[UUID]): Unique identifier of the deliverable asset. Not
+            returned for cash deliverables.
+    """
+
+    type: OptionDeliverableType
+    symbol: str
+    amount: Optional[str] = None
+    allocation_percentage: str
+    settlement_type: OptionDeliverableSettlementType
+    settlement_method: OptionDeliverableSettlementMethod
+    delayed_settlement: bool
+    asset_id: Optional[UUID] = None
+
+    @model_validator(mode="after")
+    def validate_amount_for_settlement(self) -> "OptionDeliverable":
+        if self.amount is None and not self.delayed_settlement:
+            raise ValueError("amount may be None only when delayed_settlement is True")
+        return self
+
+
+OptionContract.model_rebuild()
 
 
 class OptionContractsResponse(BaseModel):

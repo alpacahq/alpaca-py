@@ -16,9 +16,9 @@ from alpaca.common.constants import (
     DEFAULT_RETRY_EXCEPTION_CODES,
 )
 
-from alpaca import __version__
 from alpaca.common.exceptions import APIError, RetryException
 from alpaca.common.types import RawData, HTTPResult, Credentials
+from alpaca.common.utils import get_default_user_agent
 from .constants import PageItem
 from .enums import PaginationType, BaseURL
 
@@ -144,7 +144,7 @@ class RESTClient(ABC):
         """
         headers = self._get_auth_headers()
 
-        headers["User-Agent"] = "APCA-PY/" + __version__
+        headers["User-Agent"] = get_default_user_agent()
 
         return headers
 

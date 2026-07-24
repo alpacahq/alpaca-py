@@ -1,6 +1,22 @@
 from typing import Union, Optional
 from uuid import UUID
 from datetime import datetime
+import platform
+
+from alpaca import __version__
+
+
+def get_default_user_agent() -> str:
+    """
+    Builds the default `User-Agent` header value sent with every request.
+
+    The format follows `APCA-<PLATFORM>/<sdk-version> <Runtime>/<runtime-version>`,
+    eg: `APCA-PY/0.43.5 Python/3.12.4`
+
+    Returns:
+        str: The formatted User-Agent string
+    """
+    return f"APCA-PY/{__version__} Python/{platform.python_version()}"
 
 
 def validate_uuid_id_param(

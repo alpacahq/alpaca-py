@@ -9,8 +9,8 @@ import websockets
 from pydantic import BaseModel
 from websockets.legacy import client as websockets_legacy
 
-from alpaca import __version__
 from alpaca.common.types import RawData
+from alpaca.common.utils import get_default_user_agent
 from alpaca.data.models import (
     Bar,
     News,
@@ -91,7 +91,7 @@ class DataStream:
 
         extra_headers = {
             "Content-Type": "application/msgpack",
-            "User-Agent": "APCA-PY/" + __version__,
+            "User-Agent": get_default_user_agent(),
         }
 
         log.info(f"connecting to {self._endpoint}")

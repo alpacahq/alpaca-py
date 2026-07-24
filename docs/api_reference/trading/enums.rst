@@ -45,6 +45,24 @@ AssetStatus
 .. autoenum:: alpaca.trading.enums.AssetStatus
 
 
+LocateStatus
+------------
+
+.. autoenum:: alpaca.trading.enums.LocateStatus
+
+
+LocateErrorCode
+---------------
+
+.. autoenum:: alpaca.trading.enums.LocateErrorCode
+
+
+LocateQuoteErrorCode
+--------------------
+
+.. autoenum:: alpaca.trading.enums.LocateQuoteErrorCode
+
+
 AssetExchange
 -------------
 

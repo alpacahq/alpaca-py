@@ -96,3 +96,63 @@ OptionContractsResponse
 -----------------------
 
 .. autoclass:: alpaca.trading.models.OptionContractsResponse
+
+
+Locate
+------
+
+.. autoclass:: alpaca.trading.models.Locate
+
+
+ErrorResponse
+-------------
+
+.. autoclass:: alpaca.trading.models.ErrorResponse
+
+
+LocateError
+-----------
+
+.. autoclass:: alpaca.trading.models.LocateError
+
+
+ListLocatesResponse
+-------------------
+
+.. autoclass:: alpaca.trading.models.ListLocatesResponse
+
+
+LocateQuote
+-----------
+
+.. autoclass:: alpaca.trading.models.LocateQuote
+
+
+LocateQuoteError
+----------------
+
+.. autoclass:: alpaca.trading.models.LocateQuoteError
+
+
+ListLocateQuotesResponse
+------------------------
+
+.. autoclass:: alpaca.trading.models.ListLocateQuotesResponse
+
+
+LocatesResponse
+---------------
+
+Alias for :class:`alpaca.trading.models.ListLocatesResponse`.
+
+.. autoclass:: alpaca.trading.models.LocatesResponse
+   :noindex:
+
+
+LocateQuotesResponse
+--------------------
+
+Alias for :class:`alpaca.trading.models.ListLocateQuotesResponse`.
+
+.. autoclass:: alpaca.trading.models.LocateQuotesResponse
+   :noindex:

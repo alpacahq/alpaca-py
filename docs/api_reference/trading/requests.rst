@@ -126,3 +126,21 @@ GetCorporateAnnouncementsRequest
 --------------------------------
 
 .. autoclass:: alpaca.trading.requests.GetCorporateAnnouncementsRequest
+
+
+GetLocatesRequest
+-----------------
+
+.. autoclass:: alpaca.trading.requests.GetLocatesRequest
+
+
+CreateLocateRequest
+-------------------
+
+.. autoclass:: alpaca.trading.requests.CreateLocateRequest
+
+
+GetLocateQuotesRequest
+----------------------
+
+.. autoclass:: alpaca.trading.requests.GetLocateQuotesRequest

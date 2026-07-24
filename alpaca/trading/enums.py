@@ -195,6 +195,43 @@ class AssetStatus(str, Enum):
     INACTIVE = "inactive"
 
 
+class LocateStatus(str, Enum):
+    """
+    Represents the lifecycle status of a locate request.
+    """
+
+    ACTIVE = "active"
+    EXPIRED = "expired"
+    REJECTED = "rejected"
+
+
+class LocateErrorCode(str, Enum):
+    """
+    Represents machine-readable error codes returned by the Locates API.
+    """
+
+    INVALID_INPUT = "invalid_input"
+    INVALID_REQUEST_BODY = "invalid_request_body"
+    INVALID_LIMIT_PRICE = "invalid_limit_price"
+    INVALID_SYMBOLS = "invalid_symbols"
+    SYMBOL_NOT_FOUND = "symbol_not_found"
+    SECURITY_NOT_FOUND = "security_not_found"
+    INSUFFICIENT_BUYING_POWER = "insufficient_buying_power"
+    EASY_TO_BORROW = "easy_to_borrow"
+    THRESHOLD_SECURITY = "threshold_security"
+
+
+class LocateQuoteErrorCode(str, Enum):
+    """
+    Represents machine-readable quote-level error codes returned by the Locates API.
+    """
+
+    SYMBOL_NOT_FOUND = "symbol_not_found"
+    EASY_TO_BORROW = "easy_to_borrow"
+    THRESHOLD_SECURITY = "threshold_security"
+    CORPORATE_ACTION = "corporate_action"
+
+
 class AssetExchange(str, Enum):
     """
     Represents the current exchanges Alpaca supports.

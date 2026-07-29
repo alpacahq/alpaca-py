@@ -28,7 +28,7 @@ pytz = ">=2020.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=7.1,<9.0"
-pytest-asyncio = "^0.23.7"
+pytest-asyncio = ">=0.23.7,<1.5.0"
 requests-mock = "^1.9.3"
 black = ">=24.3,<27.0"
 isort = "^5.10.1"

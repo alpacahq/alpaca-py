@@ -65,6 +65,22 @@ class BaseDataSet(BaseModel):
 
         return self.data[symbol]
 
+    def __contains__(self, symbol: str) -> bool:
+        """Gives dictionary-like membership checks for multi-symbol data.
+
+        Without this, ``symbol in dataset`` falls back to Python's default
+        sequence-based containment check (iterating integer indices via
+        ``__getitem__``), which always returns False here since
+        ``__getitem__`` expects a symbol string, not an index.
+
+        Args:
+            symbol (str): The ticker identifier to check for
+
+        Returns:
+            bool: True if data for the given symbol is present
+        """
+        return symbol in self.data
+
     def dict(self, **kwargs) -> dict:
         """
         Gives dictionary representation of data.

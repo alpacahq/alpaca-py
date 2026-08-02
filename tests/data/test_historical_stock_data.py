@@ -76,6 +76,39 @@ def test_get_bars(reqmock, stock_client: StockHistoricalDataClient):
     assert reqmock.called_once
 
 
+def test_barset_contains():
+    """`symbol in barset` must agree with `symbol in barset.data` and `barset[symbol]`.
+
+    Without a __contains__ implementation, `in` falls back to Python's default
+    sequence-based containment check (iterating integer indices via
+    __getitem__), which always returns False here since __getitem__ expects a
+    symbol string, not an index - even though the symbol's data exists.
+    """
+    barset = BarSet(
+        raw_data={
+            "SPY": [
+                {
+                    "t": "2022-02-01T05:00:00Z",
+                    "o": 174,
+                    "h": 174.84,
+                    "l": 172.31,
+                    "c": 174.61,
+                    "v": 85998033,
+                    "n": 732412,
+                    "vw": 173.703516,
+                }
+            ]
+        }
+    )
+
+    assert "SPY" in barset
+    assert "SPY" in barset.data
+    assert len(barset["SPY"]) == 1
+
+    assert "AAPL" not in barset
+    assert "AAPL" not in barset.data
+
+
 def test_get_bars_desc(reqmock, stock_client: StockHistoricalDataClient):
     symbol = "TSLA"
     timeframe = TimeFrame.Day

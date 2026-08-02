@@ -74,10 +74,12 @@ class BaseDataSet(BaseModel):
         ``__getitem__`` expects a symbol string, not an index.
 
         Args:
-            symbol (str): The ticker identifier to check for
+            symbol (str): The data key to check for (a ticker for most
+                datasets, but e.g. "news" for NewsSet or an action type
+                like "forward_splits" for the corporate actions set)
 
         Returns:
-            bool: True if data for the given symbol is present
+            bool: True if data for the given key is present
         """
         return symbol in self.data
 

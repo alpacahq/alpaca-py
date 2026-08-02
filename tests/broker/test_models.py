@@ -35,6 +35,7 @@ from alpaca.broker.enums import (
     JournalEntryType,
 )
 from alpaca.trading.enums import ActivityType
+from alpaca.trading.models import NonTradeActivity
 from tests.broker.factories import create_dummy_w8ben_document
 from uuid import uuid4
 
@@ -112,6 +113,33 @@ def test_get_account_activities_request_to_request_fields():
     )
 
     assert req.to_request_fields() == {"activity_types": "DIV,DIVNRA"}
+
+
+def test_non_trade_activity_validates_cgd():
+    """
+    CGD (Capital Gain Distribution) is a real activity_type the Broker API returns
+    and Alpaca's own docs list as valid, but it was missing from ActivityType.
+    """
+    raw = {
+        "id": "20260525000000000::c524b737-b67b-416a-b451-321e42d3a609",
+        "account_id": "c524b737-b67b-416a-b451-321e42d3a609",
+        "activity_type": "CGD",
+        "activity_sub_type": "STCG",
+        "date": "2026-05-25",
+        "net_amount": "0.18",
+        "description": "Capital gain distribution",
+        "symbol": "AIA",
+        "status": "executed",
+        "currency": "USD",
+    }
+
+    activity = NonTradeActivity.model_validate(raw)
+
+    assert activity.activity_type == ActivityType.CGD
+
+    req = GetAccountActivitiesRequest(activity_types=[ActivityType.CGD])
+
+    assert req.to_request_fields() == {"activity_types": "CGD"}
 
 
 def test_trade_document_sub_type_empty_str_to_none():

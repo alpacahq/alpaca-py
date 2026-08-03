@@ -10,6 +10,7 @@ from websockets.legacy import client as websockets_legacy
 
 from alpaca.common import RawData
 from alpaca.common.enums import BaseURL
+from alpaca.common.utils import get_default_user_agent
 from alpaca.trading import TradeUpdate
 
 log = logging.getLogger(__name__)
@@ -57,8 +58,13 @@ class TradingStream:
             self._websocket_params = websocket_params
 
     async def _connect(self):
+        params = dict(self._websocket_params or {})
+        extra_headers = dict(params.pop("extra_headers", {}) or {})
+        extra_headers["User-Agent"] = get_default_user_agent()
         self._ws = await websockets_legacy.connect(
-            self._endpoint, **self._websocket_params
+            self._endpoint,
+            extra_headers=extra_headers,
+            **params,
         )
 
     async def _auth(self):

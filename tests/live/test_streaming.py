@@ -12,6 +12,7 @@ from alpaca.data.live.news import NewsDataStream
 from alpaca.data.live.option import OptionDataStream
 from alpaca.data.live.stock import StockDataStream
 from alpaca.trading.stream import TradingStream
+from tests.live.streaming import stream_timeout_seconds
 
 DATA_CONNECT = "alpaca.data.live.websocket.websockets_legacy.connect"
 TRADING_CONNECT = "alpaca.trading.stream.websockets_legacy.connect"
@@ -37,7 +38,7 @@ def test_trading_stream_connect(
         subscribe=lambda s, h: s.subscribe_trade_updates(h),
         connect_path=TRADING_CONNECT,
         require_message=False,
-        timeout=15,
+        timeout=stream_timeout_seconds(15),
     )
     assert result.connected
     _assert_user_agent(result)
@@ -58,7 +59,7 @@ def test_stock_data_stream_quotes(
         subscribe=lambda s, h: s.subscribe_quotes(h, "SPY"),
         connect_path=DATA_CONNECT,
         require_message=True,
-        timeout=45,
+        timeout=stream_timeout_seconds(45),
     )
     assert result.connected
     assert len(result.messages) >= 1
@@ -80,7 +81,7 @@ def test_crypto_data_stream_quotes(
         subscribe=lambda s, h: s.subscribe_quotes(h, "BTC/USD"),
         connect_path=DATA_CONNECT,
         require_message=True,
-        timeout=30,
+        timeout=stream_timeout_seconds(30),
     )
     assert result.connected
     assert len(result.messages) >= 1
@@ -104,7 +105,7 @@ def test_option_data_stream_quotes(
             subscribe=lambda s, h: s.subscribe_quotes(h, symbol),
             connect_path=DATA_CONNECT,
             require_message=True,
-            timeout=45,
+            timeout=stream_timeout_seconds(45),
         )
         assert len(result.messages) >= 1
     else:
@@ -116,7 +117,7 @@ def test_option_data_stream_quotes(
             subscribe=lambda s, h: s.subscribe_quotes(h, "SPY240119C00500000"),
             connect_path=DATA_CONNECT,
             require_message=False,
-            timeout=15,
+            timeout=stream_timeout_seconds(15),
         )
     assert result.connected
     _assert_user_agent(result)
@@ -137,7 +138,7 @@ def test_news_data_stream_connect(
         subscribe=lambda s, h: s.subscribe_news(h, "*"),
         connect_path=DATA_CONNECT,
         require_message=False,
-        timeout=15,
+        timeout=stream_timeout_seconds(15),
     )
     assert result.connected
     _assert_user_agent(result)

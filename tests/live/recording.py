@@ -217,6 +217,43 @@ def write_summary(run_dir: Path, results: List[Dict[str, Any]]) -> Path:
     return path
 
 
+def update_artifact_outcome(
+    path: Path,
+    *,
+    passed: bool,
+    error: Optional[str] = None,
+) -> None:
+    """Update passed/error on an existing per-test artifact file."""
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    payload["passed"] = passed
+    payload["error"] = error
+    path.write_text(json.dumps(payload, indent=2, default=str) + "\n", encoding="utf-8")
+
+
+def reconcile_results_with_test_outcome(
+    results: List[Dict[str, Any]],
+    *,
+    test_failed: bool,
+    error: Optional[str],
+) -> None:
+    """Flip provisional passed=true entries when the pytest case failed.
+
+    ``invoke_and_record`` records success as soon as the SDK call returns
+    without raising. Live tests often validate the value afterward; if that
+    assert fails, artifacts/summary must not keep ``passed=true``.
+    """
+    if not test_failed:
+        return
+    for entry in results:
+        if not entry.get("passed"):
+            continue
+        entry["passed"] = False
+        entry["error"] = error
+        artifact = entry.get("artifact")
+        if artifact:
+            update_artifact_outcome(Path(artifact), passed=False, error=error)
+
+
 def invoke_and_record(
     method: str,
     fn: Callable[..., Any],
@@ -225,7 +262,13 @@ def invoke_and_record(
     response_transform: Optional[Callable[[Any], Any]] = None,
     **kwargs: Any,
 ) -> Any:
-    """Invoke an SDK method and always record evidence (including failures)."""
+    """Invoke an SDK method and always record evidence (including failures).
+
+    On a non-raising return, records ``passed=True`` immediately. Callers that
+    validate the result afterward (e.g. pytest asserts) must reconcile that
+    provisional outcome with the final test result — the ``record_live``
+    fixture does this via :func:`reconcile_results_with_test_outcome`.
+    """
     try:
         result = fn(*args, **kwargs)
     except Exception as exc:

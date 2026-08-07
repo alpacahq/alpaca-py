@@ -6,9 +6,11 @@ from pydantic import BaseModel
 
 from tests.live.recording import (
     format_exchange_report,
+    reconcile_results_with_test_outcome,
     redact,
     redact_request,
     serialize_response,
+    update_artifact_outcome,
     write_artifact,
 )
 
@@ -91,3 +93,87 @@ def test_format_exchange_report_includes_request_and_response():
     assert "***REDACTED***" in report
     assert '"equity": "1000"' in report
     assert "status_code: 200" in report
+
+
+def test_reconcile_flips_provisional_pass_when_test_fails(tmp_path: Path):
+    path = write_artifact(
+        tmp_path,
+        test_id="tests/live/test_x.py::test_get_account",
+        method="get_account",
+        passed=True,
+        status_code=200,
+        response_body={"id": "abc"},
+        error=None,
+    )
+    results = [
+        {
+            "id": "tests/live/test_x.py::test_get_account",
+            "method": "get_account",
+            "passed": True,
+            "error": None,
+            "artifact": str(path),
+        },
+        {
+            "id": "tests/live/test_x.py::test_get_account",
+            "method": "get_account",
+            "passed": False,
+            "error": "RuntimeError: boom",
+            "artifact": None,
+        },
+    ]
+
+    reconcile_results_with_test_outcome(
+        results,
+        test_failed=True,
+        error="AssertionError: account is None",
+    )
+
+    assert results[0]["passed"] is False
+    assert results[0]["error"] == "AssertionError: account is None"
+    assert results[1]["passed"] is False
+    assert results[1]["error"] == "RuntimeError: boom"
+    updated = path.read_text(encoding="utf-8")
+    assert '"passed": false' in updated
+    assert "AssertionError: account is None" in updated
+
+
+def test_reconcile_noop_when_test_passes(tmp_path: Path):
+    path = write_artifact(
+        tmp_path,
+        test_id="tests/live/test_x.py::test_get_account",
+        method="get_account",
+        passed=True,
+        status_code=200,
+        response_body={"id": "abc"},
+        error=None,
+    )
+    results = [
+        {
+            "id": "tests/live/test_x.py::test_get_account",
+            "method": "get_account",
+            "passed": True,
+            "error": None,
+            "artifact": str(path),
+        }
+    ]
+
+    reconcile_results_with_test_outcome(results, test_failed=False, error=None)
+
+    assert results[0]["passed"] is True
+    assert '"passed": true' in path.read_text(encoding="utf-8")
+
+
+def test_update_artifact_outcome(tmp_path: Path):
+    path = write_artifact(
+        tmp_path,
+        test_id="tests/live/test_x.py::test_get_account",
+        method="get_account",
+        passed=True,
+        status_code=200,
+        response_body={"id": "abc"},
+        error=None,
+    )
+    update_artifact_outcome(path, passed=False, error="AssertionError: bad")
+    text = path.read_text(encoding="utf-8")
+    assert '"passed": false' in text
+    assert "AssertionError: bad" in text

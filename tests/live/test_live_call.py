@@ -41,5 +41,6 @@ def test_invoke_and_record_records_success_with_transform():
     )
 
     assert result == [1, 2, 3, 4]
+    # Provisional: call did not raise; pytest record_live reconciles if asserts fail.
     assert recorded[0]["passed"] is True
     assert recorded[0]["response"] == [1, 2]

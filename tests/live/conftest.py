@@ -19,6 +19,7 @@ from tests.live.recording import (
     attach_http_capture,
     format_exchange_report,
     invoke_and_record,
+    reconcile_results_with_test_outcome,
     write_artifact,
     write_summary,
 )
@@ -112,6 +113,14 @@ def pytest_collection_modifyitems(
         elif "live" in markers:
             if not run_live:
                 item.add_marker(skip_live)
+
+
+@pytest.hookimpl(tryfirst=True, hookwrapper=True)
+def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]):
+    """Stash per-phase reports so fixtures can reconcile live artifact outcomes."""
+    outcome = yield
+    rep = outcome.get_result()
+    setattr(item, f"rep_{rep.when}", rep)
 
 
 def pytest_sessionstart(session: pytest.Session) -> None:
@@ -257,7 +266,12 @@ def record_live(
     pytestconfig: pytest.Config,
     capsys: pytest.CaptureFixture[str],
 ):
-    """Record a proof artifact and print redacted request/response to the console."""
+    """Record a proof artifact and print redacted request/response to the console.
+
+    Success may be recorded before post-call asserts; on teardown, provisional
+    ``passed=true`` entries are flipped if the pytest case failed.
+    """
+    recorded_for_test: List[Dict[str, Any]] = []
 
     def _record(
         method: str,
@@ -307,17 +321,29 @@ def record_live(
             with capsys.disabled():
                 print(report, flush=True)
         results: List[Dict[str, Any]] = pytestconfig._live_results  # type: ignore[attr-defined]
-        results.append(
-            {
-                "id": request.node.nodeid,
-                "method": method,
-                "passed": passed,
-                "error": error,
-                "artifact": str(path),
-            }
-        )
+        entry = {
+            "id": request.node.nodeid,
+            "method": method,
+            "passed": passed,
+            "error": error,
+            "artifact": str(path),
+        }
+        results.append(entry)
+        recorded_for_test.append(entry)
         return path
 
+    def _finalize() -> None:
+        rep = getattr(request.node, "rep_call", None)
+        if rep is None:
+            return
+        failure_error = str(rep.longrepr) if rep.failed and rep.longrepr else None
+        reconcile_results_with_test_outcome(
+            recorded_for_test,
+            test_failed=bool(rep.failed),
+            error=failure_error,
+        )
+
+    request.addfinalizer(_finalize)
     return _record
 
 

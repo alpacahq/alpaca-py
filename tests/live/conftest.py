@@ -294,9 +294,7 @@ def record_live(
             status_code if status_code is not None else http_capture.get("status_code")
         )
         captured_request = (
-            request_data
-            if request_data is not None
-            else http_capture.get("request")
+            request_data if request_data is not None else http_capture.get("request")
         )
         path = write_artifact(
             live_run_dir,

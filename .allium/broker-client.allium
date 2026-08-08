@@ -158,6 +158,46 @@ value AccountDocumentUpload {
 }
 
 ------------------------------------------------------------
+-- Contracts
+------------------------------------------------------------
+
+contract AccountApplicationIntake {
+    -- The typed payload the platform accepts when a correspondent submits a
+    -- new account application (SubmitAccountApplication).
+    submit_application: (holder: AccountHolder, kind: AccountKind, sub_kind: AccountSubKind?, contact: ContactDetails, identity: PersonalIdentity, disclosures: RegulatoryDisclosures, agreements: Set<SignedAgreement>, trusted_contact: EmergencyContact?, supporting_documents: Set<AccountDocumentUpload>) -> brokerageaccount/BrokerageAccount
+
+    @invariant AgreementsRequired
+        -- At least one signed agreement must accompany every application.
+}
+
+contract CustomerIdentificationIntake {
+    -- The typed payload for submitting KYC provider review outcomes
+    -- (SubmitCipResults).
+    submit_cip_results: (account: brokerageaccount/BrokerageAccount, providers: Set<KycProvider>, review: KycReviewOutcome) -> CipSubmission
+}
+
+contract TradeDocumentAccess {
+    -- Retrieval of broker-generated trade documents for an account
+    -- (statements, confirmations, tax forms).
+    list_trade_documents: (account: brokerageaccount/BrokerageAccount, kind: TradeDocumentKind?) -> Set<TradeDocument>
+    download_trade_document: (document: TradeDocument) -> String
+
+    @invariant RegulatoryRetention
+        -- Documents remain retrievable for their regulatory retention
+        -- period; closure of the account does not delete them.
+}
+
+contract BatchJournalIntake {
+    -- The typed entry payload for batch and reverse-batch cash journals.
+    submit_batch: (from_account: brokerageaccount/BrokerageAccount, entries: List<JournalEntryRequest>) -> Set<Journal>
+    submit_reverse_batch: (to_account: brokerageaccount/BrokerageAccount, entries: List<JournalEntryRequest>) -> Set<Journal>
+
+    @invariant IndependentEntries
+        -- Each entry produces an independent journal; a failing entry does
+        -- not roll back the other journals created by the same batch.
+}
+
+------------------------------------------------------------
 -- Enumerations
 ------------------------------------------------------------
 
@@ -298,6 +338,13 @@ entity AchRelationship {
     nickname: String?
     bank_account_kind: BankAccountKind
     status: queued | pending | approved
+
+    transitions status {
+        queued -> pending
+        queued -> approved
+        pending -> approved
+        terminal: approved
+    }
 }
 
 entity RecipientBank {
@@ -308,6 +355,15 @@ entity RecipientBank {
     identifier_kind: BankIdentifierKind
     address: PostalAddress?
     status: queued | sent_to_clearing | approved | canceled
+
+    transitions status {
+        queued -> sent_to_clearing
+        sent_to_clearing -> approved
+        queued -> canceled
+        sent_to_clearing -> canceled
+        approved -> canceled
+        terminal: canceled
+    }
 }
 
 entity Transfer {
@@ -339,6 +395,26 @@ entity Transfer {
             | rejected
             | canceled
             | returned
+
+    transitions status {
+        queued -> approval_pending
+        queued -> pending
+        approval_pending -> pending
+        pending -> sent_to_clearing
+        sent_to_clearing -> approved
+        approved -> settled
+        settled -> complete
+        sent_to_clearing -> returned
+        approved -> returned
+        settled -> returned
+        queued -> rejected
+        approval_pending -> rejected
+        pending -> rejected
+        queued -> canceled
+        approval_pending -> canceled
+        pending -> canceled
+        terminal: complete, rejected, canceled, returned
+    }
 
     invariant FundingSourceMatchesKind {
         kind = ach implies ach_source != null and wire_source = null
@@ -385,6 +461,22 @@ entity Journal {
             | refused
             | deleted
 
+    transitions status {
+        queued -> sent_to_clearing
+        sent_to_clearing -> pending
+        pending -> executed
+        executed -> correct
+        executed -> deleted
+        queued -> canceled
+        sent_to_clearing -> canceled
+        pending -> canceled
+        queued -> rejected
+        sent_to_clearing -> rejected
+        pending -> rejected
+        queued -> refused
+        terminal: correct, rejected, canceled, refused, deleted
+    }
+
     invariant CashJournalPayload {
         kind = cash implies cash_amount != null and security = null and quantity = null
     }
@@ -412,6 +504,13 @@ entity ModelPortfolio {
     status: active | inactive | needs_adjustment
     created_at: Timestamp
     updated_at: Timestamp
+
+    transitions status {
+        active -> needs_adjustment
+        active -> inactive
+        needs_adjustment -> inactive
+        terminal: inactive
+    }
 
     subscriptions: AccountSubscription with portfolio = this
     runs: RebalancingRun with portfolio = this
@@ -458,6 +557,18 @@ entity RebalancingRun {
             | timeout
             | completed_success
             | completed_adjusted
+
+    transitions status {
+        queued -> in_progress
+        queued -> canceled
+        in_progress -> canceled_mid_run
+        in_progress -> error
+        in_progress -> timeout
+        in_progress -> completed_success
+        in_progress -> completed_adjusted
+        terminal: canceled, canceled_mid_run, error, timeout,
+                  completed_success, completed_adjusted
+    }
 }
 
 ------------------------------------------------------------
@@ -1372,6 +1483,9 @@ surface PartnerOnboarding {
             trusted_contact?,
             supporting_documents?
         )
+
+    contracts:
+        fulfils AccountApplicationIntake
 }
 
 surface AccountAdministration {
@@ -1386,6 +1500,9 @@ surface AccountAdministration {
         account.kind
         account.sub_kind
         account.status
+        -- Value space of account.crypto_status (declared on the shared
+        -- BrokerageAccount entity in alpaca-allium-lib)
+        CryptoStatus
         account.crypto_status
         account.kyc_review
         account.contact
@@ -1406,6 +1523,10 @@ surface AccountAdministration {
         CloseAccount(partner, account)
             when account.status in {active, limited, paper_only, disabled, inactive, approved}
         DownloadTradeDocument(partner, account, document)
+
+    contracts:
+        fulfils CustomerIdentificationIntake
+        fulfils TradeDocumentAccess
 
     related:
         AccountFunding(account)
@@ -1463,6 +1584,9 @@ surface InterAccountJournals {
         RequestBatchJournal(partner, from_account, entries)
         RequestReverseBatchJournal(partner, to_account, entries)
         CancelJournal(partner, journal)
+
+    contracts:
+        fulfils BatchJournalIntake
 }
 
 surface PortfolioCatalog {
@@ -1506,6 +1630,50 @@ surface AccountRebalancing {
         CancelRebalancingRun(partner, run)
 }
 
+surface BrokerOperationsFeed {
+    -- The boundary between this specification and the broker's internal
+    -- operations pipeline (including its clearing counterparty). The broker
+    -- originates these stimuli; the correspondent observes the resulting
+    -- state changes through the other surfaces. Modelled so that every
+    -- broker-driven lifecycle rule has an originating boundary.
+    provides:
+        BrokerProgressedAccountReview(account)
+        BrokerRequestedAccountAction(account)
+        BrokerEscalatedAccountForAmlReview(account)
+        BrokerApprovedAccount(account)
+        BrokerActivatedAccount(account)
+        BrokerLimitedAccount(account)
+        BrokerSetAccountPaperOnly(account)
+        BrokerInactivatedAccount(account)
+        BrokerDisabledAccount(account)
+        BrokerRejectedAccount(account)
+        BrokerApprovedAchRelationship(relationship)
+        BrokerMarkedAchRelationshipPending(relationship)
+        BrokerSentRecipientBankToClearing(bank)
+        BrokerApprovedRecipientBank(bank)
+        BrokerHeldTransferForApproval(transfer)
+        BrokerApprovedTransferForClearing(transfer)
+        BrokerSentTransferToClearing(transfer)
+        BrokerMarkedTransferApproved(transfer)
+        BrokerSettledTransfer(transfer)
+        BrokerCompletedTransfer(transfer)
+        BrokerRejectedTransfer(transfer)
+        BrokerReturnedTransfer(transfer)
+        BrokerSentJournalToClearing(journal)
+        BrokerMarkedJournalPending(journal)
+        BrokerExecutedJournal(journal)
+        BrokerFinalisedJournal(journal)
+        BrokerRejectedJournal(journal)
+        BrokerRefusedJournal(journal)
+        BrokerDeletedJournal(journal)
+        BrokerFlaggedPortfolioForAdjustment(portfolio)
+        BrokerStartedRebalancingRun(run)
+        BrokerCompletedRebalancingRunSuccessfully(run)
+        BrokerCompletedRebalancingRunAdjusted(run)
+        BrokerFailedRebalancingRun(run)
+        BrokerTimedOutRebalancingRun(run)
+}
+
 ------------------------------------------------------------
 -- Open Questions
 ------------------------------------------------------------
@@ -1519,3 +1687,7 @@ open question "Travel-rule threshold currency — config.travel_rule_threshold_a
 open question "OAuth B2B authorization flow — referenced in scope description but not present in the surveyed code; assumed to live in a separate authorization service."
 
 open question "CIP submission implementation — the surveyed client's CIP upload and retrieval methods are unimplemented stubs (the sandbox CIP routes return 404), so SubmitCipResults models the documented Broker API behaviour rather than exercised code. Revisit once the client implements the CIP routes."
+
+open question "Portfolio needs_adjustment recovery — no client operation or documented broker stimulus returns a needs_adjustment portfolio to active after the correspondent corrects its weights via UpdateModelPortfolio. The transition graph therefore only allows needs_adjustment -> inactive. Confirm whether the broker re-activates adjusted portfolios automatically."
+
+open question "AchRelationship terminal state — the client can unlink (delete) an ACH relationship at any status, and code declares only QUEUED/PENDING/APPROVED. approved is modelled as terminal because no observable status transition leaves it; the API may internally use a CANCELED state that this client never sees."

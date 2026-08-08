@@ -56,6 +56,8 @@ enum DTBPCheck { both | entry | exit }
 
 enum TradeConfirmationEmail { all | none }
 
+enum TradeStreamStatus { idle | connecting | streaming | stopped }
+
 ------------------------------------------------------------
 -- Value Types
 ------------------------------------------------------------
@@ -143,6 +145,7 @@ entity Order {
         pending_new -> accepted
         pending_new -> pending_cancel
         pending_review -> accepted_for_bidding
+        pending_review -> rejected
         accepted -> partially_filled
         accepted -> filled
         accepted -> done_for_day
@@ -152,15 +155,25 @@ entity Order {
         accepted -> calculated
         accepted -> pending_replace
         accepted -> pending_cancel
+        accepted -> rejected
+        accepted -> expired
+        new -> pending_cancel
+        new -> rejected
+        new -> expired
+        pending_new -> rejected
+        pending_new -> expired
         partially_filled -> filled
         partially_filled -> done_for_day
         partially_filled -> pending_replace
         partially_filled -> pending_cancel
+        partially_filled -> expired
         pending_replace -> accepted
         pending_replace -> replaced
         pending_cancel -> canceled
+        held -> new
+        held -> pending_cancel
         terminal: filled, canceled, expired, rejected, replaced, done_for_day,
-                  stopped, suspended, calculated, held, accepted_for_bidding
+                  stopped, suspended, calculated, accepted_for_bidding
     }
 
     invariant QuantityOrNotional {
@@ -261,6 +274,43 @@ entity TradeUpdate {
     qty: Decimal?
 }
 
+entity TradeUpdateStream {
+    -- The websocket session delivering TradeUpdate events for the trading
+    -- account. Connecting covers connect + authenticate + subscribing to the
+    -- trade_updates channel, which the client performs as one step.
+    status: TradeStreamStatus
+    -- Timestamp of the most recent keepalive acknowledgement (websocket
+    -- pong). Set when the connection is established, refreshed on every
+    -- pong, cleared while the connection is down.
+    last_pong_at: Timestamp?
+
+    transitions status {
+        idle -> connecting
+        connecting -> streaming
+        streaming -> connecting
+        idle -> stopped
+        connecting -> stopped
+        streaming -> stopped
+        terminal: stopped
+    }
+}
+
+------------------------------------------------------------
+-- Config
+------------------------------------------------------------
+
+config {
+    -- Multi-leg (mleg) option orders: permitted number of legs per order
+    min_mleg_legs: Integer = 2
+    max_mleg_legs: Integer = 4
+
+    -- Trading stream keepalive: the client sends a websocket protocol ping
+    -- every stream_ping_interval; if no pong is received within
+    -- stream_ping_timeout the connection is treated as dead.
+    stream_ping_interval: Duration = 10.seconds
+    stream_ping_timeout: Duration = 180.seconds
+}
+
 ------------------------------------------------------------
 -- Rules
 ------------------------------------------------------------
@@ -270,16 +320,45 @@ entity TradeUpdate {
 rule SubmitOrder {
     when: SubmitOrder(order_data)
 
-    requires: order_data.order_class = mleg implies order_data.qty != null
-    requires: order_data.order_class != mleg implies order_data.symbol != null
+    -- Exactly one of qty and notional
+    requires: order_data.qty != null or order_data.notional != null
     requires: order_data.qty = null or order_data.notional = null
+
+    -- Multi-leg option orders
+    requires: order_data.order_class = mleg implies order_data.qty != null
+    requires: order_data.order_class = mleg implies
+        order_data.order_type in {market, limit}
+    requires: order_data.order_class = mleg implies
+        order_data.legs.count >= config.min_mleg_legs
+        and order_data.legs.count <= config.max_mleg_legs
+    requires: order_data.order_class = mleg implies
+        all_leg_symbols_unique(order_data.legs)
+
+    -- All other order classes identify a single asset and a side
+    requires: order_data.order_class != mleg implies order_data.symbol != null
+    requires: order_data.order_class != mleg implies order_data.side != null
+
+    -- Trailing stop: exactly one of trail_price and trail_percent
     requires: order_data.order_type = trailing_stop implies
         (order_data.trail_price != null) or (order_data.trail_percent != null)
-    requires: order_data.order_type = limit or order_data.order_class = oco implies
+    requires: order_data.order_type = trailing_stop implies
+        order_data.trail_price = null or order_data.trail_percent = null
+
+    -- Price fields demanded by the order type. A limit order inside an OCO
+    -- pair may omit limit_price when the exit limit is supplied via
+    -- take_profit.limit_price.
+    requires: order_data.order_type = limit and order_data.order_class != oco implies
         order_data.limit_price != null
     requires: order_data.order_type = stop or order_data.order_type = stop_limit implies
         order_data.stop_price != null
-    requires: order_data.order_class = mleg implies order_data.legs.count >= 2
+    requires: order_data.order_type = stop_limit implies
+        order_data.limit_price != null
+
+    -- Advanced order classes and their exit specifications
+    requires: order_data.order_class = bracket or order_data.order_class = oco implies
+        order_data.take_profit != null and order_data.stop_loss != null
+    requires: order_data.order_class = oto implies
+        order_data.take_profit != null or order_data.stop_loss != null
 
     ensures: Order.created(
         symbol: order_data.symbol,
@@ -309,6 +388,9 @@ rule ReplaceOrder {
     when: ReplaceOrder(order, replace_data)
 
     requires: order.status in { new, pending_new, accepted, partially_filled }
+    requires: replace_data.qty = null or replace_data.qty > 0
+    requires: replace_data.stop_price = null or replace_data.stop_price > 0
+    requires: replace_data.trail = null or replace_data.trail > 0
 
     ensures:
         let new_order = Order.created(
@@ -318,8 +400,8 @@ rule ReplaceOrder {
             time_in_force: replace_data.time_in_force ?? order.time_in_force,
             limit_price: replace_data.limit_price ?? order.limit_price,
             stop_price: replace_data.stop_price ?? order.stop_price,
-            trail_price: replace_data.trail_price ?? order.trail_price,
-            trail_percent: replace_data.trail_percent ?? order.trail_percent,
+            trail_price: if order.trail_price != null: replace_data.trail ?? order.trail_price else: null,
+            trail_percent: if order.trail_percent != null: replace_data.trail ?? order.trail_percent else: null,
             filled_qty: 0,
             order_class: order.order_class,
             order_type: order.order_type,
@@ -331,6 +413,10 @@ rule ReplaceOrder {
         )
         order.status = pending_replace
         order.replaced_by = new_order
+
+    @guidance
+        -- A replacement carries a single trail value; it applies to whichever
+        -- trailing field (trail_price or trail_percent) the original order used.
 }
 
 rule CancelOrder {
@@ -423,13 +509,18 @@ rule BracketLegTriggered {
 }
 
 rule OcoLegCanceled {
-    when: OrderFilled(oco_leg, fill_qty, fill_price)
+    -- One-cancels-other: when one exit order of an OCO group fills, the
+    -- broker cancels the remaining exit orders. The group is represented as
+    -- an order whose legs are the alternative exits.
+    when: OrderFilled(order, fill_qty, fill_price)
 
-    requires: oco_leg.order_class = oco
+    requires: order.order_class = oco
+    requires: order.legs.count > 0
 
     ensures:
-        for sibling in Orders where replaces = oco_leg.replaces and status != filled:
-            sibling.status = pending_cancel
+        for leg in order.legs:
+            if leg.status in {new, accepted, partially_filled, held}:
+                leg.status = pending_cancel
 }
 
 rule OtoSecondarySubmitted {
@@ -559,6 +650,74 @@ rule UpdateAccountConfiguration {
 
 -- Real-time streaming
 
+rule StartTradeStream {
+    when: StartTradeStream(stream)
+    requires: stream.status = idle
+    ensures: stream.status = connecting
+
+    @guidance
+        -- The websocket connection is not opened until a trade-updates
+        -- handler has been registered; starting the stream without a handler
+        -- parks it until one is supplied or the stream is stopped.
+}
+
+rule TradeStreamConnected {
+    -- Connect, authenticate and listen(trade_updates) completed as one step.
+    when: TradeStreamConnected(stream)
+    requires: stream.status = connecting
+    ensures:
+        stream.status = streaming
+        stream.last_pong_at = now
+}
+
+rule TradeStreamConnectFailed {
+    -- Authentication was rejected or the transport failed while connecting.
+    -- The client logs the error and retries the connect cycle indefinitely;
+    -- it does not give up until explicitly stopped.
+    when: TradeStreamConnectFailed(stream)
+    requires: stream.status = connecting
+    ensures: TradeStreamReconnectAttempted(stream: stream)
+}
+
+rule TradeStreamConnectionLost {
+    -- The transport dropped. The client closes the socket and immediately
+    -- re-enters the connect cycle; the trade_updates subscription is
+    -- re-established automatically on reconnect.
+    when: TradeStreamConnectionLost(stream)
+    requires: stream.status = streaming
+    ensures:
+        stream.status = connecting
+        stream.last_pong_at = null
+}
+
+rule TradeStreamPongReceived {
+    -- The server answered a keepalive ping. The client pings every
+    -- config.stream_ping_interval while connected; each pong refreshes the
+    -- liveness deadline enforced by TradeStreamPingTimeout.
+    when: TradeStreamPongReceived(stream)
+    requires: stream.status = streaming
+    ensures: stream.last_pong_at = now
+}
+
+rule TradeStreamPingTimeout {
+    -- No keepalive acknowledgement within config.stream_ping_timeout: the
+    -- connection is treated as dead and the client re-enters the connect
+    -- cycle exactly as for any other lost connection.
+    when: stream: TradeUpdateStream.last_pong_at + config.stream_ping_timeout <= now
+    requires: stream.status = streaming
+    ensures:
+        stream.status = connecting
+        stream.last_pong_at = null
+}
+
+rule StopTradeStream {
+    when: StopTradeStream(stream)
+    requires: stream.status in {idle, connecting, streaming}
+    ensures:
+        stream.status = stopped
+        stream.last_pong_at = null
+}
+
 rule TradeUpdateReceived {
     when: trade_update: TradeUpdate.created
 
@@ -601,6 +760,12 @@ surface OrderManagement {
             order.filled_qty
             order.limit_price
             order.stop_price
+            order.hwm
+            order.client_order_id
+            order.submitted_at
+            order.expires_at
+            order.replaces
+            order.replaced_by
             order.legs
 
     provides:
@@ -611,32 +776,35 @@ surface OrderManagement {
 }
 
 surface PositionManagement {
+    context position: Position
+
     exposes:
-        for position in Positions:
-            position.symbol
-            position.qty
-            position.qty_available
-            position.side
-            position.market_value
-            position.unrealized_pl
-            position.avg_entry_price
+        position.symbol
+        position.qty
+        position.qty_available
+        position.side
+        position.market_value
+        position.unrealized_pl
+        position.avg_entry_price
 
     provides:
-        ClosePosition(position, close_options)
+        ClosePosition(position, close_options) when position.qty_available > 0
         CloseAllPositions(cancel_orders)
-        ExerciseOptionsPosition(position) when position.asset_class = us_option
+        ExerciseOptionsPosition(position)
+            when position.asset_class = us_option and position.qty_available > 0
 }
 
 surface AccountView {
+    context account: TradeAccount
+
     exposes:
-        for account in TradeAccounts:
-            account.status
-            account.buying_power
-            account.equity
-            account.cash
-            account.pattern_day_trader
-            account.daytrade_count
-            account.options_approved_level
+        account.status
+        account.buying_power
+        account.equity
+        account.cash
+        account.pattern_day_trader
+        account.daytrade_count
+        account.options_approved_level
 
     provides:
         UpdateAccountConfiguration(config_update)
@@ -667,23 +835,50 @@ surface WatchlistManagement {
         DeleteWatchlist(watchlist)
 }
 
-surface MarketData {
+surface AssetCatalog {
+    context asset: Asset
+
     exposes:
-        for asset in Assets:
-            asset.symbol
-            asset.tradable
-            asset.fractionable
-            asset.asset_class
-        for day in MarketCalendarDays:
-            day.date
-            day.open
-            day.close
-        for contract in OptionContracts:
-            contract.symbol
-            contract.underlying_symbol
-            contract.contract_type
-            contract.expiration_date
-            contract.strike_price
+        asset.symbol
+        asset.name
+        asset.asset_class
+        asset.exchange
+        asset.tradable
+        asset.marginable
+        asset.shortable
+        asset.easy_to_borrow
+        asset.fractionable
+        asset.min_order_size
+        asset.min_trade_increment
+        asset.price_increment
+}
+
+surface OptionContractCatalog {
+    context contract: OptionContract
+
+    exposes:
+        contract.symbol
+        contract.name
+        contract.root_symbol
+        contract.underlying_symbol
+        contract.underlying_asset
+        contract.tradable
+        contract.contract_type
+        contract.exercise_style
+        contract.expiration_date
+        contract.strike_price
+        contract.size
+        contract.open_interest
+        contract.close_price
+}
+
+surface TradingCalendar {
+    context day: MarketCalendarDay
+
+    exposes:
+        day.date
+        day.open
+        day.close
 }
 
 surface ExchangeFeed {
@@ -697,7 +892,10 @@ surface ExchangeFeed {
 }
 
 surface TradeStream {
+    context stream: TradeUpdateStream
+
     exposes:
+        stream.status
         for update in TradeUpdates:
             update.event
             update.order
@@ -705,4 +903,30 @@ surface TradeStream {
             update.price
             update.qty
             update.position_qty
+
+    provides:
+        StartTradeStream(stream) when stream.status = idle
+        StopTradeStream(stream)
+
+    timeout:
+        TradeStreamPingTimeout
 }
+
+surface TradeStreamTransport {
+    -- The boundary between the client and the trading API's websocket
+    -- endpoint. The server (via the underlying transport) originates these
+    -- stimuli; the client reacts to them.
+    provides:
+        TradeStreamConnected(stream)
+        TradeStreamConnectFailed(stream)
+        TradeStreamConnectionLost(stream)
+        TradeStreamPongReceived(stream)
+}
+
+------------------------------------------------------------
+-- Open Questions
+------------------------------------------------------------
+
+open question "OCO sibling cancellation direction — the spec models the broker canceling remaining legs when the OCO group's order fills. The reverse linkage (a filled leg canceling the order it belongs to) is not expressible without a parent backreference on Order; the SDK's Order model carries only the forward legs list. Confirm the server-side representation before adding a parent_order field."
+
+open question "TradeAccount lifecycle authority — the account status transition graph is broker-driven and no SDK call changes it; the graph documents observed statuses only. onboarding and paper_only are declared terminal for graph completeness, not because they are semantically final."

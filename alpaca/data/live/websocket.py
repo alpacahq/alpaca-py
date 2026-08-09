@@ -286,10 +286,12 @@ class DataStream:
 
     def _signal_state_change(self) -> None:
         """Wake the stream's event loop after a subscription or stop request."""
-        if self._loop is None or self._subscription_event is None:
+        loop = self._loop
+        subscription_event = self._subscription_event
+        if loop is None or subscription_event is None:
             return
         try:
-            self._loop.call_soon_threadsafe(self._subscription_event.set)
+            loop.call_soon_threadsafe(subscription_event.set)
         except RuntimeError:
             # The stream loop may have closed concurrently with the caller.
             pass

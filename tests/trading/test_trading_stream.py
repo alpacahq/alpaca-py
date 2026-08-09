@@ -1,6 +1,6 @@
 import asyncio
 import threading
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 
 import pytest
 
@@ -69,6 +69,20 @@ async def test_run_forever_wakes_for_subscription_from_another_thread(
         assert thread_errors == []
         await asyncio.wait_for(websocket_started.wait(), timeout=1)
         await asyncio.wait_for(run_task, timeout=1)
+
+
+def test_signal_state_change_uses_event_snapshot(trading_stream: TradingStream):
+    loop = MagicMock()
+    subscription_event = MagicMock()
+    trading_stream._loop = loop
+
+    with patch.object(
+        TradingStream, "_subscription_event", new_callable=PropertyMock, create=True
+    ) as event_attribute:
+        event_attribute.side_effect = [subscription_event, None]
+        trading_stream._signal_state_change()
+
+    loop.call_soon_threadsafe.assert_called_once_with(subscription_event.set)
 
 
 @pytest.mark.asyncio

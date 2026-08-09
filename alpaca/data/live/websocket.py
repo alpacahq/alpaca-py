@@ -53,6 +53,7 @@ class DataStream:
         self._ws = None
         self._running = False
         self._loop = None
+        self._subscription_event: Optional[asyncio.Event] = None
         self._raw_data = raw_data
         self._stop_stream_queue = queue.Queue()
         self._handlers = {
@@ -150,7 +151,7 @@ class DataStream:
         self._should_run = False
         if self._stop_stream_queue.empty():
             self._stop_stream_queue.put_nowait({"should_stop": True})
-        await asyncio.sleep(0)
+        self._signal_state_change()
 
     async def _consume(self) -> None:
         """Distributes data from websocket connection to appropriate callbacks"""
@@ -277,10 +278,43 @@ class DataStream:
         self._ensure_coroutine(handler)
         for symbol in symbols:
             handlers[symbol] = handler
+        self._signal_state_change()
         if self._running:
             asyncio.run_coroutine_threadsafe(
                 self._send_subscribe_msg(), self._loop
             ).result()
+
+    def _signal_state_change(self) -> None:
+        """Wake the stream's event loop after a subscription or stop request."""
+        if self._loop is None or self._subscription_event is None:
+            return
+        try:
+            self._loop.call_soon_threadsafe(self._subscription_event.set)
+        except RuntimeError:
+            # The stream loop may have closed concurrently with the caller.
+            pass
+
+    async def _wait_for_subscriptions(self) -> bool:
+        """Wait until a subscription is registered or the stream is stopped."""
+        self._subscription_event = asyncio.Event()
+        try:
+            while True:
+                try:
+                    self._stop_stream_queue.get_nowait()
+                except queue.Empty:
+                    pass
+                else:
+                    return False
+                if any(
+                    handlers
+                    for channel, handlers in self._handlers.items()
+                    if channel not in ("cancelErrors", "corrections")
+                ):
+                    return True
+                await self._subscription_event.wait()
+                self._subscription_event.clear()
+        finally:
+            self._subscription_event = None
 
     async def _send_subscribe_msg(self) -> None:
         msg = defaultdict(list)
@@ -320,21 +354,13 @@ class DataStream:
         distributing messages
         """
         self._loop = asyncio.get_running_loop()
-        # do not start the websocket connection until we subscribe to something
-        while not any(
-            v
-            for k, v in self._handlers.items()
-            if k not in ("cancelErrors", "corrections")
-        ):
-            if not self._stop_stream_queue.empty():
-                # the ws was signaled to stop before starting the loop so
-                # we break
-                self._stop_stream_queue.get(timeout=1)
-                return
-            await asyncio.sleep(0)
-        log.info(f"started {self._name} stream")
         self._should_run = True
         self._running = False
+        # do not start the websocket connection until we subscribe to something
+        if not await self._wait_for_subscriptions():
+            self._should_run = False
+            return
+        log.info(f"started {self._name} stream")
         while True:
             try:
                 if not self._should_run:

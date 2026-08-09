@@ -78,6 +78,34 @@ def test_get_account_configurations(reqmock: Mocker, trading_client: TradingClie
     assert account_configurations.max_options_trading_level == 1
 
 
+def test_get_account_configurations_without_deprecated_pdt_fields(
+    reqmock: Mocker, trading_client: TradingClient
+):
+    """dtbp_check / pdt_check are removed from Alpaca responses on 2026-07-06
+    (FINRA intraday-margin migration). The config model must still validate when
+    they are absent, defaulting them to None instead of raising a ValidationError."""
+    reqmock.get(
+        f"{BaseURL.TRADING_PAPER.value}/v2/account/configurations",
+        text="""
+        {
+          "no_shorting": false,
+          "suspend_trade": false,
+          "fractional_trading": true,
+          "max_margin_multiplier": "4",
+          "trade_confirm_email": "all",
+          "ptp_no_exception_entry": false,
+          "max_options_trading_level": 1
+        }
+      """,
+    )
+
+    account_configurations = trading_client.get_account_configurations()
+    assert reqmock.called_once
+    assert isinstance(account_configurations, AccountConfiguration)
+    assert account_configurations.dtbp_check is None
+    assert account_configurations.pdt_check is None
+
+
 def test_set_account_configurations(reqmock: Mocker, trading_client: TradingClient):
     new_account_configurations = AccountConfiguration(
         **{

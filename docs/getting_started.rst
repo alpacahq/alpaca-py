@@ -140,6 +140,8 @@ you to pick and choose clients based on your needs.
 
 **Market Data API:**  ``StockHistoricalDataClient``, ``CryptoHistoricalDataClient``, ``OptionHistoricalDataClient``, ``CryptoDataStream``, ``StockDataStream``, ``OptionDataStream``
 
+For a practical checklist and common method mappings, see the :ref:`migration` guide.
+
 
 
 API Keys

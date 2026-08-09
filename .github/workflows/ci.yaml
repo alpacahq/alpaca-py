@@ -4,16 +4,19 @@ on:
   - push
   - pull_request
 
+permissions:
+  contents: read
+
 jobs:
   lints-ci:
     #The lint jobs don't need to run on other OS's or python versions
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # install poetry first for cache
       - name: setup poetry
         run: pipx install poetry
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v6
         with:
           python-version: 3.11
           cache: "poetry"
@@ -28,15 +31,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ "3.8", "3.9", "3.10", "3.11" ] #we'll want to add other versions down the road
+        python-version: [ "3.10", "3.11" ] #we'll want to add other versions down the road
         os: [ ubuntu-latest ] #in the future we should add windows here
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # install poetry first for cache
       - name: setup poetry
         run: pipx install poetry
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
           cache: "poetry"

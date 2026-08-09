@@ -2,6 +2,7 @@
    :hidden:
 
    getting_started
+   Migrating from the previous SDK <migration>
    market_data
    trading
    broker
@@ -41,7 +42,11 @@ Alpaca-py Documentation
 
 
 
-----
+.. note::
+
+   Migrating from ``alpaca-trade-api-python``? Start with the :ref:`migration` guide for the minimum code changes,
+   common method mappings and the main capabilities added by alpaca-py.
+
 
 Introduction
 ------------

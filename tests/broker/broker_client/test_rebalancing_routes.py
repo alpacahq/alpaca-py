@@ -498,8 +498,7 @@ def test_get_all_runs(reqmock: Mocker, client: BrokerClient) -> None:
     reqmock.get(
         f"{BaseURL.BROKER_SANDBOX.value}/v1/rebalancing/runs",
         response_list=[
-            {
-                "text": """
+            {"text": """
                         {
                 "runs": [
                     {
@@ -537,10 +536,8 @@ def test_get_all_runs(reqmock: Mocker, client: BrokerClient) -> None:
                 ],
                 "next_page_token": 1
             }
-            """
-            },
-            {
-                "text": """
+            """},
+            {"text": """
                         {
                 "runs": [
                     {
@@ -588,8 +585,7 @@ def test_get_all_runs(reqmock: Mocker, client: BrokerClient) -> None:
                 ],
                 "next_page_token": null
             }
-            """
-            },
+            """},
         ],
     )
     response = client.get_all_runs(filter=GetRunsRequest())

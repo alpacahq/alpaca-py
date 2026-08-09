@@ -950,6 +950,72 @@ def test_get_trade_account_by_id(reqmock, client: BrokerClient):
     assert account.id == UUID(account_id)
 
 
+def test_get_trade_account_by_id_without_deprecated_pdt_fields(
+    reqmock, client: BrokerClient
+):
+    """PDT/DTBP account fields are removed from Alpaca responses on 2026-07-06
+    (FINRA intraday-margin migration). The model must still validate when they
+    are absent, defaulting them to None instead of raising a ValidationError."""
+    account_id = "5fc0795e-1f16-40cc-aa90-ede67c39d7a9"
+
+    reqmock.get(
+        BaseURL.BROKER_SANDBOX.value + f"/v1/trading/accounts/{account_id}/account",
+        text="""
+        {
+          "id": "5fc0795e-1f16-40cc-aa90-ede67c39d7a9",
+          "account_number": "684486106",
+          "status": "ACTIVE",
+          "crypto_status": "ACTIVE",
+          "currency": "USD",
+          "buying_power": "0",
+          "regt_buying_power": "0",
+          "non_marginable_buying_power": "0",
+          "cash": "0",
+          "cash_withdrawable": "0",
+          "cash_transferable": "0",
+          "accrued_fees": "0",
+          "pending_transfer_out": "0",
+          "pending_transfer_in": "0",
+          "portfolio_value": "0",
+          "trading_blocked": false,
+          "transfers_blocked": false,
+          "account_blocked": false,
+          "created_at": "2022-04-14T15:51:14.523349Z",
+          "trade_suspended_by_user": false,
+          "multiplier": "1",
+          "shorting_enabled": false,
+          "equity": "0",
+          "last_equity": "0",
+          "long_market_value": "0",
+          "short_market_value": "0",
+          "initial_margin": "0",
+          "maintenance_margin": "0",
+          "last_maintenance_margin": "0",
+          "sma": "0",
+          "previous_close": "2022-04-13T20:00:00-04:00",
+          "last_long_market_value": "0",
+          "last_short_market_value": "0",
+          "last_cash": "0",
+          "last_initial_margin": "0",
+          "last_regt_buying_power": "0",
+          "last_buying_power": "0",
+          "clearing_broker": "VELOX"
+        }
+              """,
+    )
+
+    account = client.get_trade_account_by_id(account_id)
+
+    assert reqmock.called_once
+    assert type(account) == TradeAccount
+    assert account.id == UUID(account_id)
+    assert account.daytrading_buying_power is None
+    assert account.pattern_day_trader is None
+    assert account.daytrade_count is None
+    assert account.last_daytrading_buying_power is None
+    assert account.last_daytrade_count is None
+
+
 def test_get_trade_account_by_id_validates_account_id(reqmock, client: BrokerClient):
     with pytest.raises(ValueError) as e:
         client.get_trade_account_by_id("not a uuid")

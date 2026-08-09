@@ -489,7 +489,8 @@ class TradeAccount(ModelWithID):
           buying_power = max(equity-initial_margin(0) * 2). If multiplier = 1 then buying_power = cash.
         regt_buying_power (Optional[str]): User’s buying power under Regulation T
           (excess equity - (equity - margin value) - * margin multiplier)
-        daytrading_buying_power (Optional[str]): The buying power for day trades for the account
+        daytrading_buying_power (Optional[str]): The buying power for day trades for the account.
+          Deprecated; removed from Alpaca responses on 2026-07-06 (FINRA intraday-margin migration) and defaults to None.
         non_marginable_buying_power (Optional[str]): The non marginable buying power for the account
         cash (Optional[str]): Cash balance in the account
         accrued_fees (Optional[str]): Fees accrued in this account
@@ -498,6 +499,7 @@ class TradeAccount(ModelWithID):
         portfolio_value (str): Total value of cash + holding positions.
           (This field is deprecated. It is equivalent to the equity field.)
         pattern_day_trader (Optional[bool]): Whether the account is flagged as pattern day trader or not.
+          Deprecated; removed from Alpaca responses on 2026-07-06 (FINRA intraday-margin migration) and defaults to None.
         trading_blocked (Optional[bool]): If true, the account is not allowed to place orders.
         transfers_blocked (Optional[bool]): If true, the account is not allowed to request money transfers.
         account_blocked (Optional[bool]): If true, the account activity by user is prohibited.
@@ -515,7 +517,8 @@ class TradeAccount(ModelWithID):
         last_maintenance_margin (Optional[str]): Maintenance margin requirement on the previous trading day
         sma (Optional[str]): Value of Special Memorandum Account (will be used at a later date to provide additional buying_power)
         daytrade_count (Optional[int]): The current number of daytrades that have been made in the last 5 trading days
-          (inclusive of today)
+          (inclusive of today).
+          Deprecated; removed from Alpaca responses on 2026-07-06 (FINRA intraday-margin migration) and defaults to None.
         options_buying_power (Optional[str]): Your buying power for options trading
         options_approved_level (Optional[int]): The options trading level that was approved for this account.
           0=disabled, 1=Covered Call/Cash-Secured Put, 2=Long Call/Put, 3=Spreads/Straddles.
@@ -563,22 +566,24 @@ class AccountConfiguration(BaseModel):
     Represents configuration options for a TradeAccount.
 
     Attributes:
-        dtbp_check (DTBPCheck): Day Trade Buying Power Check. Controls Day Trading Margin Call (DTMC) checks.
+        dtbp_check (Optional[DTBPCheck]): Day Trade Buying Power Check. Controls Day Trading Margin Call (DTMC) checks.
+          Deprecated; removed from Alpaca responses on 2026-07-06 (FINRA intraday-margin migration) and defaults to None.
         fractional_trading (bool): If true, account is able to participate in fractional trading
         max_margin_multiplier (str): A number between 1-4 that represents your max margin multiplier
         no_shorting (bool): If true then Account becomes long-only mode.
-        pdt_check (PDTCheck): Controls Pattern Day Trader (PDT) checks.
+        pdt_check (Optional[PDTCheck]): Controls Pattern Day Trader (PDT) checks.
+          Deprecated; removed from Alpaca responses on 2026-07-06 (FINRA intraday-margin migration) and defaults to None.
         suspend_trade (bool): If true Account becomes unable to submit new orders
         trade_confirm_email (TradeConfirmationEmail): Controls whether Trade confirmation emails are sent.
         ptp_no_exception_entry (bool): If set to true then Alpaca will accept orders for PTP symbols with no exception. Default is false.
         max_options_trading_level (Optional[int]): The desired maximum options trading level. 0=disabled, 1=Covered Call/Cash-Secured Put, 2=Long Call/Put, 3=Spreads/Straddles.
     """
 
-    dtbp_check: DTBPCheck
+    dtbp_check: Optional[DTBPCheck] = None
     fractional_trading: bool
     max_margin_multiplier: str
     no_shorting: bool
-    pdt_check: PDTCheck
+    pdt_check: Optional[PDTCheck] = None
     suspend_trade: bool
     trade_confirm_email: TradeConfirmationEmail
     ptp_no_exception_entry: bool

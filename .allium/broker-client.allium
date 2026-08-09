@@ -19,6 +19,8 @@
 -- excluded: order placement, positions, watchlists, calendar/clock, assets,
 --           corporate actions, account-activity streams (trading spec)
 
+use "github.com/alpacahq/alpaca-allium-lib@d5d38e0fe969061525b6fabbf7c66e0aa66c40e2/BrokerageAccount" as brokerageaccount
+
 ------------------------------------------------------------
 -- External Entities
 ------------------------------------------------------------
@@ -137,8 +139,8 @@ value RebalanceCondition {
 value JournalEntryRequest {
     -- A single entry in a batch or reverse-batch journal request: identifies
     -- one counterparty account and the amount of cash to journal
-    to_account: BrokerageAccount?
-    from_account: BrokerageAccount?
+    to_account: brokerageaccount/BrokerageAccount?
+    from_account: brokerageaccount/BrokerageAccount?
     amount: Decimal
     description: String?
     transmitter_name: String?
@@ -153,6 +155,46 @@ value AccountDocumentUpload {
     -- batch: identifies the document's kind for the broker's review
     kind: AccountDocumentKind
     sub_kind: String?
+}
+
+------------------------------------------------------------
+-- Contracts
+------------------------------------------------------------
+
+contract AccountApplicationIntake {
+    -- The typed payload the platform accepts when a correspondent submits a
+    -- new account application (SubmitAccountApplication).
+    submit_application: (holder: AccountHolder, kind: AccountKind, sub_kind: AccountSubKind?, contact: ContactDetails, identity: PersonalIdentity, disclosures: RegulatoryDisclosures, agreements: Set<SignedAgreement>, trusted_contact: EmergencyContact?, supporting_documents: Set<AccountDocumentUpload>) -> brokerageaccount/BrokerageAccount
+
+    @invariant AgreementsRequired
+        -- At least one signed agreement must accompany every application.
+}
+
+contract CustomerIdentificationIntake {
+    -- The typed payload for submitting KYC provider review outcomes
+    -- (SubmitCipResults).
+    submit_cip_results: (account: brokerageaccount/BrokerageAccount, providers: Set<KycProvider>, review: KycReviewOutcome) -> CipSubmission
+}
+
+contract TradeDocumentAccess {
+    -- Retrieval of broker-generated trade documents for an account
+    -- (statements, confirmations, tax forms).
+    list_trade_documents: (account: brokerageaccount/BrokerageAccount, kind: TradeDocumentKind?) -> Set<TradeDocument>
+    download_trade_document: (document: TradeDocument) -> String
+
+    @invariant RegulatoryRetention
+        -- Documents remain retrievable for their regulatory retention
+        -- period; closure of the account does not delete them.
+}
+
+contract BatchJournalIntake {
+    -- The typed entry payload for batch and reverse-batch cash journals.
+    submit_batch: (from_account: brokerageaccount/BrokerageAccount, entries: List<JournalEntryRequest>) -> Set<Journal>
+    submit_reverse_batch: (to_account: brokerageaccount/BrokerageAccount, entries: List<JournalEntryRequest>) -> Set<Journal>
+
+    @invariant IndependentEntries
+        -- Each entry produces an independent journal; a failing entry does
+        -- not roll back the other journals created by the same batch.
 }
 
 ------------------------------------------------------------
@@ -257,68 +299,10 @@ enum CryptoStatus {
 -- Entities and Variants
 ------------------------------------------------------------
 
-entity BrokerageAccount {
-    -- An end-user account opened by a correspondent. The correspondent owns
-    -- the relationship with the holder; the broker owns the account's
-    -- regulatory lifecycle.
-    correspondent: Correspondent
-    holder: AccountHolder
-    kind: AccountKind
-    sub_kind: AccountSubKind?
-
-    -- Broker-assigned once the application is accepted into the pipeline
-    account_number: String?
-
-    -- Identity package: collected on application, may be partially updated
-    -- afterwards while the account remains open
-    contact: ContactDetails
-    identity: PersonalIdentity
-    disclosures: RegulatoryDisclosures
-    agreements: Set<SignedAgreement>
-    trusted_contact: EmergencyContact?
-
-    -- Current outcome of identity verification, if any has been recorded
-    kyc_review: KycReviewOutcome?
-
-    -- The status space the correspondent observes through the API. The
-    -- broker drives transitions between most of these values; the
-    -- correspondent only directly causes `submitted` (on application) and
-    -- `account_closed` (on close).
-    status: submitted
-            | action_required
-            | approval_pending
-            | aml_review
-            | approved
-            | active
-            | limited
-            | paper_only
-            | rejected
-            | disabled
-            | inactive
-            | account_closed
-
-    -- Independent crypto-trading authorisation; absent when not enabled
-    crypto_status: CryptoStatus?
-
-    created_at: Timestamp
-
-    -- Related collections
-    account_documents: AccountDocument with account = this
-    trade_documents: TradeDocument with account = this
-    cip_submissions: CipSubmission with account = this
-    ach_relationships: AchRelationship with account = this
-    recipient_banks: RecipientBank with account = this
-    transfers: Transfer with account = this
-    outgoing_journals: Journal with from_account = this
-    incoming_journals: Journal with to_account = this
-    subscriptions: AccountSubscription with account = this
-    rebalancing_runs: RebalancingRun with account = this
-}
-
 entity AccountDocument {
     -- A holder-supplied document attached to the account (identity proof,
     -- address proof, W-8BEN, etc.) used during onboarding and CIP
-    account: BrokerageAccount
+    account: brokerageaccount/BrokerageAccount
     kind: AccountDocumentKind
     sub_kind: String?
     uploaded_at: Timestamp
@@ -328,7 +312,7 @@ entity TradeDocument {
     -- A broker-generated document about trading activity on the account
     -- (account statement, trade confirmation, tax statement). Available for
     -- download by the correspondent.
-    account: BrokerageAccount
+    account: brokerageaccount/BrokerageAccount
     name: String
     kind: TradeDocumentKind
     generated_for_date: Timestamp
@@ -338,7 +322,7 @@ entity CipSubmission {
     -- A customer-identification report submitted by the correspondent against
     -- an account. Bundles KYC findings, document checks, photo comparison,
     -- identity-source lookups and watchlist results from a KYC provider.
-    account: BrokerageAccount
+    account: brokerageaccount/BrokerageAccount
     providers: Set<KycProvider>
     submitted_at: Timestamp
     updated_at: Timestamp
@@ -347,21 +331,39 @@ entity CipSubmission {
 entity AchRelationship {
     -- A linked US bank account used for ACH deposits and withdrawals. The
     -- correspondent submits it; the broker validates and approves it; the
-    -- correspondent may unlink it.
-    account: BrokerageAccount
+    -- correspondent may unlink it. Unlinking removes the relationship
+    -- outright (there is no observable canceled state, unlike recipient
+    -- wire banks); transfers that already reference it are unaffected.
+    account: brokerageaccount/BrokerageAccount
     nickname: String?
     bank_account_kind: BankAccountKind
-    status: queued | pending | approved | canceled
+    status: queued | pending | approved
+
+    transitions status {
+        queued -> pending
+        queued -> approved
+        pending -> approved
+        terminal: approved
+    }
 }
 
 entity RecipientBank {
     -- A linked external bank used as the destination for outbound wire
     -- transfers (or origin for inbound, for international accounts)
-    account: BrokerageAccount
+    account: brokerageaccount/BrokerageAccount
     name: String
     identifier_kind: BankIdentifierKind
     address: PostalAddress?
     status: queued | sent_to_clearing | approved | canceled
+
+    transitions status {
+        queued -> sent_to_clearing
+        sent_to_clearing -> approved
+        queued -> canceled
+        sent_to_clearing -> canceled
+        approved -> canceled
+        terminal: canceled
+    }
 }
 
 entity Transfer {
@@ -371,7 +373,7 @@ entity Transfer {
     -- counterparty) drives the transfer's progression through clearing;
     -- the correspondent requests transfers and may cancel them prior to
     -- clearing.
-    account: BrokerageAccount
+    account: brokerageaccount/BrokerageAccount
     kind: TransferKind
     direction: TransferDirection
     amount: Decimal
@@ -394,6 +396,26 @@ entity Transfer {
             | canceled
             | returned
 
+    transitions status {
+        queued -> approval_pending
+        queued -> pending
+        approval_pending -> pending
+        pending -> sent_to_clearing
+        sent_to_clearing -> approved
+        approved -> settled
+        settled -> complete
+        sent_to_clearing -> returned
+        approved -> returned
+        settled -> returned
+        queued -> rejected
+        approval_pending -> rejected
+        pending -> rejected
+        queued -> canceled
+        approval_pending -> canceled
+        pending -> canceled
+        terminal: complete, rejected, canceled, returned
+    }
+
     invariant FundingSourceMatchesKind {
         kind = ach implies ach_source != null and wire_source = null
     }
@@ -407,8 +429,8 @@ entity Journal {
     -- An internal transfer of cash or securities between two brokerage
     -- accounts at this broker. Journals are off-market: they never touch
     -- external rails, but still flow through clearing.
-    from_account: BrokerageAccount
-    to_account: BrokerageAccount
+    from_account: brokerageaccount/BrokerageAccount
+    to_account: brokerageaccount/BrokerageAccount
     kind: JournalKind
     -- Cash journal payload
     cash_amount: Decimal?
@@ -416,7 +438,7 @@ entity Journal {
     -- Security journal payload
     security: TradableSecurity?
     quantity: Decimal?
-    price: Decimal?
+    price: Decimal?    -- assigned by the broker when the journal executes; not requestable
     -- Travel-rule fields (required by FinCEN for cash journals over the
     -- regulatory threshold)
     transmitter_name: String?
@@ -438,6 +460,22 @@ entity Journal {
             | canceled
             | refused
             | deleted
+
+    transitions status {
+        queued -> sent_to_clearing
+        sent_to_clearing -> pending
+        pending -> executed
+        executed -> correct
+        executed -> deleted
+        queued -> canceled
+        sent_to_clearing -> canceled
+        pending -> canceled
+        queued -> rejected
+        sent_to_clearing -> rejected
+        pending -> rejected
+        queued -> refused
+        terminal: correct, rejected, canceled, refused, deleted
+    }
 
     invariant CashJournalPayload {
         kind = cash implies cash_amount != null and security = null and quantity = null
@@ -467,6 +505,13 @@ entity ModelPortfolio {
     created_at: Timestamp
     updated_at: Timestamp
 
+    transitions status {
+        active -> needs_adjustment
+        active -> inactive
+        needs_adjustment -> inactive
+        terminal: inactive
+    }
+
     subscriptions: AccountSubscription with portfolio = this
     runs: RebalancingRun with portfolio = this
 
@@ -481,7 +526,7 @@ entity AccountSubscription {
     -- Records that a BrokerageAccount has elected to be rebalanced to a
     -- ModelPortfolio's target weights. The brokerage produces rebalancing
     -- runs against subscribed accounts when conditions are met.
-    account: BrokerageAccount
+    account: brokerageaccount/BrokerageAccount
     portfolio: ModelPortfolio
     created_at: Timestamp
     last_rebalanced_at: Timestamp?
@@ -493,7 +538,7 @@ entity RebalancingRun {
     -- a portfolio update, or a manual run requested by the correspondent.
     -- The broker drives the run's progression; the correspondent may cancel
     -- a run before or during execution.
-    account: BrokerageAccount
+    account: brokerageaccount/BrokerageAccount
     portfolio: ModelPortfolio
     kind: RebalancingRunKind
     initiator: RebalancingRunInitiator?
@@ -512,6 +557,18 @@ entity RebalancingRun {
             | timeout
             | completed_success
             | completed_adjusted
+
+    transitions status {
+        queued -> in_progress
+        queued -> canceled
+        in_progress -> canceled_mid_run
+        in_progress -> error
+        in_progress -> timeout
+        in_progress -> completed_success
+        in_progress -> completed_adjusted
+        terminal: canceled, canceled_mid_run, error, timeout,
+                  completed_success, completed_adjusted
+    }
 }
 
 ------------------------------------------------------------
@@ -553,7 +610,7 @@ rule SubmitAccountApplication {
     )
     requires: agreements.count > 0
     ensures:
-        let account = BrokerageAccount.created(
+        let account = brokerageaccount/BrokerageAccount.created(
             correspondent: correspondent,
             holder: holder,
             kind: kind,
@@ -763,13 +820,12 @@ rule EstablishAchRelationship {
 
 rule RemoveAchRelationship {
     -- The correspondent unlinks an ACH relationship from an account. The
-    -- relationship enters a canceled terminal state; outstanding transfers
-    -- that already reference it are unaffected.
+    -- relationship is removed outright; outstanding transfers that already
+    -- reference it are unaffected.
     when: RemoveAchRelationship(correspondent, account, relationship)
     requires: account.correspondent = correspondent
     requires: relationship.account = account
-    requires: relationship.status != canceled
-    ensures: relationship.status = canceled
+    ensures: not exists relationship
 }
 
 rule BrokerApprovesAchRelationship {
@@ -993,7 +1049,6 @@ rule RequestJournal {
         base_currency?,
         security?,
         quantity?,
-        price?,
         description?,
         transmitter_name?,
         transmitter_account_number?,
@@ -1024,7 +1079,6 @@ rule RequestJournal {
             base_currency: base_currency,
             security: security,
             quantity: quantity,
-            price: price,
             description: description,
             transmitter_name: transmitter_name,
             transmitter_account_number: transmitter_account_number,
@@ -1367,7 +1421,7 @@ rule DownloadTradeDocument {
 ------------------------------------------------------------
 
 invariant AccountsBelongToOneCorrespondent {
-    for account in BrokerageAccounts:
+    for account in brokerageaccount/BrokerageAccounts:
         account.correspondent != null
 }
 
@@ -1429,6 +1483,9 @@ surface PartnerOnboarding {
             trusted_contact?,
             supporting_documents?
         )
+
+    contracts:
+        fulfils AccountApplicationIntake
 }
 
 surface AccountAdministration {
@@ -1436,13 +1493,16 @@ surface AccountAdministration {
     -- holds on behalf of an end user.
     facing partner: BrokerPartner
 
-    context account: BrokerageAccount where correspondent = partner
+    context account: brokerageaccount/BrokerageAccount where correspondent = partner
 
     exposes:
         account.account_number
         account.kind
         account.sub_kind
         account.status
+        -- Value space of account.crypto_status (declared on the shared
+        -- BrokerageAccount entity in alpaca-allium-lib)
+        CryptoStatus
         account.crypto_status
         account.kyc_review
         account.contact
@@ -1464,6 +1524,10 @@ surface AccountAdministration {
             when account.status in {active, limited, paper_only, disabled, inactive, approved}
         DownloadTradeDocument(partner, account, document)
 
+    contracts:
+        fulfils CustomerIdentificationIntake
+        fulfils TradeDocumentAccess
+
     related:
         AccountFunding(account)
         AccountRebalancing(account) when account.subscriptions.count > 0
@@ -1474,7 +1538,7 @@ surface AccountFunding {
     -- bank links used to do so.
     facing partner: BrokerPartner
 
-    context account: BrokerageAccount where correspondent = partner
+    context account: brokerageaccount/BrokerageAccount where correspondent = partner
 
     exposes:
         account.ach_relationships
@@ -1511,7 +1575,7 @@ surface InterAccountJournals {
         RequestJournal(
             partner, from_account, to_account, kind,
             cash_amount?, base_currency?,
-            security?, quantity?, price?,
+            security?, quantity?,
             description?,
             transmitter_name?, transmitter_account_number?,
             transmitter_address?, transmitter_financial_institution?,
@@ -1520,6 +1584,9 @@ surface InterAccountJournals {
         RequestBatchJournal(partner, from_account, entries)
         RequestReverseBatchJournal(partner, to_account, entries)
         CancelJournal(partner, journal)
+
+    contracts:
+        fulfils BatchJournalIntake
 }
 
 surface PortfolioCatalog {
@@ -1549,7 +1616,7 @@ surface AccountRebalancing {
     -- rebalancing runs.
     facing partner: BrokerPartner
 
-    context account: BrokerageAccount where correspondent = partner
+    context account: brokerageaccount/BrokerageAccount where correspondent = partner
 
     exposes:
         account.subscriptions
@@ -1563,6 +1630,50 @@ surface AccountRebalancing {
         CancelRebalancingRun(partner, run)
 }
 
+surface BrokerOperationsFeed {
+    -- The boundary between this specification and the broker's internal
+    -- operations pipeline (including its clearing counterparty). The broker
+    -- originates these stimuli; the correspondent observes the resulting
+    -- state changes through the other surfaces. Modelled so that every
+    -- broker-driven lifecycle rule has an originating boundary.
+    provides:
+        BrokerProgressedAccountReview(account)
+        BrokerRequestedAccountAction(account)
+        BrokerEscalatedAccountForAmlReview(account)
+        BrokerApprovedAccount(account)
+        BrokerActivatedAccount(account)
+        BrokerLimitedAccount(account)
+        BrokerSetAccountPaperOnly(account)
+        BrokerInactivatedAccount(account)
+        BrokerDisabledAccount(account)
+        BrokerRejectedAccount(account)
+        BrokerApprovedAchRelationship(relationship)
+        BrokerMarkedAchRelationshipPending(relationship)
+        BrokerSentRecipientBankToClearing(bank)
+        BrokerApprovedRecipientBank(bank)
+        BrokerHeldTransferForApproval(transfer)
+        BrokerApprovedTransferForClearing(transfer)
+        BrokerSentTransferToClearing(transfer)
+        BrokerMarkedTransferApproved(transfer)
+        BrokerSettledTransfer(transfer)
+        BrokerCompletedTransfer(transfer)
+        BrokerRejectedTransfer(transfer)
+        BrokerReturnedTransfer(transfer)
+        BrokerSentJournalToClearing(journal)
+        BrokerMarkedJournalPending(journal)
+        BrokerExecutedJournal(journal)
+        BrokerFinalisedJournal(journal)
+        BrokerRejectedJournal(journal)
+        BrokerRefusedJournal(journal)
+        BrokerDeletedJournal(journal)
+        BrokerFlaggedPortfolioForAdjustment(portfolio)
+        BrokerStartedRebalancingRun(run)
+        BrokerCompletedRebalancingRunSuccessfully(run)
+        BrokerCompletedRebalancingRunAdjusted(run)
+        BrokerFailedRebalancingRun(run)
+        BrokerTimedOutRebalancingRun(run)
+}
+
 ------------------------------------------------------------
 -- Open Questions
 ------------------------------------------------------------
@@ -1574,3 +1685,9 @@ open question "Rebalancing trigger semantics — exact conditions under which a 
 open question "Travel-rule threshold currency — config.travel_rule_threshold_amount is expressed in USD, but cash journals support multiple base currencies. Threshold may need to be per-currency."
 
 open question "OAuth B2B authorization flow — referenced in scope description but not present in the surveyed code; assumed to live in a separate authorization service."
+
+open question "CIP submission implementation — the surveyed client's CIP upload and retrieval methods are unimplemented stubs (the sandbox CIP routes return 404), so SubmitCipResults models the documented Broker API behaviour rather than exercised code. Revisit once the client implements the CIP routes."
+
+open question "Portfolio needs_adjustment recovery — no client operation or documented broker stimulus returns a needs_adjustment portfolio to active after the correspondent corrects its weights via UpdateModelPortfolio. The transition graph therefore only allows needs_adjustment -> inactive. Confirm whether the broker re-activates adjusted portfolios automatically."
+
+open question "AchRelationship terminal state — the client can unlink (delete) an ACH relationship at any status, and code declares only QUEUED/PENDING/APPROVED. approved is modelled as terminal because no observable status transition leaves it; the API may internally use a CANCELED state that this client never sees."

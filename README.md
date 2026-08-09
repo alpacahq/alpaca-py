@@ -2,7 +2,7 @@
 
 [![Downloads](https://pepy.tech/badge/alpaca-py/month)](https://pepy.tech/project/alpaca-py)
 [![Python Versions](https://img.shields.io/pypi/pyversions/alpaca-py.svg?logo=python&logoColor=white)](https://pypi.org/project/alpaca-py)
-[![GitHub](https://img.shields.io/github/license/alpacahq/alpaca-py?color=blue)](https://github.com/alpacahq/alpaca-py/blob/master/LICENSE.md)
+[![GitHub](https://img.shields.io/github/license/alpacahq/alpaca-py?color=blue)](https://github.com/alpacahq/alpaca-py/blob/master/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/alpaca-py?color=blue)](https://pypi.org/project/alpaca-py/)
 
 ## Table of Contents
@@ -43,7 +43,7 @@ You can also find the API Reference of Alpaca APIs: https://docs.alpaca.markets/
 
 ## Installation <a name="installation"></a>
 
-Alpaca-py is supported on Python 3.8+.  You can install Alpaca-py using pip.
+Alpaca-py is supported on Python 3.10+. You can install Alpaca-py using pip.
 
 Run the following command in your terminal.
 

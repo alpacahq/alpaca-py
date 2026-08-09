@@ -26,7 +26,7 @@ class StockHistoricalDataClient(RESTClient):
     """
     The REST client for interacting with Alpaca Market Data API stock data endpoints.
 
-    Learn more on https://alpaca.markets/docs/market-data/
+    Learn more on https://alpaca.markets/docs/about-market-data-api
     """
 
     def __init__(

@@ -8,7 +8,7 @@ The market data API allows you to access both live and historical data for equit
 Over 5 years of historical data is available for thousands of equity and cryptocurrency symbols.
 Various data types are available such as bars/candles (OHLCV), trade data (price and sales), and quote data. For
 crypto, there is also orderbook data. For more information on the data types available,
-please look at the `API reference <https://alpaca.markets/docs/market-data/>`_.
+please look at the `API reference <https://alpaca.markets/docs/about-market-data-api/>`_.
 
 
 Subscription Plans

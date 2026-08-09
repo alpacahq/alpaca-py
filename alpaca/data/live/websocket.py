@@ -9,8 +9,8 @@ import websockets
 from pydantic import BaseModel
 from websockets.legacy import client as websockets_legacy
 
-from alpaca import __version__
 from alpaca.common.types import RawData
+from alpaca.common.utils import get_default_user_agent
 from alpaca.data.models import (
     Bar,
     News,
@@ -89,16 +89,19 @@ class DataStream:
             ValueError: Raised if there is an unsuccessful connection
         """
 
+        params = dict(self._websocket_params or {})
         extra_headers = {
+            **dict(params.pop("extra_headers", {}) or {}),
+            # Protocol/SDK headers always win over caller-supplied values.
             "Content-Type": "application/msgpack",
-            "User-Agent": "APCA-PY/" + __version__,
+            "User-Agent": get_default_user_agent(),
         }
 
         log.info(f"connecting to {self._endpoint}")
         self._ws = await websockets_legacy.connect(
             self._endpoint,
             extra_headers=extra_headers,
-            **self._websocket_params,
+            **params,
         )
         r = await self._ws.recv()
         msg = msgpack.unpackb(r)

@@ -278,11 +278,7 @@ def _download_release_wheel(
     exact = [
         path
         for path in matches
-        if path.name.startswith(f"alpaca_py-{version}-")
-        and not path.name.startswith(f"alpaca_py-{version}.")
-        and not path.name.startswith(f"alpaca_py-{version}+")
-        and ".dev" not in path.name
-        and ".post" not in path.name
+        if _versions_equal(_wheel_version(path), version)
     ]
     if not exact:
         raise ToolError(f"failed to download wheel for {PACKAGE_NAME}=={version}")

@@ -45,6 +45,33 @@ class TestNormalizeVersion:
         )
 
 
+class TestDownloadReleaseWheelSelection:
+    def test_post_release_wheel_is_accepted(self, cab, tmp_path, monkeypatch):
+        version = "0.43.5.post1"
+        wheel = tmp_path / f"alpaca_py-{version}-py3-none-any.whl"
+        wheel.write_bytes(b"")
+
+        def fake_pip(python, *args, verbose=True):
+            return None
+
+        monkeypatch.setattr(cab, "_pip", fake_pip)
+        selected = cab._download_release_wheel(
+            tmp_path / "python", version, tmp_path, verbose=False
+        )
+        assert selected == wheel
+
+    def test_release_wheel_is_accepted(self, cab, tmp_path, monkeypatch):
+        version = "0.43.5"
+        wheel = tmp_path / f"alpaca_py-{version}-py3-none-any.whl"
+        wheel.write_bytes(b"")
+
+        monkeypatch.setattr(cab, "_pip", lambda *args, **kwargs: None)
+        selected = cab._download_release_wheel(
+            tmp_path / "python", version, tmp_path, verbose=False
+        )
+        assert selected == wheel
+
+
 class TestCompareEnums:
     def test_removed_member_is_breaking(self, cab):
         old = {

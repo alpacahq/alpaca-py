@@ -3,7 +3,7 @@ name: Allium Check
 # Runs `allium check` on every `.allium` file in the repo.
 #
 # Local install:
-#     cargo install --locked --version 3.0.4 allium-cli
+#     cargo install --locked --version 3.5.3 allium-cli
 #
 # Toolchain note: allium-cli is a Rust binary and is not bootstrapped through
 # the Makefile's `bin/<name>-<version>` convention (where one exists). The
@@ -24,7 +24,7 @@ permissions:
   contents: read
 
 env:
-  ALLIUM_VERSION: "3.0.4"
+  ALLIUM_VERSION: "3.5.3"
   # Opt in to Node 24 runtime for actions; Node 20 will be removed 2026-09-16.
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
@@ -56,7 +56,9 @@ jobs:
       - name: Run allium check
         # `-e` is GHA's default, but `allium check` exits non-zero on any
         # warning — we only want to fail CI on actual errors. Disable
-        # errexit and gate on the parsed summary line.
+        # errexit and gate on error-severity diagnostics. allium-cli 3.5.x
+        # prints JSON diagnostics (one object per file) with no "N error(s)"
+        # summary line, so count `"severity": "error"` entries directly.
         shell: bash
         run: |
           set +e
@@ -69,13 +71,13 @@ jobs:
           echo "Checking:"
           echo "$FILES" | sed 's/^/  /'
           allium check $FILES 2>&1 | tee allium.log
-          ERRORS=$(grep -oE '[0-9]+ error\(s\)' allium.log | tail -1 | awk '{print $1}')
-          if [ -z "$ERRORS" ]; then
-            echo "::error::could not parse allium check summary"
+          if ! grep -q '"diagnostics"' allium.log; then
+            echo "::error::could not parse allium check output (no diagnostics array)"
             exit 1
           fi
+          ERRORS=$(grep -c '"severity": "error"' allium.log)
           if [ "$ERRORS" -gt 0 ]; then
-            echo "::error::allium check reported $ERRORS error(s)"
+            echo "::error::allium check reported $ERRORS error diagnostic(s)"
             exit 1
           fi
-          echo "OK — 0 errors."
+          echo "OK — 0 error diagnostics."

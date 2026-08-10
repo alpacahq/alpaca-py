@@ -204,11 +204,14 @@ entity Position {
 entity TradeAccount {
     status: AccountStatus
     buying_power: Decimal
-    daytrading_buying_power: Decimal
+    -- PDT/DTBP fields are deprecated: removed from Alpaca responses on
+    -- 2026-07-06 (FINRA intraday-margin migration); the SDK tolerates their
+    -- absence and defaults them to null.
+    daytrading_buying_power: Decimal?
     cash: Decimal
     equity: Decimal
-    daytrade_count: Integer
-    pattern_day_trader: Boolean
+    daytrade_count: Integer?
+    pattern_day_trader: Boolean?
     options_approved_level: OptionsApprovalLevel?
     options_trading_level: OptionsApprovalLevel?
 
@@ -243,11 +246,14 @@ entity TradeAccount {
 }
 
 entity AccountConfiguration {
-    dtbp_check: DTBPCheck
+    -- dtbp_check / pdt_check are deprecated: removed from Alpaca responses on
+    -- 2026-07-06 (FINRA intraday-margin migration); the SDK tolerates their
+    -- absence and defaults them to null.
+    dtbp_check: DTBPCheck?
     fractional_trading: Boolean
     max_margin_multiplier: Integer
     no_shorting: Boolean
-    pdt_check: DTBPCheck
+    pdt_check: DTBPCheck?
     suspend_trade: Boolean
     trade_confirm_email: TradeConfirmationEmail
     max_options_trading_level: OptionsApprovalLevel?

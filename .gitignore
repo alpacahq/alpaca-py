@@ -6,6 +6,9 @@ __pycache__/
 # C extensions
 *.so
 
+# Live probe proof artifacts
+artifacts/
+
 # Distribution / packaging
 .Python
 build/

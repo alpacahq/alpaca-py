@@ -3,7 +3,133 @@
 
 use "github.com/alpacahq/alpaca-allium-lib@d5d38e0fe969061525b6fabbf7c66e0aa66c40e2/MarketDataTrade" as marketdatatrade
 use "github.com/alpacahq/alpaca-allium-lib@d5d38e0fe969061525b6fabbf7c66e0aa66c40e2/Quote" as quote
-use "github.com/alpacahq/alpaca-allium-lib@d5d38e0fe969061525b6fabbf7c66e0aa66c40e2/NewsArticle" as newsarticle
+
+------------------------------------------------------------
+-- External Entities
+------------------------------------------------------------
+
+external entity ApiClient {
+    has_credentials: Boolean
+}
+
+external entity Bar {
+    symbol: String
+    timestamp: Timestamp
+    open: Decimal
+    high: Decimal
+    low: Decimal
+    close: Decimal
+    volume: Decimal
+    trade_count: Decimal?
+    vwap: Decimal?
+}
+
+external entity Snapshot {
+    symbol: String
+    latest_trade: marketdatatrade/MarketDataTrade?
+    latest_quote: quote/Quote?
+    minute_bar: Bar?
+    daily_bar: Bar?
+    previous_daily_bar: Bar?
+}
+
+external entity OptionsSnapshot {
+    symbol: String
+    latest_trade: marketdatatrade/MarketDataTrade?
+    latest_quote: quote/Quote?
+    implied_volatility: Decimal?
+    greeks: OptionsGreeks?
+}
+
+external entity Orderbook {
+    symbol: String
+    timestamp: Timestamp
+    bids: List<OrderbookQuote>
+    asks: List<OrderbookQuote>
+    -- When true the message carries the whole server-side book and the
+    -- consumer is expected to discard its local copy. Typically the first
+    -- message after subscribing.
+    reset: Boolean
+}
+
+external entity TradingStatus {
+    symbol: String
+    timestamp: Timestamp
+    status_code: String
+    status_message: String
+    reason_code: String
+    reason_message: String
+    -- Tape the security trades on (A, B or C).
+    tape: String
+}
+
+external entity TradeCorrection {
+    symbol: String
+    timestamp: Timestamp
+    -- Single-character exchange code (see the exchange code listing endpoints).
+    exchange: String
+    original_id: Integer?
+    original_price: Decimal
+    original_size: Decimal
+    original_conditions: List<String>
+    corrected_id: Integer?
+    corrected_price: Decimal
+    corrected_size: Decimal
+    corrected_conditions: List<String>
+    tape: String
+}
+
+external entity TradeCancel {
+    symbol: String
+    timestamp: Timestamp
+    exchange: String
+    price: Decimal
+    size: Decimal
+    id: Integer?
+    -- "C" for cancel, "E" for error.
+    action: String?
+    tape: String
+}
+
+external entity CorporateActionEvent {
+    -- The corporate actions response is a union of thirteen type-specific
+    -- shapes (forward split, reverse split, unit split, stock dividend, cash
+    -- dividend, spin off, cash merger, stock merger, stock and cash merger,
+    -- redemption, name change, worthless removal, rights distribution). Only
+    -- these two fields are present on every shape: the others (symbol, cusip,
+    -- rates, ex/record/payable dates) vary by type and several shapes carry no
+    -- plain `symbol` field at all.
+    corporate_action_type: String
+    process_date: Timestamp
+}
+
+------------------------------------------------------------
+-- Value Types
+------------------------------------------------------------
+
+value TimeFrame {
+    amount: Integer
+    unit: BarTimeframeUnit
+
+    valid_as_minute: unit = minute and amount >= 1 and amount <= 59
+    valid_as_hour: unit = hour and amount >= 1 and amount <= 23
+    valid_as_day_or_week: unit in {day, week} and amount = 1
+    valid_as_month: unit = month and amount in {1, 2, 3, 6, 12}
+    is_valid: valid_as_minute or valid_as_hour or valid_as_day_or_week or valid_as_month
+}
+
+value OrderbookQuote {
+    price: Decimal
+    size: Decimal
+}
+
+value OptionsGreeks {
+    delta: Decimal
+    gamma: Decimal
+    rho: Decimal
+    theta: Decimal
+    vega: Decimal
+}
 
 ------------------------------------------------------------
 -- Enumerations
@@ -11,10 +137,16 @@ use "github.com/alpacahq/alpaca-allium-lib@d5d38e0fe969061525b6fabbf7c66e0aa66c4
 
 enum AssetClass { stock | crypto | option | news }
 
-enum DataFeed {
-    iex | sip | `delayed_sip` | otc | boats | overnight
-    | opra | indicative | us
-}
+-- Feeds accepted on equity historical data requests.
+enum DataFeed { iex | sip | delayed_sip | otc | boats | overnight }
+
+-- Feeds accepted on options historical data requests.
+enum OptionsFeed { opra | indicative }
+
+-- Feeds a live stream can be opened against. Narrower than DataFeed: the
+-- stock stream rejects anything other than iex or sip, crypto has a single
+-- feed, and options streams use the options feeds.
+enum StreamFeed { iex | sip | us | opra | indicative }
 
 enum Adjustment { raw | split | dividend | all }
 
@@ -35,133 +167,21 @@ enum StreamingDataType {
 enum StreamStatus { idle | connecting | authenticated | streaming | stopped }
 
 ------------------------------------------------------------
--- Value Types
-------------------------------------------------------------
-
-value TimeFrame {
-    amount: Integer
-    unit: BarTimeframeUnit
-
-    valid_as_minute: unit = minute and amount >= 1 and amount <= 59
-    valid_as_hour: unit = hour and amount >= 1 and amount <= 23
-    valid_as_day_or_week: unit in {day, week} and amount = 1
-    valid_as_month: unit = month and amount in {1, 2, 3, 6, 12}
-    is_valid: valid_as_minute or valid_as_hour or valid_as_day_or_week or valid_as_month
-}
-
-value OrderbookLevel {
-    price: Decimal
-    size: Decimal
-}
-
-value OptionsGreeks {
-    delta: Decimal?
-    gamma: Decimal?
-    rho: Decimal?
-    theta: Decimal?
-    vega: Decimal?
-}
-
-------------------------------------------------------------
--- External Entities
-------------------------------------------------------------
-
-external entity ApiClient {
-    has_credentials: Boolean
-}
-
-external entity Bar {
-    symbol: String
-    timestamp: Timestamp
-    open: Decimal
-    high: Decimal
-    low: Decimal
-    close: Decimal
-    volume: Decimal
-    trade_count: Integer?
-    vwap: Decimal?
-    timeframe: TimeFrame
-}
-
-external entity Snapshot {
-    symbol: String
-    latest_trade: marketdatatrade/MarketDataTrade?
-    latest_quote: quote/Quote?
-    minute_bar: Bar?
-    daily_bar: Bar?
-    previous_daily_bar: Bar?
-}
-
-external entity OptionsSnapshot {
-    symbol: String
-    latest_trade: marketdatatrade/MarketDataTrade?
-    latest_quote: quote/Quote?
-    minute_bar: Bar?
-    daily_bar: Bar?
-    previous_daily_bar: Bar?
-    greeks: OptionsGreeks?
-    implied_volatility: Decimal?
-}
-
-external entity Orderbook {
-    symbol: String
-    timestamp: Timestamp
-    bids: List<OrderbookLevel>
-    asks: List<OrderbookLevel>
-    reset: Boolean
-}
-
-external entity TradingStatus {
-    symbol: String
-    timestamp: Timestamp
-    status_code: String
-    status_message: String
-    halt_reason: String?
-}
-
-external entity TradeCorrection {
-    symbol: String
-    timestamp: Timestamp
-    original_price: Decimal
-    original_size: Decimal
-    corrected_price: Decimal
-    corrected_size: Decimal
-}
-
-external entity TradeCancel {
-    symbol: String
-    timestamp: Timestamp
-    price: Decimal
-    size: Decimal
-}
-
-external entity CorporateActionEvent {
-    symbol: String
-    action_type: String
-    process_date: Timestamp
-    record_date: Timestamp?
-    payable_date: Timestamp?
-    old_rate: Decimal?
-    new_rate: Decimal?
-}
-
-------------------------------------------------------------
 -- Entities
 ------------------------------------------------------------
 
 entity DataStream {
     asset_class: AssetClass
-    feed: DataFeed?
+    feed: StreamFeed?
     status: StreamStatus
-    -- Timestamp of the most recent keepalive acknowledgement (websocket pong)
-    -- observed on the connection. Set when the connection is established and
-    -- refreshed on every pong; cleared while the connection is down.
-    last_pong_at: Timestamp?
 
     subscriptions: DataSubscription with stream = this
 
-    invariant StockStreamFeedConstraint {
-        asset_class = stock implies (feed = iex or feed = sip)
+    invariant StreamFeedMatchesAssetClass {
+        (asset_class = stock implies feed in {iex, sip})
+        and (asset_class = crypto implies feed = us)
+        and (asset_class = option implies feed in {opra, indicative})
+        and (asset_class = news implies feed = null)
     }
 
     transitions status {
@@ -182,11 +202,10 @@ entity DataSubscription {
     stream: DataStream
     symbol: String
     data_type: StreamingDataType
-    is_wildcard: Boolean
 
-    invariant WildcardSymbol {
-        is_wildcard implies symbol = "*"
-    }
+    -- Wildcards are not a separate flag: subscribing with the symbol "*"
+    -- registers a catch-all handler for the data type.
+    is_wildcard: symbol = "*"
 }
 
 ------------------------------------------------------------
@@ -196,130 +215,211 @@ entity DataSubscription {
 config {
     bar_query_page_size: Integer = 10_000
     news_query_page_size: Integer = 50
+    options_snapshot_query_page_size: Integer = 1_000
+    corporate_actions_query_page_size: Integer = 1_000
+    screener_default_top: Integer = 10
     stream_ping_interval: Duration = 10.seconds
     stream_ping_timeout: Duration = 180.seconds
-    screener_default_top: Integer = 10
-    corporate_actions_query_page_size: Integer = 1_000
 }
 
 ------------------------------------------------------------
 -- Rules
 ------------------------------------------------------------
 
-rule FetchBars {
-    when: FetchBars(symbols, timeframe, start?, end?, feed?, adjustment?, sort?, limit?, currency?, asof?)
+-- Equity historical data
+
+rule FetchStockBars {
+    when: FetchStockBars(symbols, timeframe, start?, end?, limit?, currency?, sort?, adjustment?, feed?, asof?)
     requires: timeframe.is_valid
-    requires: feed = null or feed in DataFeed
-    requires: adjustment = null or adjustment in Adjustment
-    requires: sort = null or sort in SortOrder
     ensures: BarsReturned(symbols: symbols)
 }
 
-rule FetchQuotes {
-    when: FetchQuotes(symbols, start?, end?, feed?, sort?, limit?, currency?, asof?)
-    requires: feed = null or feed in DataFeed
-    requires: sort = null or sort in SortOrder
+rule FetchStockQuotes {
+    when: FetchStockQuotes(symbols, start?, end?, limit?, currency?, sort?, feed?, asof?)
     ensures: QuotesReturned(symbols: symbols)
 }
 
-rule FetchTrades {
-    when: FetchTrades(symbols, start?, end?, feed?, sort?, limit?, currency?, asof?)
-    requires: feed = null or feed in DataFeed
-    requires: sort = null or sort in SortOrder
+rule FetchStockTrades {
+    when: FetchStockTrades(symbols, start?, end?, limit?, currency?, sort?, feed?, asof?)
     ensures: TradesReturned(symbols: symbols)
 }
 
-rule FetchLatestTrade {
-    when: FetchLatestTrade(symbols, feed?, currency?)
-    requires: feed = null or feed in DataFeed
+rule FetchStockLatestTrade {
+    when: FetchStockLatestTrade(symbols, feed?, currency?)
     ensures: LatestTradeReturned(symbols: symbols)
 
     @guidance
         -- Returns the single most recent trade for each requested symbol.
-        -- No time range parameters; always returns the current latest data point.
+        -- No time range parameters and no pagination.
 }
 
-rule FetchLatestQuote {
-    when: FetchLatestQuote(symbols, feed?, currency?)
-    requires: feed = null or feed in DataFeed
+rule FetchStockLatestQuote {
+    when: FetchStockLatestQuote(symbols, feed?, currency?)
     ensures: LatestQuoteReturned(symbols: symbols)
-
-    @guidance
-        -- Returns the single most recent quote for each requested symbol.
 }
 
-rule FetchLatestBar {
-    when: FetchLatestBar(symbols, feed?, currency?)
-    requires: feed = null or feed in DataFeed
+rule FetchStockLatestBar {
+    when: FetchStockLatestBar(symbols, feed?, currency?)
     ensures: LatestBarReturned(symbols: symbols)
 
     @guidance
         -- Returns the single most recent minute bar for each requested symbol.
 }
 
-rule FetchSnapshots {
-    when: FetchSnapshots(symbols, feed?, currency?)
-    requires: feed = null or feed in DataFeed
+rule FetchStockSnapshots {
+    when: FetchStockSnapshots(symbols, feed?, currency?)
+    ensures: SnapshotsReturned(symbols: symbols)
+}
+
+-- Crypto historical data
+
+rule FetchCryptoBars {
+    when: FetchCryptoBars(symbols, timeframe, start?, end?, limit?, currency?, sort?)
+    requires: timeframe.is_valid
+    ensures: BarsReturned(symbols: symbols)
+}
+
+rule FetchCryptoQuotes {
+    when: FetchCryptoQuotes(symbols, start?, end?, limit?, currency?, sort?)
+    ensures: QuotesReturned(symbols: symbols)
+}
+
+rule FetchCryptoTrades {
+    when: FetchCryptoTrades(symbols, start?, end?, limit?, currency?, sort?)
+    ensures: TradesReturned(symbols: symbols)
+}
+
+rule FetchCryptoLatestTrade {
+    when: FetchCryptoLatestTrade(symbols)
+    ensures: LatestTradeReturned(symbols: symbols)
+}
+
+rule FetchCryptoLatestQuote {
+    when: FetchCryptoLatestQuote(symbols)
+    ensures: LatestQuoteReturned(symbols: symbols)
+}
+
+rule FetchCryptoLatestBar {
+    when: FetchCryptoLatestBar(symbols)
+    ensures: LatestBarReturned(symbols: symbols)
+}
+
+rule FetchCryptoLatestOrderbook {
+    when: FetchCryptoLatestOrderbook(symbols)
+    ensures: OrderbooksReturned(symbols: symbols)
+}
+
+rule FetchCryptoSnapshots {
+    when: FetchCryptoSnapshots(symbols)
+    ensures: SnapshotsReturned(symbols: symbols)
+}
+
+-- Options historical data
+
+rule FetchOptionBars {
+    when: FetchOptionBars(symbols, timeframe, start?, end?, limit?, currency?, sort?)
+    requires: timeframe.is_valid
+    ensures: BarsReturned(symbols: symbols)
+
+    @guidance
+        -- Option bars take no feed parameter.
+}
+
+rule FetchOptionTrades {
+    when: FetchOptionTrades(symbols, start?, end?, limit?, currency?, sort?)
+    ensures: TradesReturned(symbols: symbols)
+
+    @guidance
+        -- Option trades take no feed parameter and the window reaches back
+        -- at most seven days.
+}
+
+rule FetchOptionLatestTrade {
+    when: FetchOptionLatestTrade(symbols, feed?)
+    ensures: LatestTradeReturned(symbols: symbols)
+}
+
+rule FetchOptionLatestQuote {
+    when: FetchOptionLatestQuote(symbols, feed?)
+    ensures: LatestQuoteReturned(symbols: symbols)
+}
+
+rule FetchOptionSnapshots {
+    when: FetchOptionSnapshots(symbols, feed?)
     ensures: SnapshotsReturned(symbols: symbols)
 }
 
 rule FetchOptionChain {
-    when: FetchOptionChain(underlying_symbol, feed?, expiration_gte?, expiration_lte?, strike_gte?, strike_lte?, contract_type?, root_symbol?, updated_since?)
-    requires: feed = null or feed in DataFeed
+    when: FetchOptionChain(underlying_symbol, feed?, contract_type?, strike_price_gte?, strike_price_lte?, expiration_date?, expiration_date_gte?, expiration_date_lte?, root_symbol?, updated_since?)
     ensures: OptionChainReturned(underlying_symbol: underlying_symbol)
 }
 
-rule FetchCryptoOrderbooks {
-    when: FetchCryptoOrderbooks(symbols)
-    ensures: OrderbooksReturned(symbols: symbols)
+rule FetchOptionExchangeCodes {
+    when: FetchOptionExchangeCodes()
+    ensures: OptionExchangeCodesReturned()
+
+    @guidance
+        -- Returns the mapping from option exchange codes to exchange names.
+        -- Takes no parameters and is not paginated.
 }
+
+-- News, screeners and corporate actions
 
 rule FetchNews {
     when: FetchNews(symbols?, start?, end?, limit?, sort?, include_content?, exclude_contentless?, page_token?)
-    requires: sort = null or sort in SortOrder
     ensures: NewsReturned(symbols: symbols)
+
+    @guidance
+        -- symbols is a single comma-separated string, not a list.
+        -- sort is passed through as a free string rather than a checked
+        -- enumeration, so the server decides which values are acceptable.
 }
 
 rule FetchMostActives {
     when: FetchMostActives(by?, top?)
-    requires: by = null or by in ScreenerRankBy
     ensures: MostActivesReturned(rank_by: by ?? volume, top: top ?? config.screener_default_top)
 }
 
 rule FetchMarketMovers {
     when: FetchMarketMovers(market_type?, top?)
-    requires: market_type = null or market_type in ScreenerMarketType
     ensures: MarketMoversReturned(market_type: market_type ?? stocks, top: top ?? config.screener_default_top)
 }
 
-rule FetchCorporateActionsById {
-    when: FetchCorporateActions(ids?, symbols?, cusips?, types?, start?, end?)
-    requires: ids != null
-    ensures: CorporateActionsReturned(ids: ids)
+rule FetchCorporateActions {
+    when: FetchCorporateActions(ids?, symbols?, cusips?, types?, start?, end?, limit?, sort?)
+    ensures: CorporateActionsReturned(
+        ids: ids,
+        symbols: symbols,
+        cusips: cusips,
+        types: types,
+        start: start,
+        end: end
+    )
 
     @guidance
-        -- The ID filter is mutually exclusive with all other filter
-        -- parameters (symbols, CUSIPs, types, date range).
+        -- The API documents the ID filter as mutually exclusive with all
+        -- other filters, but the client does not enforce that: every supplied
+        -- filter is forwarded and the server decides. List-valued filters are
+        -- joined into comma-separated strings on the wire.
 }
 
-rule FetchCorporateActionsByFilter {
-    when: FetchCorporateActions(ids?, symbols?, cusips?, types?, start?, end?)
-    requires: ids = null
-    ensures: CorporateActionsReturned(symbols: symbols, cusips: cusips, types: types, start: start, end: end)
-}
+-- Streaming lifecycle
 
 rule StartStream {
     when: StartStream(stream)
     requires: stream.status = idle
     ensures: stream.status = connecting
+
+    @guidance
+        -- The client does not open the socket until at least one subscription
+        -- has been registered; starting a stream with no subscriptions parks
+        -- until one arrives or the stream is stopped.
 }
 
 rule StreamAuthSucceeded {
     when: StreamAuthSucceeded(stream)
     requires: stream.status = connecting
-    ensures:
-        stream.status = authenticated
-        stream.last_pong_at = now
+    ensures: stream.status = authenticated
 }
 
 rule StreamAuthFailed {
@@ -349,88 +449,63 @@ rule StreamResubscribesAfterAuth {
     ensures: stream.status = streaming
 }
 
-rule StartSubscribing {
-    when: Subscribe(stream, symbol, data_type, is_wildcard?)
-    requires: stream.status = authenticated
-    ensures:
-        stream.status = streaming
-        DataSubscription.created(stream: stream, symbol: symbol, data_type: data_type, is_wildcard: is_wildcard ?? false)
-}
-
 rule AddSubscription {
-    when: Subscribe(stream, symbol, data_type, is_wildcard?)
-    requires: stream.status = streaming
-    ensures:
-        DataSubscription.created(stream: stream, symbol: symbol, data_type: data_type, is_wildcard: is_wildcard ?? false)
+    when: Subscribe(stream, symbol, data_type)
+    ensures: DataSubscription.created(stream: stream, symbol: symbol, data_type: data_type)
+
+    @guidance
+        -- Subscribing is accepted in any stream state and carries no
+        -- precondition on status. While the socket is up the change is sent
+        -- immediately; otherwise it is recorded and replayed at the next
+        -- successful authentication. Subscribing before starting the stream
+        -- is the ordinary usage pattern.
+        -- Trade corrections and trade cancels are registered as handlers only
+        -- and are deliberately left out of the wire subscribe message: they
+        -- arrive by virtue of the underlying trades subscription.
 }
 
 rule RemoveSubscription {
     when: Unsubscribe(stream, symbol, data_type)
-    requires: stream.status = streaming
     let subscription = DataSubscription{stream, symbol, data_type}
     requires: exists subscription
     ensures: not exists subscription
+
+    @guidance
+        -- Like subscribing, unsubscribing carries no precondition on stream
+        -- status; the unsubscribe message is only put on the wire when the
+        -- socket is up.
 }
 
 rule StopStream {
     when: StopStream(stream)
     requires: stream.status in {idle, connecting, authenticated, streaming}
-    ensures:
-        stream.status = stopped
-        stream.last_pong_at = null
+    ensures: stream.status = stopped
 }
 
 rule StreamConnectionLost {
-    -- The transport dropped (websocket error, server disconnect). The client
-    -- closes the socket and immediately re-enters the connect cycle; existing
-    -- subscriptions are retained and replayed once re-authenticated.
+    -- The transport dropped (websocket error, server disconnect, or the
+    -- keepalive deadline of config.stream_ping_timeout expiring on a
+    -- connection pinged every config.stream_ping_interval). The client closes
+    -- the socket and immediately re-enters the connect cycle; existing
+    -- subscriptions are retained and replayed once re-authenticated. All of
+    -- these causes are indistinguishable to the caller: they share one path.
     when: StreamConnectionLost(stream)
     requires: stream.status in {authenticated, streaming}
-    ensures:
-        stream.status = connecting
-        stream.last_pong_at = null
+    ensures: stream.status = connecting
 }
 
-rule StreamPongReceived {
-    -- The server answered a keepalive ping. The client sends a protocol-level
-    -- ping every config.stream_ping_interval while connected; each pong
-    -- refreshes the liveness deadline enforced by StreamPingTimeout.
-    when: StreamPongReceived(stream)
-    requires: stream.status in {authenticated, streaming}
-    ensures: stream.last_pong_at = now
-}
-
-rule StreamPingTimeout {
-    -- No keepalive acknowledgement arrived within config.stream_ping_timeout.
-    -- The connection is considered dead: the transport closes it and the
-    -- client re-enters the connect cycle exactly as for any other lost
-    -- connection, re-authenticating and replaying subscriptions.
-    when: stream: DataStream.last_pong_at + config.stream_ping_timeout <= now
-    requires: stream.status in {authenticated, streaming}
-    ensures:
-        stream.status = connecting
-        stream.last_pong_at = null
-}
-
-rule OrderbookResetReceived {
-    when: StreamOrderbookReceived(stream, orderbook)
+rule StreamMessageDelivered {
+    when: StreamMessageReceived(stream, symbol, data_type)
     requires: stream.status = streaming
-    requires: orderbook.reset = true
-    ensures: OrderbookReset(stream: stream, symbol: orderbook.symbol)
+    ensures: StreamDataDelivered(stream: stream, symbol: symbol, data_type: data_type)
 
     @guidance
-        -- Consumers must discard all locally cached bids and asks for the symbol
-        -- and rebuild from the bids and asks in this message.
-}
-
-rule UpdatedBarReceived {
-    when: StreamUpdatedBarReceived(stream, bar)
-    requires: stream.status = streaming
-    ensures: UpdatedBarDelivered(stream: stream, bar: bar)
-
-    @guidance
-        -- Updated bars are in-progress aggregations for the current interval.
-        -- They are superseded by subsequent updates or the final bar at interval close.
+        -- Each inbound message is routed to the handler registered for its
+        -- channel and symbol, falling back to the channel's wildcard handler.
+        -- Messages on channels with no registered handler are dropped.
+        -- Orderbook messages carrying reset=true supersede the consumer's
+        -- local book for that symbol; updated bars are in-progress
+        -- aggregations superseded by later updates or the final bar.
 }
 
 ------------------------------------------------------------
@@ -445,26 +520,31 @@ surface HistoricalStockData {
         Snapshot
 
     provides:
-        FetchBars(symbols, timeframe, start?, end?, feed?, adjustment?, sort?, limit?, currency?, asof?)
+        FetchStockBars(symbols, timeframe, start?, end?, limit?, currency?, sort?, adjustment?, feed?, asof?)
             when caller.has_credentials
-        FetchQuotes(symbols, start?, end?, feed?, sort?, limit?, currency?, asof?)
+        FetchStockQuotes(symbols, start?, end?, limit?, currency?, sort?, feed?, asof?)
             when caller.has_credentials
-        FetchTrades(symbols, start?, end?, feed?, sort?, limit?, currency?, asof?)
+        FetchStockTrades(symbols, start?, end?, limit?, currency?, sort?, feed?, asof?)
             when caller.has_credentials
-        FetchSnapshots(symbols, feed?, currency?)
+        FetchStockSnapshots(symbols, feed?, currency?)
             when caller.has_credentials
-        FetchLatestTrade(symbols, feed?, currency?)
+        FetchStockLatestTrade(symbols, feed?, currency?)
             when caller.has_credentials
-        FetchLatestQuote(symbols, feed?, currency?)
+        FetchStockLatestQuote(symbols, feed?, currency?)
             when caller.has_credentials
-        FetchLatestBar(symbols, feed?, currency?)
+        FetchStockLatestBar(symbols, feed?, currency?)
             when caller.has_credentials
 
     @guidance
-        -- Default feed is IEX (free). SIP, DELAYED_SIP, and OTC feeds require
-        -- a premium market data subscription.
-        -- Adjustment defaults to RAW when not specified. Applies to stocks only.
-        -- Results paginate automatically at config.bar_query_page_size data points per page.
+        -- feed accepts the DataFeed values. The client sends no feed when the
+        -- caller omits it and the server picks the default (IEX, free); SIP,
+        -- DELAYED_SIP and OTC require a premium market data subscription.
+        -- adjustment accepts the Adjustment values and is likewise defaulted
+        -- server-side; it applies to stocks only.
+        -- sort accepts the SortOrder values.
+        -- Bar, quote and trade queries paginate automatically at
+        -- config.bar_query_page_size data points per page; snapshot and
+        -- latest-* queries issue a single unpaginated request.
         -- asof allows point-in-time symbol lookups (YYYY-MM-DD). Useful for querying a symbol
         -- by its name at a specific historical date when corporate actions (e.g. renames) occurred.
 }
@@ -476,52 +556,63 @@ surface HistoricalCryptoData {
         -- Crypto historical data is available without credentials; presenting
         -- credentials raises the caller's data rate limit.
         caller.has_credentials
+        Bar
         Snapshot
         Orderbook
 
     provides:
-        FetchBars(symbols, timeframe, start?, end?, sort?, limit?, currency?)
-        FetchQuotes(symbols, start?, end?, sort?, limit?, currency?)
-        FetchTrades(symbols, start?, end?, sort?, limit?, currency?)
-        FetchSnapshots(symbols)
-        FetchCryptoOrderbooks(symbols)
-        FetchLatestTrade(symbols)
-        FetchLatestQuote(symbols)
-        FetchLatestBar(symbols)
+        FetchCryptoBars(symbols, timeframe, start?, end?, limit?, currency?, sort?)
+        FetchCryptoQuotes(symbols, start?, end?, limit?, currency?, sort?)
+        FetchCryptoTrades(symbols, start?, end?, limit?, currency?, sort?)
+        FetchCryptoSnapshots(symbols)
+        FetchCryptoLatestOrderbook(symbols)
+        FetchCryptoLatestTrade(symbols)
+        FetchCryptoLatestQuote(symbols)
+        FetchCryptoLatestBar(symbols)
 
     @guidance
         -- Crypto data does not require credentials; unauthenticated requests
-        -- are subject to lower rate limits. No feed or adjustment parameters apply.
+        -- are subject to lower rate limits. No adjustment parameter applies.
+        -- The crypto feed is not a request parameter: it is an argument on
+        -- each client call, defaults to `us`, and `us` is the only value.
 }
 
 surface HistoricalOptionsData {
     facing caller: ApiClient
 
     exposes:
+        Bar
         OptionsSnapshot
 
     provides:
-        FetchBars(symbols, timeframe, start?, end?, sort?, limit?)
+        FetchOptionBars(symbols, timeframe, start?, end?, limit?, currency?, sort?)
             when caller.has_credentials
-        FetchTrades(symbols, start?, end?, feed?, sort?, limit?)
+        FetchOptionTrades(symbols, start?, end?, limit?, currency?, sort?)
             when caller.has_credentials
-        FetchQuotes(symbols, start?, end?, feed?, sort?, limit?)
+        FetchOptionSnapshots(symbols, feed?)
             when caller.has_credentials
-        FetchSnapshots(symbols, feed?)
+        FetchOptionChain(underlying_symbol, feed?, contract_type?, strike_price_gte?, strike_price_lte?, expiration_date?, expiration_date_gte?, expiration_date_lte?, root_symbol?, updated_since?)
             when caller.has_credentials
-        FetchOptionChain(underlying_symbol, feed?, expiration_gte?, expiration_lte?, strike_gte?, strike_lte?, contract_type?, root_symbol?, updated_since?)
+        FetchOptionLatestTrade(symbols, feed?)
             when caller.has_credentials
-        FetchLatestTrade(symbols, feed?)
+        FetchOptionLatestQuote(symbols, feed?)
             when caller.has_credentials
-        FetchLatestQuote(symbols, feed?)
+        FetchOptionExchangeCodes()
             when caller.has_credentials
 
     @guidance
-        -- When no feed is specified the server defaults to OPRA if the caller
-        -- has an options market data subscription, INDICATIVE otherwise.
-        -- The INDICATIVE feed does not require a subscription; OPRA does.
-        -- Option bars have no feed parameter.
-        -- OptionsSnapshot includes greeks and implied volatility alongside the standard snapshot fields.
+        -- feed accepts the OptionsFeed values. When no feed is specified the
+        -- server defaults to OPRA if the caller has an options market data
+        -- subscription and INDICATIVE otherwise. INDICATIVE requires no
+        -- subscription; OPRA does.
+        -- Option bars and option trades have no feed parameter.
+        -- There is no historical option quotes operation: only the latest
+        -- quote, the snapshot and the chain expose quote data.
+        -- OptionsSnapshot carries greeks and implied volatility alongside the
+        -- latest trade and quote; unlike the equity snapshot it carries no
+        -- minute, daily or previous daily bar.
+        -- Snapshot and chain queries paginate at
+        -- config.options_snapshot_query_page_size items per page.
 }
 
 surface MarketIntelligence {
@@ -537,14 +628,17 @@ surface MarketIntelligence {
             when caller.has_credentials
         FetchMarketMovers(market_type?, top?)
             when caller.has_credentials
-        FetchCorporateActions(ids?, symbols?, cusips?, types?, start?, end?)
+        FetchCorporateActions(ids?, symbols?, cusips?, types?, start?, end?, limit?, sort?)
             when caller.has_credentials
 
     @guidance
-        -- News results use token-based pagination via page_token.
-        -- Screener results (most actives, market movers) are pre-computed rankings refreshed periodically.
-        -- Most actives defaults to top 10 by volume when by and top are not specified.
-        -- Corporate action queries by ID are exclusive with filter-based queries.
+        -- News results use token-based pagination via page_token and paginate
+        -- at config.news_query_page_size items per page.
+        -- Screener results (most actives, market movers) are pre-computed
+        -- rankings refreshed periodically and are fetched in a single
+        -- unpaginated request.
+        -- Most actives defaults to top 10 by volume when by and top are not specified;
+        -- market movers defaults to the stocks market and top 10.
         -- Corporate actions pagination uses config.corporate_actions_query_page_size items per page.
 }
 
@@ -555,18 +649,16 @@ surface LiveStockStream {
     exposes:
         stream.status
         stream.subscriptions
+        Bar
         TradingStatus
         TradeCorrection
         TradeCancel
 
     provides:
         StartStream(stream) when caller.has_credentials and stream.status = idle
-        Subscribe(stream, symbol, data_type) when stream.status in {authenticated, streaming}
-        Unsubscribe(stream, symbol, data_type) when stream.status = streaming
+        Subscribe(stream, symbol, data_type)
+        Unsubscribe(stream, symbol, data_type)
         StopStream(stream)
-
-    timeout:
-        StreamPingTimeout
 
     @guidance
         -- Supported data types: trades, quotes, bars, updated_bars, daily_bars, trading_statuses.
@@ -582,16 +674,14 @@ surface LiveCryptoStream {
     exposes:
         stream.status
         stream.subscriptions
+        Bar
         Orderbook
 
     provides:
         StartStream(stream) when caller.has_credentials and stream.status = idle
-        Subscribe(stream, symbol, data_type) when stream.status in {authenticated, streaming}
-        Unsubscribe(stream, symbol, data_type) when stream.status = streaming
+        Subscribe(stream, symbol, data_type)
+        Unsubscribe(stream, symbol, data_type)
         StopStream(stream)
-
-    timeout:
-        StreamPingTimeout
 
     @guidance
         -- Supported data types: trades, quotes, bars, updated_bars, daily_bars, orderbooks.
@@ -609,30 +699,13 @@ surface LiveOptionsStream {
 
     provides:
         StartStream(stream) when caller.has_credentials and stream.status = idle
-        Subscribe(stream, symbol, data_type) when stream.status in {authenticated, streaming}
-        Unsubscribe(stream, symbol, data_type) when stream.status = streaming
+        Subscribe(stream, symbol, data_type)
+        Unsubscribe(stream, symbol, data_type)
         StopStream(stream)
-
-    timeout:
-        StreamPingTimeout
 
     @guidance
         -- Supported data types: trades, quotes.
-}
-
-surface StreamTransport {
-    -- The boundary between the client and the market data server's websocket
-    -- endpoint. The server (via the underlying transport) originates these
-    -- stimuli; the client reacts to them. Modelled so that every
-    -- connection-lifecycle rule has an originating boundary.
-    provides:
-        StreamAuthSucceeded(stream)
-        StreamAuthFailed(stream)
-        StreamAuthRejectedUnrecoverable(stream)
-        StreamConnectionLost(stream)
-        StreamPongReceived(stream)
-        StreamOrderbookReceived(stream, orderbook)
-        StreamUpdatedBarReceived(stream, bar)
+        -- The stream defaults to the INDICATIVE feed; OPRA requires a subscription.
 }
 
 surface LiveNewsStream {
@@ -645,10 +718,43 @@ surface LiveNewsStream {
 
     provides:
         StartStream(stream) when caller.has_credentials and stream.status = idle
-        Subscribe(stream, symbol, news) when stream.status in {authenticated, streaming}
-        Unsubscribe(stream, symbol, news) when stream.status = streaming
+        Subscribe(stream, symbol, data_type)
+        Unsubscribe(stream, symbol, data_type)
         StopStream(stream)
 
-    timeout:
-        StreamPingTimeout
+    @guidance
+        -- The only data type is news, and the news stream takes no feed.
+        -- A news message names a set of symbols; it is delivered once per
+        -- matching registered handler, with the wildcard handler used at most
+        -- once per message.
 }
+
+surface StreamTransport {
+    -- The boundary between the client and the market data server's websocket
+    -- endpoint. The server (via the underlying transport) originates these
+    -- stimuli; the client reacts to them. Modelled so that every
+    -- connection-lifecycle rule has an originating boundary.
+    provides:
+        StreamAuthSucceeded(stream)
+        StreamAuthFailed(stream)
+        StreamAuthRejectedUnrecoverable(stream)
+        StreamConnectionLost(stream)
+        StreamMessageReceived(stream, symbol, data_type)
+
+    @guidance
+        -- The transport pings every config.stream_ping_interval and treats a
+        -- connection with no answer within config.stream_ping_timeout as
+        -- dead. There is no separate timeout stimulus: the expiry surfaces as
+        -- an ordinary transport error, indistinguishable from any other lost
+        -- connection.
+}
+
+------------------------------------------------------------
+-- Open Questions
+------------------------------------------------------------
+
+open question "The shared-library coordinate alpaca-allium-lib@d5d38e0f is not vendored into this repository, so the checker cannot resolve MarketDataTrade and Quote. The library's MarketDataTrade also carries volume, instrument, feed and status and omits the trade id, none of which the client's trade model has. Should the client track the shared entity, or should the library accommodate the client's shape?"
+
+open question "Corporate actions are thirteen distinct response shapes with disjoint field sets. Should CorporateActionEvent become a sum type with a variant per action type, or stay a two-field placeholder?"
+
+open question "The transport routes a `luld` (limit up/limit down) channel, but no client exposes a subscribe or register operation for it, so the channel is unreachable. Is the routing dead code or a missing operation?"

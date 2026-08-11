@@ -1,15 +1,29 @@
 -- allium: 3
 -- trading-client.allium
 
--- Scope: Alpaca TradingClient — orders, positions, account, assets, watchlists,
---        calendar/clock, options contracts, and real-time streaming.
--- Excludes: examples/ demo notebooks
+-- Scope: Alpaca TradingClient — orders, positions, account, account
+--        configuration, assets, watchlists, calendar/clock, option contracts,
+--        and the trade-updates websocket stream.
+-- Excludes: examples/ demo notebooks, portfolio history, corporate action
+--        announcements, and the query/filter request models (GetOrdersRequest,
+--        GetAssetsRequest, GetOptionContractsRequest, ...), all of which exist
+--        in the client but are not modelled here.
+--
+-- Reading frame: the client is a thin REST/websocket front end. Everything it
+-- enforces itself is request-payload validation (pydantic model validators);
+-- everything else — order lifecycle, position bookkeeping, account status — is
+-- decided by the Alpaca Trading API and only observed by the client. Rules
+-- below assert only what an artefact in alpaca/trading/ witnesses. Where the
+-- server's behaviour is load-bearing but unrepresented in the client, it is
+-- recorded as an open question rather than asserted.
 
 ------------------------------------------------------------
 -- Enumerations
 ------------------------------------------------------------
 
 enum AssetClass { us_equity | us_option | crypto | crypto_perp }
+
+enum AssetStatus { active | inactive }
 
 enum OrderStatus {
     new | pending_new | accepted | pending_review | accepted_for_bidding
@@ -45,23 +59,30 @@ enum ExerciseStyle { american | european }
 enum AccountStatus {
     onboarding | submission_failed | submitted | resubmitted
     | approval_pending | reapproval_pending | kyc_submitted | aml_review
-    | approved | account_updated | edited | active | limited | paper_only
-    | action_required | disable_pending | disabled | account_closed
-    | rejected | signed_up
+    | approved | account_updated | edited | active | inactive | limited
+    | paper_only | action_required | disable_pending | disabled
+    | account_closed | rejected | signed_up
 }
 
-enum OptionsApprovalLevel { disabled | covered_only | long_options | spreads }
-
+-- DTBPCheck and PDTCheck carry identical values today but are declared
+-- separately in the client, which states they are not guaranteed to stay in
+-- sync. Both are deprecated (see AccountConfiguration).
 enum DTBPCheck { both | entry | exit }
+
+enum PDTCheck { both | entry | exit }
 
 enum TradeConfirmationEmail { all | none }
 
-enum TradeStreamStatus { idle | connecting | streaming | stopped }
+enum TradeStreamStatus {
+    idle | waiting_for_handler | connecting | streaming | stopped
+}
 
 ------------------------------------------------------------
 -- Value Types
 ------------------------------------------------------------
 
+-- Exit specifications supplied with an order request. They are request-side
+-- only: the Order the API returns carries no take_profit / stop_loss field.
 value TakeProfitSpec {
     limit_price: Decimal
 }
@@ -71,15 +92,24 @@ value StopLossSpec {
     limit_price: Decimal?
 }
 
+-- One leg of a multi-leg (mleg) option order request.
+value OrderLegSpec {
+    symbol: String
+    ratio_qty: Decimal
+    side: OrderSide?
+    position_intent: PositionIntent?
+}
+
 ------------------------------------------------------------
 -- Entities and Variants
 ------------------------------------------------------------
 
 entity Asset {
     symbol: String
-    name: String
+    name: String?
     asset_class: AssetClass
     exchange: String
+    status: AssetStatus
     tradable: Boolean
     marginable: Boolean
     shortable: Boolean
@@ -88,14 +118,20 @@ entity Asset {
     min_order_size: Decimal?
     min_trade_increment: Decimal?
     price_increment: Decimal?
+    maintenance_margin_requirement: Decimal?
+    -- e.g. ptp_no_exception / ptp_with_exception
+    attributes: List<String>?
 }
 
 entity OptionContract {
     symbol: String
     name: String
     root_symbol: String
+    -- The underlying is carried as a symbol and an opaque asset identifier;
+    -- the client does not resolve it to an Asset, so no relationship is
+    -- declared here.
     underlying_symbol: String
-    underlying_asset: Asset
+    status: AssetStatus
     tradable: Boolean
     expiration_date: Timestamp
     contract_type: ContractType
@@ -103,7 +139,9 @@ entity OptionContract {
     strike_price: Decimal
     size: Decimal
     open_interest: Decimal?
+    open_interest_date: Timestamp?
     close_price: Decimal?
+    close_price_date: Timestamp?
 }
 
 entity Order {
@@ -111,10 +149,13 @@ entity Order {
     asset_class: AssetClass?
     qty: Decimal?
     notional: Decimal?
-    filled_qty: Decimal
+    filled_qty: Decimal?
     filled_avg_price: Decimal?
     order_class: OrderClass
-    order_type: OrderType
+    -- The response carries the execution logic twice: a deprecated
+    -- order_type alongside type. Both are optional and both are omitted from
+    -- the legs of an mleg order. Modelled here as one optional field.
+    order_type: OrderType?
     side: OrderSide?
     position_intent: PositionIntent?
     time_in_force: TimeInForce
@@ -123,152 +164,124 @@ entity Order {
     trail_price: Decimal?
     trail_percent: Decimal?
     hwm: Decimal?
+    -- Proportional quantity of this order as a leg of an mleg parent.
+    ratio_qty: Decimal?
     extended_hours: Boolean
     client_order_id: String
     status: OrderStatus
-    submitted_at: Timestamp?
-    filled_at: Timestamp when status = filled
-    canceled_at: Timestamp when status = canceled
-    expired_at: Timestamp when status = expired
-    replaced_at: Timestamp when status = replaced
-    failed_at: Timestamp when status = rejected
+    created_at: Timestamp
+    updated_at: Timestamp
+    submitted_at: Timestamp
+    -- Lifecycle timestamps. Every one of these is independently optional on
+    -- the response; nothing in the client ties their presence to status.
+    filled_at: Timestamp?
+    canceled_at: Timestamp?
+    expired_at: Timestamp?
+    replaced_at: Timestamp?
+    failed_at: Timestamp?
     expires_at: Timestamp?
-    take_profit: TakeProfitSpec?
-    stop_loss: StopLossSpec?
-    legs: List<Order>
+    -- Populated only when the caller asks for a nested representation;
+    -- otherwise absent even for orders that do have legs.
+    legs: List<Order>?
     replaces: Order?
     replaced_by: Order?
 
-    transitions status {
-        new -> pending_new
-        new -> pending_review
-        pending_new -> accepted
-        pending_new -> pending_cancel
-        pending_review -> accepted_for_bidding
-        pending_review -> rejected
-        accepted -> partially_filled
-        accepted -> filled
-        accepted -> done_for_day
-        accepted -> held
-        accepted -> stopped
-        accepted -> suspended
-        accepted -> calculated
-        accepted -> pending_replace
-        accepted -> pending_cancel
-        accepted -> rejected
-        accepted -> expired
-        new -> pending_cancel
-        new -> rejected
-        new -> expired
-        pending_new -> rejected
-        pending_new -> expired
-        partially_filled -> filled
-        partially_filled -> done_for_day
-        partially_filled -> pending_replace
-        partially_filled -> pending_cancel
-        partially_filled -> expired
-        pending_replace -> accepted
-        pending_replace -> replaced
-        pending_cancel -> canceled
-        held -> new
-        held -> pending_cancel
-        terminal: filled, canceled, expired, rejected, replaced, done_for_day,
-                  stopped, suspended, calculated, accepted_for_bidding
-    }
-
     invariant QuantityOrNotional {
         (qty != null) implies (notional = null)
-    }
-
-    invariant TrailPriceOrPercent {
-        order_type = trailing_stop implies
-            (trail_price != null) or (trail_percent != null)
-    }
-
-    invariant MlegHasLegs {
-        order_class = mleg implies legs.count >= 2
     }
 }
 
 entity Position {
     symbol: String
+    exchange: String
     asset_class: AssetClass
+    asset_marginable: Boolean?
     qty: Decimal
-    qty_available: Decimal
+    qty_available: Decimal?
     side: PositionSide
     avg_entry_price: Decimal
-    market_value: Decimal
-    unrealized_pl: Decimal
+    cost_basis: Decimal
+    market_value: Decimal?
+    current_price: Decimal?
+    unrealized_pl: Decimal?
+    unrealized_plpc: Decimal?
 }
 
 entity TradeAccount {
+    account_number: String
     status: AccountStatus
-    buying_power: Decimal
+    crypto_status: AccountStatus?
+    currency: String?
+    -- Every balance field below is optional on the response.
+    buying_power: Decimal?
+    regt_buying_power: Decimal?
+    non_marginable_buying_power: Decimal?
+    options_buying_power: Decimal?
+    cash: Decimal?
+    equity: Decimal?
+    last_equity: Decimal?
+    multiplier: Decimal?
     -- PDT/DTBP fields are deprecated: removed from Alpaca responses on
-    -- 2026-07-06 (FINRA intraday-margin migration); the SDK tolerates their
+    -- 2026-07-06 (FINRA intraday-margin migration); the client tolerates their
     -- absence and defaults them to null.
     daytrading_buying_power: Decimal?
-    cash: Decimal
-    equity: Decimal
     daytrade_count: Integer?
     pattern_day_trader: Boolean?
-    options_approved_level: OptionsApprovalLevel?
-    options_trading_level: OptionsApprovalLevel?
+    trading_blocked: Boolean?
+    transfers_blocked: Boolean?
+    account_blocked: Boolean?
+    trade_suspended_by_user: Boolean?
+    shorting_enabled: Boolean?
+    -- Options levels are plain integers on the response: 0 = disabled,
+    -- 1 = covered call / cash-secured put, 2 = long call/put,
+    -- 3 = spreads/straddles. No enumeration exists in the client.
+    options_approved_level: Integer?
+    options_trading_level: Integer?
 
-    transitions status {
-        signed_up -> submission_failed
-        signed_up -> submitted
-        submission_failed -> submitted
-        submitted -> resubmitted
-        submitted -> approval_pending
-        submitted -> kyc_submitted
-        resubmitted -> approval_pending
-        kyc_submitted -> aml_review
-        aml_review -> approval_pending
-        approval_pending -> reapproval_pending
-        approval_pending -> approved
-        reapproval_pending -> approved
-        approved -> account_updated
-        account_updated -> active
-        approved -> active
-        active -> action_required
-        active -> limited
-        active -> edited
-        active -> disable_pending
-        action_required -> active
-        limited -> active
-        edited -> active
-        disable_pending -> disabled
-        disabled -> disable_pending
-        disable_pending -> active
-        terminal: account_closed, rejected, onboarding, paper_only
-    }
+    -- The account payload carries further margin and settlement figures
+    -- (initial_margin, maintenance_margin, sma, long/short_market_value,
+    -- accrued_fees, pending transfers, portfolio_value) that no behaviour in
+    -- this specification depends on.
 }
 
 entity AccountConfiguration {
     -- dtbp_check / pdt_check are deprecated: removed from Alpaca responses on
-    -- 2026-07-06 (FINRA intraday-margin migration); the SDK tolerates their
+    -- 2026-07-06 (FINRA intraday-margin migration); the client tolerates their
     -- absence and defaults them to null.
     dtbp_check: DTBPCheck?
+    pdt_check: PDTCheck?
     fractional_trading: Boolean
-    max_margin_multiplier: Integer
+    -- Carried as a numeric string ("1".."4"), not a number.
+    max_margin_multiplier: String
     no_shorting: Boolean
-    pdt_check: DTBPCheck?
     suspend_trade: Boolean
     trade_confirm_email: TradeConfirmationEmail
-    max_options_trading_level: OptionsApprovalLevel?
+    ptp_no_exception_entry: Boolean
+    max_options_trading_level: Integer?
 }
 
 entity Watchlist {
     name: String
+    created_at: Timestamp
     updated_at: Timestamp
-    assets: List<String>
+    -- Absent from the responses of some watchlist endpoints even though the
+    -- watchlist has members.
+    assets: List<Asset>?
 }
 
 entity MarketCalendarDay {
     date: Timestamp
+    -- The API returns open and close as HH:MM strings; the client combines
+    -- each with the day's date to produce a timestamp.
     open: Timestamp
     close: Timestamp
+}
+
+entity MarketClock {
+    timestamp: Timestamp
+    is_open: Boolean
+    next_open: Timestamp
+    next_close: Timestamp
 }
 
 entity TradeUpdate {
@@ -282,20 +295,21 @@ entity TradeUpdate {
 
 entity TradeUpdateStream {
     -- The websocket session delivering TradeUpdate events for the trading
-    -- account. Connecting covers connect + authenticate + subscribing to the
+    -- account. Connecting covers connect + authenticate + listening on the
     -- trade_updates channel, which the client performs as one step.
     status: TradeStreamStatus
-    -- Timestamp of the most recent keepalive acknowledgement (websocket
-    -- pong). Set when the connection is established, refreshed on every
-    -- pong, cleared while the connection is down.
-    last_pong_at: Timestamp?
+    -- The client opens no connection until a trade-updates handler has been
+    -- registered.
+    has_update_handler: Boolean
 
     transitions status {
+        idle -> waiting_for_handler
         idle -> connecting
+        waiting_for_handler -> connecting
+        waiting_for_handler -> stopped
         connecting -> streaming
-        streaming -> connecting
-        idle -> stopped
         connecting -> stopped
+        streaming -> connecting
         streaming -> stopped
         terminal: stopped
     }
@@ -310,9 +324,12 @@ config {
     min_mleg_legs: Integer = 2
     max_mleg_legs: Integer = 4
 
-    -- Trading stream keepalive: the client sends a websocket protocol ping
-    -- every stream_ping_interval; if no pong is received within
-    -- stream_ping_timeout the connection is treated as dead.
+    -- Trade-stream keepalive. These are the client's default websocket
+    -- parameters, enforced by the transport rather than by client code: the
+    -- transport pings every stream_ping_interval and closes the connection if
+    -- no acknowledgement arrives within stream_ping_timeout, which the client
+    -- then sees as a lost connection. Supplying websocket parameters
+    -- explicitly replaces both defaults wholesale.
     stream_ping_interval: Duration = 10.seconds
     stream_ping_timeout: Duration = 180.seconds
 }
@@ -321,7 +338,10 @@ config {
 -- Rules
 ------------------------------------------------------------
 
--- Order Management
+-- Order submission
+--
+-- Every requires below is checked by the client before the request leaves the
+-- process; violations raise rather than reach the API.
 
 rule SubmitOrder {
     when: SubmitOrder(order_data)
@@ -335,10 +355,16 @@ rule SubmitOrder {
     requires: order_data.order_class = mleg implies
         order_data.order_type in {market, limit}
     requires: order_data.order_class = mleg implies
+        order_data.legs != null
+    requires: order_data.order_class = mleg implies
         order_data.legs.count >= config.min_mleg_legs
         and order_data.legs.count <= config.max_mleg_legs
     requires: order_data.order_class = mleg implies
         all_leg_symbols_unique(order_data.legs)
+
+    -- Each supplied leg must identify its direction one way or the other.
+    requires: order_data.legs != null implies
+        order_data.legs.all(l => l.side != null or l.position_intent != null)
 
     -- All other order classes identify a single asset and a side
     requires: order_data.order_class != mleg implies order_data.symbol != null
@@ -360,6 +386,22 @@ rule SubmitOrder {
     requires: order_data.order_type = stop_limit implies
         order_data.limit_price != null
 
+    -- Price fields the order type does not use are rejected outright rather
+    -- than dropped silently.
+    requires: order_data.order_type = market implies
+        order_data.limit_price = null and order_data.stop_price = null
+        and order_data.trail_price = null and order_data.trail_percent = null
+    requires: order_data.order_type = limit implies
+        order_data.stop_price = null
+        and order_data.trail_price = null and order_data.trail_percent = null
+    requires: order_data.order_type = stop implies
+        order_data.limit_price = null
+        and order_data.trail_price = null and order_data.trail_percent = null
+    requires: order_data.order_type = stop_limit implies
+        order_data.trail_price = null and order_data.trail_percent = null
+    requires: order_data.order_type = trailing_stop implies
+        order_data.limit_price = null and order_data.stop_price = null
+
     -- Advanced order classes and their exit specifications
     requires: order_data.order_class = bracket or order_data.order_class = oco implies
         order_data.take_profit != null and order_data.stop_loss != null
@@ -368,11 +410,9 @@ rule SubmitOrder {
 
     ensures: Order.created(
         symbol: order_data.symbol,
-        asset_class: order_data.asset_class,
         qty: order_data.qty,
         notional: order_data.notional,
-        filled_qty: 0,
-        order_class: order_data.order_class,
+        order_class: order_data.order_class ?? simple,
         order_type: order_data.order_type,
         side: order_data.side,
         position_intent: order_data.position_intent,
@@ -381,19 +421,26 @@ rule SubmitOrder {
         stop_price: order_data.stop_price,
         trail_price: order_data.trail_price,
         trail_percent: order_data.trail_percent,
-        extended_hours: order_data.extended_hours,
-        take_profit: order_data.take_profit,
-        stop_loss: order_data.stop_loss,
-        legs: order_data.legs,
-        status: new,
+        extended_hours: order_data.extended_hours ?? false,
+        created_at: now,
+        updated_at: now,
         submitted_at: now
     )
+
+    @guidance
+        -- The order the API returns is what the client hands back; the fields
+        -- above are the request fields it echoes. take_profit and stop_loss
+        -- shape the resulting order but are not fields of it. An absent or
+        -- empty order_class on the response is read as simple.
+        -- client_order_id may be supplied by the caller; when it is not, the
+        -- API allocates one, so the returned order always carries it.
+        -- The status the new order carries is assigned by the API; the client
+        -- neither chooses nor checks it.
 }
 
 rule ReplaceOrder {
     when: ReplaceOrder(order, replace_data)
 
-    requires: order.status in { new, pending_new, accepted, partially_filled }
     requires: replace_data.qty = null or replace_data.qty > 0
     requires: replace_data.stop_price = null or replace_data.stop_price > 0
     requires: replace_data.trail = null or replace_data.trail > 0
@@ -408,144 +455,53 @@ rule ReplaceOrder {
             stop_price: replace_data.stop_price ?? order.stop_price,
             trail_price: if order.trail_price != null: replace_data.trail ?? order.trail_price else: null,
             trail_percent: if order.trail_percent != null: replace_data.trail ?? order.trail_percent else: null,
-            filled_qty: 0,
             order_class: order.order_class,
             order_type: order.order_type,
             side: order.side,
             extended_hours: order.extended_hours,
             replaces: order,
-            status: new,
+            created_at: now,
+            updated_at: now,
             submitted_at: now
         )
-        order.status = pending_replace
         order.replaced_by = new_order
 
     @guidance
         -- A replacement carries a single trail value; it applies to whichever
-        -- trailing field (trail_price or trail_percent) the original order used.
+        -- trailing field (trail_price or trail_percent) the original order
+        -- used. Only qty, stop_price and trail are bounds-checked by the
+        -- client; limit_price is not. Whether the order is still replaceable
+        -- is decided by the API, which rejects the request otherwise.
 }
 
 rule CancelOrder {
     when: CancelOrder(order)
 
-    requires: order.status in { new, pending_new, accepted, partially_filled, held }
+    ensures: OrderCancellationRequested(order: order)
 
-    ensures: order.status = pending_cancel
+    @guidance
+        -- The client sends the cancellation and returns nothing: no order or
+        -- cancellation status is handed back, and no local state changes.
+        -- The API answers with an error when the order is no longer
+        -- cancelable; the client does not anticipate that check.
 }
 
 rule CancelAllOrders {
     when: CancelAllOrders()
 
-    ensures:
-        for order in Orders where status in { new, pending_new, accepted, partially_filled, held }:
-            order.status = pending_cancel
+    ensures: AllOrdersCancellationRequested()
+
+    @guidance
+        -- One request, no filter. The response carries one entry per order
+        -- the API attempted to cancel, each with the HTTP status that attempt
+        -- produced; the client returns them unfiltered, including failures.
 }
 
--- Order lifecycle — driven by exchange
-
-rule OrderFilled {
-    when: OrderFilled(order, fill_qty, fill_price)
-
-    requires: order.status in { accepted, partially_filled }
-
-    ensures: order.status = filled
-    ensures: order.filled_qty = fill_qty
-    ensures: order.filled_avg_price = fill_price
-    ensures: order.filled_at = now
-}
-
-rule OrderPartiallyFilled {
-    when: OrderPartiallyFilled(order, fill_qty, fill_price)
-
-    requires: order.status in { accepted, partially_filled }
-
-    ensures: order.status = partially_filled
-    ensures: order.filled_qty = fill_qty
-    ensures: order.filled_avg_price = fill_price
-}
-
-rule OrderRejected {
-    when: OrderRejected(order)
-
-    requires: order.status in { new, pending_new, accepted, pending_review }
-
-    ensures: order.status = rejected
-    ensures: order.failed_at = now
-}
-
-rule OrderExpired {
-    when: OrderExpired(order)
-
-    requires: order.status in { new, pending_new, accepted, partially_filled }
-
-    ensures: order.status = expired
-    ensures: order.expired_at = now
-}
-
-rule OrderCanceled {
-    when: OrderCanceled(order)
-
-    requires: order.status = pending_cancel
-
-    ensures: order.status = canceled
-    ensures: order.canceled_at = now
-}
-
-rule OrderReplaced {
-    when: OrderReplaced(order, replacement)
-
-    requires: order.status = pending_replace
-
-    ensures: order.status = replaced
-    ensures: order.replaced_at = now
-    ensures: order.replaced_by = replacement
-}
-
--- Bracket / OCO / OTO lifecycle
-
-rule BracketLegTriggered {
-    when: OrderFilled(parent_order, fill_qty, fill_price)
-
-    requires: parent_order.order_class = bracket
-    requires: parent_order.take_profit != null or parent_order.stop_loss != null
-
-    ensures:
-        for leg in parent_order.legs:
-            leg.status = new
-}
-
-rule OcoLegCanceled {
-    -- One-cancels-other: when one exit order of an OCO group fills, the
-    -- broker cancels the remaining exit orders. The group is represented as
-    -- an order whose legs are the alternative exits.
-    when: OrderFilled(order, fill_qty, fill_price)
-
-    requires: order.order_class = oco
-    requires: order.legs.count > 0
-
-    ensures:
-        for leg in order.legs:
-            if leg.status in {new, accepted, partially_filled, held}:
-                leg.status = pending_cancel
-}
-
-rule OtoSecondarySubmitted {
-    when: OrderFilled(primary, fill_qty, fill_price)
-
-    requires: primary.order_class = oto
-    requires: primary.legs.count > 0
-
-    ensures:
-        for leg in primary.legs:
-            leg.status = new
-}
-
--- Position Management
+-- Position management
 
 rule ClosePosition {
     when: ClosePosition(position, close_options)
 
-    requires: position.qty_available > 0
     requires: close_options.qty != null or close_options.percentage != null
     requires: close_options.qty = null or close_options.percentage = null
 
@@ -553,202 +509,242 @@ rule ClosePosition {
         symbol: position.symbol,
         asset_class: position.asset_class,
         side: if position.side = long: sell else: buy,
-        order_type: market,
-        order_class: simple,
-        filled_qty: 0,
-        extended_hours: false,
-        status: new,
+        created_at: now,
+        updated_at: now,
         submitted_at: now
     )
+
+    @guidance
+        -- The liquidating order is created by the API and returned to the
+        -- caller; its type, class, time in force and status are chosen by the
+        -- API, not by the client. The client does not check that the position
+        -- exists or that any quantity is available; the API rejects the
+        -- request in those cases, reporting the available and order-held
+        -- quantities.
 }
 
 rule CloseAllPositions {
     when: CloseAllPositions(cancel_orders)
 
     ensures:
-        if cancel_orders:
-            for order in Orders where status in { new, pending_new, accepted, partially_filled }:
-                order.status = pending_cancel
-    ensures:
         for position in Positions:
             Order.created(
                 symbol: position.symbol,
                 asset_class: position.asset_class,
                 side: if position.side = long: sell else: buy,
-                order_type: market,
-                order_class: simple,
-                filled_qty: 0,
-                extended_hours: false,
-                status: new,
+                created_at: now,
+                updated_at: now,
                 submitted_at: now
             )
+
+    @guidance
+        -- Each liquidating order's type, class, time in force and status are
+        -- chosen by the API. The response carries one entry per position,
+        -- each with the HTTP status that liquidation attempt produced, so
+        -- individual failures are reported rather than raised.
+        -- The cancel-orders flag is forwarded only when it is set; passing it
+        -- as false sends no parameter at all, so false and unspecified are
+        -- indistinguishable to the API. What the API cancels in response is
+        -- not represented in the client.
 }
 
-rule ExerciseOptionsPosition {
-    when: ExerciseOptionsPosition(position)
+rule ExerciseOptionsContract {
+    -- Identified by option symbol or contract id, not by a position.
+    when: ExerciseOptionsContract(contract)
 
-    requires: position.asset_class = us_option
-    requires: position.qty_available > 0
+    ensures: OptionsExerciseRequested(contract: contract)
 
-    ensures: OptionsExercised(position: position)
+    @guidance
+        -- All held shares of the contract are exercised; there is no partial
+        -- exercise and no quantity parameter. The client returns nothing and
+        -- performs no eligibility check. The API processes the request
+        -- immediately and rejects requests made outside market hours.
 }
 
--- Watchlist Management
+-- Watchlist management
 
 rule CreateWatchlist {
     when: CreateWatchlist(name, symbols)
 
     ensures: Watchlist.created(
         name: name,
-        assets: symbols,
+        created_at: now,
         updated_at: now
     )
+
+    @guidance
+        -- Both a name and a symbol list are required. The watchlist the API
+        -- returns holds resolved assets rather than the submitted symbols.
 }
 
 rule UpdateWatchlist {
     when: UpdateWatchlist(watchlist, name?, symbols?)
 
+    -- The client rejects an update that changes nothing.
+    requires: name != null or symbols != null
+
     ensures: watchlist.name = name ?? watchlist.name
-    ensures: watchlist.assets = symbols ?? watchlist.assets
     ensures: watchlist.updated_at = now
+
+    @guidance
+        -- When symbols are supplied they replace the watchlist's membership
+        -- wholesale; the API resolves them to assets.
 }
 
 rule AddAssetToWatchlist {
     when: AddAssetToWatchlist(watchlist, symbol)
 
-    requires: symbol not in watchlist.assets
+    let asset = Asset{symbol: symbol}
 
-    ensures: watchlist.assets.add(symbol)
+    ensures: watchlist.assets.add(asset)
     ensures: watchlist.updated_at = now
+
+    @guidance
+        -- The client does not check whether the symbol is already a member;
+        -- the API resolves the symbol and answers with the whole watchlist.
 }
 
 rule RemoveAssetFromWatchlist {
     when: RemoveAssetFromWatchlist(watchlist, symbol)
 
-    requires: symbol in watchlist.assets
+    let asset = Asset{symbol: symbol}
 
-    ensures: watchlist.assets.remove(symbol)
+    ensures: watchlist.assets.remove(asset)
     ensures: watchlist.updated_at = now
+
+    @guidance
+        -- The client does not check membership before removing.
 }
 
 rule DeleteWatchlist {
     when: DeleteWatchlist(watchlist)
 
     ensures: not exists watchlist
+
+    @guidance
+        -- Permanent; the client returns nothing.
 }
 
--- Account Configuration
+-- Account configuration
 
 rule UpdateAccountConfiguration {
     when: UpdateAccountConfiguration(config_update)
 
     ensures: AccountConfiguration.created(
         dtbp_check: config_update.dtbp_check,
+        pdt_check: config_update.pdt_check,
         fractional_trading: config_update.fractional_trading,
         max_margin_multiplier: config_update.max_margin_multiplier,
         no_shorting: config_update.no_shorting,
-        pdt_check: config_update.pdt_check,
         suspend_trade: config_update.suspend_trade,
         trade_confirm_email: config_update.trade_confirm_email,
+        ptp_no_exception_entry: config_update.ptp_no_exception_entry,
         max_options_trading_level: config_update.max_options_trading_level
     )
-}
-
--- Real-time streaming
-
-rule StartTradeStream {
-    when: StartTradeStream(stream)
-    requires: stream.status = idle
-    ensures: stream.status = connecting
 
     @guidance
-        -- The websocket connection is not opened until a trade-updates
-        -- handler has been registered; starting the stream without a handler
-        -- parks it until one is supplied or the stream is stopped.
+        -- The whole configuration is sent, not a partial patch: the caller
+        -- passes a complete configuration and every field it holds is
+        -- transmitted. The API answers with the configuration as stored.
+}
+
+-- Trade-updates stream
+
+rule SubscribeTradeUpdates {
+    when: SubscribeTradeUpdates(stream, handler)
+
+    -- The client rejects a handler it cannot await.
+    requires: is_coroutine_function(handler)
+
+    ensures: stream.has_update_handler = true
+
+    @guidance
+        -- Registering a handler while the stream is already streaming sends
+        -- the listen request on the live connection. A second registration
+        -- replaces the first: there is one handler, not a set.
+}
+
+rule StartTradeStreamWithoutHandler {
+    when: StartTradeStream(stream)
+    requires: stream.status = idle
+    requires: not stream.has_update_handler
+    ensures: stream.status = waiting_for_handler
+
+    @guidance
+        -- No connection is opened while parked. The stream leaves this state
+        -- only when a handler is registered or the stream is stopped.
+}
+
+rule StartTradeStreamWithHandler {
+    when: StartTradeStream(stream)
+    requires: stream.status = idle
+    requires: stream.has_update_handler
+    ensures: stream.status = connecting
+}
+
+rule ParkedTradeStreamProceeds {
+    when: stream: TradeUpdateStream.has_update_handler
+    requires: stream.status = waiting_for_handler
+    ensures: stream.status = connecting
 }
 
 rule TradeStreamConnected {
     -- Connect, authenticate and listen(trade_updates) completed as one step.
     when: TradeStreamConnected(stream)
     requires: stream.status = connecting
-    ensures:
-        stream.status = streaming
-        stream.last_pong_at = now
+    ensures: stream.status = streaming
 }
 
 rule TradeStreamConnectFailed {
     -- Authentication was rejected or the transport failed while connecting.
-    -- The client logs the error and retries the connect cycle indefinitely;
-    -- it does not give up until explicitly stopped.
+    -- The client logs the error and re-enters the connect cycle; it does not
+    -- give up until explicitly stopped.
     when: TradeStreamConnectFailed(stream)
     requires: stream.status = connecting
     ensures: TradeStreamReconnectAttempted(stream: stream)
 }
 
 rule TradeStreamConnectionLost {
-    -- The transport dropped. The client closes the socket and immediately
-    -- re-enters the connect cycle; the trade_updates subscription is
-    -- re-established automatically on reconnect.
+    -- The transport dropped, including when the keepalive deadline expires.
+    -- The client closes the socket and re-enters the connect cycle; the
+    -- trade_updates subscription is re-established on reconnect.
     when: TradeStreamConnectionLost(stream)
     requires: stream.status = streaming
-    ensures:
-        stream.status = connecting
-        stream.last_pong_at = null
-}
-
-rule TradeStreamPongReceived {
-    -- The server answered a keepalive ping. The client pings every
-    -- config.stream_ping_interval while connected; each pong refreshes the
-    -- liveness deadline enforced by TradeStreamPingTimeout.
-    when: TradeStreamPongReceived(stream)
-    requires: stream.status = streaming
-    ensures: stream.last_pong_at = now
-}
-
-rule TradeStreamPingTimeout {
-    -- No keepalive acknowledgement within config.stream_ping_timeout: the
-    -- connection is treated as dead and the client re-enters the connect
-    -- cycle exactly as for any other lost connection.
-    when: stream: TradeUpdateStream.last_pong_at + config.stream_ping_timeout <= now
-    requires: stream.status = streaming
-    ensures:
-        stream.status = connecting
-        stream.last_pong_at = null
+    ensures: stream.status = connecting
 }
 
 rule StopTradeStream {
     when: StopTradeStream(stream)
-    requires: stream.status in {idle, connecting, streaming}
-    ensures:
-        stream.status = stopped
-        stream.last_pong_at = null
+    requires: stream.status in {waiting_for_handler, connecting, streaming}
+    ensures: stream.status = stopped
+
+    @guidance
+        -- Stopping is signalled through the running event loop, so a stream
+        -- that was never started cannot be stopped this way. A stop issued
+        -- while connecting takes effect once the connect cycle completes and
+        -- the receive loop next checks for it.
 }
 
 rule TradeUpdateReceived {
     when: trade_update: TradeUpdate.created
 
-    ensures: OrderUpdateApplied(order: trade_update.order, event: trade_update.event)
+    ensures: TradeUpdateDelivered(update: trade_update)
+
+    @guidance
+        -- Only messages on the trade_updates channel are dispatched; anything
+        -- else the connection carries is discarded. When the client is in raw
+        -- mode the handler receives the undecoded message instead of a parsed
+        -- update.
 }
 
 ------------------------------------------------------------
 -- Invariants
 ------------------------------------------------------------
 
-invariant PatternDayTraderBuyingPower {
-    for account in TradeAccounts:
-        account.pattern_day_trader implies
-            account.daytrading_buying_power <= account.buying_power * 4
-}
-
 invariant OptionsLevelWithinApproved {
     for account in TradeAccounts:
-        account.options_trading_level != null and account.options_approved_level != null implies
-            account.options_trading_level = account.options_approved_level
-}
-
-invariant AvailableQtyBound {
-    for position in Positions:
-        position.qty_available <= position.qty
+        account.options_trading_level != null and account.options_approved_level != null
+            implies account.options_trading_level <= account.options_approved_level
 }
 
 ------------------------------------------------------------
@@ -764,6 +760,7 @@ surface OrderManagement {
             order.side
             order.qty
             order.filled_qty
+            order.filled_avg_price
             order.limit_price
             order.stop_price
             order.hwm
@@ -776,9 +773,14 @@ surface OrderManagement {
 
     provides:
         SubmitOrder(order_data)
-        ReplaceOrder(order, replace_data) when order.status in { new, pending_new, accepted, partially_filled }
-        CancelOrder(order) when order.status in { new, pending_new, accepted, partially_filled, held }
+        ReplaceOrder(order, replace_data)
+        CancelOrder(order)
         CancelAllOrders()
+
+    @guidance
+        -- Orders are also retrievable by id and by client order id, and
+        -- listable with status, time-window, side and symbol filters that
+        -- this specification does not model.
 }
 
 surface PositionManagement {
@@ -792,12 +794,11 @@ surface PositionManagement {
         position.market_value
         position.unrealized_pl
         position.avg_entry_price
+        position.cost_basis
 
     provides:
-        ClosePosition(position, close_options) when position.qty_available > 0
+        ClosePosition(position, close_options)
         CloseAllPositions(cancel_orders)
-        ExerciseOptionsPosition(position)
-            when position.asset_class = us_option and position.qty_available > 0
 }
 
 surface AccountView {
@@ -808,9 +809,13 @@ surface AccountView {
         account.buying_power
         account.equity
         account.cash
+        account.options_buying_power
+        account.options_approved_level
+        account.trading_blocked
+        account.account_blocked
+        -- Present in the model but no longer populated by the API.
         account.pattern_day_trader
         account.daytrade_count
-        account.options_approved_level
 
     provides:
         UpdateAccountConfiguration(config_update)
@@ -820,6 +825,7 @@ surface WatchlistList {
     exposes:
         for watchlist in Watchlists:
             watchlist.name
+            watchlist.created_at
             watchlist.updated_at
 
     provides:
@@ -837,7 +843,7 @@ surface WatchlistManagement {
     provides:
         UpdateWatchlist(watchlist, name?, symbols?)
         AddAssetToWatchlist(watchlist, symbol)
-        RemoveAssetFromWatchlist(watchlist, symbol) when symbol in watchlist.assets
+        RemoveAssetFromWatchlist(watchlist, symbol)
         DeleteWatchlist(watchlist)
 }
 
@@ -849,6 +855,7 @@ surface AssetCatalog {
         asset.name
         asset.asset_class
         asset.exchange
+        asset.status
         asset.tradable
         asset.marginable
         asset.shortable
@@ -857,6 +864,8 @@ surface AssetCatalog {
         asset.min_order_size
         asset.min_trade_increment
         asset.price_increment
+        asset.maintenance_margin_requirement
+        asset.attributes
 }
 
 surface OptionContractCatalog {
@@ -867,7 +876,7 @@ surface OptionContractCatalog {
         contract.name
         contract.root_symbol
         contract.underlying_symbol
-        contract.underlying_asset
+        contract.status
         contract.tradable
         contract.contract_type
         contract.exercise_style
@@ -876,6 +885,9 @@ surface OptionContractCatalog {
         contract.size
         contract.open_interest
         contract.close_price
+
+    provides:
+        ExerciseOptionsContract(contract)
 }
 
 surface TradingCalendar {
@@ -887,14 +899,14 @@ surface TradingCalendar {
         day.close
 }
 
-surface ExchangeFeed {
-    provides:
-        OrderFilled(order, fill_qty, fill_price)
-        OrderPartiallyFilled(order, fill_qty, fill_price)
-        OrderRejected(order)
-        OrderExpired(order)
-        OrderCanceled(order)
-        OrderReplaced(order, replacement)
+surface MarketClockView {
+    context clock: MarketClock
+
+    exposes:
+        clock.timestamp
+        clock.is_open
+        clock.next_open
+        clock.next_close
 }
 
 surface TradeStream {
@@ -911,11 +923,9 @@ surface TradeStream {
             update.position_qty
 
     provides:
-        StartTradeStream(stream) when stream.status = idle
+        SubscribeTradeUpdates(stream, handler)
+        StartTradeStream(stream)
         StopTradeStream(stream)
-
-    timeout:
-        TradeStreamPingTimeout
 }
 
 surface TradeStreamTransport {
@@ -926,13 +936,24 @@ surface TradeStreamTransport {
         TradeStreamConnected(stream)
         TradeStreamConnectFailed(stream)
         TradeStreamConnectionLost(stream)
-        TradeStreamPongReceived(stream)
 }
 
 ------------------------------------------------------------
 -- Open Questions
 ------------------------------------------------------------
 
-open question "OCO sibling cancellation direction — the spec models the broker canceling remaining legs when the OCO group's order fills. The reverse linkage (a filled leg canceling the order it belongs to) is not expressible without a parent backreference on Order; the SDK's Order model carries only the forward legs list. Confirm the server-side representation before adding a parent_order field."
+open question "Order lifecycle authority — no code path in the client changes an order's status. Every OrderStatus value is reachable only as data on a response or a trade update, so no transition graph is asserted for Order.status. The previous graph (new -> pending_new -> accepted -> ... ) was not witnessed by any artefact. Where should the authoritative order state machine live, and can it be cited rather than reconstructed?"
 
-open question "TradeAccount lifecycle authority — the account status transition graph is broker-driven and no SDK call changes it; the graph documents observed statuses only. onboarding and paper_only are declared terminal for graph completeness, not because they are semantically final."
+open question "Cancelable and replaceable status sets — the client sends cancel and replace requests without inspecting the order, and the API rejects them when the order has moved on. The specific statuses from which cancel or replace is accepted are not represented anywhere in the client, so no requires guard is asserted on CancelOrder or ReplaceOrder."
+
+open question "Bracket / OCO / OTO leg mechanics — take_profit and stop_loss shape an advanced order at submission but are not fields of the returned Order, and legs are populated only when a nested representation is requested. The client therefore witnesses nothing about how an exit leg is triggered or how an OCO sibling is cancelled. Rules asserting that behaviour have been removed; confirm the server-side representation before restoring them."
+
+open question "TradeUpdate.event accepts values outside the known event set — the model types it as either a known trade event or an arbitrary string, so an unrecognised event reaches the handler intact. Should the specification carry an explicit unknown case, or is the permissive typing purely defensive?"
+
+open question "Trade stream error handling asymmetry — a websocket-level error closes the socket and marks the stream not-running so the connect cycle repeats, but any other exception raised while consuming is logged and leaves the stream marked running. In that state the loop neither reconnects nor stops until the stream is stopped explicitly. Is this intended, and should the specification model it as a distinct state?"
+
+open question "Options trading levels are untyped integers (0-3) whose meanings appear only in documentation, and the effective level is stated to be the minimum of the account's approved level and the configuration's maximum. Only the approved-level bound is asserted here; the configuration bound cannot be expressed because no link between TradeAccount and AccountConfiguration exists in the client."
+
+open question "Account status lifecycle — no client operation changes a trading account's status, and the previously declared transition graph was not witnessed by any artefact. The enumeration is retained as observed data only."
+
+open question "Watchlist membership by symbol — add and remove operate on a symbol while the watchlist's members come back as resolved assets. The rules model this as a lookup from symbol to asset; confirm that the API resolves symbols the same way the asset catalogue does, including for symbols with no tradable asset."

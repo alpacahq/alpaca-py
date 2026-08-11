@@ -17,7 +17,11 @@
 -- excluded: OAuth B2B integration flow (provided by a separate authorization
 --           service; not present in the surveyed code)
 -- excluded: order placement, positions, watchlists, calendar/clock, assets,
---           corporate actions, account-activity streams (trading spec)
+--           corporate actions, account-activity streams, per-account trade
+--           configuration, option exercise (trading spec)
+-- excluded: read-only retrieval (get/list) of the entities modelled here; only
+--           the operations that change state are given rules, plus the trade
+--           document download that the retention contract depends on
 
 use "github.com/alpacahq/alpaca-allium-lib@d5d38e0fe969061525b6fabbf7c66e0aa66c40e2/BrokerageAccount" as brokerageaccount
 
@@ -36,12 +40,6 @@ external entity AccountHolder {
     contact_email: String
 }
 
-external entity KycProvider {
-    -- Third-party identity verification provider whose review outcomes the
-    -- correspondent submits as part of customer identification
-    name: String
-}
-
 external entity TradableSecurity {
     -- A security held in journals, portfolio weights and rebalancing runs;
     -- identified by its trading symbol
@@ -58,7 +56,7 @@ value PostalAddress {
     city: String
     state: String?
     postal_code: String?
-    country: String
+    country: String?
 }
 
 value ContactDetails {
@@ -71,7 +69,7 @@ value PersonalIdentity {
     given_name: String
     middle_name: String?
     family_name: String
-    date_of_birth: String
+    date_of_birth: String?
     country_of_tax_residence: String
     country_of_citizenship: String?
     country_of_birth: String?
@@ -79,15 +77,23 @@ value PersonalIdentity {
     tax_id_kind: String?
     visa_kind: String?
     visa_expiration_date: String?
+    date_of_departure_from_usa: String?
     permanent_resident: Boolean?
-    funding_sources: Set<FundingSource>
+    funding_sources: Set<FundingSource>?
+    -- Self-declared financial profile ranges collected at onboarding
+    annual_income_min: Decimal?
+    annual_income_max: Decimal?
+    liquid_net_worth_min: Decimal?
+    liquid_net_worth_max: Decimal?
+    total_net_worth_min: Decimal?
+    total_net_worth_max: Decimal?
 }
 
 value RegulatoryDisclosures {
     -- Disclosures the holder must affirm under broker-dealer regulations
-    is_control_person: Boolean
-    is_affiliated_exchange_or_finra: Boolean
-    is_politically_exposed: Boolean
+    is_control_person: Boolean?
+    is_affiliated_exchange_or_finra: Boolean?
+    is_politically_exposed: Boolean?
     immediate_family_exposed: Boolean
     employment_status: EmploymentStatus?
     employer_name: String?
@@ -99,7 +105,7 @@ value SignedAgreement {
     -- An agreement the holder has electronically signed (margin, customer,
     -- options, crypto, etc.)
     kind: AgreementKind
-    signed_at: Timestamp
+    signed_at: String
     ip_address: String
     revision: String?
 }
@@ -115,8 +121,11 @@ value EmergencyContact {
 }
 
 value KycReviewOutcome {
-    -- Outcome of the customer identification review performed by a KYC provider
-    summary: KycSummary
+    -- Outcome of the customer identification review, reported by the broker on
+    -- the account. Read-only from the correspondent's perspective.
+    -- summary is an unconstrained string in the surveyed client; the documented
+    -- values are "pass" and "fail".
+    summary: String?
     additional_information: String?
 }
 
@@ -130,10 +139,13 @@ value PortfolioWeight {
 
 value RebalanceCondition {
     -- When the rebalancer should re-evaluate a subscribed account: a
-    -- drift-band condition (target drift in percent) or a calendar cadence
+    -- drift-band condition (absolute or relative drift in percent) or a
+    -- calendar cadence with an optional day selector
     kind: RebalanceConditionKind
+    drift_band_kind: DriftBandKind?
     drift_band_percent: Decimal?
     calendar_cadence: CalendarCadence?
+    calendar_day: String?
 }
 
 value JournalEntryRequest {
@@ -154,7 +166,7 @@ value AccountDocumentUpload {
     -- A document the correspondent attaches to an application or upload
     -- batch: identifies the document's kind for the broker's review
     kind: AccountDocumentKind
-    sub_kind: String?
+    sub_kind: AccountDocumentSubKind?
 }
 
 ------------------------------------------------------------
@@ -164,27 +176,32 @@ value AccountDocumentUpload {
 contract AccountApplicationIntake {
     -- The typed payload the platform accepts when a correspondent submits a
     -- new account application (SubmitAccountApplication).
-    submit_application: (holder: AccountHolder, kind: AccountKind, sub_kind: AccountSubKind?, contact: ContactDetails, identity: PersonalIdentity, disclosures: RegulatoryDisclosures, agreements: Set<SignedAgreement>, trusted_contact: EmergencyContact?, supporting_documents: Set<AccountDocumentUpload>) -> brokerageaccount/BrokerageAccount
+    submit_application: (holder: AccountHolder, kind: AccountKind, sub_kind: AccountSubKind?, contact: ContactDetails, identity: PersonalIdentity, disclosures: RegulatoryDisclosures, agreements: Set<SignedAgreement>, trusted_contact: EmergencyContact?, supporting_documents: Set<AccountDocumentUpload>, currency: String?) -> brokerageaccount/BrokerageAccount
 
-    @invariant AgreementsRequired
-        -- At least one signed agreement must accompany every application.
+    @invariant AgreementsCarried
+        -- The application payload carries the holder's signed agreements;
+        -- the agreements block is a mandatory part of the request.
+
+    @invariant MandatoryContactAndDisclosureFields
+        -- The contact phone number, the identity date of birth and the
+        -- politically-exposed disclosure are rejected when absent, even
+        -- though they are optional on the account as returned.
 }
 
 contract CustomerIdentificationIntake {
-    -- The typed payload for submitting KYC provider review outcomes
-    -- (SubmitCipResults).
-    submit_cip_results: (account: brokerageaccount/BrokerageAccount, providers: Set<KycProvider>, review: KycReviewOutcome) -> CipSubmission
+    -- The typed payload for submitting a customer identification report
+    -- (SubmitCipResults). The report bundles the KYC provider findings; it
+    -- does not carry the broker's own review outcome.
+    submit_cip_results: (account: brokerageaccount/BrokerageAccount, providers: Set<KycProvider>) -> CipSubmission
 }
 
 contract TradeDocumentAccess {
     -- Retrieval of broker-generated trade documents for an account
     -- (statements, confirmations, tax forms).
-    list_trade_documents: (account: brokerageaccount/BrokerageAccount, kind: TradeDocumentKind?) -> Set<TradeDocument>
-    download_trade_document: (document: TradeDocument) -> String
-
-    @invariant RegulatoryRetention
-        -- Documents remain retrievable for their regulatory retention
-        -- period; closure of the account does not delete them.
+    list_trade_documents: (account: brokerageaccount/BrokerageAccount, kind: TradeDocumentKind?, generated_from: Timestamp?, generated_until: Timestamp?) -> Set<TradeDocument>
+    -- Content is streamed to a caller-supplied destination; the destination
+    -- is returned once the content has been written.
+    download_trade_document: (document: TradeDocument, destination: String) -> String
 }
 
 contract BatchJournalIntake {
@@ -235,15 +252,36 @@ enum AccountDocumentKind {
     | other
 }
 
+enum AccountDocumentSubKind {
+    -- Sub-kinds accepted on document upload. Wire values are
+    -- "Account Application", "Form W-8BEN" and "passport".
+    account_application | form_w8ben | passport
+}
+
 enum TradeDocumentKind {
     account_statement
     | trade_confirmation
+    | trade_confirmation_json
     | tax_statement
     | account_application
+    -- Legacy kinds still present on older accounts
+    | tax_1099_b_details
+    | tax_1099_b_form
+    | tax_1099_div_details
+    | tax_1099_div_form
+    | tax_1099_int_details
+    | tax_1099_int_form
+    | tax_w8
 }
 
-enum KycSummary {
-    pass | fail | indeterminate
+enum TradeDocumentSubKind {
+    `1099-Comp` | `1042-S` | `480.6` | courtesy_statement
+}
+
+enum KycProvider {
+    -- Third-party identity verification providers whose findings the
+    -- correspondent submits as part of customer identification
+    alloy | trulioo | onfido | veriff | jumio | getmati
 }
 
 enum BankAccountKind {
@@ -279,6 +317,10 @@ enum RebalanceConditionKind {
     drift_band | calendar
 }
 
+enum DriftBandKind {
+    absolute | relative
+}
+
 enum CalendarCadence {
     weekly | monthly | quarterly | annually
 }
@@ -291,10 +333,6 @@ enum RebalancingRunInitiator {
     system | api
 }
 
-enum CryptoStatus {
-    signed_up | approval_pending | active | rejected | disabled
-}
-
 ------------------------------------------------------------
 -- Entities and Variants
 ------------------------------------------------------------
@@ -305,7 +343,6 @@ entity AccountDocument {
     account: brokerageaccount/BrokerageAccount
     kind: AccountDocumentKind
     sub_kind: String?
-    uploaded_at: Timestamp
 }
 
 entity TradeDocument {
@@ -315,6 +352,7 @@ entity TradeDocument {
     account: brokerageaccount/BrokerageAccount
     name: String
     kind: TradeDocumentKind
+    sub_kind: TradeDocumentSubKind?
     generated_for_date: Timestamp
 }
 
@@ -335,6 +373,7 @@ entity AchRelationship {
     -- outright (there is no observable canceled state, unlike recipient
     -- wire banks); transfers that already reference it are unaffected.
     account: brokerageaccount/BrokerageAccount
+    owner_name: String
     nickname: String?
     bank_account_kind: BankAccountKind
     status: queued | pending | approved
@@ -381,6 +420,7 @@ entity Transfer {
     fee: Decimal?
     fee_payer: FeePayer?
     reason: String?
+    additional_information: String?    -- forwarded with wire instructions
     ach_source: AchRelationship?
     wire_source: RecipientBank?
     requested_at: Timestamp
@@ -449,8 +489,7 @@ entity Journal {
     description: String?
     settle_date: Timestamp?
     system_date: Timestamp?
-    error_message: String?
-    requested_at: Timestamp
+    error_message: String?    -- populated for failed entries of a batch journal
     status: queued
             | sent_to_clearing
             | pending
@@ -485,9 +524,6 @@ entity Journal {
         kind = security implies security != null and quantity != null and cash_amount = null
     }
 
-    invariant DistinctParties {
-        from_account != to_account
-    }
 }
 
 entity ModelPortfolio {
@@ -516,10 +552,9 @@ entity ModelPortfolio {
     runs: RebalancingRun with portfolio = this
 
     @guidance
-        -- Weight percent values are expected to sum to 100%; the broker
-        -- normalises any rounding before placing rebalance orders. Stated
-        -- here as guidance rather than as a strict invariant because the
-        -- normalised representation is not surfaced to the correspondent.
+        -- Weight percent values are rounded to two decimal places when a
+        -- portfolio is submitted. Whether the surviving weights are required
+        -- to sum to 100% is not checked by the client and is not stated here.
 }
 
 entity AccountSubscription {
@@ -606,9 +641,14 @@ rule SubmitAccountApplication {
         disclosures,
         agreements,
         trusted_contact?,
-        supporting_documents?
+        supporting_documents?,
+        currency?
     )
-    requires: agreements.count > 0
+    -- Fields that are optional on a returned account but rejected when
+    -- absent from an application
+    requires: contact.phone_number != null
+    requires: identity.date_of_birth != null
+    requires: disclosures.is_politically_exposed != null
     ensures:
         let account = brokerageaccount/BrokerageAccount.created(
             correspondent: correspondent,
@@ -620,6 +660,7 @@ rule SubmitAccountApplication {
             disclosures: disclosures,
             agreements: agreements,
             trusted_contact: trusted_contact,
+            currency: currency,
             status: submitted,
             created_at: now
         )
@@ -627,16 +668,14 @@ rule SubmitAccountApplication {
             AccountDocument.created(
                 account: account,
                 kind: document.kind,
-                sub_kind: document.sub_kind,
-                uploaded_at: now
+                sub_kind: document.sub_kind
             )
 }
 
 rule UpdateAccountInformation {
-    -- A correspondent updates a mutable subset of an open account's identity
+    -- A correspondent updates a mutable subset of an account's identity
     -- package (contact, partial identity, disclosures, trusted contact).
-    -- Permitted only while the account is open; a closed account cannot
-    -- be edited.
+    -- The request must change at least one of them.
     when: UpdateAccountInformation(
         correspondent,
         account,
@@ -646,7 +685,11 @@ rule UpdateAccountInformation {
         trusted_contact?
     )
     requires: account.correspondent = correspondent
-    requires: account.status != account_closed
+    requires:
+        contact != null
+        or identity != null
+        or disclosures != null
+        or trusted_contact != null
     ensures:
         if contact != null:
             account.contact = contact
@@ -660,29 +703,27 @@ rule UpdateAccountInformation {
 
 rule UploadAccountDocuments {
     -- The correspondent uploads one or more supporting documents (identity
-    -- verification, address proof, W-8BEN, etc.) for an open account. The
-    -- batch is capped to prevent oversized uploads.
+    -- verification, address proof, W-8BEN, etc.) for an account. The batch
+    -- is capped to prevent oversized uploads.
     when: UploadAccountDocuments(correspondent, account, documents)
     requires: account.correspondent = correspondent
-    requires: account.status != account_closed
     requires: documents.count <= config.max_documents_per_upload
     ensures:
         for document in documents:
             AccountDocument.created(
                 account: account,
                 kind: document.kind,
-                sub_kind: document.sub_kind,
-                uploaded_at: now
+                sub_kind: document.sub_kind
             )
 }
 
 rule SubmitCipResults {
-    -- The correspondent submits the results of a customer-identification
+    -- The correspondent submits the findings of a customer-identification
     -- review performed by a KYC provider (or stack of providers). The
-    -- broker consumes these to advance the account through approval.
-    when: SubmitCipResults(correspondent, account, providers, review)
+    -- broker consumes these during its own review; the account's kyc_review
+    -- is produced by the broker, not by this submission.
+    when: SubmitCipResults(correspondent, account, providers)
     requires: account.correspondent = correspondent
-    requires: account.status in {submitted, action_required, aml_review, approval_pending}
     ensures:
         CipSubmission.created(
             account: account,
@@ -690,7 +731,6 @@ rule SubmitCipResults {
             submitted_at: now,
             updated_at: now
         )
-        account.kyc_review = review
 }
 
 rule CloseAccount {
@@ -699,12 +739,13 @@ rule CloseAccount {
     -- the trading and funding flows. Here we model the closure itself.
     when: CloseAccount(correspondent, account)
     requires: account.correspondent = correspondent
-    requires: account.status in {active, limited, paper_only, disabled, inactive, approved}
     ensures: account.status = account_closed
 
     @guidance
-        -- The underlying records of a closed account are retained for
-        -- regulatory recordkeeping; closure is a status change, not a delete.
+        -- The underlying records and information of the account are not
+        -- deleted by this operation: closure is a status change. Positions
+        -- must be closed and cash withdrawn beforehand; that gating is the
+        -- caller's responsibility and is not checked here.
 }
 
 -- ##### Broker-side account lifecycle (observed by the correspondent) ##### --
@@ -805,13 +846,13 @@ rule EstablishAchRelationship {
         nickname?
     )
     requires: account.correspondent = correspondent
-    requires: account.status in {approved, active, limited, paper_only}
     requires:
         (bank_account_number != null and bank_routing_number != null)
         or plaid_processor_token != null
     ensures:
         AchRelationship.created(
             account: account,
+            owner_name: owner_name,
             nickname: nickname,
             bank_account_kind: bank_account_kind,
             status: queued
@@ -861,7 +902,6 @@ rule RegisterRecipientBank {
         address?
     )
     requires: account.correspondent = correspondent
-    requires: account.status in {approved, active, limited}
     requires: identifier_kind = bic implies address != null
     requires: identifier_kind = aba implies address = null
     ensures:
@@ -914,9 +954,7 @@ rule RequestAchTransfer {
     )
     requires: account.correspondent = correspondent
     requires: relationship.account = account
-    requires: relationship.status = approved
     requires: amount > 0
-    requires: account.status in {approved, active, limited, paper_only}
     ensures:
         Transfer.created(
             account: account,
@@ -946,9 +984,7 @@ rule RequestWireTransfer {
     )
     requires: account.correspondent = correspondent
     requires: bank.account = account
-    requires: bank.status = approved
     requires: amount > 0
-    requires: account.status in {approved, active, limited, paper_only}
     ensures:
         Transfer.created(
             account: account,
@@ -957,6 +993,7 @@ rule RequestWireTransfer {
             amount: amount,
             requested_amount: amount,
             fee_payer: fee_payer,
+            additional_information: additional_information,
             wire_source: bank,
             requested_at: now,
             status: queued
@@ -1059,10 +1096,14 @@ rule RequestJournal {
     requires: from_account.correspondent = correspondent
     requires: to_account.correspondent = correspondent
     requires: from_account != to_account
-    requires: from_account.status in {active, limited}
-    requires: to_account.status in {approved, active, limited}
-    requires: kind = cash implies cash_amount != null and cash_amount > 0
-    requires: kind = security implies security != null and quantity != null and quantity > 0
+    requires:
+        kind = cash
+            implies cash_amount != null and cash_amount > 0
+                    and security = null and quantity = null
+    requires:
+        kind = security
+            implies security != null and quantity != null and quantity > 0
+                    and cash_amount = null
     requires:
         kind = cash and cash_amount > config.travel_rule_threshold_amount
             implies transmitter_name != null
@@ -1085,7 +1126,6 @@ rule RequestJournal {
             transmitter_address: transmitter_address,
             transmitter_financial_institution: transmitter_financial_institution,
             transmitter_timestamp: transmitter_timestamp,
-            requested_at: now,
             status: queued
         )
 }
@@ -1112,7 +1152,6 @@ rule RequestBatchJournal {
                 transmitter_address: entry.transmitter_address,
                 transmitter_financial_institution: entry.transmitter_financial_institution,
                 transmitter_timestamp: entry.transmitter_timestamp,
-                requested_at: now,
                 status: queued
             )
 }
@@ -1137,7 +1176,6 @@ rule RequestReverseBatchJournal {
                 transmitter_address: entry.transmitter_address,
                 transmitter_financial_institution: entry.transmitter_financial_institution,
                 transmitter_timestamp: entry.transmitter_timestamp,
-                requested_at: now,
                 status: queued
             )
 }
@@ -1218,7 +1256,8 @@ rule DefineModelPortfolio {
         rebalance_conditions?
     )
     requires: weights.count > 0
-    requires: cooldown_days >= 0
+    requires: weights.all(w => w.percent > 0)
+    requires: weights.all(w => w.kind = asset implies w.symbol != null)
     ensures:
         ModelPortfolio.created(
             correspondent: correspondent,
@@ -1248,6 +1287,10 @@ rule UpdateModelPortfolio {
     )
     requires: portfolio.correspondent = correspondent
     requires: portfolio.status in {active, needs_adjustment}
+    requires: weights != null implies weights.all(w => w.percent > 0)
+    requires:
+        weights != null
+            implies weights.all(w => w.kind = asset implies w.symbol != null)
     ensures:
         if name != null:
             portfolio.name = name
@@ -1289,7 +1332,6 @@ rule SubscribeAccountToPortfolio {
     when: SubscribeAccountToPortfolio(correspondent, account, portfolio)
     requires: account.correspondent = correspondent
     requires: portfolio.correspondent = correspondent
-    requires: account.status = active
     requires: portfolio.status = active
     requires: not exists AccountSubscription{account: account, portfolio: portfolio}
     ensures:
@@ -1312,10 +1354,14 @@ rule RequestManualRebalancingRun {
     -- The correspondent triggers an ad-hoc rebalance for one subscribed
     -- account against one of its portfolios, optionally with custom weights
     -- (e.g. to liquidate-and-reinvest on a specific cash event). The run
-    -- enters the queue alongside system-initiated runs.
+    -- enters the queue alongside system-initiated runs. The request names
+    -- the account; the portfolio is resolved from the account's
+    -- subscription, which is why this rule is scoped to the subscription.
     when: RequestManualRebalancingRun(correspondent, subscription, kind, weights)
     requires: subscription.account.correspondent = correspondent
     requires: weights.count > 0
+    requires: weights.all(w => w.percent > 0)
+    requires: weights.all(w => w.kind = asset implies w.symbol != null)
     ensures:
         RebalancingRun.created(
             account: subscription.account,
@@ -1338,8 +1384,9 @@ rule CancelRebalancingRun {
     when: CancelRebalancingRun(correspondent, run)
     requires: run.account.correspondent = correspondent
     requires: run.status in {queued, in_progress}
+    let was_queued = run.status = queued
     ensures:
-        if run.status = queued:
+        if was_queued:
             run.status = canceled
             run.canceled_at = now
             run.updated_at = now
@@ -1420,11 +1467,6 @@ rule DownloadTradeDocument {
 -- Invariants
 ------------------------------------------------------------
 
-invariant AccountsBelongToOneCorrespondent {
-    for account in brokerageaccount/BrokerageAccounts:
-        account.correspondent != null
-}
-
 invariant AchTransfersStayWithinTheirAccount {
     for transfer in Transfers:
         transfer.ach_source != null implies transfer.ach_source.account = transfer.account
@@ -1445,7 +1487,7 @@ invariant SubscriptionPortfolioAndAccountShareCorrespondent {
         subscription.account.correspondent = subscription.portfolio.correspondent
 }
 
-invariant RebalancingRunBelongsToSubscribedAccount {
+invariant RebalancingRunAndPortfolioShareCorrespondent {
     for run in RebalancingRuns:
         run.account.correspondent = run.portfolio.correspondent
 }
@@ -1481,7 +1523,8 @@ surface PartnerOnboarding {
             disclosures,
             agreements,
             trusted_contact?,
-            supporting_documents?
+            supporting_documents?,
+            currency?
         )
 
     contracts:
@@ -1495,14 +1538,17 @@ surface AccountAdministration {
 
     context account: brokerageaccount/BrokerageAccount where correspondent = partner
 
+    let account_documents = AccountDocuments where account = account
+    let trade_documents = TradeDocuments where account = account
+    let subscriptions = AccountSubscriptions where account = account
+
     exposes:
         account.account_number
         account.kind
         account.sub_kind
         account.status
-        -- Value space of account.crypto_status (declared on the shared
-        -- BrokerageAccount entity in alpaca-allium-lib)
-        CryptoStatus
+        -- crypto_status carries account-status values, not a separate
+        -- crypto-specific value space
         account.crypto_status
         account.kyc_review
         account.contact
@@ -1510,18 +1556,14 @@ surface AccountAdministration {
         account.disclosures
         account.agreements
         account.trusted_contact
-        account.account_documents
-        account.trade_documents
+        account_documents
+        trade_documents
 
     provides:
         UpdateAccountInformation(partner, account, contact?, identity?, disclosures?, trusted_contact?)
-            when account.status != account_closed
         UploadAccountDocuments(partner, account, documents)
-            when account.status != account_closed
-        SubmitCipResults(partner, account, providers, review)
-            when account.status in {submitted, action_required, aml_review, approval_pending}
+        SubmitCipResults(partner, account, providers)
         CloseAccount(partner, account)
-            when account.status in {active, limited, paper_only, disabled, inactive, approved}
         DownloadTradeDocument(partner, account, document)
 
     contracts:
@@ -1530,7 +1572,7 @@ surface AccountAdministration {
 
     related:
         AccountFunding(account)
-        AccountRebalancing(account) when account.subscriptions.count > 0
+        AccountRebalancing(account) when subscriptions.count > 0
 }
 
 surface AccountFunding {
@@ -1540,28 +1582,31 @@ surface AccountFunding {
 
     context account: brokerageaccount/BrokerageAccount where correspondent = partner
 
+    let ach_relationships = AchRelationships where account = account
+    let recipient_banks = RecipientBanks where account = account
+    let transfers = Transfers where account = account
+
     exposes:
-        account.ach_relationships
-        account.recipient_banks
-        account.transfers
+        ach_relationships
+        recipient_banks
+        transfers
 
     provides:
         EstablishAchRelationship(
             partner, account, owner_name, bank_account_kind,
             bank_account_number?, bank_routing_number?,
             plaid_processor_token?, nickname?
-        ) when account.status in {approved, active, limited, paper_only}
+        )
         RemoveAchRelationship(partner, account, relationship)
         RegisterRecipientBank(
             partner, account, name, identifier_kind,
             bank_code, bank_account_number, address?
-        ) when account.status in {approved, active, limited}
+        )
         RemoveRecipientBank(partner, account, bank)
         RequestAchTransfer(partner, account, relationship, direction, amount, fee_payer?)
-            when account.status in {approved, active, limited, paper_only}
         RequestWireTransfer(
             partner, account, bank, direction, amount, fee_payer?, additional_information?
-        ) when account.status in {approved, active, limited, paper_only}
+        )
         CancelTransfer(partner, account, transfer)
 }
 
@@ -1618,13 +1663,15 @@ surface AccountRebalancing {
 
     context account: brokerageaccount/BrokerageAccount where correspondent = partner
 
+    let subscriptions = AccountSubscriptions where account = account
+    let rebalancing_runs = RebalancingRuns where account = account
+
     exposes:
-        account.subscriptions
-        account.rebalancing_runs
+        subscriptions
+        rebalancing_runs
 
     provides:
         SubscribeAccountToPortfolio(partner, account, portfolio)
-            when account.status = active
         UnsubscribeAccount(partner, subscription)
         RequestManualRebalancingRun(partner, subscription, kind, weights)
         CancelRebalancingRun(partner, run)
@@ -1672,6 +1719,13 @@ surface BrokerOperationsFeed {
         BrokerCompletedRebalancingRunAdjusted(run)
         BrokerFailedRebalancingRun(run)
         BrokerTimedOutRebalancingRun(run)
+
+    @guidance
+        -- The correspondent observes these broker-driven changes through
+        -- server-sent event streams for account status, trade, journal
+        -- status, transfer status and non-trading activity events, and
+        -- through re-reading the affected entity. The stimuli themselves
+        -- carry no client-side entry point.
 }
 
 ------------------------------------------------------------
@@ -1691,3 +1745,19 @@ open question "CIP submission implementation — the surveyed client's CIP uploa
 open question "Portfolio needs_adjustment recovery — no client operation or documented broker stimulus returns a needs_adjustment portfolio to active after the correspondent corrects its weights via UpdateModelPortfolio. The transition graph therefore only allows needs_adjustment -> inactive. Confirm whether the broker re-activates adjusted portfolios automatically."
 
 open question "AchRelationship terminal state — the client can unlink (delete) an ACH relationship at any status, and code declares only QUEUED/PENDING/APPROVED. approved is modelled as terminal because no observable status transition leaves it; the API may internally use a CANCELED state that this client never sees."
+
+open question "Account-status gating of correspondent operations — the surveyed client performs no account-status check before updating an account, uploading documents, closing, linking banks, requesting transfers, journalling or subscribing to a portfolio. Earlier status guards on those rules were removed as unverified. Confirm from the Broker API which account statuses each operation actually accepts."
+
+open question "Transition edges are unwitnessed by the client — every transition graph in this spec is derived from the status value sets declared in the client's enums (ACHRelationshipStatus, BankStatus, TransferStatus, JournalStatus, RunStatus, PortfolioStatus, AccountStatus). The client observes statuses but never produces a transition, so the individual edges and the terminal sets are inferred, not verified. Confirm the true lifecycles against the Broker API."
+
+open question "Account status value space — the client declares 21 account statuses (including account_updated, disable_pending, edited, kyc_submitted, onboarding, reapproval_pending, resubmitted, signed_up, submission_failed). This spec models only the 12 that the correspondent-facing flows reference; the remaining statuses have no modelled producer or consumer."
+
+open question "Cross-repo correspondent typing — the shared BrokerageAccount entity types correspondent as String, while this spec identifies the correspondent as an entity (Correspondent) via the BrokerPartner actor. Every 'account.correspondent = correspondent' guard therefore compares a String against an entity. The surveyed client has no correspondent concept at all (scoping is implicit in the Basic-auth API credentials). Resolve the type before these guards can be checked."
+
+open question "Portfolio inactivation second condition — the client documents that a portfolio may only be inactivated if it is not listed in the weights of any active portfolio. No spec expression is written for it because the surveyed weight model carries only a symbol, and how a weight references another portfolio is not visible in the client."
+
+open question "Transfer timing parameter — every transfer request carries a mandatory timing field whose only declared value is 'immediate'. It is omitted from the transfer rules because it has no counterpart on the returned transfer and no observable effect in the client."
+
+open question "Empty-string sentinels in enumerations — the client's document-kind and bank-account-kind enumerations each carry an empty-string member (returned by, respectively, unspecified document types and Plaid-linked accounts). These have no Allium literal and are not modelled."
+
+open question "Same-account journals — RequestJournal and the JournalsAreCrossAccount invariant forbid journalling between an account and itself, but no client-side validator enforces it. Confirm the API rejects it."

@@ -2,6 +2,7 @@ import asyncio
 import logging
 import queue
 from collections import defaultdict
+from enum import Enum
 from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import msgpack
@@ -24,26 +25,45 @@ from alpaca.data.models import (
 
 log = logging.getLogger(__name__)
 
+
+class _MsgType(str, Enum):
+    """Wire ``T`` values for market-data and control frames."""
+
+    TRADE = "t"
+    QUOTE = "q"
+    ORDERBOOK = "o"
+    BAR = "b"
+    UPDATED_BAR = "u"
+    DAILY_BAR = "d"
+    STATUS = "s"
+    LULD = "l"
+    NEWS = "n"
+    CORRECTION = "c"
+    CANCEL_ERROR = "x"
+    SUBSCRIPTION = "subscription"
+    ERROR = "error"
+
+
 # Recognized market-data frames. Control, unknown, and malformed frames must not
 # reset the staleness clock because they aren't dispatched as market data.
 _CHANNEL_TYPES = {
-    "t": "trades",
-    "q": "quotes",
-    "o": "orderbooks",
-    "b": "bars",
-    "u": "updatedBars",
-    "d": "dailyBars",
-    "s": "statuses",
-    "l": "lulds",
-    "n": "news",
-    "c": "corrections",
-    "x": "cancelErrors",
+    _MsgType.TRADE: "trades",
+    _MsgType.QUOTE: "quotes",
+    _MsgType.ORDERBOOK: "orderbooks",
+    _MsgType.BAR: "bars",
+    _MsgType.UPDATED_BAR: "updatedBars",
+    _MsgType.DAILY_BAR: "dailyBars",
+    _MsgType.STATUS: "statuses",
+    _MsgType.LULD: "lulds",
+    _MsgType.NEWS: "news",
+    _MsgType.CORRECTION: "corrections",
+    _MsgType.CANCEL_ERROR: "cancelErrors",
 }
 
 
 def _is_market_data(msg: Dict) -> bool:
     msg_type = msg.get("T")
-    if msg_type == "n":
+    if msg_type == _MsgType.NEWS:
         return True
     return msg_type in _CHANNEL_TYPES and "S" in msg
 
@@ -93,19 +113,7 @@ class DataStream:
         self._reconnect_max_backoff = 30.0
         self._stop_stream_queue = queue.Queue()
         self._stop_stream_event: Optional[asyncio.Event] = None
-        self._handlers = {
-            "trades": {},
-            "quotes": {},
-            "orderbooks": {},
-            "bars": {},
-            "updatedBars": {},
-            "dailyBars": {},
-            "statuses": {},
-            "lulds": {},
-            "news": {},
-            "corrections": {},
-            "cancelErrors": {},
-        }
+        self._handlers = {channel: {} for channel in _CHANNEL_TYPES.values()}
         self._name = "data"
         self._should_run = True
         self._max_frame_size = 32768
@@ -287,7 +295,7 @@ class DataStream:
         msg_type = msg.get("T")
         if "t" in msg:
             msg["t"] = msg["t"].to_datetime()
-        if msg_type == "n":
+        if msg_type == _MsgType.NEWS:
             msg["created_at"] = msg["created_at"].to_datetime()
             msg["updated_at"] = msg["updated_at"].to_datetime()
             # The API always sends "symbols" (possibly []), but normalize
@@ -297,19 +305,19 @@ class DataStream:
             return News(msg)
         if "S" not in msg:
             return msg
-        if msg_type == "t":
+        if msg_type == _MsgType.TRADE:
             return Trade(msg["S"], msg)
-        if msg_type == "q":
+        if msg_type == _MsgType.QUOTE:
             return Quote(msg["S"], msg)
-        if msg_type == "o":
+        if msg_type == _MsgType.ORDERBOOK:
             return Orderbook(msg["S"], msg)
-        if msg_type in ("b", "u", "d"):
+        if msg_type in (_MsgType.BAR, _MsgType.UPDATED_BAR, _MsgType.DAILY_BAR):
             return Bar(msg["S"], msg)
-        if msg_type == "s":
+        if msg_type == _MsgType.STATUS:
             return TradingStatus(msg["S"], msg)
-        if msg_type == "c":
+        if msg_type == _MsgType.CORRECTION:
             return TradeCorrection(msg["S"], msg)
-        if msg_type == "x":
+        if msg_type == _MsgType.CANCEL_ERROR:
             return TradeCancel(msg["S"], msg)
         return msg
 
@@ -320,27 +328,28 @@ class DataStream:
             msg (Dict): The message from the websocket connection
         """
         msg_type = msg.get("T")
-        if msg_type == "subscription":
+        if msg_type == _MsgType.SUBSCRIPTION:
             sub = [f"{k}: {msg.get(k, [])}" for k in self._handlers if msg.get(k)]
             log.info(f'subscribed to {", ".join(sub)}')
             return
 
-        if msg_type == "error":
+        if msg_type == _MsgType.ERROR:
             log.error(f'error: {msg.get("msg")} ({msg.get("code")})')
             return
 
-        if msg_type == "n":
+        if msg_type == _MsgType.NEWS:
             # Missing or empty symbols -> wildcard so unsymbolized/global news
             # still reaches the "*" handler under both raw and parsed modes.
             symbols = msg.get("symbols") or ["*"]
             star_handler_called = False
             handlers_to_call = []
             news = self._cast(msg)
+            news_handlers = self._handlers[_CHANNEL_TYPES[_MsgType.NEWS]]
             for symbol in set(symbols):
-                if symbol in self._handlers["news"]:
-                    handler = self._handlers["news"].get(symbol)
+                if symbol in news_handlers:
+                    handler = news_handlers.get(symbol)
                 elif not star_handler_called:
-                    handler = self._handlers["news"].get("*")
+                    handler = news_handlers.get("*")
                     star_handler_called = True
                 else:
                     handler = None

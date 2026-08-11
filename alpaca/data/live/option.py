@@ -20,6 +20,7 @@ class OptionDataStream(DataStream):
         feed: OptionsFeed = OptionsFeed.INDICATIVE,
         websocket_params: Optional[Dict] = None,
         url_override: Optional[str] = None,
+        data_timeout: Optional[float] = None,
     ) -> None:
         """
         Instantiates a WebSocket client for accessing live option data.
@@ -34,6 +35,10 @@ class OptionDataStream(DataStream):
                 connection. Defaults to None.
             url_override (Optional[str]): If specified allows you to override the base url the client
                 points to for proxy/testing. Defaults to None.
+            data_timeout (Optional[float], optional): Maximum number of seconds to wait without
+                receiving market data before treating the connection as stale and forcing a
+                reconnect. Detects "connected-but-mute" sockets. Defaults to ``None`` (disabled).
+                Pass a positive number of seconds to opt in for frequently-updated subscriptions.
         """
         super().__init__(
             endpoint=(
@@ -45,6 +50,7 @@ class OptionDataStream(DataStream):
             secret_key=secret_key,
             raw_data=raw_data,
             websocket_params=websocket_params,
+            data_timeout=data_timeout,
         )
 
     def subscribe_trades(

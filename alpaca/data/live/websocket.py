@@ -2,6 +2,7 @@ import asyncio
 import logging
 import queue
 from collections import defaultdict
+from enum import Enum
 from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import msgpack
@@ -10,7 +11,7 @@ from pydantic import BaseModel
 from websockets.legacy import client as websockets_legacy
 
 from alpaca.common.types import RawData
-from alpaca.common.utils import get_default_user_agent
+from alpaca.common.utils import get_default_user_agent, reconnect_delay
 from alpaca.data.models import (
     Bar,
     News,
@@ -25,6 +26,48 @@ from alpaca.data.models import (
 log = logging.getLogger(__name__)
 
 
+class _MsgType(str, Enum):
+    """Wire ``T`` values for market-data and control frames."""
+
+    TRADE = "t"
+    QUOTE = "q"
+    ORDERBOOK = "o"
+    BAR = "b"
+    UPDATED_BAR = "u"
+    DAILY_BAR = "d"
+    STATUS = "s"
+    LULD = "l"
+    NEWS = "n"
+    CORRECTION = "c"
+    CANCEL_ERROR = "x"
+    SUBSCRIPTION = "subscription"
+    ERROR = "error"
+
+
+# Recognized market-data frames. Control, unknown, and malformed frames must not
+# reset the staleness clock because they aren't dispatched as market data.
+_CHANNEL_TYPES = {
+    _MsgType.TRADE: "trades",
+    _MsgType.QUOTE: "quotes",
+    _MsgType.ORDERBOOK: "orderbooks",
+    _MsgType.BAR: "bars",
+    _MsgType.UPDATED_BAR: "updatedBars",
+    _MsgType.DAILY_BAR: "dailyBars",
+    _MsgType.STATUS: "statuses",
+    _MsgType.LULD: "lulds",
+    _MsgType.NEWS: "news",
+    _MsgType.CORRECTION: "corrections",
+    _MsgType.CANCEL_ERROR: "cancelErrors",
+}
+
+
+def _is_market_data(msg: Dict) -> bool:
+    msg_type = msg.get("T")
+    if msg_type == _MsgType.NEWS:
+        return True
+    return msg_type in _CHANNEL_TYPES and "S" in msg
+
+
 class DataStream:
     """
     A base class for extracting out common functionality for data websockets
@@ -37,6 +80,7 @@ class DataStream:
         secret_key: str,
         raw_data: bool = False,
         websocket_params: Optional[Dict] = None,
+        data_timeout: Optional[float] = None,
     ) -> None:
         """Creates a new DataStream instance.
 
@@ -46,6 +90,13 @@ class DataStream:
             secret_key (str): Alpaca API secret key.
             raw_data (bool, optional): Whether to return raw API data or parsed data. Defaults to False.
             websocket_params (Optional[Dict], optional): Any websocket connection configuration parameters. Defaults to None.
+            data_timeout (Optional[float], optional): Maximum number of seconds to wait without
+                receiving market data before treating the connection as stale and forcing a
+                reconnect. This detects "connected-but-mute" sockets that the transport-level
+                ping/pong keepalive cannot catch. Defaults to ``None`` (disabled), since a
+                legitimately quiet subscription (for example news or infrequent bars) would
+                otherwise trigger periodic reconnects. Pass a positive number of seconds to
+                opt in for subscriptions that are expected to receive frequent data.
         """
         self._endpoint = endpoint
         self._api_key = api_key
@@ -53,21 +104,16 @@ class DataStream:
         self._ws = None
         self._running = False
         self._loop = None
+        if data_timeout is not None and data_timeout <= 0:
+            raise ValueError("data_timeout must be a positive number of seconds")
         self._raw_data = raw_data
+        self._data_timeout = data_timeout
+        self._data_received = False
+        self._reconnect_min_backoff = 1.0
+        self._reconnect_max_backoff = 30.0
         self._stop_stream_queue = queue.Queue()
-        self._handlers = {
-            "trades": {},
-            "quotes": {},
-            "orderbooks": {},
-            "bars": {},
-            "updatedBars": {},
-            "dailyBars": {},
-            "statuses": {},
-            "lulds": {},
-            "news": {},
-            "corrections": {},
-            "cancelErrors": {},
-        }
+        self._stop_stream_event: Optional[asyncio.Event] = None
+        self._handlers = {channel: {} for channel in _CHANNEL_TYPES.values()}
         self._name = "data"
         self._should_run = True
         self._max_frame_size = 32768
@@ -80,6 +126,30 @@ class DataStream:
 
         if websocket_params:
             self._websocket_params = websocket_params
+
+    def _reconnect_delay(self, retries: int) -> float:
+        """Computes the delay before the next reconnection attempt.
+
+        Args:
+            retries (int): The number of consecutive failed attempts (>= 1).
+
+        Returns:
+            float: The number of seconds to wait before retrying.
+        """
+        return reconnect_delay(
+            retries, self._reconnect_min_backoff, self._reconnect_max_backoff
+        )
+
+    async def _wait_before_reconnect(self, retries: int) -> None:
+        if self._stop_stream_event is None or self._stop_stream_event.is_set():
+            return
+        try:
+            await asyncio.wait_for(
+                self._stop_stream_event.wait(),
+                timeout=self._reconnect_delay(retries),
+            )
+        except asyncio.TimeoutError:
+            pass
 
     async def _connect(self) -> None:
         """Attempts to connect to the websocket endpoint.
@@ -141,30 +211,69 @@ class DataStream:
     async def close(self) -> None:
         """Closes the websocket connection."""
         if self._ws:
-            await self._ws.close()
-            self._ws = None
+            try:
+                await self._ws.close()
+            finally:
+                self._ws = None
+                self._running = False
+        else:
             self._running = False
 
     async def stop_ws(self) -> None:
         """Signals websocket connection should close by adding a closing message to the stop_stream_queue"""
         self._should_run = False
+        if self._stop_stream_event is not None:
+            self._stop_stream_event.set()
         if self._stop_stream_queue.empty():
             self._stop_stream_queue.put_nowait({"should_stop": True})
         await asyncio.sleep(0)
 
-    async def _consume(self) -> None:
-        """Distributes data from websocket connection to appropriate callbacks"""
+    async def _consume(self) -> bool:
+        """Distributes data from websocket connection to appropriate callbacks.
+
+        Returns:
+            bool: True if the loop exited because the connection went stale (no
+            market data received within ``data_timeout``) and should be reconnected;
+            False if it exited because a stop was requested.
+        """
+        loop = asyncio.get_running_loop()
+        last_data_time = loop.time()
+        self._data_received = False
         while True:
             if not self._stop_stream_queue.empty():
                 self._stop_stream_queue.get(timeout=1)
                 await self.close()
-                break
+                return False
             else:
+                receive_timeout = 5.0
+                if self._data_timeout is not None:
+                    elapsed = loop.time() - last_data_time
+                    if elapsed >= self._data_timeout:
+                        log.warning(
+                            "no data received on %s stream for %.1fs, reconnecting",
+                            self._name,
+                            self._data_timeout,
+                        )
+                        await self.close()
+                        return True
+                    receive_timeout = min(receive_timeout, self._data_timeout - elapsed)
                 try:
-                    r = await asyncio.wait_for(self._ws.recv(), 5)
+                    r = await asyncio.wait_for(self._ws.recv(), receive_timeout)
                     msgs = msgpack.unpackb(r)
                     for msg in msgs:
+                        # Only actual market data resets the staleness clock and
+                        # counts toward recovery; control frames (subscription
+                        # acks, errors) must not, otherwise a subscribed-but-mute
+                        # stream would look healthy and the escalating backoff
+                        # would never engage.
+                        is_market_data = _is_market_data(msg)
+                        if msg.get("T") in _CHANNEL_TYPES and not is_market_data:
+                            continue
+                        if is_market_data:
+                            self._data_received = True
                         await self._dispatch(msg)
+                        if is_market_data:
+                            last_data_time = loop.time()
                 except asyncio.TimeoutError:
                     # ws.recv is hanging when no data is received. by using
                     # wait_for we break when no data is received, allowing us
@@ -186,25 +295,29 @@ class DataStream:
         msg_type = msg.get("T")
         if "t" in msg:
             msg["t"] = msg["t"].to_datetime()
-        if msg_type == "n":
+        if msg_type == _MsgType.NEWS:
             msg["created_at"] = msg["created_at"].to_datetime()
             msg["updated_at"] = msg["updated_at"].to_datetime()
+            # The API always sends "symbols" (possibly []), but normalize
+            # defensively here rather than loosening the shared News model,
+            # which is also used by the strict historical REST client.
+            msg.setdefault("symbols", [])
             return News(msg)
         if "S" not in msg:
             return msg
-        if msg_type == "t":
+        if msg_type == _MsgType.TRADE:
             return Trade(msg["S"], msg)
-        if msg_type == "q":
+        if msg_type == _MsgType.QUOTE:
             return Quote(msg["S"], msg)
-        if msg_type == "o":
+        if msg_type == _MsgType.ORDERBOOK:
             return Orderbook(msg["S"], msg)
-        if msg_type in ("b", "u", "d"):
+        if msg_type in (_MsgType.BAR, _MsgType.UPDATED_BAR, _MsgType.DAILY_BAR):
             return Bar(msg["S"], msg)
-        if msg_type == "s":
+        if msg_type == _MsgType.STATUS:
             return TradingStatus(msg["S"], msg)
-        if msg_type == "c":
+        if msg_type == _MsgType.CORRECTION:
             return TradeCorrection(msg["S"], msg)
-        if msg_type == "x":
+        if msg_type == _MsgType.CANCEL_ERROR:
             return TradeCancel(msg["S"], msg)
         return msg
 
@@ -215,25 +328,28 @@ class DataStream:
             msg (Dict): The message from the websocket connection
         """
         msg_type = msg.get("T")
-        if msg_type == "subscription":
+        if msg_type == _MsgType.SUBSCRIPTION:
             sub = [f"{k}: {msg.get(k, [])}" for k in self._handlers if msg.get(k)]
             log.info(f'subscribed to {", ".join(sub)}')
             return
 
-        if msg_type == "error":
+        if msg_type == _MsgType.ERROR:
             log.error(f'error: {msg.get("msg")} ({msg.get("code")})')
             return
 
-        if msg_type == "n":
-            symbols = msg.get("symbols", "*")
+        if msg_type == _MsgType.NEWS:
+            # Missing or empty symbols -> wildcard so unsymbolized/global news
+            # still reaches the "*" handler under both raw and parsed modes.
+            symbols = msg.get("symbols") or ["*"]
             star_handler_called = False
             handlers_to_call = []
             news = self._cast(msg)
+            news_handlers = self._handlers[_CHANNEL_TYPES[_MsgType.NEWS]]
             for symbol in set(symbols):
-                if symbol in self._handlers["news"]:
-                    handler = self._handlers["news"].get(symbol)
+                if symbol in news_handlers:
+                    handler = news_handlers.get(symbol)
                 elif not star_handler_called:
-                    handler = self._handlers["news"].get("*")
+                    handler = news_handlers.get("*")
                     star_handler_called = True
                 else:
                     handler = None
@@ -243,20 +359,7 @@ class DataStream:
                 await asyncio.gather(*handlers_to_call)
             return
 
-        channel_types = {
-            "t": "trades",
-            "q": "quotes",
-            "o": "orderbooks",
-            "b": "bars",
-            "u": "updatedBars",
-            "d": "dailyBars",
-            "s": "statuses",
-            "l": "lulds",
-            "n": "news",
-            "c": "corrections",
-            "x": "cancelErrors",
-        }
-        channel = channel_types.get(msg_type)
+        channel = _CHANNEL_TYPES.get(msg_type)
         if not channel:
             return
         symbol = msg.get("S")
@@ -334,7 +437,11 @@ class DataStream:
             await asyncio.sleep(0)
         log.info(f"started {self._name} stream")
         self._should_run = True
+        while not self._stop_stream_queue.empty():
+            self._stop_stream_queue.get_nowait()
+        self._stop_stream_event = asyncio.Event()
         self._running = False
+        retries = 0
         while True:
             try:
                 if not self._should_run:
@@ -343,23 +450,44 @@ class DataStream:
                     return
                 if not self._running:
                     log.info("starting {} websocket connection".format(self._name))
+                    self._data_received = False
                     await self._start_ws()
                     await self._send_subscribe_msg()
                     self._running = True
-                await self._consume()
+                stale = await self._consume()
+                if stale:
+                    if self._data_received:
+                        retries = 0
+                    retries += 1
+                    # A reconnect forced by data-staleness hits the same
+                    # single-connection / slow-reap window as an error reconnect,
+                    # so back off here too instead of reconnecting immediately.
+                    # All consecutive reconnect failures share this counter;
+                    # actual market data resets it.
+                    await self._wait_before_reconnect(retries)
             except websockets.WebSocketException as wse:
                 await self.close()
                 self._running = False
+                if self._data_received:
+                    retries = 0
+                retries += 1
                 log.warning("data websocket error, restarting connection: " + str(wse))
-            except ValueError as ve:
-                if "insufficient subscription" in str(ve):
-                    await self.close()
-                    self._running = False
-                    log.exception(f"error during websocket communication: {str(ve)}")
-                    return
-                log.exception(f"error during websocket communication: {str(ve)}")
+                await self._wait_before_reconnect(retries)
             except Exception as e:
+                if isinstance(e, ValueError) and "insufficient subscription" in str(e):
+                    await self.close()
+                    log.exception(f"error during websocket communication: {str(e)}")
+                    return
                 log.exception(f"error during websocket communication: {str(e)}")
+                if not self._running:
+                    # Close any half-open socket from a failed connect/auth so
+                    # abandoned sessions do not keep consuming the
+                    # single-connection slot and cause HTTP 429s.
+                    await self.close()
+                    retries += 1
+                    await self._wait_before_reconnect(retries)
+                elif self._data_received:
+                    retries = 0
             finally:
                 await asyncio.sleep(0)
 

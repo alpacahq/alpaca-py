@@ -1,5 +1,7 @@
+import asyncio
+import threading
 from datetime import datetime
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 
 import msgpack
 import pytest
@@ -33,6 +35,97 @@ def raw_ws_client() -> DataStream:
 def timestamp() -> Timestamp:
     """Msgpack mock timestamp."""
     return Timestamp(seconds=10, nanoseconds=10)
+
+
+@pytest.mark.asyncio
+async def test_run_forever_waits_for_subscription_without_polling(
+    ws_client: DataStream,
+):
+    sleep_calls = []
+    original_sleep = asyncio.sleep
+
+    async def tracked_sleep(delay):
+        sleep_calls.append(delay)
+        await original_sleep(delay)
+
+    with patch("alpaca.data.live.websocket.asyncio.sleep", new=tracked_sleep):
+        run_task = asyncio.create_task(ws_client._run_forever())
+        try:
+            await original_sleep(0)
+            await original_sleep(0)
+            assert sleep_calls == []
+        finally:
+            await ws_client.stop_ws()
+            await asyncio.wait_for(run_task, timeout=1)
+
+
+@pytest.mark.asyncio
+async def test_wait_for_subscriptions_honors_stop_state(ws_client: DataStream):
+    ws_client._should_run = False
+
+    assert await ws_client._wait_for_subscriptions() is False
+
+
+@pytest.mark.asyncio
+async def test_run_forever_honors_stop_requested_before_start(
+    ws_client: DataStream,
+):
+    await ws_client.stop_ws()
+
+    await asyncio.wait_for(ws_client._run_forever(), timeout=1)
+
+    assert ws_client._running is False
+
+
+@pytest.mark.asyncio
+async def test_run_forever_wakes_for_subscription_from_another_thread(
+    ws_client: DataStream,
+):
+    websocket_started = asyncio.Event()
+    thread_errors = []
+
+    async def handler(_):
+        pass
+
+    async def start_ws():
+        websocket_started.set()
+        ws_client._should_run = False
+
+    def subscribe():
+        try:
+            ws_client._subscribe(handler, ("AAPL",), ws_client._handlers["trades"])
+        except Exception as error:
+            thread_errors.append(error)
+
+    with (
+        patch.object(ws_client, "_start_ws", side_effect=start_ws),
+        patch.object(ws_client, "_send_subscribe_msg", new=AsyncMock()),
+        patch.object(ws_client, "_consume", new=AsyncMock()),
+    ):
+        run_task = asyncio.create_task(ws_client._run_forever())
+        await asyncio.sleep(0)
+        subscription_thread = threading.Thread(target=subscribe)
+        subscription_thread.start()
+        subscription_thread.join(timeout=1)
+
+        assert not subscription_thread.is_alive()
+        assert thread_errors == []
+        await asyncio.wait_for(websocket_started.wait(), timeout=1)
+        await asyncio.wait_for(run_task, timeout=1)
+
+
+def test_signal_state_change_uses_event_snapshot(ws_client: DataStream):
+    loop = MagicMock()
+    subscription_event = MagicMock()
+    ws_client._loop = loop
+
+    with patch.object(
+        DataStream, "_subscription_event", new_callable=PropertyMock, create=True
+    ) as event_attribute:
+        event_attribute.side_effect = [subscription_event, None]
+        ws_client._signal_state_change()
+
+    loop.call_soon_threadsafe.assert_called_once_with(subscription_event.set)
 
 
 def test_cast(ws_client: DataStream, raw_ws_client: DataStream, timestamp: Timestamp):

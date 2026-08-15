@@ -45,6 +45,17 @@ async def test_wait_for_subscription_honors_stop_state(
 
 
 @pytest.mark.asyncio
+async def test_run_forever_honors_stop_requested_before_start(
+    trading_stream: TradingStream,
+):
+    await trading_stream.stop_ws()
+
+    await asyncio.wait_for(trading_stream._run_forever(), timeout=1)
+
+    assert trading_stream._running is False
+
+
+@pytest.mark.asyncio
 async def test_run_forever_wakes_for_subscription_from_another_thread(
     trading_stream: TradingStream,
 ):

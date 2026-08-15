@@ -221,10 +221,12 @@ class TradingStream:
                     pass
 
     async def _run_forever(self):
+        is_restart = self._loop is not None
         self._loop = asyncio.get_running_loop()
-        self._should_run = True
-        while not self._stop_stream_queue.empty():
-            self._stop_stream_queue.get_nowait()
+        if is_restart:
+            self._should_run = True
+            while not self._stop_stream_queue.empty():
+                self._stop_stream_queue.get_nowait()
         self._stop_stream_event = asyncio.Event()
         self._running = False
         # do not start the websocket connection until we subscribe to something

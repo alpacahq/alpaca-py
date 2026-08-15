@@ -78,6 +78,30 @@ async def test_run_forever_honors_stop_requested_before_start(
 
 
 @pytest.mark.asyncio
+async def test_run_forever_honors_stop_requested_before_restart(
+    ws_client: DataStream,
+):
+    async def handler(_):
+        pass
+
+    async def start_ws():
+        ws_client._should_run = False
+
+    ws_client._loop = asyncio.get_running_loop()
+    ws_client._handlers["trades"]["AAPL"] = handler
+    await ws_client.stop_ws()
+
+    with (
+        patch.object(ws_client, "_start_ws", side_effect=start_ws) as start,
+        patch.object(ws_client, "_send_subscribe_msg", new=AsyncMock()),
+        patch.object(ws_client, "_consume", new=AsyncMock()),
+    ):
+        await asyncio.wait_for(ws_client._run_forever(), timeout=1)
+
+    start.assert_not_awaited()
+
+
+@pytest.mark.asyncio
 async def test_run_forever_wakes_for_subscription_from_another_thread(
     ws_client: DataStream,
 ):

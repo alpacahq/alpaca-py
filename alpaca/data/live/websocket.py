@@ -399,18 +399,24 @@ class DataStream:
             # The stream loop may have closed concurrently with the caller.
             pass
 
+    def _drain_stop_queue(self) -> bool:
+        """Consume pending stop markers and report whether any were present."""
+        stop_requested = False
+        while True:
+            try:
+                self._stop_stream_queue.get_nowait()
+            except queue.Empty:
+                return stop_requested
+            stop_requested = True
+
     async def _wait_for_subscriptions(self) -> bool:
         """Wait until a subscription is registered or the stream is stopped."""
         self._subscription_event = asyncio.Event()
         try:
             while True:
-                if not self._should_run:
+                if self._drain_stop_queue():
                     return False
-                try:
-                    self._stop_stream_queue.get_nowait()
-                except queue.Empty:
-                    pass
-                else:
+                if not self._should_run:
                     return False
                 if any(
                     handlers
@@ -460,14 +466,13 @@ class DataStream:
         """Starts event loop for receiving data from websocket connection and handles
         distributing messages
         """
-        is_restart = self._loop is not None
         self._loop = asyncio.get_running_loop()
-        if is_restart:
-            self._should_run = True
-            while not self._stop_stream_queue.empty():
-                self._stop_stream_queue.get_nowait()
         self._stop_stream_event = asyncio.Event()
         self._running = False
+        if self._drain_stop_queue():
+            self._should_run = False
+            return
+        self._should_run = True
         # do not start the websocket connection until we subscribe to something
         if not await self._wait_for_subscriptions():
             self._should_run = False
@@ -478,6 +483,7 @@ class DataStream:
             try:
                 if not self._should_run:
                     # when signaling to stop, this is how we break run_forever
+                    self._drain_stop_queue()
                     log.info("{} stream stopped".format(self._name))
                     return
                 if not self._running:

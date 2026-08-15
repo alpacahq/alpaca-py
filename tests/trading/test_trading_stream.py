@@ -56,6 +56,29 @@ async def test_run_forever_honors_stop_requested_before_start(
 
 
 @pytest.mark.asyncio
+async def test_run_forever_honors_stop_requested_before_restart(
+    trading_stream: TradingStream,
+):
+    async def handler(_):
+        pass
+
+    async def start_ws():
+        trading_stream._should_run = False
+
+    trading_stream._loop = asyncio.get_running_loop()
+    trading_stream._trade_updates_handler = handler
+    await trading_stream.stop_ws()
+
+    with (
+        patch.object(trading_stream, "_start_ws", side_effect=start_ws) as start,
+        patch.object(trading_stream, "_consume", new=AsyncMock()),
+    ):
+        await asyncio.wait_for(trading_stream._run_forever(), timeout=1)
+
+    start.assert_not_awaited()
+
+
+@pytest.mark.asyncio
 async def test_run_forever_wakes_for_subscription_from_another_thread(
     trading_stream: TradingStream,
 ):

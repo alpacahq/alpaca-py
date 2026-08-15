@@ -60,6 +60,13 @@ async def test_run_forever_waits_for_subscription_without_polling(
 
 
 @pytest.mark.asyncio
+async def test_wait_for_subscriptions_honors_stop_state(ws_client: DataStream):
+    ws_client._should_run = False
+
+    assert await ws_client._wait_for_subscriptions() is False
+
+
+@pytest.mark.asyncio
 async def test_run_forever_wakes_for_subscription_from_another_thread(
     ws_client: DataStream,
 ):

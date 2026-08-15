@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ 3.10 ] #we'll want to add other versions down the road
+        python-version: [ "3.10" ] #we'll want to add other versions down the road
         poetry-version: [ 2.4.1 ]
         os: [ ubuntu-latest ] #in the future we should add windows here
     runs-on: ${{ matrix.os }}
@@ -34,6 +34,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+      # Docker actions mount RUNNER_TEMP/_github_home -> /github/home; host git config
+      # does not apply inside the container (actions/runner#2033, actions/checkout#766).
+      - name: Trust workspace for Docker publish action
+        run: |
+          mkdir -p "$RUNNER_TEMP/_github_home"
+          git config --file "$RUNNER_TEMP/_github_home/.gitconfig" --add safe.directory /github/workspace
       - name: Build and publish to pypi
         uses: JRubics/poetry-publish@v2.1
         with:

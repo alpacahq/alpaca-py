@@ -160,3 +160,11 @@ Broker API
 To use the Broker API, you will need to sign up for a `broker account <https://broker-app.alpaca.markets/sign-up>`_ and retrieve
 your Broker API keys. The API keys can be found on the dashboard once you've logged in. Alpaca also provides a sandbox environment to test out Broker API. To use the sandbox mode, provide your
 sandbox keys. Once you have your keys, you can pass them into ``BrokerClient`` to get started.
+
+
+Support
+-------
+
+- **Library / SDK issues:** Bugs, feature requests, or questions specific to this Python library → `GitHub Issues <https://github.com/alpacahq/alpaca-py/issues/new/choose>`_.
+- **General Alpaca support & API discussion:** Account questions, platform issues, or broader API topics → `Alpaca Community Forum <https://forum.alpaca.markets/>`_.
+- **Slack community:** Chat with other developers and the Alpaca community on `Slack <https://alpaca.markets/slack>`_.

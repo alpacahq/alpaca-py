@@ -191,6 +191,8 @@ this:
 
     from alpaca.data.live import StockDataStream
 
+    # data_timeout defaults to None (disabled); pass a positive number of
+    # seconds (e.g. data_timeout=60) to reconnect a connected-but-mute socket.
     stream = StockDataStream(API_KEY, SECRET_KEY)
 
     async def handle_quote(quote):

@@ -343,6 +343,32 @@ def _extract(
     )
 
 
+def _venv_site_packages(python: Path, *, verbose: bool = True) -> Path:
+    result = _run(
+        [str(python), "-c", "import sysconfig; print(sysconfig.get_path('purelib'))"],
+        verbose=verbose,
+        echo_stdout=False,
+        echo_cmd=False,
+    )
+    site_packages = Path(result.stdout.strip())
+    if not site_packages.is_dir():
+        raise ToolError(f"could not resolve site-packages for {python}")
+    return site_packages
+
+
+def _require_snapshot_location(location: object, site_packages: Path) -> None:
+    if not isinstance(location, str) or not location:
+        raise ToolError("public API snapshot is missing import location")
+    imported = Path(location).resolve()
+    try:
+        imported.relative_to(site_packages.resolve())
+    except ValueError as exc:
+        raise ToolError(
+            f"public API snapshot imported from {location}, expected installed "
+            f"package under {site_packages}"
+        ) from exc
+
+
 def _dump_public_api(
     python: Path,
     snapshot_json: Path,
@@ -353,20 +379,22 @@ def _dump_public_api(
 ) -> dict:
     """Snapshot public enums/models of the currently installed alpaca-py.
 
-    Runs outside the repository with an isolated ``sys.path`` so the working tree
-    never shadows the installed wheel.
+    Runs in isolated mode from an empty nested directory so a ``--workdir`` that
+    contains the checkout (for example ``WORKDIR=$PWD``) cannot shadow the wheel
+    on Python 3.10, where ``PYTHONSAFEPATH`` is unsupported.
     """
     source = _PUBLIC_DUMP_SOURCE.format(
         top_module=TOP_MODULE, package_name=PACKAGE_NAME
     )
     env = {key: value for key, value in os.environ.items() if key != "PYTHONPATH"}
-    env["PYTHONSAFEPATH"] = "1"
-    run_dir.mkdir(parents=True, exist_ok=True)
+    site_packages = _venv_site_packages(python, verbose=verbose)
+    snapshot_run_dir = run_dir / ".snapshot_run"
+    snapshot_run_dir.mkdir(parents=True, exist_ok=True)
     if verbose:
-        print(f"+ {python} -c <public api snapshot>", flush=True)
+        print(f"+ {python} -I -c <public api snapshot>", flush=True)
     result = _run(
-        [str(python), "-c", source],
-        cwd=run_dir,
+        [str(python), "-I", "-c", source],
+        cwd=snapshot_run_dir,
         env=env,
         verbose=verbose,
         echo_stdout=False,
@@ -376,6 +404,8 @@ def _dump_public_api(
         payload = json.loads(result.stdout)
     except json.JSONDecodeError as exc:
         raise ToolError(f"could not parse public API snapshot: {exc}") from exc
+
+    _require_snapshot_location(payload.get("location"), site_packages)
 
     version = payload.get("version")
     if not isinstance(version, str) or not _versions_equal(version, expected_version):

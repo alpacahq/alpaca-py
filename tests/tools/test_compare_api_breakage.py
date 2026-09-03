@@ -490,3 +490,81 @@ class TestDumpErrors:
 
     def test_require_no_dump_errors_ok_when_empty(self, cab):
         cab._require_no_dump_errors({"errors": {}})
+
+
+class TestSnapshotImportGuards:
+    def test_require_snapshot_location_accepts_site_packages_path(self, cab, tmp_path):
+        site_packages = tmp_path / "site-packages"
+        location = site_packages / "alpaca" / "__init__.py"
+        location.parent.mkdir(parents=True)
+        location.touch()
+        cab._require_snapshot_location(str(location), site_packages)
+
+    def test_require_snapshot_location_rejects_checkout_path(self, cab, tmp_path):
+        site_packages = tmp_path / "venv" / "lib" / "site-packages"
+        checkout = tmp_path / "src" / "alpaca" / "__init__.py"
+        checkout.parent.mkdir(parents=True)
+        checkout.touch()
+        with pytest.raises(cab.ToolError, match="expected installed package"):
+            cab._require_snapshot_location(str(checkout), site_packages)
+
+    def test_require_snapshot_location_rejects_missing_location(self, cab, tmp_path):
+        with pytest.raises(cab.ToolError, match="missing import location"):
+            cab._require_snapshot_location(None, tmp_path)
+
+    def test_dump_public_api_uses_isolated_mode_and_empty_run_dir(
+        self, cab, tmp_path, monkeypatch
+    ):
+        calls: list[tuple[list[str], dict]] = []
+
+        def fake_run(cmd, **kwargs):
+            calls.append((cmd, kwargs))
+
+            class Result:
+                stdout = json.dumps(
+                    {
+                        "version": "1.0.0",
+                        "location": str(
+                            tmp_path / "site-packages" / "alpaca" / "__init__.py"
+                        ),
+                        "enums": {},
+                        "models": {},
+                        "errors": {},
+                    }
+                )
+                stderr = ""
+                returncode = 0
+
+            return Result()
+
+        site_packages = tmp_path / "site-packages"
+        (site_packages / "alpaca").mkdir(parents=True)
+        (site_packages / "alpaca" / "__init__.py").touch()
+
+        monkeypatch.setattr(cab, "_run", fake_run)
+        monkeypatch.setattr(
+            cab,
+            "_venv_site_packages",
+            lambda python, verbose=True: site_packages,
+        )
+
+        python = tmp_path / "bin" / "python"
+        python.parent.mkdir(parents=True)
+        workdir = tmp_path / "work"
+        workdir.mkdir()
+        (workdir / "alpaca").mkdir()
+
+        cab._dump_public_api(
+            python,
+            tmp_path / "public.json",
+            workdir,
+            "1.0.0",
+            verbose=False,
+        )
+
+        assert len(calls) == 1
+        cmd, kwargs = calls[0]
+        assert cmd[:3] == [str(python), "-I", "-c"]
+        assert kwargs["cwd"] == workdir / ".snapshot_run"
+        assert "PYTHONPATH" not in kwargs["env"]
+        assert "PYTHONSAFEPATH" not in kwargs["env"]

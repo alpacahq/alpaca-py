@@ -20,3 +20,11 @@ generate: ## Generate the documentation
 .PHONY: test
 test: ## Run the unit tests
 	poetry run pytest
+
+.PHONY: check-api-breakage
+check-api-breakage: ## Compare public API vs a published release (AGAINST=version)
+	python3 tools/scripts/compare_api_breakage.py \
+		$(if $(AGAINST),--against $(AGAINST)) \
+		$(if $(WORKDIR),--workdir $(WORKDIR) --keep-workdir) \
+		$(if $(VERBOSE),--verbose) \
+		--fail-on-breaking

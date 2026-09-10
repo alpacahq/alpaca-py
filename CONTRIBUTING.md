@@ -100,3 +100,46 @@ And so the final method looks like:
 ```python
 def remove_symbol_from_watchlist_by_id(self, watchlist_id: UUID, symbol: str) -> Watchlist:
 ```
+
+### Checking backward compatibility
+
+Before merging changes that touch the public SDK surface, compare this branch against a
+published `alpaca-py` release:
+
+```shell
+# Latest version on PyPI (quiet: breakings + summary only)
+make check-api-breakage
+
+# Explicit baseline (recommended when reviewing a known release)
+make check-api-breakage AGAINST=0.43.5
+
+# Full progress + AexPy view + additive enum/model lists
+make check-api-breakage VERBOSE=1
+
+# Keep AexPy / contract JSON artifacts for inspection
+make check-api-breakage AGAINST=0.43.5 WORKDIR=/tmp/aexpy-alpaca
+```
+
+The target runs `tools/scripts/compare_api_breakage.py`, which:
+
+1. Builds a wheel from the current tree and downloads the baseline wheel from PyPI
+2. Runs [AexPy](https://github.com/StardustDL/aexpy) for API-level removals and
+   signature changes
+3. Snapshots public enum membership (`name -> value`) and public Pydantic model field
+   contracts (type, requiredness, aliases), then reports removals and value/contract
+   changes as breaking
+
+The Makefile target is quiet by default. Useful flags on the script itself:
+
+| Flag | Effect |
+| --- | --- |
+| `--against VERSION` | Baseline PyPI version (default: latest) |
+| `--workdir DIR` | Persist wheels and JSON reports |
+| `--verbose` | Progress, full AexPy view, additive enum/model changes (Makefile: `VERBOSE=1`) |
+| `--fail-on-breaking` | Exit `1` when breakings are reported (Makefile always passes this) |
+| `--fail-on-unknown` | Also fail on AexPy "unknown" ranks (mostly alias retargets) |
+| `--skip-contracts` | Skip enum/model contract snapshots; AexPy only |
+
+AexPy alone can report noisy `Change alias` findings when a type moves between modules
+while remaining importable from the same public path. Treat the enum and model contract
+section as the practical backward-compatibility gate for those migrations.

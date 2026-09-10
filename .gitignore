@@ -137,3 +137,6 @@ dmypy.json
 
 # Cloudflare stuff
 Cloudflare_CA.pem
+
+# Git worktrees (local agent isolation)
+.worktrees/

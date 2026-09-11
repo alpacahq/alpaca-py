@@ -1,11 +1,10 @@
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone
 from unittest.mock import AsyncMock, patch
 
 import msgpack
 import pytest
 from msgpack.ext import Timestamp
-from pytz import utc
 
 from alpaca.common.utils import get_default_user_agent
 from alpaca.data.enums import Exchange
@@ -140,7 +139,7 @@ def test_cast(ws_client: DataStream, raw_ws_client: DataStream, timestamp: Times
     assert cancel.exchange == "D"
     assert cancel.price == 36.18
 
-    created_at = datetime(2024, 6, 17, 14, 11, 0, tzinfo=utc)
+    created_at = datetime(2024, 6, 17, 14, 11, 0, tzinfo=timezone.utc)
     news = ws_client._cast(
         {
             "T": "n",

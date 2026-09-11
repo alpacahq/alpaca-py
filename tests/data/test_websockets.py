@@ -1,10 +1,10 @@
-from datetime import datetime
+import asyncio
+from datetime import datetime, timezone
 from unittest.mock import AsyncMock, patch
 
 import msgpack
 import pytest
 from msgpack.ext import Timestamp
-from pytz import utc
 
 from alpaca.common.utils import get_default_user_agent
 from alpaca.data.enums import Exchange
@@ -139,7 +139,7 @@ def test_cast(ws_client: DataStream, raw_ws_client: DataStream, timestamp: Times
     assert cancel.exchange == "D"
     assert cancel.price == 36.18
 
-    created_at = datetime(2024, 6, 17, 14, 11, 0, tzinfo=utc)
+    created_at = datetime(2024, 6, 17, 14, 11, 0, tzinfo=timezone.utc)
     news = ws_client._cast(
         {
             "T": "n",
@@ -300,3 +300,67 @@ async def test_dispatch(ws_client: DataStream, timestamp: Timestamp):
     assert len(articles_b) == 1
     assert len(articles_star) == 2
     assert articles_star[1].headline == "c"
+
+
+@pytest.mark.asyncio
+async def test_run_forever_unblocks_on_subscribe(ws_client: DataStream):
+    """DataStream should suspend startup until a qualifying handler is registered."""
+    async def mock_handler(data):
+        pass
+
+    async def mock_consume_side_effect():
+        await ws_client.stop_ws()
+
+    with patch.object(ws_client, "_start_ws", new_callable=AsyncMock) as mock_start, \
+         patch.object(ws_client, "_send_subscribe_msg", new_callable=AsyncMock), \
+         patch.object(ws_client, "_consume", new_callable=AsyncMock) as mock_consume:
+        mock_consume.side_effect = mock_consume_side_effect
+
+        task = asyncio.create_task(ws_client._run_forever())
+        await asyncio.sleep(0.05)
+        assert not mock_start.called
+
+        ws_client._subscribe(mock_handler, ("AAPL",), ws_client._handlers["quotes"])
+        await asyncio.wait_for(task, timeout=2.0)
+        assert mock_start.called
+
+
+@pytest.mark.asyncio
+async def test_run_forever_ignores_non_qualifying_subscriptions(ws_client: DataStream):
+    """DataStream should not start on cancelErrors/corrections alone until a data channel is subscribed."""
+    async def mock_handler(data):
+        pass
+
+    async def mock_consume_side_effect():
+        await ws_client.stop_ws()
+
+    with patch.object(ws_client, "_start_ws", new_callable=AsyncMock) as mock_start, \
+         patch.object(ws_client, "_send_subscribe_msg", new_callable=AsyncMock), \
+         patch.object(ws_client, "_consume", new_callable=AsyncMock) as mock_consume:
+        mock_consume.side_effect = mock_consume_side_effect
+
+        task = asyncio.create_task(ws_client._run_forever())
+        await asyncio.sleep(0.05)
+
+        ws_client._subscribe(mock_handler, ("AAPL",), ws_client._handlers["cancelErrors"])
+        await asyncio.sleep(0.05)
+        assert not mock_start.called
+
+        ws_client._subscribe(mock_handler, ("AAPL",), ws_client._handlers["quotes"])
+        await asyncio.wait_for(task, timeout=2.0)
+        assert mock_start.called
+
+
+@pytest.mark.asyncio
+async def test_run_forever_stops_cleanly_when_no_subscriptions(ws_client: DataStream):
+    """DataStream should exit cleanly on stop_ws() without ever starting connection if unsubscribed."""
+    with patch.object(ws_client, "_start_ws", new_callable=AsyncMock) as mock_start:
+        task = asyncio.create_task(ws_client._run_forever())
+        await asyncio.sleep(0.05)
+        assert not mock_start.called
+
+        await ws_client.stop_ws()
+        await asyncio.wait_for(task, timeout=2.0)
+        assert not mock_start.called
+
+

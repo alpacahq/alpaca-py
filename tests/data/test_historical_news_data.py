@@ -6,6 +6,18 @@ from alpaca.data.models.news import NewsSet
 from alpaca.data.requests import NewsRequest
 
 
+def test_news_request_serializes_multiple_symbols():
+    request = NewsRequest(symbols=["AAPL", "GOOGL"])
+
+    assert request.to_request_fields()["symbols"] == "AAPL,GOOGL"
+
+
+def test_news_request_preserves_single_symbol():
+    request = NewsRequest(symbols="AAPL")
+
+    assert request.to_request_fields()["symbols"] == "AAPL"
+
+
 def test_get_news(reqmock, news_client: NewsClient):
     # Test single symbol request
 

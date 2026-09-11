@@ -2,7 +2,7 @@ from datetime import date, datetime
 from typing import Any, List, Optional, Union
 
 import pytz
-from pydantic import ConfigDict
+from pydantic import ConfigDict, field_serializer
 
 from alpaca.common.enums import Sort, SupportedCurrencies
 from alpaca.common.requests import NonEmptyRequest
@@ -534,7 +534,7 @@ class NewsRequest(NonEmptyRequest):
     end (Optional[datetime])): The inclusive end of the interval. Format: RFC-3339 or YYYY-MM-DD.
         If missing, the default value is the current time.
     sort (Optional[str]): Sort articles by updated date.
-    symbols (Optional[str]): The comma-separated list of symbols to query news for.
+    symbols (Optional[Union[str, List[str]]]): A symbol or list of symbols to query news for.
     limit (Optional[int]): Limit of news items to be returned for given page.
     include_content (Optional[bool]): Boolean indicator to include content for news articles (if available)
     exclude_contentless (Optional[bool]): Boolean indicator to exclude news articles that do not contain content
@@ -544,11 +544,17 @@ class NewsRequest(NonEmptyRequest):
     start: Optional[datetime] = None
     end: Optional[datetime] = None
     sort: Optional[str] = None
-    symbols: Optional[str] = None
+    symbols: Optional[Union[str, List[str]]] = None
     limit: Optional[int] = None
     include_content: Optional[bool] = None
     exclude_contentless: Optional[bool] = None
     page_token: Optional[str] = None
+
+    @field_serializer("symbols")
+    def serialize_symbols(self, symbols: Optional[Union[str, List[str]]]):
+        if isinstance(symbols, list):
+            return ",".join(symbols)
+        return symbols
 
 
 # ############################## CorporateActions #################################### #

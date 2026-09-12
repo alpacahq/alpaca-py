@@ -1,0 +1,31 @@
+// Shared LikeC4 specification — layered-docs v0.1 (2026-08). Copy verbatim into docs/architecture/specification.c4
+specification {
+  element person {
+    style { shape person }
+  }
+  element system
+  element container
+  element component
+  element datastore {
+    style { shape storage }
+  }
+  element queue {
+    style { shape queue }
+  }
+  element external {
+    style { color muted }
+  }
+
+  relationship uses
+  relationship calls
+  relationship reads
+  relationship writes
+  relationship publishes
+  relationship consumes
+  relationship deploys
+
+  tag generated
+  tag entrypoint
+  tag internal
+  tag external
+}

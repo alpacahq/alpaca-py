@@ -1,0 +1,161 @@
+// generated_by: claude-opus-5 / layered-docs 2026-09
+// source_commit: 48fd544334a595c53e386043cc9282824b1e9c58   source_branch: docs/layered-2026-09   generated_at: 2026-09-11T00:00:00+00:00
+// confidence: medium   review_status: draft-needs-review
+model {
+
+  alpaca_py = system 'Alpaca-py' {
+    #generated
+    description '
+      Official Python SDK for the Alpaca Trading, Broker and Market Data APIs. It wraps the REST, WebSocket and SSE endpoints in typed, pydantic-validated client classes for application developers. Evidence: README.md, pyproject.toml
+    '
+    technology 'Python 3.10+ / poetry / pydantic v2 / requests / websockets'
+    link https://github.com/alpacahq/alpaca-py 'Repository'
+    metadata {
+      okf 'docs/okf/system.md'
+      allium 'none: no accepted spec'
+      evidence 'pyproject.toml, README.md, alpaca/, Makefile, Dockerfile, cloudbuild.yaml, .github/workflows/ci.yaml'
+      note 'Packaging caveat: rest_core, trading_client, broker_client and market_data are code modules of a single distributable wheel (pyproject.toml declares one package, include alpaca), not independently deployable units; docs_site is the only separately built and deployed artefact (Dockerfile, cloudbuild.yaml). They are modelled at container level for readability. Confidence: low on the level assignment.'
+    }
+
+    rest_core = container 'REST core' {
+      #generated
+      description '
+        Shared abstract REST client: credential validation, basic or OAuth auth headers, base URL selection, pagination and retry on HTTP 429 and 504. Evidence: alpaca/common/rest.py, alpaca/common/constants.py, alpaca/common/enums.py
+      '
+      technology 'Python / requests.Session'
+      link https://github.com/alpacahq/alpaca-py/tree/master/alpaca/common 'Repository'
+      metadata {
+        okf 'docs/okf/system.md'
+        allium 'none: no accepted spec'
+        evidence 'alpaca/common/rest.py, alpaca/common/constants.py, alpaca/common/exceptions.py'
+      }
+    }
+
+    trading_client = container 'Trading API client' {
+      #generated #entrypoint
+      description '
+        TradingClient plus the trade-update stream: orders, positions, assets and account endpoints against the live or paper trading host. Evidence: alpaca/trading/client.py, alpaca/trading/stream.py, alpaca/trading/requests.py
+      '
+      technology 'Python / pydantic models'
+      link https://github.com/alpacahq/alpaca-py/tree/master/alpaca/trading 'Repository'
+      metadata {
+        okf 'docs/okf/system.md'
+        allium 'none: no accepted spec'
+        evidence 'alpaca/trading/client.py, alpaca/trading/stream.py, README.md'
+      }
+    }
+
+    broker_client = container 'Broker API client' {
+      #generated #entrypoint
+      description '
+        BrokerClient for the Broker API: accounts, funding, journals, documents, rebalancing and broker-side trading, against the production or sandbox broker host. Evidence: alpaca/broker/client.py, alpaca/broker/requests.py, alpaca/broker/models/
+      '
+      technology 'Python / pydantic models'
+      link https://github.com/alpacahq/alpaca-py/tree/master/alpaca/broker 'Repository'
+      metadata {
+        okf 'docs/okf/system.md'
+        allium 'none: no accepted spec'
+        evidence 'alpaca/broker/client.py, alpaca/broker/models/accounts.py, README.md'
+      }
+    }
+
+    market_data = container 'Market data clients' {
+      #generated #entrypoint
+      description '
+        Historical clients for stocks, options, crypto, news, screener and corporate actions, plus the msgpack WebSocket streaming clients for live bars, quotes, trades, orderbooks and news. Evidence: alpaca/data/historical/, alpaca/data/live/, alpaca/data/live/websocket.py
+      '
+      technology 'Python / requests / websockets / msgpack / pandas'
+      link https://github.com/alpacahq/alpaca-py/tree/master/alpaca/data 'Repository'
+      metadata {
+        okf 'docs/okf/system.md'
+        allium 'none: no accepted spec'
+        evidence 'alpaca/data/historical/stock.py, alpaca/data/live/websocket.py, alpaca/data/models/'
+      }
+    }
+
+    docs_site = container 'Documentation site' {
+      #generated
+      description '
+        Sphinx API-reference site built from the docstrings and reStructuredText sources, packaged as an nginx image. Evidence: docs/, docs/Makefile, Dockerfile, tools/scripts/generate-docs.sh
+      '
+      technology 'Sphinx / furo / nginx:alpine'
+      link https://github.com/alpacahq/alpaca-py/tree/master/docs 'Repository'
+      metadata {
+        okf 'docs/okf/system.md'
+        allium 'none: no accepted spec'
+        evidence 'Dockerfile, docs/Makefile, docs/api_reference/, cloudbuild.yaml'
+      }
+    }
+  }
+
+  ext_alpaca_api = external 'Alpaca REST, WebSocket and SSE API endpoints' {
+    #generated #external
+    description '
+      Trading, paper-trading, broker and market-data hosts the SDK targets, in production and sandbox. Evidence: alpaca/common/enums.py BaseURL values, alpaca/trading/stream.py, alpaca/data/live/websocket.py
+    '
+    metadata {
+      note 'new id, not yet in the org ext_* dictionary — see docs/okf/system.md Open questions'
+    }
+  }
+
+  ext_pypi = external 'PyPI package index' {
+    #generated #external
+    description '
+      Distribution channel: the package is built with poetry and published on version tags. Evidence: .github/workflows/publish-pypi.yaml, pyproject.toml, README.md
+    '
+    metadata {
+      note 'new id, not yet in the org ext_* dictionary — see docs/okf/system.md Open questions'
+    }
+  }
+
+  ext_github = external 'GitHub' {
+    #generated #external
+    description '
+      Hosts the repository and runs the workflow-based CI, documentation lint and tag-triggered release. Evidence: .github/workflows/ci.yaml, .github/workflows/publish-pypi.yaml, .github/workflows/stale.yml
+    '
+  }
+
+  ext_gcp = external 'Google Cloud Platform' {
+    #generated #external
+    description '
+      Cloud Build builds and pushes the documentation image to Container Registry and, when the _KUBE_* substitutions and a service-account token are supplied by the trigger, restarts the Kubernetes deployment (and sets the image on tags only). Evidence: cloudbuild.yaml:62-67
+    '
+  }
+
+  sdk_developer = person 'Application developer' {
+    #generated
+    description '
+      Builds trading, investing or brokerage applications on top of the SDK, supplying API keys or sandbox keys. Evidence: README.md, CONTRIBUTING.md, examples/
+    '
+  }
+
+  sdk_developer -[uses]-> alpaca_py.trading_client 'submits orders and reads account state'
+  sdk_developer -[uses]-> alpaca_py.broker_client 'manages brokerage accounts and funding'
+  sdk_developer -[uses]-> alpaca_py.market_data 'queries historical and streaming market data'
+  sdk_developer -[uses]-> alpaca_py.docs_site 'reads the API reference'
+
+  alpaca_py.trading_client -[uses]-> alpaca_py.rest_core 'inherits auth, pagination and retry'
+  alpaca_py.broker_client -[uses]-> alpaca_py.rest_core 'inherits auth, pagination and retry'
+  alpaca_py.market_data -[uses]-> alpaca_py.rest_core 'inherits auth, pagination and retry'
+
+  alpaca_py.rest_core -[calls]-> ext_alpaca_api 'HTTPS requests to the trading, broker and data hosts'
+  alpaca_py.trading_client -[consumes]-> ext_alpaca_api 'trade update stream over WebSocket'
+  alpaca_py.market_data -[consumes]-> ext_alpaca_api 'live market data stream over WebSocket'
+  alpaca_py.broker_client -[consumes]-> ext_alpaca_api 'broker event streams over SSE (text/event-stream). Evidence: alpaca/broker/client.py:1893'
+  alpaca_py -[publishes]-> ext_pypi 'package built by poetry and uploaded on version tags. Evidence: .github/workflows/publish-pypi.yaml'
+  alpaca_py -[uses]-> ext_github 'CI, documentation lint and tag-triggered release workflows. Evidence: .github/workflows/'
+  ext_gcp -[deploys]-> alpaca_py.docs_site 'Cloud Build builds and pushes the image and, when the _KUBE_* substitutions and service-account token are supplied, rolls out the Kubernetes deployment. Evidence: cloudbuild.yaml'
+}
+
+views {
+  view alpaca_py_context {
+    title 'Alpaca-py — context'
+    include alpaca_py, sdk_developer, ext_alpaca_api, ext_pypi, ext_gcp, ext_github
+    autoLayout TopBottom
+  }
+  view alpaca_py_containers of alpaca_py {
+    title 'Alpaca-py — containers'
+    include *
+    autoLayout LeftRight
+  }
+}

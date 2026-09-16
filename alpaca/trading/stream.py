@@ -156,6 +156,11 @@ class TradingStream:
         """
         self._ensure_coroutine(handler)
         self._trade_updates_handler = handler
+        if hasattr(self, "_has_subscription_event") and self._has_subscription_event is not None:
+            if hasattr(self, "_loop") and self._loop and self._loop.is_running():
+                self._loop.call_soon_threadsafe(self._has_subscription_event.set)
+            else:
+                self._has_subscription_event.set()
         if self._running:
             asyncio.run_coroutine_threadsafe(
                 self._subscribe_trade_updates(), self._loop
@@ -188,12 +193,16 @@ class TradingStream:
 
     async def _run_forever(self):
         self._loop = asyncio.get_running_loop()
+        self._has_subscription_event = asyncio.Event()
+        if self._trade_updates_handler:
+            self._has_subscription_event.set()
         # do not start the websocket connection until we subscribe to something
         while not self._trade_updates_handler:
             if not self._stop_stream_queue.empty():
                 self._stop_stream_queue.get(timeout=1)
                 return
-            await asyncio.sleep(0.1)
+            await self._has_subscription_event.wait()
+            self._has_subscription_event.clear()
         log.info("started trading stream")
         self._should_run = True
         while not self._stop_stream_queue.empty():
@@ -254,6 +263,11 @@ class TradingStream:
     async def stop_ws(self) -> None:
         """Signals websocket connection should close by adding a closing message to the stop_stream_queue"""
         self._should_run = False
+        if hasattr(self, "_has_subscription_event") and self._has_subscription_event is not None:
+            if hasattr(self, "_loop") and self._loop and self._loop.is_running():
+                self._loop.call_soon_threadsafe(self._has_subscription_event.set)
+            else:
+                self._has_subscription_event.set()
         if self._stop_stream_event is not None:
             self._stop_stream_event.set()
         if self._stop_stream_queue.empty():

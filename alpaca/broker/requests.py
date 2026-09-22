@@ -149,15 +149,18 @@ class CreateAccountRequest(NonEmptyRequest):
         Validate parameters that are optional in the response but not in the request.
         """
         nullable_fields_by_model = {
-            "contact": "phone_number",
-            "identity": "date_of_birth",
-            "disclosures": "is_control_person",
-            "disclosures": "is_affiliated_exchange_or_finra",
-            "disclosures": "is_politically_exposed",
+            "contact": ["phone_number"],
+            "identity": ["date_of_birth"],
+            "disclosures": [
+                "is_control_person",
+                "is_affiliated_exchange_or_finra",
+                "is_politically_exposed",
+            ],
         }
-        for model, field in nullable_fields_by_model.items():
-            if dict(values[model]).get(field, None) is None:
-                raise ValueError(f"{field} is required to create a new account.")
+        for model, fields in nullable_fields_by_model.items():
+            for field in fields:
+                if dict(values[model]).get(field, None) is None:
+                    raise ValueError(f"{field} is required to create a new account.")
         return values
 
 

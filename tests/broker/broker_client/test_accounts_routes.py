@@ -25,6 +25,24 @@ from alpaca.trading.models import AccountConfiguration as TradeAccountConfigurat
 from tests.broker.factories import accounts as factory
 
 
+@pytest.mark.parametrize(
+    "missing_field",
+    ["is_control_person", "is_affiliated_exchange_or_finra", "is_politically_exposed"],
+)
+def test_create_account_request_requires_each_disclosure(missing_field: str):
+    """Each disclosure listed as required must be validated, not just the last one."""
+    disclosures = factory.create_dummy_disclosures()
+    setattr(disclosures, missing_field, None)
+
+    with pytest.raises(ValueError, match=missing_field):
+        CreateAccountRequest(
+            agreements=factory.create_dummy_agreements(),
+            contact=factory.create_dummy_contact(),
+            disclosures=disclosures,
+            identity=factory.create_dummy_identity(),
+        )
+
+
 def test_create_account(reqmock, client: BrokerClient):
     created_id = "0d969814-40d6-4b2b-99ac-2e37427f1ad2"
 

@@ -6,3 +6,5 @@ def test_activity_type_is_trade_activity():
 
     assert ActivityType.FILL.is_trade_activity()
     assert not ActivityType.ACATC.is_trade_activity()
+    assert not ActivityType.CGD.is_trade_activity()
+    assert ActivityType.CGD == "CGD"

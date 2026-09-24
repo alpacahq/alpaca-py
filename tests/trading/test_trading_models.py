@@ -4,13 +4,14 @@ import warnings
 import pytest
 
 from alpaca.trading.enums import (
+    ActivityType,
     OrderClass,
     OrderSide,
     OrderType,
     TimeInForce,
     TradeEvent,
 )
-from alpaca.trading.models import TradeUpdate
+from alpaca.trading.models import NonTradeActivity, TradeUpdate
 from alpaca.trading.requests import (
     LimitOrderRequest,
     MarketOrderRequest,
@@ -384,3 +385,20 @@ def test_trade_update_events() -> None:
         msg = base.copy()
         msg["event"] = event
         TradeUpdate(**msg)
+
+
+def test_nontrade_activity_cgd_model_validation() -> None:
+    raw = {
+        "id": "20260525000000000::c524b737-b67b-416a-b451-321e42d3a609",
+        "account_id": "c524b737-b67b-416a-b451-321e42d3a609",
+        "activity_type": "CGD",
+        "activity_sub_type": "STCG",
+        "date": "2026-05-25",
+        "net_amount": "0.18",
+        "description": "Capital Gain Distribution",
+        "symbol": "AIA",
+        "status": "executed",
+        "currency": "USD",
+    }
+    activity = NonTradeActivity.model_validate(raw)
+    assert activity.activity_type == ActivityType.CGD

@@ -1,49 +1,77 @@
 from enum import Enum
 
+from alpaca._deprecating_enum import DeprecatingEnumMeta as _DeprecatingEnumMeta
 
-class ActivityType(str, Enum):
+_DEPRECATED_ACTIVITY_TYPES = {
+    name: (
+        f"ActivityType.{name} is deprecated and will be removed in the next release. "
+        "It is no longer a valid activity type."
+    )
+    for name in ("DIVWH", "EXTRD", "FXTRD", "INTPNL", "SWP", "VOF", "WH")
+}
+
+
+class ActivityType(
+    str, Enum, metaclass=_DeprecatingEnumMeta, deprecations=_DEPRECATED_ACTIVITY_TYPES
+):
     """
     Represents what kind of Activity an instance of TradeActivity or NonTradeActivity is.
 
     Please see https://alpaca.markets/docs/api-references/broker-api/accounts/account-activities/#enumactivitytype
     for descriptions of each of the types
+
+    DIVWH, EXTRD, FXTRD, INTPNL, SWP, VOF, and WH are deprecated and will be
+    removed in the next release. They are no longer valid activity types.
     """
 
     FILL = "FILL"
     ACATC = "ACATC"
     ACATS = "ACATS"
     CFEE = "CFEE"
+    CGD = "CGD"
     CIL = "CIL"
     CSD = "CSD"
     CSW = "CSW"
     DIV = "DIV"
     DIVCGL = "DIVCGL"
     DIVCGS = "DIVCGS"
+    DIVFEE = "DIVFEE"
+    DIVFT = "DIVFT"
     DIVNRA = "DIVNRA"
     DIVROC = "DIVROC"
+    DIVTW = "DIVTW"
     DIVTXEX = "DIVTXEX"
     DIVWH = "DIVWH"
     EXTRD = "EXTRD"
     FEE = "FEE"
+    FOPT = "FOPT"
     FXTRD = "FXTRD"
     INT = "INT"
+    INTNRA = "INTNRA"
     INTPNL = "INTPNL"
+    INTTW = "INTTW"
+    JNL = "JNL"
     JNLC = "JNLC"
     JNLS = "JNLS"
     MA = "MA"
     MEM = "MEM"
+    MISC = "MISC"
     NC = "NC"
     OCT = "OCT"
     OPASN = "OPASN"
+    OPCA = "OPCA"
     OPCSH = "OPCSH"
     OPEXC = "OPEXC"
     OPEXP = "OPEXP"
     OPTRD = "OPTRD"
     PTC = "PTC"
+    PTR = "PTR"
+    REO = "REO"
     REORG = "REORG"
     SPIN = "SPIN"
     SPLIT = "SPLIT"
     SWP = "SWP"
+    TRANS = "TRANS"
     VOF = "VOF"
     WH = "WH"
 
@@ -116,6 +144,7 @@ class OrderClass(str, Enum):
     BRACKET = "bracket"
     OCO = "oco"
     OTO = "oto"
+    EMPTY = ""
 
 
 class OrderType(str, Enum):
@@ -143,13 +172,33 @@ class OrderSide(str, Enum):
 
     BUY = "buy"
     SELL = "sell"
+    BUY_MINUS = "buy_minus"
+    SELL_PLUS = "sell_plus"
+    SELL_SHORT = "sell_short"
+    SELL_SHORT_EXEMPT = "sell_short_exempt"
+    UNDISCLOSED = "undisclosed"
+    CROSS = "cross"
+    CROSS_SHORT = "cross_short"
 
 
-class OrderStatus(str, Enum):
+_DEPRECATED_ORDER_STATUSES = {
+    "PENDING_REVIEW": (
+        "OrderStatus.PENDING_REVIEW is deprecated and will be removed in the next release. "
+        "It is no longer a valid order status."
+    ),
+}
+
+
+class OrderStatus(
+    str, Enum, metaclass=_DeprecatingEnumMeta, deprecations=_DEPRECATED_ORDER_STATUSES
+):
     """
     Represents the various states an Order can be in.
 
     please see https://alpaca.markets/docs/api-references/broker-api/trading/orders/#order-status for more info
+
+    PENDING_REVIEW is deprecated and will be removed in the next release.
+    It is no longer a valid order status.
     """
 
     NEW = "new"
@@ -184,6 +233,12 @@ class AssetClass(str, Enum):
     US_OPTION = "us_option"
     CRYPTO = "crypto"
     CRYPTO_PERP = "crypto_perp"
+    TREASURY = "treasury"
+    CORPORATE = "corporate"
+    GLOBAL_EQUITY = "global_equity"
+    US_INDEX = "us_index"
+    US_EQUITY_CHAIN = "us_equity_chain"
+    IPO = "ipo"
 
 
 class AssetStatus(str, Enum):
@@ -195,9 +250,23 @@ class AssetStatus(str, Enum):
     INACTIVE = "inactive"
 
 
-class AssetExchange(str, Enum):
+_DEPRECATED_ASSET_EXCHANGES = {
+    name: (
+        f"AssetExchange.{name} is deprecated and will be removed in the next release. "
+        "It is no longer a valid asset exchange."
+    )
+    for name in ("ASCX", "FTXU", "CBSE", "GNSS", "ERSX")
+}
+
+
+class AssetExchange(
+    str, Enum, metaclass=_DeprecatingEnumMeta, deprecations=_DEPRECATED_ASSET_EXCHANGES
+):
     """
     Represents the current exchanges Alpaca supports.
+
+    ASCX, FTXU, CBSE, GNSS, and ERSX are deprecated and will be removed in the
+    next release. They are no longer valid asset exchanges.
     """
 
     AMEX = "AMEX"
@@ -281,14 +350,39 @@ class CorporateActionSubType(str, Enum):
     RECAPITALIZATION = "recapitalization"
 
 
-class AccountStatus(str, Enum):
+_DEPRECATED_ACCOUNT_STATUSES = {
+    name: (
+        f"AccountStatus.{name} is deprecated and will be removed in the next release. "
+        "It is no longer a valid account status."
+    )
+    for name in (
+        "AML_REVIEW",
+        "DISABLED",
+        "DISABLE_PENDING",
+        "EDITED",
+        "KYC_SUBMITTED",
+        "REAPPROVAL_PENDING",
+        "RESUBMITTED",
+        "SIGNED_UP",
+    )
+}
+
+
+class AccountStatus(
+    str, Enum, metaclass=_DeprecatingEnumMeta, deprecations=_DEPRECATED_ACCOUNT_STATUSES
+):
     """
     The various statuses each brokerage account can take during its lifetime
 
     see https://alpaca.markets/docs/broker/api-references/accounts/accounts/#account-status
+
+    AML_REVIEW, DISABLED, DISABLE_PENDING, EDITED, KYC_SUBMITTED,
+    REAPPROVAL_PENDING, RESUBMITTED, and SIGNED_UP are deprecated and will be
+    removed in the next release. They are no longer valid account statuses.
     """
 
     ACCOUNT_CLOSED = "ACCOUNT_CLOSED"
+    ACCOUNT_CLOSED_PENDING = "ACCOUNT_CLOSED_PENDING"
     ACCOUNT_UPDATED = "ACCOUNT_UPDATED"
     ACTION_REQUIRED = "ACTION_REQUIRED"
     ACTIVE = "ACTIVE"

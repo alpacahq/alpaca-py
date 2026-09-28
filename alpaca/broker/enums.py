@@ -1,5 +1,7 @@
 from enum import Enum
 
+from alpaca._deprecating_enum import DeprecatingEnumMeta as _DeprecatingEnumMeta
+
 
 class AccountSubType(str, Enum):
     """
@@ -25,6 +27,10 @@ class AccountType(str, Enum):
     DONOR_ADVISED = "donor_advised"
     IRA = "ira"
     HSA = "hsa"
+    TRUST = "trust"
+    OMNIBUS_NON_DISCLOSED = "omnibus_non_disclosed"
+    OMNIBUS_SUB = "omnibus_sub"
+    JOINT = "joint"
 
 
 class TaxIdType(str, Enum):
@@ -134,18 +140,58 @@ class EmploymentStatus(str, Enum):
     RETIRED = "RETIRED"
 
 
-class AgreementType(str, Enum):
+_AGREEMENT_TYPE_RENAMES = {
+    "MARGIN": "MARGIN_AGREEMENT",
+    "ACCOUNT": "ACCOUNT_AGREEMENT",
+    "CUSTOMER": "CUSTOMER_AGREEMENT",
+    "CRYPTO": "CRYPTO_AGREEMENT",
+    "OPTIONS": "OPTIONS_AGREEMENT",
+}
+
+_DEPRECATED_AGREEMENT_TYPES = {
+    old_name: (
+        f"AgreementType.{old_name} is deprecated and will be removed in the next release. "
+        f"Use AgreementType.{new_name}."
+    )
+    for old_name, new_name in _AGREEMENT_TYPE_RENAMES.items()
+}
+_DEPRECATED_AGREEMENT_TYPES["CUSTODIAL_CUSTOMER"] = (
+    "AgreementType.CUSTODIAL_CUSTOMER is deprecated and will be removed in the next release. "
+    "It is no longer a valid agreement type."
+)
+
+
+class AgreementType(
+    str,
+    Enum,
+    metaclass=_DeprecatingEnumMeta,
+    deprecations=_DEPRECATED_AGREEMENT_TYPES,
+):
     """
     The types of agreements that are to be signed by the user
 
     see https://docs.alpaca.markets/reference/createaccount
+
+    MARGIN, ACCOUNT, CUSTOMER, CRYPTO, and OPTIONS are deprecated and will be
+    removed in the next release. Use MARGIN_AGREEMENT, ACCOUNT_AGREEMENT,
+    CUSTOMER_AGREEMENT, CRYPTO_AGREEMENT, and OPTIONS_AGREEMENT. The wire
+    values are unchanged.
+
+    CUSTODIAL_CUSTOMER is deprecated and will be removed in the next release.
+    It is no longer a valid agreement type.
     """
 
-    MARGIN = "margin_agreement"
-    ACCOUNT = "account_agreement"
-    CUSTOMER = "customer_agreement"
-    CRYPTO = "crypto_agreement"
-    OPTIONS = "options_agreement"
+    MARGIN_AGREEMENT = "margin_agreement"
+    ACCOUNT_AGREEMENT = "account_agreement"
+    CUSTOMER_AGREEMENT = "customer_agreement"
+    CRYPTO_AGREEMENT = "crypto_agreement"
+    OPTIONS_AGREEMENT = "options_agreement"
+    # Deprecated names for the members above. Same wire values.
+    MARGIN = MARGIN_AGREEMENT
+    ACCOUNT = ACCOUNT_AGREEMENT
+    CUSTOMER = CUSTOMER_AGREEMENT
+    CRYPTO = CRYPTO_AGREEMENT
+    OPTIONS = OPTIONS_AGREEMENT
     CUSTODIAL_CUSTOMER = "custodial_customer_agreement"
 
 
@@ -317,6 +363,14 @@ class UploadDocumentMimeType(str, Enum):
     JSON = "application/json"
 
 
+_DEPRECATED_BANK_ACCOUNT_TYPES = {
+    "NONE": (
+        "BankAccountType.NONE is deprecated and will be removed in the next release. "
+        "It is no longer a valid bank account type."
+    ),
+}
+
+
 class ACHRelationshipStatus(str, Enum):
     """
     Represents the state that an ACHRelationship is in.
@@ -327,18 +381,27 @@ class ACHRelationshipStatus(str, Enum):
     QUEUED = "QUEUED"
     APPROVED = "APPROVED"
     PENDING = "PENDING"
+    REJECTED = "REJECTED"
+    CANCEL_REQUESTED = "CANCEL_REQUESTED"
 
 
-class BankAccountType(str, Enum):
+class BankAccountType(
+    str,
+    Enum,
+    metaclass=_DeprecatingEnumMeta,
+    deprecations=_DEPRECATED_BANK_ACCOUNT_TYPES,
+):
     """
     Represents a kind of bank account.
 
     Please see https://alpaca.markets/docs/api-references/broker-api/funding/ach/#attributes
+
+    NONE is deprecated and will be removed in the next release. It is no
+    longer a valid bank account type.
     """
 
     CHECKING = "CHECKING"
     SAVINGS = "SAVINGS"
-    # responses from plaid token connections sometimes return empty
     NONE = ""
 
 
@@ -364,6 +427,7 @@ class BankStatus(str, Enum):
     QUEUED = "QUEUED"
     SENT_TO_CLEARING = "SENT_TO_CLEARING"
     APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
     CANCELED = "CANCELED"
 
 
@@ -379,12 +443,28 @@ class TransferType(str, Enum):
     WIRE = "wire"
 
 
-class TransferStatus(str, Enum):
+_DEPRECATED_TRANSFER_STATUSES = {
+    "SETTLED": (
+        "TransferStatus.SETTLED is deprecated and will be removed in the next release. "
+        "It is no longer a valid transfer status."
+    ),
+}
+
+
+class TransferStatus(
+    str,
+    Enum,
+    metaclass=_DeprecatingEnumMeta,
+    deprecations=_DEPRECATED_TRANSFER_STATUSES,
+):
     """
     Represents the states a Transfer instance can be in.
 
     Please see https://alpaca.markets/docs/api-references/broker-api/funding/transfers/#enumtransferstatus for more
     details.
+
+    SETTLED is deprecated and will be removed in the next release. It is no
+    longer a valid transfer status.
     """
 
     QUEUED = "QUEUED"
@@ -462,6 +542,7 @@ class JournalStatus(str, Enum):
     REFUSED = "refused"
     CORRECT = "correct"
     DELETED = "deleted"
+    ACTIVITY_CREATED = "activity_created"
 
 
 class PortfolioStatus(str, Enum):

@@ -71,10 +71,10 @@ def create_dummy_agreements() -> List[Agreement]:
          List[Agreement]: A List of Agreements, one for each of the required AgreementType's
     """
     required_types = [
-        AgreementType.ACCOUNT,
-        AgreementType.CRYPTO,
-        AgreementType.CUSTOMER,
-        AgreementType.MARGIN,
+        AgreementType.ACCOUNT_AGREEMENT,
+        AgreementType.CRYPTO_AGREEMENT,
+        AgreementType.CUSTOMER_AGREEMENT,
+        AgreementType.MARGIN_AGREEMENT,
     ]
 
     result = [

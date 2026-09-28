@@ -125,22 +125,22 @@ Then we can pass those parts into the ``CreateAccountRequest`` model before subm
     # Agreements
     agreement_data = [
         Agreement(
-          agreement=AgreementType.MARGIN,
+          agreement=AgreementType.MARGIN_AGREEMENT,
           signed_at="2020-09-11T18:09:33Z",
           ip_address="185.13.21.99",
         ),
         Agreement(
-          agreement=AgreementType.ACCOUNT,
+          agreement=AgreementType.ACCOUNT_AGREEMENT,
           signed_at="2020-09-11T18:13:44Z",
           ip_address="185.13.21.99",
         ),
         Agreement(
-          agreement=AgreementType.CUSTOMER,
+          agreement=AgreementType.CUSTOMER_AGREEMENT,
           signed_at="2020-09-11T18:13:44Z",
           ip_address="185.13.21.99",
         ),
         Agreement(
-          agreement=AgreementType.CRYPTO,
+          agreement=AgreementType.CRYPTO_AGREEMENT,
           signed_at="2020-09-11T18:13:44Z",
           ip_address="185.13.21.99",
         )

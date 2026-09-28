@@ -65,6 +65,17 @@ class BaseDataSet(BaseModel):
 
         return self.data[symbol]
 
+    def __contains__(self, key: str) -> bool:
+        """Checks if key exists in the dataset.
+
+        Args:
+            key (str): The key to check for
+
+        Returns:
+            bool: True if key is in dataset, False otherwise
+        """
+        return key in self.data
+
     def dict(self, **kwargs) -> dict:
         """
         Gives dictionary representation of data.

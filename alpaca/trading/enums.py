@@ -7,7 +7,17 @@ _DEPRECATED_ACTIVITY_TYPES = {
         f"ActivityType.{name} is deprecated and will be removed in the next release. "
         "It is no longer a valid activity type."
     )
-    for name in ("DIVWH", "EXTRD", "FXTRD", "INTPNL", "SWP", "VOF", "WH")
+    for name in (
+        "CIL",
+        "DIVWH",
+        "EXTRD",
+        "FXTRD",
+        "INTPNL",
+        "MEM",
+        "SWP",
+        "VOF",
+        "WH",
+    )
 }
 
 
@@ -20,8 +30,8 @@ class ActivityType(
     Please see https://alpaca.markets/docs/api-references/broker-api/accounts/account-activities/#enumactivitytype
     for descriptions of each of the types
 
-    DIVWH, EXTRD, FXTRD, INTPNL, SWP, VOF, and WH are deprecated and will be
-    removed in the next release. They are no longer valid activity types.
+    CIL, DIVWH, EXTRD, FXTRD, INTPNL, MEM, SWP, VOF, and WH are deprecated and
+    will be removed in the next release. They are no longer valid activity types.
     """
 
     FILL = "FILL"

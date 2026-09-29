@@ -42,10 +42,12 @@ def _deprecation_message(enum_name: str, member_name: str, kind: str) -> str:
 @pytest.mark.parametrize(
     ("enum_cls", "member_name", "wire_value", "kind", "stable_member"),
     [
+        (ActivityType, "CIL", "CIL", "activity type", "FILL"),
         (ActivityType, "DIVWH", "DIVWH", "activity type", "FILL"),
         (ActivityType, "EXTRD", "EXTRD", "activity type", "FILL"),
         (ActivityType, "FXTRD", "FXTRD", "activity type", "FILL"),
         (ActivityType, "INTPNL", "INTPNL", "activity type", "FILL"),
+        (ActivityType, "MEM", "MEM", "activity type", "FILL"),
         (ActivityType, "SWP", "SWP", "activity type", "FILL"),
         (ActivityType, "VOF", "VOF", "activity type", "FILL"),
         (ActivityType, "WH", "WH", "activity type", "FILL"),

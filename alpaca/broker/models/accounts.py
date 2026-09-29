@@ -3,8 +3,8 @@ from typing import Annotated, Any, Dict, List, Optional, Union
 from uuid import UUID
 
 from pydantic import (
+    BeforeValidator,
     PlainSerializer,
-    PlainValidator,
     TypeAdapter,
     ValidationInfo,
     field_validator,
@@ -29,13 +29,29 @@ from alpaca.common.models import ValidateBaseModel as BaseModel
 from alpaca.trading.enums import AccountStatus
 from alpaca.trading.models import TradeAccount as BaseTradeAccount
 
+# Present while an account payload is parsed from the API.
+_TRUSTED_CONTACT_RESPONSE_KEY = "trusted_contact_from_response"
 
-def _validate_trusted_street_address(value: Any) -> Any:
+
+def _validate_trusted_street_address(
+    value: Any, info: ValidationInfo
+) -> Optional[List[str]]:
+    """Store street address lines as a list.
+
+    A string is wrapped in a list. Building a request with a string warns.
+    Parsing an account response stays silent, because that string came from the API.
+    """
     if isinstance(value, str):
-        _warn_at_user_code(
-            "Passing street_address as a str is deprecated and will be removed "
-            "in the next release. Pass a list of strings."
+        context = info.context
+        from_response = (
+            isinstance(context, dict)
+            and context.get(_TRUSTED_CONTACT_RESPONSE_KEY) is True
         )
+        if not from_response:
+            _warn_at_user_code(
+                "Passing street_address as a str is deprecated and will be removed "
+                "in the next release. Pass a list of strings."
+            )
         return [value]
     if value is None or (
         isinstance(value, list) and all(isinstance(item, str) for item in value)
@@ -44,13 +60,13 @@ def _validate_trusted_street_address(value: Any) -> Any:
     raise ValueError("street_address must be a string or a list of strings")
 
 
+# The annotation is the input schema. BeforeValidator supports that on Pydantic
+# 2.0.3; PlainValidator's json_schema_input_type argument requires 2.9.
+# The serializer publishes the stored list.
 _TrustedStreetAddress = Annotated[
-    Optional[str],
-    PlainValidator(
-        _validate_trusted_street_address,
-        json_schema_input_type=Union[str, List[str], None],
-    ),
-    PlainSerializer(lambda value: value, return_type=Any),
+    Union[str, List[str], None],
+    BeforeValidator(_validate_trusted_street_address),
+    PlainSerializer(lambda value: value, return_type=Optional[List[str]]),
 ]
 
 
@@ -348,7 +364,10 @@ class Account(ModelWithID):
                 else None
             ),
             trusted_contact=(
-                TypeAdapter(TrustedContact).validate_python(response["trusted_contact"])
+                TypeAdapter(TrustedContact).validate_python(
+                    response["trusted_contact"],
+                    context={_TRUSTED_CONTACT_RESPONSE_KEY: True},
+                )
                 if "trusted_contact" in response
                 else None
             ),

@@ -2,6 +2,7 @@ import warnings
 from datetime import datetime
 
 import pytest
+from pydantic import TypeAdapter
 
 from alpaca.broker.requests import (
     UploadDocumentMimeType,
@@ -13,6 +14,7 @@ from alpaca.broker.requests import (
     CreateJournalRequest,
 )
 from alpaca.broker.models import (
+    Account,
     AccountDocument,
     TradeDocument,
     TrustedContact,
@@ -533,6 +535,51 @@ def test_updatable_trusted_contact_list_street_address_serializes_as_list():
 
     assert contact.street_address == lines
     assert fields == {"trusted_contact": {"street_address": lines}}
+
+
+def _account_with_trusted_street_address(street_address):
+    return {
+        "id": "0d969814-40d6-4b2b-99ac-2e37427f1ad2",
+        "account_number": "682389557",
+        "status": "SUBMITTED",
+        "currency": "USD",
+        "last_equity": "0",
+        "created_at": "2022-04-12T17:24:31.30283Z",
+        "trusted_contact": {
+            "given_name": "Jane",
+            "family_name": "Doe",
+            "email_address": "jane.doe@example.com",
+            "street_address": street_address,
+        },
+    }
+
+
+def test_account_response_string_street_address_does_not_warn():
+    payload = _account_with_trusted_street_address("20 N San Mateo Dr")
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", DeprecationWarning)
+        account = Account(**payload)
+        accounts = TypeAdapter(list[Account]).validate_python([payload])
+
+    assert account.trusted_contact.street_address == ["20 N San Mateo Dr"]
+    assert accounts[0].trusted_contact.street_address == ["20 N San Mateo Dr"]
+
+
+def test_trusted_contact_street_address_schema_uses_stored_list():
+    string_schema = {"type": "string"}
+    list_schema = {"items": {"type": "string"}, "type": "array"}
+    null_schema = {"type": "null"}
+    validation = TrustedContact.model_json_schema()["properties"]["street_address"]
+    serialization = TypeAdapter(TrustedContact).json_schema(mode="serialization")[
+        "properties"
+    ]["street_address"]
+
+    assert string_schema in validation["anyOf"]
+    assert list_schema in validation["anyOf"]
+    assert null_schema in validation["anyOf"]
+    assert list_schema in serialization["anyOf"]
+    assert null_schema in serialization["anyOf"]
+    assert string_schema not in serialization["anyOf"]
 
 
 def test_trusted_contact_rejects_non_string_street_address():

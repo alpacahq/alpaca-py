@@ -60,11 +60,24 @@ def _validate_trusted_street_address(
     raise ValueError("street_address must be a string or a list of strings")
 
 
-# The annotation is the input schema. BeforeValidator supports that on Pydantic
-# 2.0.3; PlainValidator's json_schema_input_type argument requires 2.9.
+class _TrustedStreetAddressSchema:
+    """Validation schema for a trusted contact street address.
+
+    The field stays annotated as Optional[str]. This metadata is the schema
+    BeforeValidator checks after normalizing input, and on Pydantic 2.0.3 that
+    inner schema is also the validation JSON schema. PlainValidator's
+    json_schema_input_type argument requires 2.9.
+    """
+
+    @classmethod
+    def __get_pydantic_core_schema__(cls, source_type: Any, handler: Any) -> Any:
+        return handler.generate_schema(Union[str, List[str], None])
+
+
 # The serializer publishes the stored list.
 _TrustedStreetAddress = Annotated[
-    Union[str, List[str], None],
+    Optional[str],
+    _TrustedStreetAddressSchema,
     BeforeValidator(_validate_trusted_street_address),
     PlainSerializer(lambda value: value, return_type=Optional[List[str]]),
 ]
@@ -243,7 +256,7 @@ class TrustedContact(BaseModel):
         state (Optional[str]): The email address of the user's trusted contact
         postal_code (Optional[str]): The email address of the user's trusted contact
         country (Optional[str]): The email address of the user's trusted contact
-        street_address (str | List[str] | None): Street address lines, stored as a list of strings. A string still works, but it is deprecated and will be removed in the next release.
+        street_address (Optional[Union[str, List[str]]]): Street address lines. Pass a list of strings; the value is stored and sent as a list. A string still works, but it is deprecated and will be removed in the next release.
     """
 
     given_name: str

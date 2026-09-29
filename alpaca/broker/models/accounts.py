@@ -1,8 +1,17 @@
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
+from typing import Annotated, Any, Dict, List, Optional, Union
 from uuid import UUID
 
-from pydantic import TypeAdapter, ValidationInfo, field_validator, model_validator
+from pydantic import (
+    PlainSerializer,
+    PlainValidator,
+    TypeAdapter,
+    ValidationInfo,
+    field_validator,
+    model_validator,
+)
+
+from alpaca._deprecating_enum import _warn_at_user_code
 
 from alpaca.broker.enums import (
     AccountSubType,
@@ -19,6 +28,30 @@ from alpaca.common.models import ModelWithID
 from alpaca.common.models import ValidateBaseModel as BaseModel
 from alpaca.trading.enums import AccountStatus
 from alpaca.trading.models import TradeAccount as BaseTradeAccount
+
+
+def _validate_trusted_street_address(value: Any) -> Any:
+    if isinstance(value, str):
+        _warn_at_user_code(
+            "Passing street_address as a str is deprecated and will be removed "
+            "in the next release. Pass a list of strings."
+        )
+        return [value]
+    if value is None or (
+        isinstance(value, list) and all(isinstance(item, str) for item in value)
+    ):
+        return value
+    raise ValueError("street_address must be a string or a list of strings")
+
+
+_TrustedStreetAddress = Annotated[
+    Optional[str],
+    PlainValidator(
+        _validate_trusted_street_address,
+        json_schema_input_type=Union[str, List[str], None],
+    ),
+    PlainSerializer(lambda value: value, return_type=Any),
+]
 
 
 class KycResults(BaseModel):
@@ -194,13 +227,14 @@ class TrustedContact(BaseModel):
         state (Optional[str]): The email address of the user's trusted contact
         postal_code (Optional[str]): The email address of the user's trusted contact
         country (Optional[str]): The email address of the user's trusted contact
+        street_address (str | List[str] | None): Street address lines, stored as a list of strings. A string still works, but it is deprecated and will be removed in the next release.
     """
 
     given_name: str
     family_name: str
     email_address: Optional[str] = None
     phone_number: Optional[str] = None
-    street_address: Optional[str] = None
+    street_address: _TrustedStreetAddress = None
     city: Optional[str] = None
     state: Optional[str] = None
     postal_code: Optional[str] = None

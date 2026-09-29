@@ -1,3 +1,4 @@
+import warnings
 from datetime import datetime
 
 import pytest
@@ -14,6 +15,7 @@ from alpaca.broker.requests import (
 from alpaca.broker.models import (
     AccountDocument,
     TradeDocument,
+    TrustedContact,
 )
 from alpaca.broker.requests import (
     UpdateAccountRequest,
@@ -483,3 +485,69 @@ def test_journal_with_amount_and_qty():
         )
 
     assert "Cash journals must contain an amount to transfer." in str(e.value)
+
+
+def test_trusted_contact_string_street_address_warns_and_serializes_as_list():
+    with pytest.warns(DeprecationWarning, match="street_address"):
+        contact = TrustedContact(
+            given_name="Ada",
+            family_name="Lovelace",
+            email_address="ada@example.com",
+            street_address="20 N San Mateo Dr",
+        )
+
+    assert contact.street_address == ["20 N San Mateo Dr"]
+    assert contact.model_dump()["street_address"] == ["20 N San Mateo Dr"]
+
+
+def test_trusted_contact_keeps_street_address_list():
+    lines = ["20 N San Mateo Dr", "Apt 1A"]
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", DeprecationWarning)
+        contact = TrustedContact(
+            given_name="Ada",
+            family_name="Lovelace",
+            email_address="ada@example.com",
+            street_address=lines,
+        )
+
+    assert contact.street_address == lines
+    assert contact.model_dump()["street_address"] == lines
+
+
+def test_updatable_trusted_contact_string_street_address_warns_and_serializes_as_list():
+    with pytest.warns(DeprecationWarning, match="street_address"):
+        contact = UpdatableTrustedContact(street_address="20 N San Mateo Dr")
+        fields = UpdateAccountRequest(trusted_contact=contact).to_request_fields()
+
+    assert contact.street_address == ["20 N San Mateo Dr"]
+    assert fields == {"trusted_contact": {"street_address": ["20 N San Mateo Dr"]}}
+
+
+def test_updatable_trusted_contact_list_street_address_serializes_as_list():
+    lines = ["20 N San Mateo Dr", "Apt 1A"]
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", DeprecationWarning)
+        contact = UpdatableTrustedContact(street_address=lines)
+        fields = UpdateAccountRequest(trusted_contact=contact).to_request_fields()
+
+    assert contact.street_address == lines
+    assert fields == {"trusted_contact": {"street_address": lines}}
+
+
+def test_trusted_contact_rejects_non_string_street_address():
+    with pytest.raises(ValueError):
+        TrustedContact(
+            given_name="Ada",
+            family_name="Lovelace",
+            email_address="ada@example.com",
+            street_address=123,
+        )
+
+    with pytest.raises(ValueError):
+        TrustedContact(
+            given_name="Ada",
+            family_name="Lovelace",
+            email_address="ada@example.com",
+            street_address=["20 N San Mateo Dr", 2],
+        )

@@ -186,13 +186,13 @@ async def test_connect_sets_user_agent_header(ws_client: DataStream):
     mock_ws.recv.return_value = msgpack.packb([{"T": "success", "msg": "connected"}])
 
     with patch(
-        "alpaca.data.live.websocket.websockets_legacy.connect",
+        "alpaca.data.live.websocket.connect",
         new=AsyncMock(return_value=mock_ws),
     ) as mock_connect:
         await ws_client._connect()
 
     _, kwargs = mock_connect.call_args
-    assert kwargs["extra_headers"]["User-Agent"] == get_default_user_agent()
+    assert kwargs["user_agent_header"] == get_default_user_agent()
 
 
 @pytest.mark.asyncio
@@ -208,14 +208,14 @@ async def test_connect_preserves_user_agent_when_extra_headers_overridden(
     }
 
     with patch(
-        "alpaca.data.live.websocket.websockets_legacy.connect",
+        "alpaca.data.live.websocket.connect",
         new=AsyncMock(return_value=mock_ws),
     ) as mock_connect:
         await ws_client._connect()
 
     _, kwargs = mock_connect.call_args
-    assert kwargs["extra_headers"]["X-Test"] == "1"
-    assert kwargs["extra_headers"]["User-Agent"] == get_default_user_agent()
+    assert kwargs["additional_headers"]["X-Test"] == "1"
+    assert kwargs["user_agent_header"] == get_default_user_agent()
     assert "ping_interval" in kwargs
 
 
@@ -234,14 +234,14 @@ async def test_connect_preserves_content_type_when_extra_headers_overridden(
     }
 
     with patch(
-        "alpaca.data.live.websocket.websockets_legacy.connect",
+        "alpaca.data.live.websocket.connect",
         new=AsyncMock(return_value=mock_ws),
     ) as mock_connect:
         await ws_client._connect()
 
     _, kwargs = mock_connect.call_args
-    assert kwargs["extra_headers"]["Content-Type"] == "application/msgpack"
-    assert kwargs["extra_headers"]["User-Agent"] == get_default_user_agent()
+    assert kwargs["additional_headers"]["Content-Type"] == "application/msgpack"
+    assert kwargs["user_agent_header"] == get_default_user_agent()
 
 
 @pytest.mark.asyncio

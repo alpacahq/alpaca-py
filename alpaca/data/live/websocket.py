@@ -8,7 +8,7 @@ from typing import Callable, Dict, List, Optional, Tuple, Union
 import msgpack
 import websockets
 from pydantic import BaseModel
-from websockets.legacy import client as websockets_legacy
+from websockets.asyncio.client import connect
 
 from alpaca.common.types import RawData
 from alpaca.common.utils import get_default_user_agent, reconnect_delay
@@ -160,17 +160,22 @@ class DataStream:
         """
 
         params = dict(self._websocket_params or {})
-        extra_headers = {
+        headers = {
             **dict(params.pop("extra_headers", {}) or {}),
-            # Protocol/SDK headers always win over caller-supplied values.
-            "Content-Type": "application/msgpack",
-            "User-Agent": get_default_user_agent(),
+            **dict(params.pop("additional_headers", {}) or {}),
         }
+        headers = {
+            key: value for key, value in headers.items()
+            if key.lower() not in ("content-type", "user-agent")
+        }
+        headers["Content-Type"] = "application/msgpack"
+        params.pop("user_agent_header", None)
 
         log.info(f"connecting to {self._endpoint}")
-        self._ws = await websockets_legacy.connect(
+        self._ws = await connect(
             self._endpoint,
-            extra_headers=extra_headers,
+            additional_headers=headers,
+            user_agent_header=get_default_user_agent(),
             **params,
         )
         r = await self._ws.recv()

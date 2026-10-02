@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, patch
 from alpaca.data.live import websocket as data_ws
 from tests.live.streaming import StreamProbeResult, probe_stream, stream_timeout_seconds
 
-CONNECT_PATH = "alpaca.data.live.websocket.websockets_legacy.connect"
+CONNECT_PATH = "alpaca.data.live.websocket.connect"
 
 
 def test_stream_timeout_seconds_default(monkeypatch):
@@ -60,9 +60,9 @@ class _FakeStream:
     def run(self) -> None:
         async def _run() -> None:
             self._loop = asyncio.get_running_loop()
-            await data_ws.websockets_legacy.connect(
+            await data_ws.connect(
                 "wss://example.test/v2/iex",
-                extra_headers={"User-Agent": "test-ua"},
+                user_agent_header="test-ua",
             )
             self._running = True
             if self._handler:
@@ -81,7 +81,7 @@ def test_probe_stream_captures_headers_and_message():
         return fake_ws
 
     with patch(
-        "tests.live.streaming.websockets_legacy.connect",
+        "tests.live.streaming.connect",
         new=fake_network_connect,
     ):
         result = probe_stream(
@@ -107,9 +107,9 @@ def test_probe_stream_require_message_timeout():
     def quiet_run() -> None:
         async def _run() -> None:
             stream._loop = asyncio.get_running_loop()
-            await data_ws.websockets_legacy.connect(
+            await data_ws.connect(
                 "wss://example.test/v2/iex",
-                extra_headers={"User-Agent": "test-ua"},
+                user_agent_header="test-ua",
             )
             stream._running = True
             while stream._running:
@@ -124,7 +124,7 @@ def test_probe_stream_require_message_timeout():
         return fake_ws
 
     with patch(
-        "tests.live.streaming.websockets_legacy.connect",
+        "tests.live.streaming.connect",
         new=fake_network_connect,
     ):
         result = probe_stream(

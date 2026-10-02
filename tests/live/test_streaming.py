@@ -14,8 +14,8 @@ from alpaca.data.live.stock import StockDataStream
 from alpaca.trading.stream import TradingStream
 from tests.live.streaming import stream_timeout_seconds
 
-DATA_CONNECT = "alpaca.data.live.websocket.websockets_legacy.connect"
-TRADING_CONNECT = "alpaca.trading.stream.websockets_legacy.connect"
+DATA_CONNECT = "alpaca.data.live.websocket.connect"
+TRADING_CONNECT = "alpaca.trading.stream.connect"
 
 
 def _assert_user_agent(result) -> None:

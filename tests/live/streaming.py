@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional
 from unittest.mock import patch
 
-from websockets.legacy import client as websockets_legacy
+from websockets.asyncio.client import connect
 
 from tests.live.recording import serialize_response
 
@@ -64,12 +64,12 @@ def probe_stream(
 ) -> StreamProbeResult:
     """Connect a stream briefly, optionally wait for messages, then disconnect.
 
-    Patches ``websockets_legacy.connect`` at ``connect_path`` so the live
+    Patches the asyncio ``connect`` at ``connect_path`` so the live
     User-Agent / URL are captured while still performing a real handshake.
     """
     timeout = stream_timeout_seconds() if timeout is None else timeout
     result = StreamProbeResult()
-    real_connect = websockets_legacy.connect
+    real_connect = connect
     got_enough = threading.Event()
     stop_lock = threading.Lock()
     stopped = False
@@ -77,7 +77,9 @@ def probe_stream(
     async def capturing_connect(uri: Any, *args: Any, **kwargs: Any) -> Any:
         # str(Enum) can print "BaseURL.X"; prefer the URL value when present.
         result.url = getattr(uri, "value", None) or str(uri)
-        result.headers = dict(kwargs.get("extra_headers") or {})
+        result.headers = dict(kwargs.get("additional_headers") or {})
+        if kwargs.get("user_agent_header") is not None:
+            result.headers["User-Agent"] = kwargs["user_agent_header"]
         ws = await real_connect(uri, *args, **kwargs)
         result.connected = True
         return ws

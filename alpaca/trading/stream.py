@@ -6,7 +6,7 @@ from typing import Callable, Dict, Optional, Union
 
 import websockets
 from pydantic import BaseModel
-from websockets.legacy import client as websockets_legacy
+from websockets.asyncio.client import connect
 
 from alpaca.common import RawData
 from alpaca.common.enums import BaseURL
@@ -87,11 +87,19 @@ class TradingStream:
 
     async def _connect(self):
         params = dict(self._websocket_params or {})
-        extra_headers = dict(params.pop("extra_headers", {}) or {})
-        extra_headers["User-Agent"] = get_default_user_agent()
-        self._ws = await websockets_legacy.connect(
+        headers = {
+            **dict(params.pop("extra_headers", {}) or {}),
+            **dict(params.pop("additional_headers", {}) or {}),
+        }
+        headers = {
+            key: value for key, value in headers.items()
+            if key.lower() != "user-agent"
+        }
+        params.pop("user_agent_header", None)
+        self._ws = await connect(
             self._endpoint,
-            extra_headers=extra_headers,
+            additional_headers=headers,
+            user_agent_header=get_default_user_agent(),
             **params,
         )
 

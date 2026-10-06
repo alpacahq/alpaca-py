@@ -1,6 +1,6 @@
 import warnings
 from datetime import datetime
-from typing import Optional, get_type_hints
+from typing import List, Union, get_type_hints
 
 import pytest
 from pydantic import TypeAdapter
@@ -566,14 +566,12 @@ def test_account_response_string_street_address_does_not_warn():
     assert accounts[0].trusted_contact.street_address == ["20 N San Mateo Dr"]
 
 
-def test_trusted_contact_street_address_annotation_stays_optional_str():
-    assert TrustedContact.model_fields["street_address"].annotation == Optional[str]
-    assert (
-        UpdatableTrustedContact.model_fields["street_address"].annotation
-        == Optional[str]
-    )
-    assert get_type_hints(TrustedContact)["street_address"] == Optional[str]
-    assert get_type_hints(UpdatableTrustedContact)["street_address"] == Optional[str]
+def test_trusted_contact_street_address_annotation_accepts_string_or_list():
+    expected = Union[str, List[str], None]
+    assert TrustedContact.model_fields["street_address"].annotation == expected
+    assert UpdatableTrustedContact.model_fields["street_address"].annotation == expected
+    assert get_type_hints(TrustedContact)["street_address"] == expected
+    assert get_type_hints(UpdatableTrustedContact)["street_address"] == expected
 
 
 def test_trusted_contact_street_address_schema_uses_stored_list():

@@ -1,6 +1,9 @@
+import warnings
 from datetime import datetime
+from typing import List, Union, get_type_hints
 
 import pytest
+from pydantic import TypeAdapter
 
 from alpaca.broker.requests import (
     UploadDocumentMimeType,
@@ -12,8 +15,10 @@ from alpaca.broker.requests import (
     CreateJournalRequest,
 )
 from alpaca.broker.models import (
+    Account,
     AccountDocument,
     TradeDocument,
+    TrustedContact,
 )
 from alpaca.broker.requests import (
     UpdateAccountRequest,
@@ -483,3 +488,122 @@ def test_journal_with_amount_and_qty():
         )
 
     assert "Cash journals must contain an amount to transfer." in str(e.value)
+
+
+def test_trusted_contact_string_street_address_warns_and_serializes_as_list():
+    with pytest.warns(DeprecationWarning, match="street_address"):
+        contact = TrustedContact(
+            given_name="Ada",
+            family_name="Lovelace",
+            email_address="ada@example.com",
+            street_address="20 N San Mateo Dr",
+        )
+
+    assert contact.street_address == ["20 N San Mateo Dr"]
+    assert contact.model_dump()["street_address"] == ["20 N San Mateo Dr"]
+
+
+def test_trusted_contact_keeps_street_address_list():
+    lines = ["20 N San Mateo Dr", "Apt 1A"]
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", DeprecationWarning)
+        contact = TrustedContact(
+            given_name="Ada",
+            family_name="Lovelace",
+            email_address="ada@example.com",
+            street_address=lines,
+        )
+
+    assert contact.street_address == lines
+    assert contact.model_dump()["street_address"] == lines
+
+
+def test_updatable_trusted_contact_string_street_address_warns_and_serializes_as_list():
+    with pytest.warns(DeprecationWarning, match="street_address"):
+        contact = UpdatableTrustedContact(street_address="20 N San Mateo Dr")
+        fields = UpdateAccountRequest(trusted_contact=contact).to_request_fields()
+
+    assert contact.street_address == ["20 N San Mateo Dr"]
+    assert fields == {"trusted_contact": {"street_address": ["20 N San Mateo Dr"]}}
+
+
+def test_updatable_trusted_contact_list_street_address_serializes_as_list():
+    lines = ["20 N San Mateo Dr", "Apt 1A"]
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", DeprecationWarning)
+        contact = UpdatableTrustedContact(street_address=lines)
+        fields = UpdateAccountRequest(trusted_contact=contact).to_request_fields()
+
+    assert contact.street_address == lines
+    assert fields == {"trusted_contact": {"street_address": lines}}
+
+
+def _account_with_trusted_street_address(street_address):
+    return {
+        "id": "0d969814-40d6-4b2b-99ac-2e37427f1ad2",
+        "account_number": "682389557",
+        "status": "SUBMITTED",
+        "currency": "USD",
+        "last_equity": "0",
+        "created_at": "2022-04-12T17:24:31.30283Z",
+        "trusted_contact": {
+            "given_name": "Jane",
+            "family_name": "Doe",
+            "email_address": "jane.doe@example.com",
+            "street_address": street_address,
+        },
+    }
+
+
+def test_account_response_string_street_address_does_not_warn():
+    payload = _account_with_trusted_street_address("20 N San Mateo Dr")
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", DeprecationWarning)
+        account = Account(**payload)
+        accounts = TypeAdapter(list[Account]).validate_python([payload])
+
+    assert account.trusted_contact.street_address == ["20 N San Mateo Dr"]
+    assert accounts[0].trusted_contact.street_address == ["20 N San Mateo Dr"]
+
+
+def test_trusted_contact_street_address_annotation_accepts_string_or_list():
+    expected = Union[str, List[str], None]
+    assert TrustedContact.model_fields["street_address"].annotation == expected
+    assert UpdatableTrustedContact.model_fields["street_address"].annotation == expected
+    assert get_type_hints(TrustedContact)["street_address"] == expected
+    assert get_type_hints(UpdatableTrustedContact)["street_address"] == expected
+
+
+def test_trusted_contact_street_address_schema_uses_stored_list():
+    string_schema = {"type": "string"}
+    list_schema = {"items": {"type": "string"}, "type": "array"}
+    null_schema = {"type": "null"}
+    validation = TrustedContact.model_json_schema()["properties"]["street_address"]
+    serialization = TypeAdapter(TrustedContact).json_schema(mode="serialization")[
+        "properties"
+    ]["street_address"]
+
+    assert string_schema in validation["anyOf"]
+    assert list_schema in validation["anyOf"]
+    assert null_schema in validation["anyOf"]
+    assert list_schema in serialization["anyOf"]
+    assert null_schema in serialization["anyOf"]
+    assert string_schema not in serialization["anyOf"]
+
+
+def test_trusted_contact_rejects_non_string_street_address():
+    with pytest.raises(ValueError):
+        TrustedContact(
+            given_name="Ada",
+            family_name="Lovelace",
+            email_address="ada@example.com",
+            street_address=123,
+        )
+
+    with pytest.raises(ValueError):
+        TrustedContact(
+            given_name="Ada",
+            family_name="Lovelace",
+            email_address="ada@example.com",
+            street_address=["20 N San Mateo Dr", 2],
+        )

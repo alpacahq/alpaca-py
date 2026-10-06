@@ -1,8 +1,17 @@
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
+from typing import Annotated, Any, Dict, List, Optional, Union
 from uuid import UUID
 
-from pydantic import TypeAdapter, ValidationInfo, field_validator, model_validator
+from pydantic import (
+    BeforeValidator,
+    PlainSerializer,
+    TypeAdapter,
+    ValidationInfo,
+    field_validator,
+    model_validator,
+)
+
+from alpaca._deprecating_enum import _warn_at_user_code
 
 from alpaca.broker.enums import (
     AccountSubType,
@@ -19,6 +28,47 @@ from alpaca.common.models import ModelWithID
 from alpaca.common.models import ValidateBaseModel as BaseModel
 from alpaca.trading.enums import AccountStatus
 from alpaca.trading.models import TradeAccount as BaseTradeAccount
+
+# Present while an account payload is parsed from the API.
+_TRUSTED_CONTACT_RESPONSE_KEY = "trusted_contact_from_response"
+
+
+def _validate_trusted_street_address(
+    value: Any, info: ValidationInfo
+) -> Optional[List[str]]:
+    """Store street address lines as a list.
+
+    A string is wrapped in a list. Building a request with a string warns.
+    Parsing an account response stays silent, because that string came from the API.
+    """
+    if isinstance(value, str):
+        context = info.context
+        from_response = (
+            isinstance(context, dict)
+            and context.get(_TRUSTED_CONTACT_RESPONSE_KEY) is True
+        )
+        if not from_response:
+            _warn_at_user_code(
+                "Passing street_address as a str is deprecated and will be removed "
+                "in the next release. Pass a list of strings."
+            )
+        return [value]
+    if value is None or (
+        isinstance(value, list) and all(isinstance(item, str) for item in value)
+    ):
+        return value
+    raise ValueError("street_address must be a string or a list of strings")
+
+
+# Accepted input is a string, a list of strings, or None. The annotation is that
+# input schema: BeforeValidator supports it on Pydantic 2.0.3, while
+# PlainValidator's json_schema_input_type argument requires 2.9. A string is
+# deprecated and stored as a one-item list. The serializer publishes that list.
+_TrustedStreetAddress = Annotated[
+    Union[str, List[str], None],
+    BeforeValidator(_validate_trusted_street_address),
+    PlainSerializer(lambda value: value, return_type=Optional[List[str]]),
+]
 
 
 class KycResults(BaseModel):
@@ -194,13 +244,14 @@ class TrustedContact(BaseModel):
         state (Optional[str]): The email address of the user's trusted contact
         postal_code (Optional[str]): The email address of the user's trusted contact
         country (Optional[str]): The email address of the user's trusted contact
+        street_address (Optional[Union[str, List[str]]]): Street address lines. Pass a list of strings; the value is stored and sent as a list. A string still works, but it is deprecated and will be removed in the next release.
     """
 
     given_name: str
     family_name: str
     email_address: Optional[str] = None
     phone_number: Optional[str] = None
-    street_address: Optional[str] = None
+    street_address: _TrustedStreetAddress = None
     city: Optional[str] = None
     state: Optional[str] = None
     postal_code: Optional[str] = None
@@ -314,7 +365,10 @@ class Account(ModelWithID):
                 else None
             ),
             trusted_contact=(
-                TypeAdapter(TrustedContact).validate_python(response["trusted_contact"])
+                TypeAdapter(TrustedContact).validate_python(
+                    response["trusted_contact"],
+                    context={_TRUSTED_CONTACT_RESPONSE_KEY: True},
+                )
                 if "trusted_contact" in response
                 else None
             ),

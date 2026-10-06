@@ -270,6 +270,7 @@ class UpdatableTrustedContact(TrustedContact):
         state (Optional[str]): The email address of the user's trusted contact
         postal_code (Optional[str]): The email address of the user's trusted contact
         country (Optional[str]): The email address of the user's trusted contact
+        street_address (Optional[Union[str, List[str]]]): Street address lines. Pass a list of strings; the value is stored and sent as a list. A string still works, but it is deprecated and will be removed in the next release.
     """
 
     # only need to override these 2 as other fields were already optional

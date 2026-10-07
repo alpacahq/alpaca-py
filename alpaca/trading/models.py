@@ -30,7 +30,6 @@ from alpaca.trading.enums import (
 )
 from pydantic import Field, model_validator
 
-
 # Read-time only. Asset responses still include these fields, so warning while
 # parsing would fire once per asset on get_all_assets.
 _DEPRECATED_ASSET_FIELDS = {

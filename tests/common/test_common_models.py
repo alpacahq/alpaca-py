@@ -143,7 +143,8 @@ def test_deprecated_asset_fields_warn_on_read():
         assert asset.model_dump()["maintenance_margin_requirement"] == 30
 
     with pytest.warns(
-        DeprecationWarning, match="Use margin_requirement_long or margin_requirement_short"
+        DeprecationWarning,
+        match="Use margin_requirement_long or margin_requirement_short",
     ):
         assert asset.maintenance_margin_requirement == 30
 

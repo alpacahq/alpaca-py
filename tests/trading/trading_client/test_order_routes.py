@@ -313,6 +313,23 @@ def test_replace_order_validate_replace_request() -> None:
     with pytest.raises(ValueError):
         ReplaceOrderRequest(trail=0)
 
+    # OpenAPI samples these fields as strings. Coercion happens before the
+    # bounds check, so the documented replace body is accepted.
+    string_request = ReplaceOrderRequest(
+        limit_price="155", qty="4", stop_price="3.14", trail="1.5", time_in_force="gtc"
+    )
+    assert string_request.qty == 4
+    assert string_request.limit_price == 155.0
+    assert string_request.stop_price == 3.14
+    assert string_request.trail == 1.5
+    assert string_request.time_in_force == TimeInForce.GTC
+    with pytest.raises(ValueError):
+        ReplaceOrderRequest(qty="0")
+    with pytest.raises(ValueError):
+        ReplaceOrderRequest(stop_price="0")
+    with pytest.raises(ValueError):
+        ReplaceOrderRequest(trail="0")
+
 
 def test_cancel_order_by_id(reqmock, trading_client: TradingClient):
     order_id = "61e69015-8549-4bfd-b9c3-01e75843f47d"

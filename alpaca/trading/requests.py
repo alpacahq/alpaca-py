@@ -299,21 +299,18 @@ class ReplaceOrderRequest(NonEmptyRequest):
     trail: Optional[float] = None
     client_order_id: Optional[str] = None
 
-    @model_validator(mode="before")
-    def root_validator(cls, values: dict) -> dict:
-        qty = values.get("qty", None)
-        limit_price = values.get("limit_price", None)
-        stop_price = values.get("stop_price", None)
-        trail = values.get("trail", None)
-
-        if (qty is not None) and (qty <= 0):
+    @model_validator(mode="after")
+    def root_validator(self) -> "ReplaceOrderRequest":
+        # Compare after coercion so documented string values such as qty="4"
+        # are numbers here. mode="before" compared the raw strings to 0.
+        if self.qty is not None and self.qty <= 0:
             raise ValueError("qty must be greater than 0")
-        if (stop_price is not None) and (stop_price <= 0):
+        if self.stop_price is not None and self.stop_price <= 0:
             raise ValueError("stop_price must be greater than 0")
-        if (trail is not None) and (trail <= 0):
+        if self.trail is not None and self.trail <= 0:
             raise ValueError("trail must be greater than 0")
 
-        return values
+        return self
 
 
 class CancelOrderResponse(ModelWithID):

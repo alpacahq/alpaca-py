@@ -1,8 +1,14 @@
+import warnings
+
 import pytest
 from alpaca.trading.models import (
+    AccountConfiguration,
+    Asset,
     Clock,
     Calendar,
     CorporateActionAnnouncement,
+    PortfolioHistory,
+    TradeAccount,
 )
 from alpaca.trading.requests import (
     ClosePositionRequest,
@@ -11,6 +17,8 @@ from alpaca.trading.requests import (
 from datetime import datetime, date
 from uuid import UUID
 from alpaca.trading.enums import (
+    AccountStatus,
+    AssetBorrowStatus,
     AssetClass,
     AssetExchange,
     OrderType,
@@ -46,13 +54,159 @@ def test_clock_timestamps():
 
 def test_calendar_timestamps():
     """Tests whether the timestamp strings are successfully parsed into datetime"""
-    calendar = Calendar(date="2021-03-02", open="09:30", close="4:00")
+    calendar = Calendar(
+        date="2021-03-02",
+        open="09:30",
+        close="4:00",
+        session_open="0400",
+        session_close="2000",
+        settlement_date="2021-03-04",
+    )
 
     assert type(calendar.date) is date
     assert type(calendar.open) is datetime
     assert type(calendar.close) is datetime
-
     assert calendar.open.minute == 30
+    assert calendar.session_open == "0400"
+    assert calendar.session_close == "2000"
+    assert calendar.settlement_date == date(2021, 3, 4)
+
+
+def test_optional_openapi_scalar_fields_round_trip():
+    """Fields the Trading OpenAPI schema added stay on the parsed models."""
+    asset = Asset(
+        id="904837e3-3b76-47ec-b432-046db621571b",
+        **{
+            "class": "us_equity",
+            "exchange": "NASDAQ",
+            "symbol": "AAPL",
+            "status": "active",
+            "tradable": True,
+            "marginable": True,
+            "shortable": True,
+            "easy_to_borrow": True,
+            "fractionable": True,
+            "borrow_status": "easy_to_borrow",
+            "cusip": "037833100",
+            "margin_requirement_long": "100",
+            "margin_requirement_short": "30",
+        },
+    )
+    assert asset.borrow_status == AssetBorrowStatus.EASY_TO_BORROW
+    assert asset.cusip == "037833100"
+    assert asset.margin_requirement_long == "100"
+    assert asset.margin_requirement_short == "30"
+    assert asset.model_dump(mode="json")["borrow_status"] == "easy_to_borrow"
+
+
+def _asset_payload(**overrides):
+    payload = {
+        "id": "904837e3-3b76-47ec-b432-046db621571b",
+        "class": "us_equity",
+        "exchange": "NASDAQ",
+        "symbol": "AAPL",
+        "status": "active",
+        "tradable": True,
+        "marginable": True,
+        "shortable": True,
+        "fractionable": True,
+    }
+    payload.update(overrides)
+    return payload
+
+
+def test_asset_parses_without_deprecated_borrow_field():
+    """easy_to_borrow is no longer required. borrow_status replaces it."""
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", DeprecationWarning)
+        asset = Asset(**_asset_payload(borrow_status="hard_to_borrow"))
+        assert asset.borrow_status == AssetBorrowStatus.HARD_TO_BORROW
+        assert asset.model_dump(mode="json")["easy_to_borrow"] is None
+
+    with pytest.warns(DeprecationWarning, match="Use borrow_status instead"):
+        assert asset.easy_to_borrow is None
+
+
+def test_deprecated_asset_fields_warn_on_read():
+    asset = Asset(
+        **_asset_payload(
+            easy_to_borrow=True,
+            maintenance_margin_requirement=30,
+            margin_requirement_long="100",
+            margin_requirement_short="30",
+        )
+    )
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", DeprecationWarning)
+        assert asset.margin_requirement_long == "100"
+        assert asset.model_dump()["maintenance_margin_requirement"] == 30
+
+    with pytest.warns(
+        DeprecationWarning, match="Use margin_requirement_long or margin_requirement_short"
+    ):
+        assert asset.maintenance_margin_requirement == 30
+
+    with pytest.warns(DeprecationWarning, match="Use borrow_status instead"):
+        assert asset.easy_to_borrow is True
+
+    position = Position(
+        asset_id="904837e3-3b76-47ec-b432-046db621571b",
+        symbol="AAPL",
+        exchange=AssetExchange.NASDAQ,
+        asset_class=AssetClass.US_EQUITY,
+        avg_entry_price="100.0",
+        qty="5",
+        side=PositionSide.LONG,
+        cost_basis="500.0",
+        prev_swap_rate="1.25",
+    )
+    assert position.prev_swap_rate == "1.25"
+
+    account = TradeAccount(
+        id="904837e3-3b76-47ec-b432-046db621571b",
+        account_number="010203ABCD",
+        status=AccountStatus.ACTIVE,
+        balance_asof="2023-09-27",
+        intraday_adjustments="0",
+        pending_reg_taf_fees="0.12",
+    )
+    assert account.balance_asof == "2023-09-27"
+    assert account.intraday_adjustments == "0"
+    assert account.pending_reg_taf_fees == "0.12"
+
+    configuration = AccountConfiguration(
+        fractional_trading=True,
+        max_margin_multiplier="4",
+        no_shorting=False,
+        suspend_trade=False,
+        trade_confirm_email="all",
+        ptp_no_exception_entry=False,
+        disable_overnight_trading=False,
+    )
+    assert configuration.disable_overnight_trading is False
+    assert (
+        AccountConfiguration(
+            fractional_trading=True,
+            max_margin_multiplier="4",
+            no_shorting=False,
+            suspend_trade=False,
+            trade_confirm_email="all",
+            ptp_no_exception_entry=False,
+        ).disable_overnight_trading
+        is None
+    )
+
+    history = PortfolioHistory(
+        timestamp=[1697846400],
+        equity=[100.0],
+        profit_loss=[1.0],
+        profit_loss_pct=[0.01],
+        timeframe="1D",
+        base_value_asof="2023-10-20",
+    )
+    assert history.base_value_asof == date(2023, 10, 20)
+    assert history.model_dump(mode="json")["base_value_asof"] == "2023-10-20"
 
 
 def test_position_uuid():

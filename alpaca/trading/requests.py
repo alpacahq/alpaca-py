@@ -695,6 +695,8 @@ class GetOptionContractsRequest(NonEmptyRequest):
         style (Optional[ExerciseStyle]): The option contract style.
         strike_price_gte (Optional[str]): The option contract strike price greater than or equal to.
         strike_price_lte (Optional[str]): The option contract strike price less than or equal to.
+        show_deliverables (Optional[bool]): Include each contract's deliverables. The list endpoint omits them unless this is true.
+        ppind (Optional[bool]): Filter by Penny Program eligibility. True returns only contracts eligible for penny price increments.
         limit (Optional[int]): The number of contracts to limit per page (default=100, max=10000).
         page_token (Optional[str]): Pagination token to continue from. The value to pass here is returned in specific
             requests when more data is available than the request limit allows.
@@ -710,6 +712,8 @@ class GetOptionContractsRequest(NonEmptyRequest):
     style: Optional[ExerciseStyle] = None
     strike_price_gte: Optional[str] = None
     strike_price_lte: Optional[str] = None
+    show_deliverables: Optional[bool] = None
+    ppind: Optional[bool] = None
 
     limit: Optional[int] = None
     page_token: Optional[str] = None

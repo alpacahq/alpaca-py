@@ -535,9 +535,12 @@ class TradeAccount(ModelWithID):
         status (AccountStatus): The current status of the account
         crypto_status (Optional[AccountStatus]): The status of the account in regards to trading crypto. Only present if
           crypto trading is enabled for your brokerage account.
+        crypto_tier (Optional[int]): The crypto trading tier assigned to the account. Only present if crypto trading is
+          enabled.
         currency (Optional[str]): Currently will always be the value "USD".
         buying_power (Optional[str]): Current available cash buying power. If multiplier = 2 then
           buying_power = max(equity-initial_margin(0) * 2). If multiplier = 1 then buying_power = cash.
+        effective_buying_power (Optional[str]): Buying power available for new orders after current requirements.
         regt_buying_power (Optional[str]): User’s buying power under Regulation T
           (excess equity - (equity - margin value) - * margin multiplier)
         daytrading_buying_power (Optional[str]): The buying power for day trades for the account.
@@ -563,6 +566,7 @@ class TradeAccount(ModelWithID):
         last_equity (Optional[str]): Equity as of previous trading day at 16:00:00 ET
         long_market_value (Optional[str]): Real-time MtM value of all long positions held in the account
         short_market_value (Optional[str]): Real-time MtM value of all short positions held in the account
+        position_market_value (Optional[str]): Real-time market value of the positions held in the account.
         initial_margin (Optional[str]): Reg T initial margin requirement
         maintenance_margin (Optional[str]): Maintenance margin requirement
         last_maintenance_margin (Optional[str]): Maintenance margin requirement on the previous trading day
@@ -583,8 +587,10 @@ class TradeAccount(ModelWithID):
     account_number: str
     status: AccountStatus
     crypto_status: Optional[AccountStatus] = None
+    crypto_tier: Optional[int] = None
     currency: Optional[str] = None
     buying_power: Optional[str] = None
+    effective_buying_power: Optional[str] = None
     regt_buying_power: Optional[str] = None
     daytrading_buying_power: Optional[str] = None
     non_marginable_buying_power: Optional[str] = None
@@ -605,6 +611,7 @@ class TradeAccount(ModelWithID):
     last_equity: Optional[str] = None
     long_market_value: Optional[str] = None
     short_market_value: Optional[str] = None
+    position_market_value: Optional[str] = None
     initial_margin: Optional[str] = None
     maintenance_margin: Optional[str] = None
     last_maintenance_margin: Optional[str] = None

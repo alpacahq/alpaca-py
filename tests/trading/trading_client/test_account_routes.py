@@ -52,6 +52,34 @@ def test_get_account(reqmock: Mocker, trading_client: TradingClient):
     assert account.options_buying_power == "262113.632"
     assert account.options_approved_level == 1
     assert account.options_trading_level == 1
+    assert account.crypto_tier is None
+    assert account.effective_buying_power is None
+    assert account.position_market_value is None
+
+
+def test_get_account_parses_buying_power_fields(
+    reqmock: Mocker, trading_client: TradingClient
+):
+    reqmock.get(
+        f"{BaseURL.TRADING_PAPER.value}/v2/account",
+        text="""
+        {
+          "id": "e6fe16f3-64a4-4921-8928-cadf02f92f98",
+          "account_number": "010203ABCD",
+          "status": "ACTIVE",
+          "crypto_tier": 1,
+          "effective_buying_power": "245432.61",
+          "position_market_value": "1259.61"
+        }
+      """,
+    )
+
+    account = trading_client.get_account()
+
+    assert reqmock.called_once
+    assert account.crypto_tier == 1
+    assert account.effective_buying_power == "245432.61"
+    assert account.position_market_value == "1259.61"
 
 
 def test_get_account_configurations(reqmock: Mocker, trading_client: TradingClient):

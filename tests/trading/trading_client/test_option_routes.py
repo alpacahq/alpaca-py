@@ -2,6 +2,8 @@
 Contains tests for Trading API's option routes.
 """
 
+from uuid import UUID
+
 from alpaca.common.enums import BaseURL
 from alpaca.trading.requests import GetOptionContractsRequest
 from alpaca.trading.client import TradingClient
@@ -231,3 +233,127 @@ def test_get_option_contract(reqmock, trading_client: TradingClient):
     assert deliverable.settlement_type == OptionDeliverableSettlementType.T_PLUS_1
     assert deliverable.settlement_method == OptionDeliverableSettlementMethod.CCC
     assert deliverable.delayed_settlement is False
+
+
+def test_get_option_contract_cash_deliverable_omits_asset_id(
+    reqmock, trading_client: TradingClient
+):
+    symbol = "AAPL231103C00170000"
+
+    reqmock.get(
+        f"{BaseURL.TRADING_PAPER.value}/v2/options/contracts/{symbol}",
+        text="""
+            {
+                "id": "00000000-0000-0000-0000-000000000000",
+                "symbol": "AAPL231103C00170000",
+                "name": "AAPL Nov 03 2023 170 Call",
+                "status": "active",
+                "tradable": true,
+                "ppind": true,
+                "expiration_date": "2023-11-03",
+                "root_symbol": "AAPL",
+                "underlying_symbol": "AAPL",
+                "underlying_asset_id": "00000000-0000-0000-0000-000000000000",
+                "type": "call",
+                "style": "american",
+                "strike_price": "170",
+                "multiplier": "100",
+                "size": "100",
+                "deliverables": [
+                    {
+                        "type": "cash",
+                        "symbol": "USD",
+                        "amount": "2500",
+                        "allocation_percentage": "100",
+                        "settlement_type": "T+1",
+                        "settlement_method": "CAFX",
+                        "delayed_settlement": false
+                    }
+                ],
+                "open_interest": "0",
+                "open_interest_date": "2023-11-03",
+                "close_price": null,
+                "close_price_date": null
+            }
+        """,
+    )
+
+    contract = trading_client.get_option_contract(symbol)
+
+    assert reqmock.called_once
+    assert isinstance(contract, OptionContract)
+    assert contract.deliverables is not None
+    assert len(contract.deliverables) == 1
+    deliverable = contract.deliverables[0]
+    assert isinstance(deliverable, OptionDeliverable)
+    assert deliverable.type == OptionDeliverableType.CASH
+    assert deliverable.symbol == "USD"
+    assert deliverable.amount == "2500"
+    assert deliverable.allocation_percentage == "100"
+    assert deliverable.settlement_type == OptionDeliverableSettlementType.T_PLUS_1
+    assert deliverable.settlement_method == OptionDeliverableSettlementMethod.CAFX
+    assert deliverable.delayed_settlement is False
+    assert deliverable.asset_id is None
+
+
+def test_get_option_contract_delayed_settlement_null_amount(
+    reqmock, trading_client: TradingClient
+):
+    symbol = "AAPL231103C00170000"
+    asset_id = UUID("b0b6dd9d-8b9b-48a9-ba46-b9d54906e415")
+
+    reqmock.get(
+        f"{BaseURL.TRADING_PAPER.value}/v2/options/contracts/{symbol}",
+        text="""
+            {
+                "id": "00000000-0000-0000-0000-000000000000",
+                "symbol": "AAPL231103C00170000",
+                "name": "AAPL Nov 03 2023 170 Call",
+                "status": "active",
+                "tradable": true,
+                "ppind": true,
+                "expiration_date": "2023-11-03",
+                "root_symbol": "AAPL",
+                "underlying_symbol": "AAPL",
+                "underlying_asset_id": "00000000-0000-0000-0000-000000000000",
+                "type": "call",
+                "style": "american",
+                "strike_price": "170",
+                "multiplier": "100",
+                "size": "100",
+                "deliverables": [
+                    {
+                        "type": "equity",
+                        "symbol": "AAPL",
+                        "amount": null,
+                        "allocation_percentage": "40",
+                        "settlement_type": "T+2",
+                        "settlement_method": "BTOB",
+                        "delayed_settlement": true,
+                        "asset_id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415"
+                    }
+                ],
+                "open_interest": "0",
+                "open_interest_date": "2023-11-03",
+                "close_price": null,
+                "close_price_date": null
+            }
+        """,
+    )
+
+    contract = trading_client.get_option_contract(symbol)
+
+    assert reqmock.called_once
+    assert isinstance(contract, OptionContract)
+    assert contract.deliverables is not None
+    assert len(contract.deliverables) == 1
+    deliverable = contract.deliverables[0]
+    assert isinstance(deliverable, OptionDeliverable)
+    assert deliverable.type == OptionDeliverableType.EQUITY
+    assert deliverable.symbol == "AAPL"
+    assert deliverable.amount is None
+    assert deliverable.allocation_percentage == "40"
+    assert deliverable.settlement_type == OptionDeliverableSettlementType.T_PLUS_2
+    assert deliverable.settlement_method == OptionDeliverableSettlementMethod.BTOB
+    assert deliverable.delayed_settlement is True
+    assert deliverable.asset_id == asset_id

@@ -131,3 +131,50 @@ def test_set_account_configurations(reqmock: Mocker, trading_client: TradingClie
     assert reqmock.called_once
     assert isinstance(account_configurations, AccountConfiguration)
     assert new_account_configurations == account_configurations
+
+
+def test_set_account_configurations_disable_overnight_trading_request_body(
+    reqmock: Mocker, trading_client: TradingClient
+):
+    """Unset disable_overnight_trading stays out of the PATCH body. Explicit
+    True and False are sent."""
+    reqmock.patch(
+        f"{BaseURL.TRADING_PAPER.value}/v2/account/configurations",
+        text="""
+        {
+          "dtbp_check": "entry",
+          "no_shorting": false,
+          "suspend_trade": false,
+          "fractional_trading": true,
+          "max_margin_multiplier": "4",
+          "pdt_check": "entry",
+          "trade_confirm_email": "all",
+          "ptp_no_exception_entry": false
+        }
+        """,
+    )
+
+    base = {
+        "dtbp_check": "entry",
+        "no_shorting": False,
+        "suspend_trade": False,
+        "fractional_trading": True,
+        "max_margin_multiplier": "4",
+        "pdt_check": "entry",
+        "trade_confirm_email": "all",
+        "ptp_no_exception_entry": False,
+    }
+
+    trading_client.set_account_configurations(AccountConfiguration(**base))
+    unset_body = reqmock.request_history[0].json()
+    assert "disable_overnight_trading" not in unset_body
+
+    trading_client.set_account_configurations(
+        AccountConfiguration(**base, disable_overnight_trading=True)
+    )
+    assert reqmock.request_history[1].json()["disable_overnight_trading"] is True
+
+    trading_client.set_account_configurations(
+        AccountConfiguration(**base, disable_overnight_trading=False)
+    )
+    assert reqmock.request_history[2].json()["disable_overnight_trading"] is False

@@ -635,6 +635,7 @@ class AccountConfiguration(BaseModel):
         ptp_no_exception_entry (bool): If set to true then Alpaca will accept orders for PTP symbols with no exception. Default is false.
         max_options_trading_level (Optional[int]): The desired maximum options trading level. 0=disabled, 1=Covered Call/Cash-Secured Put, 2=Long Call/Put, 3=Spreads/Straddles.
         disable_overnight_trading (Optional[bool]): If true, overnight trading is disabled.
+          Omitted from PATCH bodies when the caller did not set it, so a default null is not sent.
     """
 
     dtbp_check: Optional[DTBPCheck] = None
@@ -647,6 +648,18 @@ class AccountConfiguration(BaseModel):
     ptp_no_exception_entry: bool
     max_options_trading_level: Optional[int] = None
     disable_overnight_trading: Optional[bool] = None
+
+    def to_patch_payload(self) -> Dict[str, Any]:
+        """Serialize this configuration for a PATCH.
+
+        ``disable_overnight_trading`` defaults to None. Including that null in an
+        update can reset overnight trading when the caller never set the flag.
+        Explicit True and False are still sent.
+        """
+        payload = self.model_dump()
+        if "disable_overnight_trading" not in self.model_fields_set:
+            payload.pop("disable_overnight_trading", None)
+        return payload
 
 
 class CorporateActionAnnouncement(ModelWithID):

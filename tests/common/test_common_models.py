@@ -171,10 +171,24 @@ def test_deprecated_asset_fields_warn_on_read():
         balance_asof="2023-09-27",
         intraday_adjustments="0",
         pending_reg_taf_fees="0.12",
+        crypto_tier=1,
+        effective_buying_power="245432.61",
+        position_market_value="1259.61",
     )
     assert account.balance_asof == "2023-09-27"
     assert account.intraday_adjustments == "0"
     assert account.pending_reg_taf_fees == "0.12"
+    assert account.crypto_tier == 1
+    assert account.effective_buying_power == "245432.61"
+    assert account.position_market_value == "1259.61"
+    assert (
+        TradeAccount(
+            id="904837e3-3b76-47ec-b432-046db621571b",
+            account_number="010203ABCD",
+            status=AccountStatus.ACTIVE,
+        ).crypto_tier
+        is None
+    )
 
     configuration = AccountConfiguration(
         fractional_trading=True,

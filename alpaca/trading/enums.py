@@ -260,6 +260,17 @@ class AssetStatus(str, Enum):
     INACTIVE = "inactive"
 
 
+class AssetBorrowStatus(str, Enum):
+    """
+    Borrow status for a US equity asset.
+
+    Omitted for assets that are not US equities.
+    """
+
+    EASY_TO_BORROW = "easy_to_borrow"
+    HARD_TO_BORROW = "hard_to_borrow"
+
+
 _DEPRECATED_ASSET_EXCHANGES = {
     name: (
         f"AssetExchange.{name} is deprecated and will be removed in the next release. "

@@ -116,15 +116,39 @@ def _asset_payload(**overrides):
 
 
 def test_asset_parses_without_deprecated_borrow_field():
-    """easy_to_borrow is no longer required. borrow_status replaces it."""
+    """easy_to_borrow stays a bool. hard_to_borrow maps a missing value to False."""
+    assert Asset.model_fields["easy_to_borrow"].annotation is bool
+
     with warnings.catch_warnings():
         warnings.simplefilter("error", DeprecationWarning)
         asset = Asset(**_asset_payload(borrow_status="hard_to_borrow"))
         assert asset.borrow_status == AssetBorrowStatus.HARD_TO_BORROW
-        assert asset.model_dump(mode="json")["easy_to_borrow"] is None
+        assert asset.model_dump(mode="json")["easy_to_borrow"] is False
 
     with pytest.warns(DeprecationWarning, match="Use borrow_status instead"):
-        assert asset.easy_to_borrow is None
+        assert asset.easy_to_borrow is False
+
+
+def test_missing_easy_to_borrow_follows_borrow_status():
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", DeprecationWarning)
+        easy = Asset(**_asset_payload(borrow_status="easy_to_borrow"))
+        omitted = Asset(**_asset_payload())
+        explicit = Asset(
+            **_asset_payload(easy_to_borrow=False, borrow_status="easy_to_borrow")
+        )
+        null_value = Asset(
+            **_asset_payload(easy_to_borrow=None, borrow_status="easy_to_borrow")
+        )
+
+    with pytest.warns(DeprecationWarning, match="Use borrow_status instead"):
+        assert easy.easy_to_borrow is True
+    with pytest.warns(DeprecationWarning, match="Use borrow_status instead"):
+        assert omitted.easy_to_borrow is False
+    with pytest.warns(DeprecationWarning, match="Use borrow_status instead"):
+        assert explicit.easy_to_borrow is False
+    with pytest.warns(DeprecationWarning, match="Use borrow_status instead"):
+        assert null_value.easy_to_borrow is True
 
 
 def test_deprecated_asset_fields_warn_on_read():

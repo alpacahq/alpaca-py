@@ -280,6 +280,27 @@ def _validate_advanced_order_class_requirements(values: dict) -> None:
             raise ValueError("oto orders require either take_profit or stop_loss.")
 
 
+def _reject_non_positive(value: Any, field_name: str) -> None:
+    """Reject a numeric value that is not greater than zero.
+
+    Strings used by the OpenAPI samples are parsed here. Values Pydantic must
+    reject, including booleans, are left untouched.
+    """
+    if isinstance(value, bool) or value is None:
+        return
+    if isinstance(value, (int, float)):
+        number = value
+    elif isinstance(value, str):
+        try:
+            number = float(value)
+        except ValueError:
+            return
+    else:
+        return
+    if number <= 0:
+        raise ValueError(f"{field_name} must be greater than 0")
+
+
 class ReplaceOrderRequest(NonEmptyRequest):
     """Contains data for submitting a request to replace an order.
 
@@ -299,18 +320,16 @@ class ReplaceOrderRequest(NonEmptyRequest):
     trail: Optional[float] = None
     client_order_id: Optional[str] = None
 
-    @model_validator(mode="after")
-    def root_validator(self) -> "ReplaceOrderRequest":
-        # Compare after coercion so documented string values such as qty="4"
-        # are numbers here. mode="before" compared the raw strings to 0.
-        if self.qty is not None and self.qty <= 0:
-            raise ValueError("qty must be greater than 0")
-        if self.stop_price is not None and self.stop_price <= 0:
-            raise ValueError("stop_price must be greater than 0")
-        if self.trail is not None and self.trail <= 0:
-            raise ValueError("trail must be greater than 0")
+    @model_validator(mode="before")
+    def root_validator(cls, values: dict) -> dict:
+        # Keep the pre-coercion signature. Compare numeric strings such as
+        # qty="4" as numbers, and leave the raw values for Pydantic to coerce.
+        if isinstance(values, dict):
+            _reject_non_positive(values.get("qty"), "qty")
+            _reject_non_positive(values.get("stop_price"), "stop_price")
+            _reject_non_positive(values.get("trail"), "trail")
 
-        return self
+        return values
 
 
 class CancelOrderResponse(ModelWithID):

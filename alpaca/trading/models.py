@@ -65,8 +65,9 @@ class Asset(ModelWithID):
         tradable (bool): Whether the asset can be traded.
         marginable (bool): Whether the asset can be traded on margin.
         shortable (bool): Whether the asset can be shorted.
-        easy_to_borrow (Optional[bool]): When shorting, whether the asset is easy to borrow.
+        easy_to_borrow (bool): When shorting, whether the asset is easy to borrow.
           Deprecated and will be removed in the next release. Use borrow_status instead.
+          A missing or null value is False, unless borrow_status is easy_to_borrow.
         fractionable (bool): Whether fractional shares are available
         maintenance_margin_requirement (Optional[float]): Margin requirement percentage for the asset (equities only).
           Deprecated and will be removed in the next release. Use margin_requirement_long or
@@ -88,7 +89,7 @@ class Asset(ModelWithID):
     tradable: bool
     marginable: bool
     shortable: bool
-    easy_to_borrow: Optional[bool] = None
+    easy_to_borrow: bool = False
     fractionable: bool
     min_order_size: Optional[float] = None
     min_trade_increment: Optional[float] = None
@@ -99,6 +100,22 @@ class Asset(ModelWithID):
     cusip: Optional[str] = None
     margin_requirement_long: Optional[str] = None
     margin_requirement_short: Optional[str] = None
+
+    @model_validator(mode="before")
+    def _fill_easy_to_borrow(cls, data: Any) -> Any:
+        """Keep easy_to_borrow a bool when the payload omits the old field."""
+        if not isinstance(data, dict):
+            return data
+        if data.get("easy_to_borrow") is not None:
+            return data
+        if "easy_to_borrow" not in data and data.get("borrow_status") is None:
+            return data
+
+        filled = dict(data)
+        filled["easy_to_borrow"] = (
+            data.get("borrow_status") == AssetBorrowStatus.EASY_TO_BORROW
+        )
+        return filled
 
     def __getattribute__(self, name: str) -> Any:
         message = _DEPRECATED_ASSET_FIELDS.get(name)

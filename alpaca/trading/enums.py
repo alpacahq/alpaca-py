@@ -514,6 +514,42 @@ class ExerciseStyle(str, Enum):
     EUROPEAN = "european"
 
 
+class OptionDeliverableType(str, Enum):
+    """
+    Whether an option deliverable settles in cash or equity.
+    """
+
+    CASH = "cash"
+    EQUITY = "equity"
+
+
+class OptionDeliverableSettlementType(str, Enum):
+    """
+    When an option deliverable settles after exercise or assignment.
+    """
+
+    T_PLUS_0 = "T+0"
+    T_PLUS_1 = "T+1"
+    T_PLUS_2 = "T+2"
+    T_PLUS_3 = "T+3"
+    T_PLUS_4 = "T+4"
+    T_PLUS_5 = "T+5"
+
+
+class OptionDeliverableSettlementMethod(str, Enum):
+    """
+    How an option deliverable is settled.
+
+    BTOB is broker to broker, CADF is cash difference, CAFX is cash fixed, and
+    CCC is Correspondent Clearing Corp.
+    """
+
+    BTOB = "BTOB"
+    CADF = "CADF"
+    CAFX = "CAFX"
+    CCC = "CCC"
+
+
 class ActivityCategory(str, Enum):
     """
     Represents the category of an Activity

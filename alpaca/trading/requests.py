@@ -281,21 +281,17 @@ def _validate_advanced_order_class_requirements(values: dict) -> None:
 
 
 def _reject_non_positive(value: Any, field_name: str) -> None:
-    """Reject a numeric value that is not greater than zero.
+    """Reject a value Pydantic can coerce to a non-positive number.
 
-    Strings used by the OpenAPI samples are parsed here. Values Pydantic must
-    reject, including booleans, are left untouched.
+    This runs before coercion, so it has to parse numeric strings and numeric
+    types such as Decimal and NumPy scalars. Values that cannot be parsed,
+    including non-numeric strings, are left for Pydantic to reject.
     """
-    if isinstance(value, bool) or value is None:
+    if value is None:
         return
-    if isinstance(value, (int, float)):
-        number = value
-    elif isinstance(value, str):
-        try:
-            number = float(value)
-        except ValueError:
-            return
-    else:
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
         return
     if number <= 0:
         raise ValueError(f"{field_name} must be greater than 0")

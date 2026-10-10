@@ -1,5 +1,8 @@
 import warnings
+from decimal import Decimal
 from uuid import UUID
+
+import numpy as np
 import pytest
 
 from alpaca.common.enums import BaseURL
@@ -313,8 +316,8 @@ def test_replace_order_validate_replace_request() -> None:
     with pytest.raises(ValueError):
         ReplaceOrderRequest(trail=0)
 
-    # OpenAPI samples these fields as strings. Coercion happens before the
-    # bounds check, so the documented replace body is accepted.
+    # OpenAPI samples these fields as strings. The bounds check parses raw
+    # values before Pydantic coercion, so the documented replace body is accepted.
     string_request = ReplaceOrderRequest(
         limit_price="155", qty="4", stop_price="3.14", trail="1.5", time_in_force="gtc"
     )
@@ -329,6 +332,27 @@ def test_replace_order_validate_replace_request() -> None:
         ReplaceOrderRequest(stop_price="0")
     with pytest.raises(ValueError):
         ReplaceOrderRequest(trail="0")
+
+    # Numeric types outside int/float are coerced by Pydantic, so the bounds
+    # check has to parse them before conversion.
+    numeric_request = ReplaceOrderRequest(
+        qty=np.int64(3), stop_price=Decimal("3.14"), trail=np.float64(1.5)
+    )
+    assert numeric_request.qty == 3
+    assert numeric_request.stop_price == 3.14
+    assert numeric_request.trail == 1.5
+    with pytest.raises(ValueError):
+        ReplaceOrderRequest(qty=False)
+    with pytest.raises(ValueError):
+        ReplaceOrderRequest(qty=Decimal("0"))
+    with pytest.raises(ValueError):
+        ReplaceOrderRequest(qty=np.int64(0))
+    with pytest.raises(ValueError):
+        ReplaceOrderRequest(qty=np.int64(-5))
+    with pytest.raises(ValueError):
+        ReplaceOrderRequest(stop_price=Decimal("-1"))
+    with pytest.raises(ValueError):
+        ReplaceOrderRequest(trail=Decimal("0"))
 
 
 def test_cancel_order_by_id(reqmock, trading_client: TradingClient):

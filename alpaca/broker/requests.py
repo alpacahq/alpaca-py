@@ -118,6 +118,32 @@ class UploadW8BenDocumentRequest(NonEmptyRequest):
         return values
 
 
+class CashInterestTier(BaseModel):
+    """APR tier enrollment for a single currency in the account's cash interest program.
+
+    Attributes:
+        apr_tier_name (Optional[str]): The name of the APR tier to enroll the account in.
+            The status should not be specified on enrollment; the response will report a
+            status of PENDING_CHANGE until the enrollment completes.
+    """
+
+    apr_tier_name: Optional[str] = None
+
+
+class CashInterest(NonEmptyRequest):
+    """The configuration of the account's USD cash interest program when creating an account.
+
+    If cash_interest is not provided and there is a default APR tier defined, that tier
+    will be used. To enroll the account in a non-default APR tier, provide the
+    cash_interest object with the desired apr_tier_name.
+
+    Attributes:
+        USD (Optional[CashInterestTier]): The USD cash interest program configuration.
+    """
+
+    USD: Optional[CashInterestTier] = None
+
+
 class CreateAccountRequest(NonEmptyRequest):
     """Class used to format data necessary for making a request to create a brokerage account
 
@@ -130,6 +156,7 @@ class CreateAccountRequest(NonEmptyRequest):
         agreements (List[Agreement]): The agreements the account holder has signed
         documents (List[Union[AccountDocument, UploadW8BenDocumentRequest]]): The documents the account holder has submitted
         trusted_contact (TrustedContact): The account holder's trusted contact details
+        cash_interest (Optional[CashInterest]): The account's USD cash interest program configuration
     """
 
     account_type: Optional[Union[AccountType, str]] = None
@@ -140,6 +167,7 @@ class CreateAccountRequest(NonEmptyRequest):
     agreements: List[Agreement]
     documents: Optional[List[Union[AccountDocument, UploadW8BenDocumentRequest]]] = None
     trusted_contact: Optional[TrustedContact] = None
+    cash_interest: Optional[CashInterest] = None
     currency: Optional[SupportedCurrencies] = None  # None = USD
     enabled_assets: Optional[List[AssetClass]] = None  # None = Default to server
 

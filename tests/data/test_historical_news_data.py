@@ -6,6 +6,26 @@ from alpaca.data.models.news import NewsSet
 from alpaca.data.requests import NewsRequest
 
 
+def test_news_client_without_credentials(reqmock):
+    client = NewsClient()
+    assert client._api_key is None
+    assert client._secret_key is None
+
+    symbols = "TSLA"
+    start = datetime(2022, 7, 1)
+    _start_in_url = urllib.parse.quote_plus(
+        start.replace(tzinfo=timezone.utc).isoformat()
+    )
+    reqmock.get(
+        f"https://data.alpaca.markets/v1beta1/news?symbols={symbols}&start={_start_in_url}&limit=50",
+        text='{"news": [], "next_page_token": null}',
+    )
+    request = NewsRequest(symbols=symbols, start=start)
+    newsset = client.get_news(request_params=request)
+    assert isinstance(newsset, NewsSet)
+    assert newsset["news"] == []
+
+
 def test_get_news(reqmock, news_client: NewsClient):
     # Test single symbol request
 

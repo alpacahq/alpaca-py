@@ -2,7 +2,7 @@ from typing import Optional, Union
 
 from alpaca.common.enums import BaseURL
 from alpaca.common.rest import RESTClient
-from alpaca.common.types import RawData
+from alpaca.common.types import Credentials, RawData
 from alpaca.data.models.news import NewsSet
 from alpaca.data.requests import NewsRequest
 
@@ -11,6 +11,10 @@ class NewsClient(RESTClient):
     """
     The REST client for interacting with Alpaca News API endpoints.
 
+    This client does not require authentication to use.
+    You can instantiate it with or without API keys.
+
+    However, authenticating increases your data rate limit.
     """
 
     def __init__(
@@ -61,3 +65,16 @@ class NewsClient(RESTClient):
             return raw_news
 
         return NewsSet(raw_news)
+
+    @staticmethod
+    def _validate_credentials(
+        api_key: Optional[str] = None,
+        secret_key: Optional[str] = None,
+        oauth_token: Optional[str] = None,
+    ) -> Credentials:
+        if oauth_token and (api_key or secret_key):
+            raise ValueError(
+                "Either an oauth_token or an api_key may be supplied, but not both"
+            )
+
+        return api_key, secret_key, oauth_token

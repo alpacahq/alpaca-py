@@ -47,6 +47,34 @@ def test_crypto_client_without_credentials(reqmock):
     assert "Authorization" not in reqmock.last_request.headers
 
 
+def test_crypto_client_without_credentials_basic_auth(reqmock):
+    client = CryptoHistoricalDataClient(use_basic_auth=True)
+    assert client._api_key is None
+    assert client._secret_key is None
+
+    symbols = ["BTC/USD"]
+    start = datetime(2022, 3, 9)
+    end = datetime(2022, 3, 9)
+    timeframe = TimeFrame.Day
+    _symbols_in_url = "BTC%2FUSD"
+    _start_in_url = urllib.parse.quote_plus(
+        start.replace(tzinfo=timezone.utc).isoformat()
+    )
+    _end_in_url = urllib.parse.quote_plus(end.replace(tzinfo=timezone.utc).isoformat())
+    reqmock.get(
+        f"https://data.alpaca.markets/v1beta3/crypto/us/bars?timeframe={timeframe}&start={_start_in_url}&end={_end_in_url}&symbols={_symbols_in_url}&limit=10000",
+        text='{"bars": {}}',
+    )
+    request = CryptoBarsRequest(
+        symbol_or_symbols=symbols, timeframe=timeframe, start=start, end=end
+    )
+    bars = client.get_crypto_bars(request_params=request)
+    assert isinstance(bars, BarSet)
+    assert "APCA-API-KEY-ID" not in reqmock.last_request.headers
+    assert "APCA-API-SECRET-KEY" not in reqmock.last_request.headers
+    assert "Authorization" not in reqmock.last_request.headers
+
+
 def test_crypto_client_with_incomplete_credentials():
     with pytest.raises(
         ValueError, match="A corresponding secret_key must be supplied with the api_key"

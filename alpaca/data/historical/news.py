@@ -77,4 +77,14 @@ class NewsClient(RESTClient):
                 "Either an oauth_token or an api_key may be supplied, but not both"
             )
 
+        if api_key and not secret_key:
+            raise ValueError(
+                "A corresponding secret_key must be supplied with the api_key"
+            )
+
+        if not api_key and secret_key:
+            raise ValueError(
+                "A corresponding api_key must be supplied with the secret_key"
+            )
+
         return api_key, secret_key, oauth_token

@@ -7,9 +7,10 @@ import sseclient
 from pydantic import TypeAdapter
 from requests import HTTPError, Response
 
-from alpaca.broker.enums import ACHRelationshipStatus
+from alpaca.broker.enums import ACHRelationshipStatus, RecipientBankStatus
 from alpaca.broker.models import (
     Account,
+    AccountExtended,
     ACHRelationship,
     Bank,
     BaseModel,
@@ -18,7 +19,9 @@ from alpaca.broker.models import (
     Order,
     Portfolio,
     RebalancingRun,
+    RebalancingRunPage,
     Subscription,
+    SubscriptionPage,
     TradeAccount,
     TradeDocument,
     Transfer,
@@ -257,12 +260,15 @@ class BrokerClient(RESTClient):
         data = account_data.to_request_fields()
         response = self.post("/accounts", data)
 
+        if self._use_raw_data:
+            return response
+
         return Account(**response)
 
     def get_account_by_id(
         self,
         account_id: Union[UUID, str],
-    ) -> Union[Account, RawData]:
+    ) -> Union[AccountExtended, RawData]:
         """
         Get an Account by its associated account_id.
 
@@ -273,13 +279,17 @@ class BrokerClient(RESTClient):
             into UUID instances
 
         Returns:
-            Account: Returns the requested account.
+            AccountExtended: The requested account, including AccountExtended fields.
         """
 
         account_id = validate_uuid_id_param(account_id)
 
         resp = self.get(f"/accounts/{account_id}", {"params": ""})
-        return Account(**resp)
+
+        if self._use_raw_data:
+            return resp
+
+        return AccountExtended(**resp)
 
     def update_account(
         self,
@@ -908,18 +918,29 @@ class BrokerClient(RESTClient):
     def get_banks_for_account(
         self,
         account_id: Union[UUID, str],
+        status: Optional[Union[RecipientBankStatus, str]] = None,
+        bank_name: Optional[str] = None,
     ) -> Union[List[Bank], RawData]:
         """
         Gets the Banks for an account.
 
         Args:
             account_id (Union[UUID, str]): The ID of the Account to get the Banks for.
+            status (Optional[Union[RecipientBankStatus, str]]): ``ACTIVE`` or ``INACTIVE``.
+            bank_name (Optional[str]): Filter to recipient banks with this name.
 
         Returns:
             List[Bank]: List of Banks returned by the query.
         """
         account_id = validate_uuid_id_param(account_id)
-        response = self.get(f"/accounts/{account_id}/recipient_banks")
+        params: Dict[str, Any] = {}
+        if status is not None:
+            params["status"] = (
+                status.value if isinstance(status, RecipientBankStatus) else status
+            )
+        if bank_name is not None:
+            params["bank_name"] = bank_name
+        response = self.get(f"/accounts/{account_id}/recipient_banks", params or None)
 
         if self._use_raw_data:
             return response
@@ -1090,14 +1111,19 @@ class BrokerClient(RESTClient):
 
     def get_all_accounts_positions(
         self,
+        page: Optional[int] = None,
     ) -> Union[AllAccountsPositions, RawData]:
         """
         Gets all the current positions for every account in bulk.
 
+        Args:
+            page (Optional[int]): Page of bulk positions to return.
+
         Returns:
             AllAccountsPositions: The collection of open positions keyed by account_id.
         """
-        response = self.get("/accounts/positions")
+        params = {"page": page} if page is not None else None
+        response = self.get("/accounts/positions", params)
 
         if self._use_raw_data:
             return response
@@ -2173,7 +2199,7 @@ class BrokerClient(RESTClient):
         filter: Optional[GetSubscriptionsRequest] = None,
         max_items_limit: Optional[int] = None,
         handle_pagination: Optional[PaginationType] = None,
-    ) -> Union[List[Subscription], List[RawData]]:
+    ) -> Union[List[Subscription], SubscriptionPage, RawData]:
         """
         Retrieves all subscriptions based on the filter provided.
 
@@ -2186,16 +2212,28 @@ class BrokerClient(RESTClient):
             handle_pagination (Optional[PaginationType]): What kind of pagination you want. If None then defaults to
               `PaginationType.FULL`.
 
+              **Breaking:** ``PaginationType.NONE`` used to return ``List[Subscription]``, the first page
+              with ``next_page_token`` discarded. It now returns one ``SubscriptionPage``, including
+              ``next_page_token`` when the API sends null. The default ``PaginationType.FULL`` is still a list.
+
         Returns:
-            List[Subscription]: List of subscriptions.
+            Union[List[Subscription], SubscriptionPage]: The subscriptions, or one page envelope when
+            ``handle_pagination`` is ``PaginationType.NONE``.
         """
         handle_pagination = BrokerClient._validate_pagination(
             max_items_limit, handle_pagination
         )
+        params = filter.to_request_fields() if filter else {}
+
+        if handle_pagination == PaginationType.NONE:
+            response = self.get("/rebalancing/subscriptions", params)
+            if self._use_raw_data:
+                return response
+            return SubscriptionPage(**response)
 
         subscriptions_iterator = self._iterate_over_pages(
             endpoint="/rebalancing/subscriptions",
-            params=filter.to_request_fields() if filter else {},
+            params=params,
             response_field="subscriptions",
             base_model_type=Subscription,
             max_items_limit=max_items_limit,
@@ -2266,7 +2304,7 @@ class BrokerClient(RESTClient):
         filter: Optional[GetRunsRequest] = None,
         max_items_limit: Optional[int] = None,
         handle_pagination: Optional[PaginationType] = None,
-    ) -> Union[List[RebalancingRun], List[RawData]]:
+    ) -> Union[List[RebalancingRun], RebalancingRunPage, RawData]:
         """
         Get all runs.
 
@@ -2277,16 +2315,28 @@ class BrokerClient(RESTClient):
             handle_pagination (Optional[PaginationType]): What kind of pagination you want. If None then defaults to
               `PaginationType.FULL`.
 
+              **Breaking:** ``PaginationType.NONE`` used to return ``List[RebalancingRun]``, the first page
+              with ``next_page_token`` discarded. It now returns one ``RebalancingRunPage``, including
+              ``next_page_token`` when the API sends null. The default ``PaginationType.FULL`` is still a list.
+
         Returns:
-            List[RebalancingRun]: List of rebalancing runs.
+            Union[List[RebalancingRun], RebalancingRunPage]: The runs, or one page envelope when
+            ``handle_pagination`` is ``PaginationType.NONE``.
         """
         handle_pagination = BrokerClient._validate_pagination(
             max_items_limit, handle_pagination
         )
+        params = filter.to_request_fields() if filter else {}
+
+        if handle_pagination == PaginationType.NONE:
+            response = self.get("/rebalancing/runs", params)
+            if self._use_raw_data:
+                return response
+            return RebalancingRunPage(**response)
 
         runs_iterator = self._iterate_over_pages(
             endpoint="/rebalancing/runs",
-            params=filter.to_request_fields() if filter else {},
+            params=params,
             response_field="runs",
             base_model_type=RebalancingRun,
             max_items_limit=max_items_limit,
@@ -2332,10 +2382,11 @@ class BrokerClient(RESTClient):
         symbol_or_contract_id: Union[UUID, str],
         account_id: Union[UUID, str],
         commission: Optional[float] = None,
+        qty: Optional[str] = None,
     ) -> None:
         """
         This endpoint enables the correspondent to exercise a held option contract for an account, converting it into the underlying asset based on the specified terms.
-        All available held shares of this option contract will be exercised.
+        When ``qty`` is omitted, every held contract of this option is exercised.
         By default, Alpaca will automatically exercise in-the-money (ITM) contracts at expiry.
         Exercise requests will be processed immediately once received. Exercise requests submitted outside market hours will be rejected.
         To cancel an exercise request or to submit a Do-not-exercise (DNE) instruction, please contact our support team.
@@ -2344,6 +2395,7 @@ class BrokerClient(RESTClient):
             account_id (Union[UUID, str]): The Account id you wish to retrieve CIPInfo for
             symbol_or_contract_id (Union[UUID, str]): Option contract symbol or ID.
             commission (Optional[float]): The dollar value commission you want to charge the end user.
+            qty (Optional[str]): Number of contracts to exercise. Omit to exercise every held contract.
 
         Returns:
             None
@@ -2351,7 +2403,7 @@ class BrokerClient(RESTClient):
 
         account_id = validate_uuid_id_param(account_id)
         symbol_or_contract_id = validate_symbol_or_contract_id(symbol_or_contract_id)
-        req = CreateOptionExerciseRequest(commission=commission)
+        req = CreateOptionExerciseRequest(commission=commission, qty=qty)
 
         params = req.to_request_fields()
         self.post(

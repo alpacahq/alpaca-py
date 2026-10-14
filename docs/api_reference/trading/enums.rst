@@ -45,6 +45,12 @@ AssetStatus
 .. autoenum:: alpaca.trading.enums.AssetStatus
 
 
+CalendarDateType
+----------------
+
+.. autoenum:: alpaca.trading.enums.CalendarDateType
+
+
 AssetExchange
 -------------
 

@@ -11,6 +11,7 @@ from alpaca.trading.enums import (
     AssetClass,
     AssetExchange,
     AssetStatus,
+    CalendarDateType,
     ContractType,
     CorporateActionDateType,
     CorporateActionType,
@@ -82,11 +83,17 @@ class GetPortfolioHistoryRequest(NonEmptyRequest):
 
 class GetCalendarRequest(NonEmptyRequest):
     """
-    Represents the optional filtering you can do when requesting a Calendar object
+    Represents the optional filtering you can do when requesting a Calendar object.
+
+    Attributes:
+        start (Optional[date]): Inclusive range start. Date-time strings are accepted.
+        end (Optional[date]): Inclusive range end. Date-time strings are accepted.
+        date_type (Optional[CalendarDateType]): ``TRADING`` or ``SETTLEMENT``.
     """
 
     start: Optional[date] = None
     end: Optional[date] = None
+    date_type: Optional[CalendarDateType] = None
 
 
 class CreateWatchlistRequest(NonEmptyRequest):

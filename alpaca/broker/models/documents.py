@@ -29,6 +29,7 @@ class AccountDocument(BaseModel):
         name (Optional(str)): Name of the document if present
         content (str): Base64 string representing the document
         mime_type (str): The format of content encoded by the string
+        created_at (Optional[datetime]): When the document was stored. Returned on account documents.
     """
 
     id: Optional[UUID]
@@ -36,6 +37,7 @@ class AccountDocument(BaseModel):
     document_sub_type: Optional[str] = None
     content: Optional[str] = None
     mime_type: Optional[str] = None
+    created_at: Optional[datetime] = None
 
     def __init__(self, **data: Any) -> None:
         # validate the incoming id field for uuid

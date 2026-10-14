@@ -8,7 +8,13 @@ import pytest
 
 from alpaca.broker.client import BrokerClient
 from alpaca.broker.enums import AccountEntities, AccountSubType, AccountType
-from alpaca.broker.models import Account, Contact, Identity, TradeAccount
+from alpaca.broker.models import (
+    Account,
+    AccountExtended,
+    Contact,
+    Identity,
+    TradeAccount,
+)
 from alpaca.broker.requests import (
     CreateAccountRequest,
     ListAccountsRequest,
@@ -473,8 +479,11 @@ def test_get_account(reqmock, client: BrokerClient):
     account = client.get_account_by_id(account_id)
 
     assert reqmock.called_once
-    assert type(account) == Account
+    assert type(account) == AccountExtended
+    assert isinstance(account, Account)
     assert account.id == UUID(account_id)
+    assert account.disclosures.is_discretionary is False
+    assert account.documents[0].created_at is not None
 
     assert account.kyc_results is not None
     assert account.kyc_results.reject == {"IDENTITY_VERIFICATION": {}}
@@ -1167,3 +1176,47 @@ def test_exercise_options_position_with_symbol_and_commission(
     assert reqmock.called_once
     assert reqmock.request_history[0].qs == {}
     assert res is None
+
+
+def test_exercise_options_position_sends_qty(reqmock, client: BrokerClient) -> None:
+    account_id = "5fc0795e-1f16-40cc-aa90-ede67c39d7a9"
+    symbol_or_contract_id = "SPY240304P00480000"
+
+    reqmock.post(
+        f"/v1/trading/accounts/{account_id}/positions/{symbol_or_contract_id}/exercise",
+        status_code=204,
+    )
+
+    client.exercise_options_position_for_account_by_id(
+        symbol_or_contract_id=symbol_or_contract_id,
+        account_id=account_id,
+        qty="1",
+    )
+
+    assert reqmock.request_history[0].json() == {"qty": "1"}
+
+
+def test_get_account_by_id_raw_data_keeps_extended_fields(reqmock, raw_client):
+    account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/accounts/{account_id}",
+        json={
+            "id": account_id,
+            "account_number": "601842165",
+            "status": "ACTIVE",
+            "currency": "USD",
+            "last_equity": "1",
+            "created_at": "2022-01-21T21:25:26.470131Z",
+            "account_name": "Jamie Doe",
+            "allow_instant_ach": True,
+            "usd": {"last_equity": "123.45"},
+            "disclosures": {"is_discretionary": True},
+        },
+    )
+
+    account = raw_client.get_account_by_id(account_id)
+
+    assert account["account_name"] == "Jamie Doe"
+    assert account["allow_instant_ach"] is True
+    assert account["usd"]["last_equity"] == "123.45"
+    assert account["disclosures"]["is_discretionary"] is True

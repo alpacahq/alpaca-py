@@ -17,7 +17,10 @@ from alpaca.broker.requests import (
 from alpaca.broker.models import (
     Account,
     AccountDocument,
+    AccountExtended,
+    MinorIdentity,
     TradeDocument,
+    Transfer,
     TrustedContact,
 )
 from alpaca.broker.requests import (
@@ -27,21 +30,39 @@ from alpaca.broker.requests import (
     UpdatableIdentity,
     UpdatableDisclosures,
     GetAccountActivitiesRequest,
+    GetJournalsRequest,
     GetTradeDocumentsRequest,
+    CreateAccountRequest,
     CreateBankRequest,
+    CreateACHRelationshipRequest,
     CreateACHTransferRequest,
     CreateBankTransferRequest,
+    BatchJournalRequestEntry,
+    CreateOptionExerciseRequest,
+    TransferIRA,
 )
 from alpaca.broker.enums import (
+    AgreementType,
+    BankAccountType,
     IdentifierType,
+    TaxIdType,
     TransferType,
     TransferDirection,
     TransferTiming,
     JournalEntryType,
+    JournalStatus,
 )
-from alpaca.trading.enums import ActivityType
+from alpaca.broker.models.funding import BankAdditionalFields
+from alpaca.trading.enums import (
+    ActivityCategory,
+    ActivityType,
+    AssetClass,
+    AssetStatus,
+    CalendarDateType,
+)
+from alpaca.trading.requests import GetCalendarRequest
 from tests.broker.factories import create_dummy_w8ben_document
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 
 def test_document_validates_id():
@@ -607,3 +628,399 @@ def test_trusted_contact_rejects_non_string_street_address():
             email_address="ada@example.com",
             street_address=["20 N San Mateo Dr", 2],
         )
+
+
+def test_calendar_request_accepts_date_type_and_datetime_bounds():
+    request = GetCalendarRequest(
+        start="2026-01-01T00:00:00Z",
+        end="2026-01-02T00:00:00Z",
+        date_type="SETTLEMENT",
+    )
+
+    assert request.date_type == CalendarDateType.SETTLEMENT
+    assert request.to_request_fields()["date_type"] == "SETTLEMENT"
+    assert request.to_request_fields()["start"] == "2026-01-01"
+
+    with pytest.raises(ValueError):
+        GetCalendarRequest(date_type="session")
+
+
+def test_asset_status_includes_all():
+    assert AssetStatus.ALL == "all"
+
+
+def test_journals_request_sends_limit():
+    request = GetJournalsRequest(
+        after="2026-01-01",
+        status=JournalStatus.PENDING,
+        entry_type=JournalEntryType.CASH,
+        limit=1,
+    )
+
+    assert request.to_request_fields()["limit"] == 1
+    assert request.to_request_fields()["entry_type"] == JournalEntryType.CASH
+
+
+def test_account_activities_request_category_and_order_id():
+    order_id = uuid4()
+    request = GetAccountActivitiesRequest(
+        category=ActivityCategory.TRADE_ACTIVITY,
+        order_id=order_id,
+        date="2026-01-01T00:00:00Z",
+    )
+
+    fields = request.to_request_fields()
+    assert fields["category"] == "trade_activity"
+    assert fields["order_id"] == str(order_id)
+    assert "activity_types" not in fields
+
+    with pytest.raises(ValueError, match="category and activity_types"):
+        GetAccountActivitiesRequest(
+            category=ActivityCategory.NON_TRADE_ACTIVITY,
+            activity_types=[ActivityType.DIV],
+        )
+
+    with pytest.raises(ValueError, match="date and after"):
+        GetAccountActivitiesRequest(date=datetime.now(), after=datetime.now())
+
+
+def test_option_exercise_qty_is_optional():
+    assert CreateOptionExerciseRequest(commission=0.25).to_request_fields() == {
+        "commission": 0.25
+    }
+    assert CreateOptionExerciseRequest(qty="1").to_request_fields()["qty"] == "1"
+
+
+def test_create_account_request_sends_minor_identity():
+    minor = MinorIdentity(
+        given_name="Jamie",
+        family_name="Doe",
+        date_of_birth="2012-04-05",
+        tax_id_type=TaxIdType.USA_SSN,
+        country_of_tax_residence="USA",
+        state="CA",
+        email="jamie.doe@example.com",
+        country_of_birth="USA",
+        country_of_citizenship="USA",
+        tax_id="666-55-1234",
+    )
+    identity = {
+        "given_name": "John",
+        "family_name": "Doe",
+        "date_of_birth": "1990-01-01",
+        "country_of_tax_residence": "USA",
+        "funding_source": ["employment_income"],
+        "tax_id": "666-55-4321",
+        "tax_id_type": "USA_SSN",
+    }
+    contact = {
+        "email_address": "john.doe@example.com",
+        "phone_number": "+15556667788",
+        "street_address": ["123 Main Street"],
+        "city": "San Mateo",
+        "state": "CA",
+        "postal_code": "94401",
+    }
+    disclosures = {
+        "is_control_person": False,
+        "is_affiliated_exchange_or_finra": False,
+        "is_politically_exposed": False,
+        "immediate_family_exposed": False,
+    }
+    request = CreateAccountRequest(
+        account_type="custodial",
+        contact=contact,
+        identity=identity,
+        disclosures=disclosures,
+        agreements=[
+            {
+                "agreement": "customer_agreement",
+                "signed_at": "2020-09-11T18:13:44Z",
+                "ip_address": "185.13.21.99",
+            }
+        ],
+        minor_identity=minor,
+    )
+
+    sent = request.to_request_fields()["minor_identity"]
+    assert sent["given_name"] == "Jamie"
+    assert sent["email"] == "jamie.doe@example.com"
+    assert sent["tax_id_type"] == TaxIdType.USA_SSN
+
+    contact_without_phone = dict(contact)
+    del contact_without_phone["phone_number"]
+    without_phone = CreateAccountRequest(
+        account_type="custodial",
+        contact=contact_without_phone,
+        identity=identity,
+        disclosures=disclosures,
+        agreements=[
+            {
+                "agreement": "customer_agreement",
+                "signed_at": "2020-09-11T18:13:44Z",
+                "ip_address": "185.13.21.99",
+            }
+        ],
+        minor_identity=minor,
+    )
+    assert "phone_number" not in without_phone.to_request_fields()["contact"]
+
+
+def test_ach_relationship_can_include_instant_and_processor_token():
+    request = CreateACHRelationshipRequest(
+        account_owner_name="sample",
+        bank_account_type=BankAccountType.CHECKING,
+        bank_account_number="sample",
+        bank_routing_number="sample",
+        instant=False,
+        processor_token="processor-token",
+    )
+
+    fields = request.to_request_fields()
+    assert fields["instant"] is False
+    assert fields["processor_token"] == "processor-token"
+    assert fields["bank_account_number"] == "sample"
+
+
+def test_batch_journal_entry_sends_currency_qty_and_symbol():
+    entry = BatchJournalRequestEntry(
+        to_account=uuid4(),
+        amount="10.00",
+        currency="USD",
+        qty="1",
+        symbol="AAPL",
+    )
+
+    fields = entry.to_request_fields()
+    assert fields["currency"] == "USD"
+    assert fields["qty"] == "1"
+    assert fields["symbol"] == "AAPL"
+    assert fields["amount"] == "10.00"
+
+    with pytest.raises(ValueError):
+        BatchJournalRequestEntry(
+            to_account=uuid4(),
+            amount="10.00",
+            qty=1.5,
+        )
+
+
+def test_create_bank_request_sends_intermediary_fields():
+    request = CreateBankRequest(
+        name="name",
+        bank_code_type=IdentifierType.BIC,
+        bank_code="123456789",
+        account_number="123456789abc",
+        country="United States",
+        state_province="New York",
+        postal_code="10036",
+        city="Manhattan",
+        street_address="Sixth Avenue & 42nd Street",
+        extra_fields=BankAdditionalFields(
+            intermediary_bank1_bic="AAAAUS33",
+            intermediary_bank2_bic="BBBBUS33",
+            intermediary_bank3_bic="CCCCUS33",
+        ),
+    )
+
+    extra = request.to_request_fields()["extra_fields"]
+    assert extra["intermediary_bank1_bic"] == "AAAAUS33"
+    assert extra["intermediary_bank3_bic"] == "CCCCUS33"
+
+
+def test_ach_transfer_ira_does_not_require_timing():
+    request = CreateACHTransferRequest(
+        relationship_id=uuid4(),
+        amount="1.0",
+        direction=TransferDirection.INCOMING,
+        fee_payment_method="invoice",
+        ira=TransferIRA(
+            distribution_reason="normal",
+            tax_withholding={"fed_pct": "10.25", "state_pct": "8.25"},
+            tax_year="2024",
+        ),
+    )
+
+    fields = request.to_request_fields()
+    assert "timing" not in fields
+    assert fields["ira"]["distribution_reason"] == "normal"
+    assert fields["ira"]["tax_withholding"]["fed_pct"] == "10.25"
+    assert fields["transfer_type"] == TransferType.ACH
+
+
+def test_update_account_request_sends_extended_fields():
+    request = UpdateAccountRequest(
+        agreements=[
+            {
+                "agreement": AgreementType.CUSTOMER_AGREEMENT,
+                "ip_address": "185.13.21.99",
+                "signed_at": "2019-09-11T18:09:33Z",
+                "revision": "sample",
+            }
+        ],
+        allow_instant_ach=False,
+        beneficiaries=[
+            {
+                "given_name": "John",
+                "middle_name": "P",
+                "family_name": "Smith",
+                "date_of_birth": "1970-01-01",
+                "tax_id": "xxx-xx-xxxx",
+                "tax_id_type": "USA_SSN",
+                "relationship": "spouse",
+                "type": "primary",
+                "share_pct": "100",
+            }
+        ],
+        cash_interest={"USD": {"apr_tier_name": "gold", "status": "ACTIVE"}},
+        enabled_assets=[AssetClass.US_EQUITY, AssetClass.CRYPTO],
+        fpsl={"US": {"status": "ACTIVE", "tier_id": str(uuid4())}},
+        identity=UpdatableIdentity(
+            country_of_birth="AUS",
+            country_of_citizenship="AUS",
+            country_of_tax_residence="USA",
+            date_of_birth="1990-01-01",
+            tax_id="666-55-4321",
+            tax_id_type=TaxIdType.USA_SSN,
+        ),
+    )
+
+    fields = request.to_request_fields()
+    assert fields["allow_instant_ach"] is False
+    assert fields["agreements"][0]["agreement"] == AgreementType.CUSTOMER_AGREEMENT
+    assert fields["beneficiaries"][0]["share_pct"] == "100"
+    assert fields["cash_interest"]["USD"]["apr_tier_name"] == "gold"
+    assert fields["enabled_assets"] == [AssetClass.US_EQUITY, AssetClass.CRYPTO]
+    assert fields["fpsl"]["US"]["status"] == "ACTIVE"
+    identity = fields["identity"]
+    assert identity["country_of_birth"] == "AUS"
+    assert identity["country_of_citizenship"] == "AUS"
+    assert identity["country_of_tax_residence"] == "USA"
+    assert identity["date_of_birth"] == "1990-01-01"
+    assert identity["tax_id"] == "666-55-4321"
+    assert identity["tax_id_type"] == TaxIdType.USA_SSN
+    assert "primary_account_holder_id" not in fields
+    assert "is_discretionary" not in UpdatableDisclosures.model_fields
+    disclosures = UpdatableDisclosures(
+        is_control_person=False,
+        is_affiliated_exchange_or_finra=False,
+        is_politically_exposed=False,
+        immediate_family_exposed=False,
+        is_discretionary=True,
+    )
+    sent_disclosures = UpdateAccountRequest(disclosures=disclosures).to_request_fields()
+    assert "is_discretionary" not in sent_disclosures["disclosures"]
+
+
+def test_account_extended_keeps_documented_fields():
+    account_id = uuid4()
+    document_id = uuid4()
+    payload = {
+        "id": str(account_id),
+        "account_number": "601842165",
+        "account_type": "custodial",
+        "status": "ACTIVE",
+        "currency": "USD",
+        "last_equity": "40645.13",
+        "created_at": "2022-01-21T21:25:26.583576Z",
+        "account_name": "Jamie Doe",
+        "primary_account_holder_id": str(uuid4()),
+        "allow_instant_ach": True,
+        "instant_ach_blocked": False,
+        "custodial_account_type": "UGMA",
+        "enabled_assets": ["us_equity"],
+        "investment_objective": "growth",
+        "investment_time_horizon": "more_than_10_years",
+        "liquidity_needs": "does_not_matter",
+        "risk_tolerance": "moderate",
+        "beneficiaries": [
+            {
+                "given_name": "Jane",
+                "middle_name": "P",
+                "family_name": "Doe",
+                "date_of_birth": "1970-01-01",
+                "tax_id": "xxx-xx-xxxx",
+                "tax_id_type": "USA_SSN",
+                "relationship": "spouse",
+                "type": "primary",
+                "share_pct": "100",
+            }
+        ],
+        "cash_interest": {"USD": {"apr_tier_name": "gold", "status": "ACTIVE"}},
+        "fpsl": {"US": {"status": "ACTIVE", "tier_id": str(uuid4())}},
+        "usd": {"last_equity": "123.45"},
+        "trading_configurations": {
+            "fractional_trading": True,
+            "max_margin_multiplier": "1",
+            "trade_confirm_email": "none",
+        },
+        "disclosures": {
+            "is_control_person": False,
+            "is_affiliated_exchange_or_finra": False,
+            "is_politically_exposed": False,
+            "immediate_family_exposed": False,
+            "is_discretionary": True,
+        },
+        "documents": [
+            {
+                "id": str(document_id),
+                "document_type": "identity_verification",
+                "created_at": "2019-09-30T23:55:31.185998Z",
+            }
+        ],
+        "minor_identity": {
+            "given_name": "Jamie",
+            "family_name": "Doe",
+            "date_of_birth": "2012-04-05",
+            "tax_id_type": "USA_SSN",
+            "country_of_tax_residence": "USA",
+            "state": "CA",
+            "email": "jamie.doe@example.com",
+        },
+    }
+
+    account = AccountExtended(**payload)
+
+    assert account.account_name == "Jamie Doe"
+    assert account.allow_instant_ach is True
+    assert account.beneficiaries[0].family_name == "Doe"
+    assert account.cash_interest.USD.status == "ACTIVE"
+    assert account.custodial_account_type == "UGMA"
+    assert account.disclosures.is_discretionary is True
+    assert account.documents[0].created_at is not None
+    assert account.enabled_assets == [AssetClass.US_EQUITY]
+    assert account.fpsl.US.status == "ACTIVE"
+    assert account.instant_ach_blocked is False
+    assert account.investment_objective == "growth"
+    assert account.investment_time_horizon == "more_than_10_years"
+    assert account.liquidity_needs == "does_not_matter"
+    assert account.minor_identity.email == "jamie.doe@example.com"
+    assert account.primary_account_holder_id == UUID(
+        payload["primary_account_holder_id"]
+    )
+    assert account.risk_tolerance == "moderate"
+    assert account.trading_configurations.trade_confirm_email == "none"
+    assert account.usd.last_equity == "123.45"
+
+
+def test_transfer_keeps_ira_details():
+    transfer = Transfer(
+        id=uuid4(),
+        account_id=uuid4(),
+        created_at="2021-05-05T07:55:31.190788Z",
+        amount="498",
+        type="ach",
+        status="COMPLETE",
+        direction="INCOMING",
+        ira={
+            "distribution_reason": "normal",
+            "fed_withholding_amount": "102.5",
+            "fed_withholding_pct": "10.25",
+            "state_withholding_amount": "97.5",
+            "state_withholding_pct": "9.75",
+            "tax_year": "2024",
+        },
+    )
+
+    assert transfer.ira.fed_withholding_pct == "10.25"
+    assert transfer.ira.tax_year == "2024"

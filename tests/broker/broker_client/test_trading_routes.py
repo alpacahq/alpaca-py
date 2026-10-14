@@ -75,6 +75,17 @@ def test_get_all_accounts_positions(reqmock, client: BrokerClient):
     assert isinstance(all_accounts_positions.positions[account_id][0], Position)
 
 
+def test_get_all_accounts_positions_sends_page(reqmock, client: BrokerClient):
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/accounts/positions",
+        text='{"as_of": "2023-03-29T16:00:00-04:00", "positions": {}}',
+    )
+
+    client.get_all_accounts_positions(page=2)
+
+    assert reqmock.request_history[0].qs == {"page": ["2"]}
+
+
 def test_get_all_positions_for_account(reqmock, client: BrokerClient):
     account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
 

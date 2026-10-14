@@ -18,6 +18,7 @@ from alpaca.broker.enums import (
     JournalEntryType,
     JournalStatus,
     PortfolioStatus,
+    TaxIdType,
     RebalancingConditionsType,
     RunType,
     TradeDocumentType,
@@ -32,16 +33,27 @@ from alpaca.broker.enums import (
 from alpaca.broker.models.accounts import (
     AccountDocument,
     Agreement,
+    Beneficiary,
+    CashInterest,
     Contact,
     Disclosures,
+    FPSL,
     Identity,
+    MinorIdentity,
     TrustedContact,
 )
+from alpaca.broker.models.funding import BankAdditionalFields
 from alpaca.broker.models.documents import W8BenDocument
 from alpaca.common.enums import Sort, SupportedCurrencies
 from alpaca.common.models import BaseModel
 from alpaca.common.requests import NonEmptyRequest
-from alpaca.trading.enums import AccountStatus, ActivityType, AssetClass, OrderType
+from alpaca.trading.enums import (
+    AccountStatus,
+    ActivityCategory,
+    ActivityType,
+    AssetClass,
+    OrderType,
+)
 from alpaca.trading.requests import LimitOrderRequest as BaseLimitOrderRequest
 from alpaca.trading.requests import MarketOrderRequest as BaseMarketOrderRequest
 from alpaca.trading.requests import OrderRequest as BaseOrderRequest
@@ -130,6 +142,7 @@ class CreateAccountRequest(NonEmptyRequest):
         agreements (List[Agreement]): The agreements the account holder has signed
         documents (List[Union[AccountDocument, UploadW8BenDocumentRequest]]): The documents the account holder has submitted
         trusted_contact (TrustedContact): The account holder's trusted contact details
+        minor_identity (Optional[MinorIdentity]): Identity of the minor. Required for a custodial account.
     """
 
     account_type: Optional[Union[AccountType, str]] = None
@@ -142,14 +155,17 @@ class CreateAccountRequest(NonEmptyRequest):
     trusted_contact: Optional[TrustedContact] = None
     currency: Optional[SupportedCurrencies] = None  # None = USD
     enabled_assets: Optional[List[AssetClass]] = None  # None = Default to server
+    minor_identity: Optional[MinorIdentity] = None
 
     @model_validator(mode="before")
     def validate_parameters_only_optional_in_response(cls, values: dict) -> dict:
         """
         Validate parameters that are optional in the response but not in the request.
+
+        ``Contact.phone_number`` is optional on ``POST /v1/accounts``. The Broker
+        schema types it as string or null and does not list it as required.
         """
         nullable_fields_by_model = {
-            "contact": ["phone_number"],
             "identity": ["date_of_birth"],
             "disclosures": [
                 "is_control_person",
@@ -200,6 +216,7 @@ class UpdatableIdentity(NonEmptyRequest):
            given_name (Optional[str]): The user's first name
            middle_name (Optional[str]): The user's middle name, if any
            family_name (Optional[str]): The user's last name
+           date_of_birth (Optional[str]): The user's date of birth in ``YYYY-MM-DD`` format
            tax_id (Optional[str]): The user's country specific tax id, required if tax_id_type is provided
            tax_id_type (Optional[TaxIdType]): The tax_id_type for the tax_id provided, required if tax_id provided
            country_of_citizenship (Optional[str]): The country the user is a citizen
@@ -221,6 +238,12 @@ class UpdatableIdentity(NonEmptyRequest):
     given_name: Optional[str] = None
     middle_name: Optional[str] = None
     family_name: Optional[str] = None
+    date_of_birth: Optional[str] = None
+    tax_id: Optional[str] = None
+    tax_id_type: Optional[TaxIdType] = None
+    country_of_citizenship: Optional[str] = None
+    country_of_birth: Optional[str] = None
+    country_of_tax_residence: Optional[str] = None
     visa_type: Optional[VisaType] = None
     visa_expiration_date: Optional[str] = None
     date_of_departure_from_usa: Optional[str] = None
@@ -294,12 +317,24 @@ class UpdateAccountRequest(NonEmptyRequest):
         identity (Optional[UpdatableIdentity]): Identity details to update to
         disclosures (Optional[UpdatableDisclosures]): Disclosure details to update to
         trusted_contact (Optional[UpdatableTrustedContact]): TrustedContact details to update to
+        agreements (Optional[List[Agreement]]): Agreements to add or revise
+        allow_instant_ach (Optional[bool]): Whether the partner enables Instant ACH
+        beneficiaries (Optional[List[Beneficiary]]): IRA beneficiaries
+        cash_interest (Optional[CashInterest]): USD cash interest enrollment
+        enabled_assets (Optional[List[AssetClass]]): Asset classes enabled on the account
+        fpsl (Optional[FPSL]): Fully Paid Securities Lending configuration
     """
 
     contact: Optional[UpdatableContact] = None
     identity: Optional[UpdatableIdentity] = None
     disclosures: Optional[UpdatableDisclosures] = None
     trusted_contact: Optional[UpdatableTrustedContact] = None
+    agreements: Optional[List[Agreement]] = None
+    allow_instant_ach: Optional[bool] = None
+    beneficiaries: Optional[List[Beneficiary]] = None
+    cash_interest: Optional[CashInterest] = None
+    enabled_assets: Optional[List[AssetClass]] = None
+    fpsl: Optional[FPSL] = None
 
 
 class ListAccountsRequest(NonEmptyRequest):
@@ -365,7 +400,11 @@ class GetAccountActivitiesRequest(NonEmptyRequest):
 
     Attributes:
         account_id (Optional[Union[UUID, str]]): Specifies to filter to only activities for this Account
-        activity_types (Optional[List[ActivityType]]): A list of ActivityType's to filter results down to
+        activity_types (Optional[List[ActivityType]]): A list of ActivityType's to filter results down to.
+          Cannot be combined with ``category``.
+        category (Optional[ActivityCategory]): ``trade_activity`` or ``non_trade_activity``.
+          Cannot be combined with ``activity_types``.
+        order_id (Optional[UUID]): Restrict results to this order.
         date (Optional[datetime]): Filter to Activities only on this date.
         until (Optional[datetime]): Filter to Activities before this date. Cannot be used if `date` is also specified.
         after (Optional[datetime]): Filter to Activities after this date. Cannot be used if `date` is also specified.
@@ -377,6 +416,8 @@ class GetAccountActivitiesRequest(NonEmptyRequest):
 
     account_id: Optional[Union[UUID, str]] = None
     activity_types: Optional[List[ActivityType]] = None
+    category: Optional[ActivityCategory] = None
+    order_id: Optional[UUID] = None
     date: Optional[datetime] = None
     until: Optional[datetime] = None
     after: Optional[datetime] = None
@@ -403,6 +444,12 @@ class GetAccountActivitiesRequest(NonEmptyRequest):
 
         if date_set and until_set:
             raise ValueError("Cannot set date and until at the same time")
+
+        category_set = values.get("category") is not None
+        activity_types = values.get("activity_types")
+        activity_types_set = activity_types is not None and activity_types != []
+        if category_set and activity_types_set:
+            raise ValueError("Cannot set category and activity_types at the same time")
 
         return values
 
@@ -496,6 +543,8 @@ class CreateACHRelationshipRequest(NonEmptyRequest):
         bank_account_number (str): The bank account number associated with the ACH relationship.
         bank_routing_number (str): THe bank routing number associated with the ACH relationship.
         nickname (Optional[str]): Optionally specify a nickname to assign to the created ACH relationship.
+        instant (Optional[bool]): Whether to create an instant ACH relationship.
+        processor_token (Optional[str]): Plaid processor token. Can be sent together with the bank account fields.
     """
 
     account_owner_name: str
@@ -503,6 +552,8 @@ class CreateACHRelationshipRequest(NonEmptyRequest):
     bank_account_number: str  # TODO: Validate bank account number format.
     bank_routing_number: str  # TODO: Validate bank routing number format.
     nickname: Optional[str] = None
+    instant: Optional[bool] = None
+    processor_token: Optional[str] = None
 
 
 class CreatePlaidRelationshipRequest(NonEmptyRequest):
@@ -537,6 +588,7 @@ class CreateBankRequest(NonEmptyRequest):
         city (Optional[str]): The city of the bank, if and only if creating an international bank account connection.
         street_address (Optional[str]): The street address of the bank, if and only if creating an international bank
           account connection.
+        extra_fields (Optional[BankAdditionalFields]): Intermediary-bank instructions for an international wire.
     """
 
     name: str
@@ -548,6 +600,7 @@ class CreateBankRequest(NonEmptyRequest):
     postal_code: Optional[str] = None
     city: Optional[str] = None
     street_address: Optional[str] = None
+    extra_fields: Optional[BankAdditionalFields] = None
 
     @model_validator(mode="before")
     def root_validator(cls, values: dict) -> dict:
@@ -586,19 +639,48 @@ class CreateBankRequest(NonEmptyRequest):
         return values
 
 
+class TransferIRATaxWithholding(NonEmptyRequest):
+    """
+    IRA tax withholding sent when creating a transfer.
+
+    Attributes:
+        fed_pct (Optional[str]): Federal withholding percent.
+        state_pct (Optional[str]): State withholding percent.
+    """
+
+    fed_pct: Optional[str] = None
+    state_pct: Optional[str] = None
+
+
+class TransferIRA(NonEmptyRequest):
+    """
+    IRA instructions sent when creating a transfer.
+
+    Attributes:
+        distribution_reason (Optional[str]): Reason for the IRA distribution.
+        tax_withholding (Optional[TransferIRATaxWithholding]): Federal and state withholding percents.
+        tax_year (Optional[str]): Tax year the distribution applies to.
+    """
+
+    distribution_reason: Optional[str] = None
+    tax_withholding: Optional[TransferIRATaxWithholding] = None
+    tax_year: Optional[str] = None
+
+
 class _CreateTransferRequest(NonEmptyRequest):
     """
     Attributes:
         amount (str): Amount of transfer, must be > 0. Any applicable fees will be deducted from this value.
         direction (TransferDirection): Direction of the transfer.
-        timing (TransferTiming): Timing of the transfer.
+        timing (Optional[TransferTiming]): Timing of the transfer. The Broker transfer schema does not define this
+          field, so it is omitted unless the caller sets it.
         fee_payment_method (Optional[FeePaymentMethod]): Determines how any applicable fees will be paid. Default value
           is invoice.
     """
 
     amount: str
     direction: TransferDirection
-    timing: TransferTiming
+    timing: Optional[TransferTiming] = None
     fee_payment_method: Optional[FeePaymentMethod] = None
 
     @field_validator("amount")
@@ -613,10 +695,12 @@ class CreateACHTransferRequest(_CreateTransferRequest):
     Attributes:
         transfer_type (TransferType): Type of the transfer.
         relationship_id (Optional[UUID]): ID of the relationship to use for the transfer, required for ACH transfers.
+        ira (Optional[TransferIRA]): IRA distribution instructions. Omit for a non-IRA transfer.
     """
 
     relationship_id: UUID
     transfer_type: TransferType = TransferType.ACH
+    ira: Optional[TransferIRA] = None
 
     @field_validator("transfer_type")
     def transfer_type_must_be_ach(cls, value: TransferType) -> TransferType:
@@ -898,6 +982,9 @@ class BatchJournalRequestEntry(NonEmptyRequest):
     Attributes:
         to_account (UUID): Account to fund in batch journal request.
         amount (Union[str, float]): The cash amount in USD to fund by.
+        currency (Optional[str]): Currency code for the entry.
+        qty (Optional[str]): Security quantity as a decimal string. Allowed alongside ``amount``.
+        symbol (Optional[str]): Security symbol. Allowed alongside ``amount``.
         description (Optional[str]): Journal description.
         transmitter_name (Optional[str]): For cash journals, travel rule related name info.
         transmitter_account_number (Optional[str]): For cash journals, travel rule account number info.
@@ -908,6 +995,9 @@ class BatchJournalRequestEntry(NonEmptyRequest):
 
     to_account: UUID
     amount: Union[str, float]
+    currency: Optional[str] = None
+    qty: Optional[str] = None
+    symbol: Optional[str] = None
     description: Optional[str] = None
     transmitter_name: Optional[str] = None
     transmitter_account_number: Optional[str] = None
@@ -949,14 +1039,16 @@ class CreateBatchJournalRequest(NonEmptyRequest):
     Currently, batch journals are only enabled on cash journals.
 
     Attributes:
-        entry_type (JournalEntryType): The type of journal transfer.
+        entry_type (JournalEntryType): The type of journal transfer. Batch journals remain ``JNLC``.
         from_account (UUID): The originator of funds. Most likely is your Sweep Firm Account
         entries (List[BatchJournalRequestEntry]): List of journals to execute.
+        correspondent (Optional[str]): The 4-character correspondent code.
     """
 
     entry_type: JournalEntryType
     from_account: UUID
     entries: List[BatchJournalRequestEntry]
+    correspondent: Optional[str] = None
 
 
 class CreateReverseBatchJournalRequest(NonEmptyRequest):
@@ -988,6 +1080,7 @@ class GetJournalsRequest(NonEmptyRequest):
         entry_type (Optional[JournalEntryType]): Only journals with this entry type.
         to_account (Optional[UUID]): Only journals to this account.
         from_account (Optional[UUID]): Only journals from this account.
+        limit (Optional[int]): Maximum number of journals to return.
     """
 
     after: Optional[date] = None
@@ -996,6 +1089,7 @@ class GetJournalsRequest(NonEmptyRequest):
     entry_type: Optional[JournalEntryType] = None
     to_account: Optional[UUID] = None
     from_account: Optional[UUID] = None
+    limit: Optional[int] = None
 
 
 class GetEventsRequest(NonEmptyRequest):
@@ -1142,4 +1236,13 @@ class GetRunsRequest(NonEmptyRequest):
 
 
 class CreateOptionExerciseRequest(NonEmptyRequest):
+    """
+    Body for exercising an options position.
+
+    Attributes:
+        commission (Optional[float]): Commission to collect from the user.
+        qty (Optional[str]): Number of contracts to exercise. Omit to exercise every held contract.
+    """
+
     commission: Optional[float] = None
+    qty: Optional[str] = None

@@ -102,6 +102,12 @@ BankStatus
 
 .. autoenum:: alpaca.broker.enums.BankStatus
 
+
+RecipientBankStatus
+-------------------
+
+.. autoenum:: alpaca.broker.enums.RecipientBankStatus
+
 TransferType
 ------------
 

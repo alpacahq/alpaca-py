@@ -4,7 +4,13 @@ from requests_mock import Mocker
 
 from alpaca.broker.client import BrokerClient
 from alpaca.broker.enums import WeightType
-from alpaca.broker.models import Portfolio, RebalancingRun, Subscription
+from alpaca.broker.models import (
+    Portfolio,
+    RebalancingRun,
+    RebalancingRunPage,
+    Subscription,
+    SubscriptionPage,
+)
 from alpaca.broker.requests import (
     CreatePortfolioRequest,
     CreateRunRequest,
@@ -14,7 +20,7 @@ from alpaca.broker.requests import (
     GetSubscriptionsRequest,
     UpdatePortfolioRequest,
 )
-from alpaca.common.enums import BaseURL
+from alpaca.common.enums import BaseURL, PaginationType
 
 
 def test_create_portfolio(reqmock: Mocker, client: BrokerClient) -> None:
@@ -658,3 +664,46 @@ def test_cancel_run_by_id(reqmock: Mocker, client: BrokerClient) -> None:
     reqmock.delete(f"{BaseURL.BROKER_SANDBOX.value}/v1/rebalancing/runs/{run_id}")
     client.cancel_run_by_id(run_id=run_id)
     assert reqmock.called_once
+
+
+def test_get_all_subscriptions_none_returns_page_token(
+    reqmock: Mocker, client: BrokerClient
+):
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/rebalancing/subscriptions",
+        json={
+            "subscriptions": [
+                {
+                    "id": "9341be15-8786-4d23-ba1a-fc10ef4f90f4",
+                    "account_id": "bf2b0f93-f296-4276-a9cf-288586cf4fb7",
+                    "portfolio_id": "57d4ec79-9658-4916-9eb1-7c672be97e3e",
+                    "created_at": "2022-08-07T23:52:05.942964Z",
+                    "last_rebalanced_at": None,
+                }
+            ],
+            "next_page_token": None,
+        },
+    )
+
+    page = client.get_all_subscriptions(handle_pagination=PaginationType.NONE)
+
+    assert isinstance(page, SubscriptionPage)
+    assert page.next_page_token is None
+    assert "next_page_token" in page.model_dump()
+    assert len(page.subscriptions) == 1
+
+
+def test_get_all_runs_none_returns_page_token(reqmock: Mocker, client: BrokerClient):
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/rebalancing/runs",
+        json={
+            "runs": [],
+            "next_page_token": "next-runs",
+        },
+    )
+
+    page = client.get_all_runs(handle_pagination=PaginationType.NONE)
+
+    assert isinstance(page, RebalancingRunPage)
+    assert page.next_page_token == "next-runs"
+    assert page.runs == []

@@ -1,7 +1,6 @@
 from datetime import date, datetime, timezone
 from typing import Any, List, Optional, Union
 
-import pytz
 from pydantic import ConfigDict
 
 from alpaca.common.enums import Sort, SupportedCurrencies

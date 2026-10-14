@@ -306,7 +306,9 @@ class Order(ModelWithID):
     position_intent: Optional[PositionIntent] = None
     ratio_qty: Optional[Union[str, float]] = None
     group_id: Optional[UUID] = None
-    group_role: Optional[OrderGroupRole] = None
+    group_role: Optional[Union[OrderGroupRole, str]] = Field(
+        default=None, union_mode="left_to_right"
+    )
 
     def __init__(self, **data: Any) -> None:
         if "order_class" not in data or data["order_class"] == "":

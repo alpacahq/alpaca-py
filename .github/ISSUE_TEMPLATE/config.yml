@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Alpaca API, OpenAPI spec, or docs bug
+    url: https://github.com/alpacahq/alpaca-api/issues/new/choose
+    about: Bugs in the Alpaca API itself, its OpenAPI specs, or docs.alpaca.markets.
+  - name: Community Forum
+    url: https://forum.alpaca.markets/
+    about: API feature requests, general questions, and dashboard bugs.
+  - name: Community Slack
+    url: https://alpaca.markets/slack
+    about: API feature requests, general questions, and dashboard bugs.

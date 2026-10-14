@@ -214,10 +214,11 @@ class Disclosures(BaseModel):
 
 class AccountDisclosures(Disclosures):
     """
-    Disclosures returned on an account.
+    Disclosures parsed for ``GET /v1/accounts/{account_id}``.
 
-    ``is_discretionary`` appears on account responses. It is not part of the
-    Disclosures schema used when creating or updating an account.
+    ``is_discretionary`` appears on that response. It is not part of the
+    Disclosures schema used when creating or updating an account, so
+    ``Account.disclosures`` stays ``Disclosures``.
     """
 
     is_discretionary: Optional[bool] = None
@@ -467,7 +468,7 @@ class Account(ModelWithID):
     created_at: str
     contact: Optional[Contact] = None
     identity: Optional[Identity] = None
-    disclosures: Optional[AccountDisclosures] = None
+    disclosures: Optional[Disclosures] = None
     agreements: Optional[List[Agreement]] = None
     documents: Optional[List[AccountDocument]] = None
     trusted_contact: Optional[TrustedContact] = None
@@ -501,7 +502,7 @@ class Account(ModelWithID):
                 else None
             ),
             disclosures=(
-                TypeAdapter(AccountDisclosures).validate_python(response["disclosures"])
+                TypeAdapter(Disclosures).validate_python(response["disclosures"])
                 if "disclosures" in response
                 else None
             ),
@@ -547,6 +548,7 @@ class AccountExtended(Account):
         investment_objective (Optional[str]): The user's investment objective.
         investment_time_horizon (Optional[str]): How long the user plans to invest.
         liquidity_needs (Optional[str]): How important liquidity is to the user.
+        disclosures (Optional[AccountDisclosures]): Account disclosures, including ``is_discretionary``.
         minor_identity (Optional[MinorIdentity]): Identity of the minor on a custodial account.
         primary_account_holder_id (Optional[UUID]): UUID of the account's primary holder when available.
         risk_tolerance (Optional[str]): The user's risk tolerance.
@@ -554,6 +556,7 @@ class AccountExtended(Account):
         usd (Optional[AccountUSD]): USD values for a local-currency account.
     """
 
+    disclosures: Optional[AccountDisclosures] = None
     account_name: Optional[str] = None
     allow_instant_ach: Optional[bool] = None
     beneficiaries: Optional[List[Beneficiary]] = None

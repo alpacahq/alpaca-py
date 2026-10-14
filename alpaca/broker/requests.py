@@ -672,15 +672,16 @@ class _CreateTransferRequest(NonEmptyRequest):
     Attributes:
         amount (str): Amount of transfer, must be > 0. Any applicable fees will be deducted from this value.
         direction (TransferDirection): Direction of the transfer.
-        timing (Optional[TransferTiming]): Timing of the transfer. The Broker transfer schema does not define this
-          field, so it is omitted unless the caller sets it.
+        timing (TransferTiming): Timing of the transfer. The Broker transfer schema does not define this
+          field. The default is ``None``, which omits it. The annotation stays ``TransferTiming`` so existing
+          type checks keep the same type.
         fee_payment_method (Optional[FeePaymentMethod]): Determines how any applicable fees will be paid. Default value
           is invoice.
     """
 
     amount: str
     direction: TransferDirection
-    timing: Optional[TransferTiming] = None
+    timing: TransferTiming = None
     fee_payment_method: Optional[FeePaymentMethod] = None
 
     @field_validator("amount")

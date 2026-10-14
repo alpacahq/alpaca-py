@@ -1,6 +1,6 @@
 import warnings
 from datetime import datetime
-from typing import List, Union, get_type_hints
+from typing import List, Union, get_args, get_type_hints
 
 import pytest
 from pydantic import TypeAdapter
@@ -16,8 +16,10 @@ from alpaca.broker.requests import (
 )
 from alpaca.broker.models import (
     Account,
+    AccountDisclosures,
     AccountDocument,
     AccountExtended,
+    Disclosures,
     MinorIdentity,
     TradeDocument,
     Transfer,
@@ -841,6 +843,10 @@ def test_ach_transfer_ira_does_not_require_timing():
         ),
     )
 
+    timing_field = CreateACHTransferRequest.model_fields["timing"]
+    assert timing_field.annotation is TransferTiming
+    assert timing_field.is_required() is False
+
     fields = request.to_request_fields()
     assert "timing" not in fields
     assert fields["ira"]["distribution_reason"] == "normal"
@@ -981,6 +987,10 @@ def test_account_extended_keeps_documented_fields():
 
     account = AccountExtended(**payload)
 
+    assert Disclosures in get_args(Account.model_fields["disclosures"].annotation)
+    assert AccountDisclosures in get_args(
+        AccountExtended.model_fields["disclosures"].annotation
+    )
     assert account.account_name == "Jamie Doe"
     assert account.allow_instant_ach is True
     assert account.beneficiaries[0].family_name == "Doe"

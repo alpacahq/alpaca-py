@@ -1056,3 +1056,10 @@ def test_barset_contains(reqmock, stock_client: StockHistoricalDataClient):
 
     assert "AAPL" in barset
     assert "MSFT" not in barset
+
+
+def test_pytz_stays_exported_from_data_package():
+    import alpaca.data
+    import alpaca.data.requests
+
+    assert alpaca.data.requests.pytz is alpaca.data.pytz

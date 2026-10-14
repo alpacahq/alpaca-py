@@ -12,6 +12,7 @@ from alpaca.broker.models import (
     Account,
     AccountExtended,
     Contact,
+    OptionExerciseResponse,
     Identity,
     TradeAccount,
 )
@@ -1194,6 +1195,65 @@ def test_exercise_options_position_sends_qty(reqmock, client: BrokerClient) -> N
     )
 
     assert reqmock.request_history[0].json() == {"qty": "1"}
+
+
+def test_exercise_options_position_returns_quantities(
+    reqmock, client: BrokerClient
+) -> None:
+    account_id = "5fc0795e-1f16-40cc-aa90-ede67c39d7a9"
+    symbol_or_contract_id = "SPY240304P00480000"
+
+    reqmock.post(
+        f"/v1/trading/accounts/{account_id}/positions/{symbol_or_contract_id}/exercise",
+        json={"qty_exercised": "1", "qty_remaining": "2"},
+    )
+
+    res = client.exercise_options_position_for_account_by_id(
+        symbol_or_contract_id=symbol_or_contract_id,
+        account_id=account_id,
+    )
+
+    assert isinstance(res, OptionExerciseResponse)
+    assert res.qty_exercised == "1"
+    assert res.qty_remaining == "2"
+
+
+def test_exercise_options_position_raw_data_returns_dict(reqmock, raw_client) -> None:
+    account_id = "5fc0795e-1f16-40cc-aa90-ede67c39d7a9"
+    symbol_or_contract_id = "SPY240304P00480000"
+    body = {"qty_exercised": "1", "qty_remaining": "2"}
+
+    reqmock.post(
+        f"/v1/trading/accounts/{account_id}/positions/{symbol_or_contract_id}/exercise",
+        json=body,
+    )
+
+    res = raw_client.exercise_options_position_for_account_by_id(
+        symbol_or_contract_id=symbol_or_contract_id,
+        account_id=account_id,
+    )
+
+    assert res == body
+
+
+def test_exercise_options_position_empty_body_returns_none(
+    reqmock, client: BrokerClient
+) -> None:
+    account_id = "5fc0795e-1f16-40cc-aa90-ede67c39d7a9"
+    symbol_or_contract_id = "SPY240304P00480000"
+
+    reqmock.post(
+        f"/v1/trading/accounts/{account_id}/positions/{symbol_or_contract_id}/exercise",
+        status_code=200,
+        text="",
+    )
+
+    res = client.exercise_options_position_for_account_by_id(
+        symbol_or_contract_id=symbol_or_contract_id,
+        account_id=account_id,
+    )
+
+    assert res is None
 
 
 def test_get_account_by_id_raw_data_keeps_extended_fields(reqmock, raw_client):

@@ -16,6 +16,7 @@ from alpaca.broker.models import (
     BaseModel,
     BatchJournalResponse,
     Journal,
+    OptionExerciseResponse,
     Order,
     Portfolio,
     RebalancingRun,
@@ -2383,7 +2384,7 @@ class BrokerClient(RESTClient):
         account_id: Union[UUID, str],
         commission: Optional[float] = None,
         qty: Optional[str] = None,
-    ) -> None:
+    ) -> Union[OptionExerciseResponse, RawData, None]:
         """
         This endpoint enables the correspondent to exercise a held option contract for an account, converting it into the underlying asset based on the specified terms.
         When ``qty`` is omitted, every held contract of this option is exercised.
@@ -2398,7 +2399,8 @@ class BrokerClient(RESTClient):
             qty (Optional[str]): Number of contracts to exercise. Omit to exercise every held contract.
 
         Returns:
-            None
+            Union[OptionExerciseResponse, RawData, None]: Quantities exercised and remaining.
+            ``None`` when the server sends no body.
         """
 
         account_id = validate_uuid_id_param(account_id)
@@ -2406,7 +2408,12 @@ class BrokerClient(RESTClient):
         req = CreateOptionExerciseRequest(commission=commission, qty=qty)
 
         params = req.to_request_fields()
-        self.post(
+        response = self.post(
             f"/trading/accounts/{account_id}/positions/{symbol_or_contract_id}/exercise",
             params,
         )
+        if not response:
+            return None
+        if self._use_raw_data:
+            return response
+        return OptionExerciseResponse(**response)

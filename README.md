@@ -244,8 +244,8 @@ from alpaca.data.historical.news import NewsClient
 from alpaca.data.requests import NewsRequest
 from datetime import datetime
 
-# no keys required for news data
-client = NewsClient()
+# keys required for news data
+client = NewsClient("api-key", "secret-key")
 
 request_params = NewsRequest(
                         symbols="TSLA",

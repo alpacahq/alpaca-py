@@ -8,50 +8,12 @@ from alpaca.data.models.news import NewsSet
 from alpaca.data.requests import NewsRequest
 
 
-def test_news_client_without_credentials(reqmock):
-    client = NewsClient()
-    assert client._api_key is None
-    assert client._secret_key is None
+def test_news_client_requires_credentials():
+    with pytest.raises(ValueError, match="You must supply a method of authentication"):
+        NewsClient()
 
-    symbols = "TSLA"
-    start = datetime(2022, 7, 1)
-    _start_in_url = urllib.parse.quote_plus(
-        start.replace(tzinfo=timezone.utc).isoformat()
-    )
-    reqmock.get(
-        f"https://data.alpaca.markets/v1beta1/news?symbols={symbols}&start={_start_in_url}&limit=50",
-        text='{"news": [], "next_page_token": null}',
-    )
-    request = NewsRequest(symbols=symbols, start=start)
-    newsset = client.get_news(request_params=request)
-    assert isinstance(newsset, NewsSet)
-    assert newsset["news"] == []
-    assert "APCA-API-KEY-ID" not in reqmock.last_request.headers
-    assert "APCA-API-SECRET-KEY" not in reqmock.last_request.headers
-    assert "Authorization" not in reqmock.last_request.headers
-
-
-def test_news_client_without_credentials_basic_auth(reqmock):
-    client = NewsClient(use_basic_auth=True)
-    assert client._api_key is None
-    assert client._secret_key is None
-
-    symbols = "TSLA"
-    start = datetime(2022, 7, 1)
-    _start_in_url = urllib.parse.quote_plus(
-        start.replace(tzinfo=timezone.utc).isoformat()
-    )
-    reqmock.get(
-        f"https://data.alpaca.markets/v1beta1/news?symbols={symbols}&start={_start_in_url}&limit=50",
-        text='{"news": [], "next_page_token": null}',
-    )
-    request = NewsRequest(symbols=symbols, start=start)
-    newsset = client.get_news(request_params=request)
-    assert isinstance(newsset, NewsSet)
-    assert newsset["news"] == []
-    assert "APCA-API-KEY-ID" not in reqmock.last_request.headers
-    assert "APCA-API-SECRET-KEY" not in reqmock.last_request.headers
-    assert "Authorization" not in reqmock.last_request.headers
+    with pytest.raises(ValueError, match="You must supply a method of authentication"):
+        NewsClient(use_basic_auth=True)
 
 
 def test_news_client_with_incomplete_credentials():
@@ -60,9 +22,7 @@ def test_news_client_with_incomplete_credentials():
     ):
         NewsClient(api_key="key")
 
-    with pytest.raises(
-        ValueError, match="A corresponding api_key must be supplied with the secret_key"
-    ):
+    with pytest.raises(ValueError, match="You must supply a method of authentication"):
         NewsClient(secret_key="secret")
 
 

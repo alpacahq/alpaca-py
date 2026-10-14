@@ -10,6 +10,8 @@ from alpaca.broker.client import BrokerClient
 from alpaca.broker.enums import AccountEntities, AccountSubType, AccountType
 from alpaca.broker.models import Account, Contact, Identity, TradeAccount
 from alpaca.broker.requests import (
+    CashInterest,
+    CashInterestTier,
     CreateAccountRequest,
     ListAccountsRequest,
     UpdatableContact,
@@ -43,9 +45,35 @@ def test_create_account_request_requires_each_disclosure(missing_field: str):
         )
 
 
+def test_create_account_request_cash_interest_serializes_to_tier_payload():
+    """cash_interest on CreateAccountRequest must serialize as {"USD": {"apr_tier_name": ...}}."""
+    request = CreateAccountRequest(
+        agreements=factory.create_dummy_agreements(),
+        contact=factory.create_dummy_contact(),
+        disclosures=factory.create_dummy_disclosures(),
+        identity=factory.create_dummy_identity(),
+        cash_interest=CashInterest(USD=CashInterestTier(apr_tier_name="gold")),
+    )
+
+    fields = request.to_request_fields()
+
+    assert fields["cash_interest"] == {"USD": {"apr_tier_name": "gold"}}
+
+
+def test_create_account_request_omits_cash_interest_when_not_provided():
+    """cash_interest must be omitted from the payload when the caller does not set it."""
+    request = CreateAccountRequest(
+        agreements=factory.create_dummy_agreements(),
+        contact=factory.create_dummy_contact(),
+        disclosures=factory.create_dummy_disclosures(),
+        identity=factory.create_dummy_identity(),
+    )
+
+    assert "cash_interest" not in request.to_request_fields()
+
+
 def test_create_account(reqmock, client: BrokerClient):
     created_id = "0d969814-40d6-4b2b-99ac-2e37427f1ad2"
-
     reqmock.post(
         "https://broker-api.sandbox.alpaca.markets/v1/accounts",
         text="""

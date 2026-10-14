@@ -157,6 +157,18 @@ class OrderClass(str, Enum):
     EMPTY = ""
 
 
+class OrderGroupRole(str, Enum):
+    """
+    The role of an order within a bracket, oto, or oco group.
+
+    Omitted whenever group_id is omitted.
+    """
+
+    ENTRY = "entry"
+    TAKE_PROFIT = "take_profit"
+    STOP_LOSS = "stop_loss"
+
+
 class OrderType(str, Enum):
     """
     Represents what type of order this is.

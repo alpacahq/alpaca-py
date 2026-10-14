@@ -5,12 +5,13 @@ import pytest
 
 from alpaca.trading.enums import (
     OrderClass,
+    OrderGroupRole,
     OrderSide,
     OrderType,
     TimeInForce,
     TradeEvent,
 )
-from alpaca.trading.models import TradeUpdate
+from alpaca.trading.models import Order, TradeUpdate
 from alpaca.trading.requests import (
     LimitOrderRequest,
     MarketOrderRequest,
@@ -384,3 +385,74 @@ def test_trade_update_events() -> None:
         msg = base.copy()
         msg["event"] = event
         TradeUpdate(**msg)
+
+
+def _order_response(**overrides):
+    data = {
+        "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
+        "client_order_id": "eb9e2aaa-f71a-4f51-b5b4-52a6c565dad4",
+        "created_at": "2021-03-16T18:38:01.942282Z",
+        "updated_at": "2021-03-16T18:38:01.942282Z",
+        "submitted_at": "2021-03-16T18:38:01.937734Z",
+        "order_class": "simple",
+        "time_in_force": "day",
+        "status": "accepted",
+        "extended_hours": False,
+    }
+    data.update(overrides)
+    return data
+
+
+def test_bracket_order_and_leg_preserve_group_fields():
+    group_id = "4b88f30e-6b0a-4c1e-9c3a-1d2e3f4a5b6c"
+    leg = _order_response(
+        id="aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+        client_order_id="leg-take-profit",
+        group_id=group_id,
+        group_role="take_profit",
+    )
+    order = Order(
+        **_order_response(
+            order_class="bracket",
+            group_id=group_id,
+            group_role="entry",
+            legs=[leg],
+        )
+    )
+
+    assert order.group_id == uuid.UUID(group_id)
+    assert order.group_role == OrderGroupRole.ENTRY
+    assert isinstance(order.legs[0], Order)
+    assert order.legs[0].group_id == uuid.UUID(group_id)
+    assert order.legs[0].group_role == OrderGroupRole.TAKE_PROFIT
+
+    dumped = order.model_dump(mode="json")
+    assert dumped["group_id"] == group_id
+    assert dumped["group_role"] == "entry"
+    assert dumped["legs"][0]["group_id"] == group_id
+    assert dumped["legs"][0]["group_role"] == "take_profit"
+
+
+def test_order_without_a_group_omits_group_fields():
+    order = Order(**_order_response())
+
+    assert order.group_id is None
+    assert order.group_role is None
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "expected"),
+    [
+        (
+            "group_id",
+            "4b88f30e-6b0a-4c1e-9c3a-1d2e3f4a5b6c",
+            uuid.UUID("4b88f30e-6b0a-4c1e-9c3a-1d2e3f4a5b6c"),
+        ),
+        ("group_role", "stop_loss", OrderGroupRole.STOP_LOSS),
+    ],
+)
+def test_order_preserves_either_group_field(field, value, expected):
+    order = Order(**_order_response(**{field: value}))
+
+    assert getattr(order, field) == expected
+    assert order.model_dump(mode="json")[field] == value

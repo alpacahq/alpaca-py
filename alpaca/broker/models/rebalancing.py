@@ -40,19 +40,6 @@ class Subscription(BaseModel):
     last_rebalanced_at: Optional[datetime] = None
 
 
-class SubscriptionPage(BaseModel):
-    """
-    One page of rebalancing subscriptions.
-
-    Attributes:
-        subscriptions (List[Subscription]): Subscriptions on this page.
-        next_page_token (Optional[str]): Token for the next page. ``None`` when the API returns null.
-    """
-
-    subscriptions: List[Subscription]
-    next_page_token: Optional[str] = None
-
-
 class SkippedOrder(BaseModel):
     """
     Skipped order response model.
@@ -91,16 +78,3 @@ class RebalancingRun(BaseModel):
     orders: Optional[List[Order]] = None
     failed_orders: Optional[List[Order]] = None
     skipped_orders: Optional[List[SkippedOrder]] = None
-
-
-class RebalancingRunPage(BaseModel):
-    """
-    One page of rebalancing runs.
-
-    Attributes:
-        runs (List[RebalancingRun]): Runs on this page.
-        next_page_token (Optional[str]): Token for the next page. ``None`` when the API returns null.
-    """
-
-    runs: List[RebalancingRun]
-    next_page_token: Optional[str] = None

@@ -456,6 +456,23 @@ def test_get_transfers_for_account_none_pagination(reqmock, client: BrokerClient
     assert isinstance(transfers[0], Transfer)
 
 
+def test_get_transfers_for_account_none_pagination_empty_page_returns_empty_list(
+    reqmock, client: BrokerClient
+):
+    account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/accounts/{account_id}/transfers",
+        json=[],
+    )
+
+    transfers = client.get_transfers_for_account(
+        account_id, handle_pagination=PaginationType.NONE
+    )
+
+    assert reqmock.called_once
+    assert transfers == []
+
+
 def test_get_transfers_for_account_iterator_pagination(reqmock, client: BrokerClient):
     account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
     setup_reqmock_for_paginated_transfers_response(account_id, reqmock)

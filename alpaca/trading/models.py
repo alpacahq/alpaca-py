@@ -14,6 +14,7 @@ from alpaca.trading.enums import (
     OptionDeliverableSettlementMethod,
     OptionDeliverableSettlementType,
     OptionDeliverableType,
+    OrderGroupRole,
     OrderStatus,
     OrderType,
     OrderClass,
@@ -249,6 +250,10 @@ class Order(ModelWithID):
         filled_avg_price (Optional[str]): Filled average price. Can be 0 until order is processed in case order is
           passed outside of market hours.
         order_class (OrderClass): Valid values: simple, bracket, oco or oto.
+        group_id (Optional[UUID]): The opaque UUID shared by every order in the group, including its legs and
+          replacement orders. Omitted for orders outside a bracket, oto, or oco group.
+        group_role (Optional[OrderGroupRole]): The role of this order within the group. Valid values: entry,
+          take_profit, or stop_loss. Omitted whenever group_id is omitted.
         order_type (Optional[OrderType]): Deprecated with just type field below. Omitted from legs of mleg orders.
         type (Optional[OrderType]): Valid values: market, limit, stop, stop_limit, trailing_stop. Omitted from legs of mleg orders.
         side (Optional[OrderSide]): Valid values: buy and sell. Omitted from top-level of response if the order is of mleg class.
@@ -300,6 +305,10 @@ class Order(ModelWithID):
     hwm: Optional[str] = None
     position_intent: Optional[PositionIntent] = None
     ratio_qty: Optional[Union[str, float]] = None
+    group_id: Optional[UUID] = None
+    group_role: Optional[Union[OrderGroupRole, str]] = Field(
+        default=None, union_mode="left_to_right"
+    )
 
     def __init__(self, **data: Any) -> None:
         if "order_class" not in data or data["order_class"] == "":

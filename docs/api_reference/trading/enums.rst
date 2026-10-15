@@ -9,6 +9,12 @@ OrderClass
 .. autoenum:: alpaca.trading.enums.OrderClass
 
 
+OrderGroupRole
+--------------
+
+.. autoenum:: alpaca.trading.enums.OrderGroupRole
+
+
 OrderType
 ---------
 

@@ -3,11 +3,17 @@
 
 Uses AexPy (https://github.com/StardustDL/aexpy) to extract APIs from wheels and
 report breaking / alias / additive changes. AexPy tracks alias targets rather than
-enum membership or Pydantic field metadata, so this script additionally snapshots:
+enum membership or Pydantic field metadata, and it leaves ``returnType`` empty for
+annotations it cannot resolve (including ``RawData`` unions). This script
+additionally compares:
 
 * every publicly exported enum's ``name -> value`` map and defining target
 * every publicly exported Pydantic model's field contract (type, requiredness,
   validation/serialization aliases) and defining target
+* public callable ``returnAnnotation`` strings when AexPy did not already report
+  a resolved return-type change. A narrower return is reported and does not
+  fail the check, except dropping ``RawData`` (``dict[str, Any]``) or
+  ``List[RawData]`` (``list[dict[str, Any]]``)
 
 Examples:
   tools/scripts/compare_api_breakage.py
@@ -21,6 +27,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -275,11 +282,7 @@ def _download_release_wheel(
         verbose=verbose,
     )
     matches = sorted(wheels_dir.glob(f"alpaca_py-{version}-*.whl"))
-    exact = [
-        path
-        for path in matches
-        if _versions_equal(_wheel_version(path), version)
-    ]
+    exact = [path for path in matches if _versions_equal(_wheel_version(path), version)]
     if not exact:
         raise ToolError(f"failed to download wheel for {PACKAGE_NAME}=={version}")
     return exact[0]
@@ -560,6 +563,351 @@ def _compare_models(old: dict, new: dict) -> tuple[Findings, Findings]:
     return _sorted_findings(breaking), _sorted_findings(additive)
 
 
+# inspect.signature stringifies typing aliases differently from builtins
+# (``typing.List[int]`` vs ``list[int]``, ``Optional[str]`` vs ``str | None``).
+# Both wheels are extracted by one interpreter, but source can mix the forms.
+_ANNOTATION_NAMES = {
+    "Any": "Any",
+    "List": "list",
+    "Dict": "dict",
+    "Set": "set",
+    "FrozenSet": "frozenset",
+    "Tuple": "tuple",
+    "Type": "type",
+    "Optional": "Optional",
+    "Union": "Union",
+    "typing.Any": "Any",
+    "typing.List": "list",
+    "typing.Dict": "dict",
+    "typing.Set": "set",
+    "typing.FrozenSet": "frozenset",
+    "typing.Tuple": "tuple",
+    "typing.Type": "type",
+    "typing.Optional": "Optional",
+    "typing.Union": "Union",
+    "typing.Iterable": "collections.abc.Iterable",
+    "typing.Iterator": "collections.abc.Iterator",
+    "typing.Sequence": "collections.abc.Sequence",
+    "typing.Mapping": "collections.abc.Mapping",
+    "typing.MutableMapping": "collections.abc.MutableMapping",
+    "typing.MutableSequence": "collections.abc.MutableSequence",
+    "typing.Callable": "collections.abc.Callable",
+    "typing.Generator": "collections.abc.Generator",
+    "typing.Awaitable": "collections.abc.Awaitable",
+    "typing.Coroutine": "collections.abc.Coroutine",
+    "typing.AsyncIterator": "collections.abc.AsyncIterator",
+    "typing.AsyncIterable": "collections.abc.AsyncIterable",
+    "NoneType": "None",
+    "types.NoneType": "None",
+    "builtins.NoneType": "None",
+}
+_BUILTIN_NAMES = {
+    "list",
+    "dict",
+    "set",
+    "frozenset",
+    "tuple",
+    "type",
+    "int",
+    "str",
+    "bool",
+    "float",
+    "bytes",
+    "object",
+    "complex",
+}
+
+
+def _canonicalize_annotation_name(name: str) -> str:
+    if name in _ANNOTATION_NAMES:
+        return _ANNOTATION_NAMES[name]
+    if name.startswith("builtins."):
+        bare = name.removeprefix("builtins.")
+        if bare in _BUILTIN_NAMES or bare == "None":
+            return "None" if bare == "None" else bare
+    return name
+
+
+def _split_top_level_union(text: str) -> list[str]:
+    parts: list[str] = []
+    depth = 0
+    start = 0
+    for index, char in enumerate(text):
+        if char == "[":
+            depth += 1
+        elif char == "]":
+            depth = max(0, depth - 1)
+        elif char == "|" and depth == 0:
+            parts.append(text[start:index].strip())
+            start = index + 1
+    parts.append(text[start:].strip())
+    return [part for part in parts if part]
+
+
+def _union_of(parts: list[str]) -> str:
+    flat: list[str] = []
+    for part in parts:
+        for item in _split_top_level_union(part):
+            if item not in flat:
+                flat.append(item)
+    if len(flat) == 1:
+        return flat[0]
+    return " | ".join(sorted(flat))
+
+
+def _tokenize_annotation(text: str) -> list[str]:
+    tokens: list[str] = []
+    index = 0
+    length = len(text)
+    while index < length:
+        char = text[index]
+        if char.isspace():
+            index += 1
+            continue
+        if char in "[]|,":
+            tokens.append(char)
+            index += 1
+            continue
+        if text.startswith("...", index):
+            tokens.append("...")
+            index += 3
+            continue
+        if char in "'\"":
+            end = text.find(char, index + 1)
+            if end == -1:
+                raise ValueError("unterminated string literal")
+            tokens.append(text[index : end + 1])
+            index = end
+            if index < length:
+                index += 1
+            continue
+        if char.isidentifier() or char in "._":
+            start = index
+            index += 1
+            while index < length and (text[index].isalnum() or text[index] in "._"):
+                index += 1
+            tokens.append(text[start:index])
+            continue
+        raise ValueError(f"unsupported annotation character {char!r}")
+    return tokens
+
+
+class _AnnotationParser:
+    def __init__(self, tokens: list[str]) -> None:
+        self.tokens = tokens
+        self.index = 0
+
+    def peek(self) -> str | None:
+        if self.index >= len(self.tokens):
+            return None
+        return self.tokens[self.index]
+
+    def eat(self, expected: str | None = None) -> str:
+        token = self.peek()
+        if token is None or (expected is not None and token != expected):
+            raise ValueError(f"expected {expected!r}, found {token!r}")
+        self.index += 1
+        return token
+
+    def parse(self) -> str:
+        parsed = self.parse_union()
+        if self.peek() is not None:
+            raise ValueError(f"trailing annotation token {self.peek()!r}")
+        return parsed
+
+    def parse_union(self) -> str:
+        parts = [self.parse_term()]
+        while self.peek() == "|":
+            self.eat("|")
+            parts.append(self.parse_term())
+        return _union_of(parts)
+
+    def parse_term(self) -> str:
+        if self.peek() == "[":
+            return self.parse_bracket_list()
+        if self.peek() == "...":
+            self.eat("...")
+            return "..."
+        name = _canonicalize_annotation_name(self.eat())
+        if self.peek() != "[":
+            return name
+        self.eat("[")
+        args = self.parse_arg_list()
+        self.eat("]")
+        return self.apply_generic(name, args)
+
+    def parse_arg_list(self) -> list[str]:
+        if self.peek() == "]":
+            return []
+        args = [self.parse_arg()]
+        while self.peek() == ",":
+            self.eat(",")
+            if self.peek() == "]":
+                break
+            args.append(self.parse_arg())
+        return args
+
+    def parse_arg(self) -> str:
+        if self.peek() == "[":
+            return self.parse_bracket_list()
+        return self.parse_union()
+
+    def parse_bracket_list(self) -> str:
+        self.eat("[")
+        args = self.parse_arg_list()
+        self.eat("]")
+        return "[" + ", ".join(args) + "]"
+
+    def apply_generic(self, name: str, args: list[str]) -> str:
+        if name == "Optional":
+            if len(args) != 1:
+                raise ValueError("Optional expects one argument")
+            return _union_of([args[0], "None"])
+        if name == "Union":
+            return _union_of(args)
+        if not args:
+            return name
+        return f"{name}[{', '.join(args)}]"
+
+
+# inspect.signature sometimes stores a live object instead of a type. Its repr
+# includes the process address, which changes on every extract.
+_OBJECT_ADDRESS = re.compile(r" at 0x[0-9a-fA-F]+")
+# A bare class is stored as str(cls), e.g. "<class 'alpaca.trading.models.Clock'>".
+# Unions stringify the same class without that wrapper, so members only match
+# after the wrapper is removed. The tokenizer rejects "<".
+_CLASS_REPR = re.compile(r"<class '([^']+)'>")
+# RawData = Dict[str, Any]. List endpoints annotate the raw branch as
+# List[RawData], which normalizes to list[dict[str, Any]]. Dropping either
+# means raw_data=True stopped being honored.
+_RAW_DATA_ANNOTATION = "dict[str, Any]"
+_RAW_DATA_LIST_ANNOTATION = f"list[{_RAW_DATA_ANNOTATION}]"
+
+
+def _normalize_type_annotation(annotation: str) -> str:
+    """Canonical form for equivalent typing spellings.
+
+    Unparseable text falls back to collapsed whitespace so a real change is
+    still reported. Object addresses are stripped first, then ``<class '...'>``
+    wrappers are unwrapped so a bare class matches that class inside a union.
+    """
+    text = _CLASS_REPR.sub(r"\1", _OBJECT_ADDRESS.sub("", " ".join(annotation.split())))
+    if not text:
+        return ""
+    try:
+        return _AnnotationParser(_tokenize_annotation(text)).parse()
+    except ValueError:
+        return text
+
+
+def _is_public_callable_id(api_id: str) -> bool:
+    return bool(api_id) and not any(part.startswith("_") for part in api_id.split("."))
+
+
+def _function_index(api: dict) -> dict[str, dict]:
+    functions = api.get("functions") or {}
+    if isinstance(functions, dict):
+        return {
+            key: value for key, value in functions.items() if isinstance(value, dict)
+        }
+    indexed = {}
+    for entry in functions:
+        if isinstance(entry, dict) and entry.get("id"):
+            indexed[entry["id"]] = entry
+    return indexed
+
+
+def _reported_return_type_ids(entries: list[dict]) -> set[str]:
+    """Function ids whose return type AexPy already resolved and diffed."""
+    reported: set[str] = set()
+    for entry in entries:
+        kind = entry.get("kind") or ""
+        message = entry.get("message") or ""
+        if kind != "ChangeReturnType" and not message.startswith(
+            "Change return type ("
+        ):
+            continue
+        for side in ("old", "new"):
+            payload = entry.get(side)
+            if isinstance(payload, dict) and isinstance(payload.get("id"), str):
+                reported.add(payload["id"])
+        if message.startswith("Change return type (") and "):" in message:
+            reported.add(message.split("(", 1)[1].split("):", 1)[0])
+    return reported
+
+
+def _drops_raw_data(old_members: set[str], new_members: set[str]) -> bool:
+    """True when a removed union member is ``RawData`` or ``List[RawData]``."""
+    removed = old_members - new_members
+    return bool(removed.intersection({_RAW_DATA_ANNOTATION, _RAW_DATA_LIST_ANNOTATION}))
+
+
+def _compare_return_annotations(
+    old_api: dict,
+    new_api: dict,
+    already_reported: set[str] | None = None,
+) -> tuple[Findings, Findings]:
+    """Return ``(breaking, narrowed)`` public return-annotation changes.
+
+    AexPy only emits ``ChangeReturnType`` when mypy filled ``returnType`` on
+    both sides. Unions that include ``dict[str, Any]`` stay null, so the
+    stored ``returnAnnotation`` is compared here. Adding an annotation where
+    the baseline had none is left alone. Spellings that normalize to the same
+    type are not changes.
+
+    A narrower return is compatible for callers: AexPy 0.4.3 ranks that
+    covariance ``Compatible`` in ``ChangeReturnType``. Those are reported as
+    narrowed and do not fail the check. Dropping ``dict[str, Any]``
+    (``RawData``) or ``list[dict[str, Any]]`` (``List[RawData]``) stays
+    breaking, because in this SDK it means ``raw_data=True`` stopped being
+    honored.
+    """
+    reported = already_reported or set()
+    old_functions = _function_index(old_api)
+    new_functions = _function_index(new_api)
+    breaking: dict[str, list[str]] = {}
+    narrowed: dict[str, list[str]] = {}
+
+    for api_id in sorted(set(old_functions) & set(new_functions)):
+        if api_id in reported or not _is_public_callable_id(api_id):
+            continue
+        old_entry = old_functions[api_id]
+        new_entry = new_functions[api_id]
+        if old_entry.get("private") or new_entry.get("private"):
+            continue
+        old_annotation = old_entry.get("returnAnnotation") or ""
+        if not str(old_annotation).strip():
+            continue
+        new_annotation = new_entry.get("returnAnnotation") or ""
+        old_normalized = _normalize_type_annotation(str(old_annotation))
+        new_normalized = _normalize_type_annotation(str(new_annotation))
+        if old_normalized == new_normalized:
+            continue
+        old_members = set(_split_top_level_union(old_normalized))
+        new_members = set(_split_top_level_union(new_normalized))
+        # Same members in an order the parser could not canonicalize.
+        if new_members and new_members == old_members:
+            continue
+        short_name = api_id.rsplit(".", 1)[-1]
+        # An empty new annotation is not a narrowing: the return became untyped.
+        if (
+            new_members
+            and new_members < old_members
+            and not _drops_raw_data(old_members, new_members)
+        ):
+            message = (
+                f"{short_name} return type narrowed: "
+                f"{old_normalized} -> {new_normalized}"
+            )
+            narrowed.setdefault(message, []).append(api_id)
+            continue
+        shown_new = new_normalized or "<unannotated>"
+        message = f"{short_name} return type changed: {old_normalized} -> {shown_new}"
+        breaking.setdefault(message, []).append(api_id)
+
+    return _sorted_findings(breaking), _sorted_findings(narrowed)
+
+
 def _rank_value(entry: dict) -> int:
     rank = entry.get("rank", 0)
     if isinstance(rank, dict):
@@ -637,7 +985,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Compare the current branch public API against a published alpaca-py "
-            "release using AexPy plus enum/model contract snapshots."
+            "release using AexPy plus enum, model, and return-annotation checks."
         )
     )
     parser.add_argument(
@@ -831,6 +1179,23 @@ def main(argv: list[str] | None = None) -> int:
                 _print_findings("Enum breakings", enum_breaking)
                 _print_findings("Model breakings", model_breaking)
 
+        return_breaking, return_narrowed = _compare_return_annotations(
+            json.loads(api_old.read_text()),
+            json.loads(api_new.read_text()),
+            already_reported=_reported_return_type_ids(_change_entries(changes)),
+        )
+        if verbose:
+            print("\n=== Return annotations ===", flush=True)
+            if return_breaking:
+                _print_findings("Breaking", return_breaking)
+            if return_narrowed:
+                _print_findings("Narrowed", return_narrowed)
+            if not return_breaking and not return_narrowed:
+                print("No public return annotations changed.", flush=True)
+        else:
+            _print_findings("Return type breakings", return_breaking)
+            _print_findings("Return type narrowings", return_narrowed)
+
         breaking, compatible, unknown = _summarize_changes(changes)
 
         if verbose:
@@ -859,12 +1224,16 @@ def main(argv: list[str] | None = None) -> int:
             f"\nSummary vs {PACKAGE_NAME}=={against}: "
             f"aexpy_breaking={breaking} aexpy_compatible={compatible} "
             f"aexpy_unknown={unknown} enum_breaking={len(enum_breaking)} "
-            f"model_breaking={len(model_breaking)}",
+            f"model_breaking={len(model_breaking)} "
+            f"return_breaking={len(return_breaking)} "
+            f"return_narrowed={len(return_narrowed)}",
             flush=True,
         )
 
         failed = False
-        if args.fail_on_breaking and (breaking or enum_breaking or model_breaking):
+        if args.fail_on_breaking and (
+            breaking or enum_breaking or model_breaking or return_breaking
+        ):
             failed = True
         if args.fail_on_unknown and unknown:
             failed = True

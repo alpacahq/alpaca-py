@@ -127,6 +127,13 @@ The target runs `tools/scripts/compare_api_breakage.py`, which:
 3. Snapshots public enum membership (`name -> value`) and public Pydantic model field
    contracts (type, requiredness, aliases), then reports removals and value/contract
    changes as breaking
+4. Compares public callable return annotations when AexPy left the resolved return
+   type empty. Equivalent spellings (`List` / `list`, reordered unions, `Optional[X]`
+   / `X | None`) are ignored. A narrower return, such as dropping `| None`, is
+   reported and does not fail the check. Dropping `RawData` (`dict[str, Any]`) or
+   `List[RawData]` (`list[dict[str, Any]]`) is breaking, because that means
+   `raw_data=True` stopped being honored. Any other change to an existing
+   annotation is breaking.
 
 The Makefile target is quiet by default. Useful flags on the script itself:
 

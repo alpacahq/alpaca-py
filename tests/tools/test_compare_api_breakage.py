@@ -568,3 +568,145 @@ class TestSnapshotImportGuards:
         assert kwargs["cwd"] == workdir / ".snapshot_run"
         assert "PYTHONPATH" not in kwargs["env"]
         assert "PYTHONSAFEPATH" not in kwargs["env"]
+
+
+def _callable(annotation):
+    return {"returnAnnotation": annotation, "private": False}
+
+
+class TestNormalizeTypeAnnotation:
+    def test_typing_list_matches_builtin_list(self, cab):
+        assert cab._normalize_type_annotation(
+            "typing.List[int]"
+        ) == cab._normalize_type_annotation("list[int]")
+
+    def test_optional_matches_union_with_none(self, cab):
+        assert cab._normalize_type_annotation("typing.Optional[str]") == "None | str"
+        assert cab._normalize_type_annotation("Optional[str]") == "None | str"
+        assert cab._normalize_type_annotation("str | None") == "None | str"
+        assert cab._normalize_type_annotation("typing.Union[str, None]") == "None | str"
+
+    def test_union_order_is_ignored(self, cab):
+        assert cab._normalize_type_annotation(
+            "B | A"
+        ) == cab._normalize_type_annotation("A | B")
+
+    def test_dict_any_alias(self, cab):
+        assert cab._normalize_type_annotation(
+            "typing.Dict[str, typing.Any]"
+        ) == cab._normalize_type_annotation("dict[str, Any]")
+
+    def test_nested_union_inside_tuple(self, cab):
+        assert (
+            cab._normalize_type_annotation("typing.Tuple[str | None, int]")
+            == "tuple[None | str, int]"
+        )
+
+    def test_unparseable_text_falls_back_to_collapsed_whitespace(self, cab):
+        assert cab._normalize_type_annotation("Literal[1]  extra") == "Literal[1] extra"
+
+    def test_object_address_is_ignored(self, cab):
+        assert cab._normalize_type_annotation(
+            "<function BaseDataSet.dict at 0x10abf8250>"
+        ) == cab._normalize_type_annotation(
+            "<function BaseDataSet.dict at 0x10b02eda0>"
+        )
+
+
+class TestCompareReturnAnnotations:
+    def test_rebalancing_page_returns_are_breaking(self, cab):
+        old = {
+            "functions": {
+                "alpaca.broker.client.BrokerClient.get_all_subscriptions": _callable(
+                    "typing.List[alpaca.broker.models.rebalancing.Subscription]"
+                    " | typing.List[typing.Dict[str, typing.Any]]"
+                ),
+                "alpaca.broker.client.BrokerClient.get_all_runs": _callable(
+                    "typing.List[alpaca.broker.models.rebalancing.RebalancingRun]"
+                    " | typing.List[typing.Dict[str, typing.Any]]"
+                ),
+            }
+        }
+        new = {
+            "functions": {
+                "alpaca.broker.client.BrokerClient.get_all_subscriptions": _callable(
+                    "typing.List[alpaca.broker.models.rebalancing.Subscription]"
+                    " | alpaca.broker.models.rebalancing.SubscriptionPage"
+                    " | typing.Dict[str, typing.Any]"
+                ),
+                "alpaca.broker.client.BrokerClient.get_all_runs": _callable(
+                    "typing.List[alpaca.broker.models.rebalancing.RebalancingRun]"
+                    " | alpaca.broker.models.rebalancing.RebalancingRunPage"
+                    " | typing.Dict[str, typing.Any]"
+                ),
+            }
+        }
+        breaking = cab._compare_return_annotations(old, new)
+        messages = [message for message, _ in breaking]
+        assert any(
+            "get_all_subscriptions return type changed" in message
+            for message in messages
+        )
+        assert any(
+            "get_all_runs return type changed" in message for message in messages
+        )
+        assert any("SubscriptionPage" in message for message in messages)
+        assert any("RebalancingRunPage" in message for message in messages)
+
+    def test_equivalent_spellings_are_not_breaking(self, cab):
+        function_id = "alpaca.broker.client.BrokerClient.get_clock"
+        old = {"functions": {function_id: _callable("typing.Optional[str]")}}
+        new = {"functions": {function_id: _callable("str | None")}}
+        assert cab._compare_return_annotations(old, new) == []
+
+    def test_private_and_newly_annotated_callables_are_ignored(self, cab):
+        old = {
+            "functions": {
+                "alpaca.broker.client.BrokerClient._iterate_over_pages": _callable(
+                    "typing.Iterator[int]"
+                ),
+                "alpaca.broker.client.BrokerClient.create_account": _callable(""),
+            }
+        }
+        new = {
+            "functions": {
+                "alpaca.broker.client.BrokerClient._iterate_over_pages": _callable(
+                    "typing.Iterator[str]"
+                ),
+                "alpaca.broker.client.BrokerClient.create_account": _callable(
+                    "alpaca.broker.models.accounts.Account"
+                ),
+            }
+        }
+        assert cab._compare_return_annotations(old, new) == []
+
+    def test_removed_annotation_is_breaking(self, cab):
+        function_id = "alpaca.broker.client.BrokerClient.get_clock"
+        old = {"functions": {function_id: _callable("Clock")}}
+        new = {"functions": {function_id: _callable("")}}
+        breaking = cab._compare_return_annotations(old, new)
+        assert breaking == [
+            (
+                "get_clock return type changed: Clock -> <unannotated>",
+                [function_id],
+            )
+        ]
+
+    def test_already_reported_return_type_is_not_duplicated(self, cab):
+        function_id = "alpaca.trading.client.TradingClient.get_clock"
+        old = {"functions": {function_id: _callable("Clock")}}
+        new = {"functions": {function_id: _callable("ExtendedClock")}}
+        reported = cab._reported_return_type_ids(
+            [
+                {
+                    "kind": "ChangeReturnType",
+                    "message": f"Change return type ({function_id}): Clock => ExtendedClock",
+                    "old": {"id": function_id},
+                    "new": {"id": function_id},
+                }
+            ]
+        )
+        assert function_id in reported
+        assert (
+            cab._compare_return_annotations(old, new, already_reported=reported) == []
+        )

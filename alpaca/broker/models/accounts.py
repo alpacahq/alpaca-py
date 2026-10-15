@@ -335,7 +335,7 @@ class Beneficiary(BaseModel):
     """
 
     given_name: str
-    middle_name: str
+    middle_name: Optional[str] = None
     family_name: str
     date_of_birth: str
     tax_id: str

@@ -11,7 +11,9 @@ additionally compares:
 * every publicly exported Pydantic model's field contract (type, requiredness,
   validation/serialization aliases) and defining target
 * public callable ``returnAnnotation`` strings when AexPy did not already report
-  a resolved return-type change
+  a resolved return-type change. A narrower return is reported and does not
+  fail the check, except dropping ``RawData`` (``dict[str, Any]``) or
+  ``List[RawData]`` (``list[dict[str, Any]]``)
 
 Examples:
   tools/scripts/compare_api_breakage.py
@@ -771,15 +773,25 @@ class _AnnotationParser:
 # inspect.signature sometimes stores a live object instead of a type. Its repr
 # includes the process address, which changes on every extract.
 _OBJECT_ADDRESS = re.compile(r" at 0x[0-9a-fA-F]+")
+# A bare class is stored as str(cls), e.g. "<class 'alpaca.trading.models.Clock'>".
+# Unions stringify the same class without that wrapper, so members only match
+# after the wrapper is removed. The tokenizer rejects "<".
+_CLASS_REPR = re.compile(r"<class '([^']+)'>")
+# RawData = Dict[str, Any]. List endpoints annotate the raw branch as
+# List[RawData], which normalizes to list[dict[str, Any]]. Dropping either
+# means raw_data=True stopped being honored.
+_RAW_DATA_ANNOTATION = "dict[str, Any]"
+_RAW_DATA_LIST_ANNOTATION = f"list[{_RAW_DATA_ANNOTATION}]"
 
 
 def _normalize_type_annotation(annotation: str) -> str:
     """Canonical form for equivalent typing spellings.
 
     Unparseable text falls back to collapsed whitespace so a real change is
-    still reported. Object addresses are stripped first.
+    still reported. Object addresses are stripped first, then ``<class '...'>``
+    wrappers are unwrapped so a bare class matches that class inside a union.
     """
-    text = _OBJECT_ADDRESS.sub("", " ".join(annotation.split()))
+    text = _CLASS_REPR.sub(r"\1", _OBJECT_ADDRESS.sub("", " ".join(annotation.split())))
     if not text:
         return ""
     try:
@@ -824,23 +836,37 @@ def _reported_return_type_ids(entries: list[dict]) -> set[str]:
     return reported
 
 
+def _drops_raw_data(old_members: set[str], new_members: set[str]) -> bool:
+    """True when a removed union member is ``RawData`` or ``List[RawData]``."""
+    removed = old_members - new_members
+    return bool(removed.intersection({_RAW_DATA_ANNOTATION, _RAW_DATA_LIST_ANNOTATION}))
+
+
 def _compare_return_annotations(
     old_api: dict,
     new_api: dict,
     already_reported: set[str] | None = None,
-) -> Findings:
-    """Return breaking public return-annotation changes.
+) -> tuple[Findings, Findings]:
+    """Return ``(breaking, narrowed)`` public return-annotation changes.
 
     AexPy only emits ``ChangeReturnType`` when mypy filled ``returnType`` on
     both sides. Unions that include ``dict[str, Any]`` stay null, so the
     stored ``returnAnnotation`` is compared here. Adding an annotation where
     the baseline had none is left alone. Spellings that normalize to the same
-    type are not breaking.
+    type are not changes.
+
+    A narrower return is compatible for callers: AexPy 0.4.3 ranks that
+    covariance ``Compatible`` in ``ChangeReturnType``. Those are reported as
+    narrowed and do not fail the check. Dropping ``dict[str, Any]``
+    (``RawData``) or ``list[dict[str, Any]]`` (``List[RawData]``) stays
+    breaking, because in this SDK it means ``raw_data=True`` stopped being
+    honored.
     """
     reported = already_reported or set()
     old_functions = _function_index(old_api)
     new_functions = _function_index(new_api)
     breaking: dict[str, list[str]] = {}
+    narrowed: dict[str, list[str]] = {}
 
     for api_id in sorted(set(old_functions) & set(new_functions)):
         if api_id in reported or not _is_public_callable_id(api_id):
@@ -857,12 +883,29 @@ def _compare_return_annotations(
         new_normalized = _normalize_type_annotation(str(new_annotation))
         if old_normalized == new_normalized:
             continue
+        old_members = set(_split_top_level_union(old_normalized))
+        new_members = set(_split_top_level_union(new_normalized))
+        # Same members in an order the parser could not canonicalize.
+        if new_members and new_members == old_members:
+            continue
         short_name = api_id.rsplit(".", 1)[-1]
+        # An empty new annotation is not a narrowing: the return became untyped.
+        if (
+            new_members
+            and new_members < old_members
+            and not _drops_raw_data(old_members, new_members)
+        ):
+            message = (
+                f"{short_name} return type narrowed: "
+                f"{old_normalized} -> {new_normalized}"
+            )
+            narrowed.setdefault(message, []).append(api_id)
+            continue
         shown_new = new_normalized or "<unannotated>"
         message = f"{short_name} return type changed: {old_normalized} -> {shown_new}"
         breaking.setdefault(message, []).append(api_id)
 
-    return _sorted_findings(breaking)
+    return _sorted_findings(breaking), _sorted_findings(narrowed)
 
 
 def _rank_value(entry: dict) -> int:
@@ -1136,7 +1179,7 @@ def main(argv: list[str] | None = None) -> int:
                 _print_findings("Enum breakings", enum_breaking)
                 _print_findings("Model breakings", model_breaking)
 
-        return_breaking = _compare_return_annotations(
+        return_breaking, return_narrowed = _compare_return_annotations(
             json.loads(api_old.read_text()),
             json.loads(api_new.read_text()),
             already_reported=_reported_return_type_ids(_change_entries(changes)),
@@ -1145,10 +1188,13 @@ def main(argv: list[str] | None = None) -> int:
             print("\n=== Return annotations ===", flush=True)
             if return_breaking:
                 _print_findings("Breaking", return_breaking)
-            else:
+            if return_narrowed:
+                _print_findings("Narrowed", return_narrowed)
+            if not return_breaking and not return_narrowed:
                 print("No public return annotations changed.", flush=True)
         else:
             _print_findings("Return type breakings", return_breaking)
+            _print_findings("Return type narrowings", return_narrowed)
 
         breaking, compatible, unknown = _summarize_changes(changes)
 
@@ -1179,7 +1225,8 @@ def main(argv: list[str] | None = None) -> int:
             f"aexpy_breaking={breaking} aexpy_compatible={compatible} "
             f"aexpy_unknown={unknown} enum_breaking={len(enum_breaking)} "
             f"model_breaking={len(model_breaking)} "
-            f"return_breaking={len(return_breaking)}",
+            f"return_breaking={len(return_breaking)} "
+            f"return_narrowed={len(return_narrowed)}",
             flush=True,
         )
 

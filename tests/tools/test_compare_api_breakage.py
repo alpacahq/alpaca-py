@@ -612,6 +612,21 @@ class TestNormalizeTypeAnnotation:
             "<function BaseDataSet.dict at 0x10b02eda0>"
         )
 
+    def test_class_repr_unwraps_to_qualified_name(self, cab):
+        assert (
+            cab._normalize_type_annotation("<class 'alpaca.trading.models.Clock'>")
+            == "alpaca.trading.models.Clock"
+        )
+        assert cab._normalize_type_annotation("<class 'int'>") == "int"
+        assert cab._normalize_type_annotation("<class 'NoneType'>") == "None"
+
+    def test_class_repr_matches_union_member(self, cab):
+        assert cab._normalize_type_annotation(
+            "<class 'alpaca.broker.models.accounts.Account'> | None"
+        ) == cab._normalize_type_annotation(
+            "alpaca.broker.models.accounts.Account | None"
+        )
+
 
 class TestCompareReturnAnnotations:
     def test_rebalancing_page_returns_are_breaking(self, cab):
@@ -641,8 +656,9 @@ class TestCompareReturnAnnotations:
                 ),
             }
         }
-        breaking = cab._compare_return_annotations(old, new)
+        breaking, narrowed = cab._compare_return_annotations(old, new)
         messages = [message for message, _ in breaking]
+        assert narrowed == []
         assert any(
             "get_all_subscriptions return type changed" in message
             for message in messages
@@ -657,7 +673,7 @@ class TestCompareReturnAnnotations:
         function_id = "alpaca.broker.client.BrokerClient.get_clock"
         old = {"functions": {function_id: _callable("typing.Optional[str]")}}
         new = {"functions": {function_id: _callable("str | None")}}
-        assert cab._compare_return_annotations(old, new) == []
+        assert cab._compare_return_annotations(old, new) == ([], [])
 
     def test_private_and_newly_annotated_callables_are_ignored(self, cab):
         old = {
@@ -678,16 +694,151 @@ class TestCompareReturnAnnotations:
                 ),
             }
         }
-        assert cab._compare_return_annotations(old, new) == []
+        assert cab._compare_return_annotations(old, new) == ([], [])
 
     def test_removed_annotation_is_breaking(self, cab):
         function_id = "alpaca.broker.client.BrokerClient.get_clock"
         old = {"functions": {function_id: _callable("Clock")}}
         new = {"functions": {function_id: _callable("")}}
-        breaking = cab._compare_return_annotations(old, new)
+        breaking, narrowed = cab._compare_return_annotations(old, new)
+        assert narrowed == []
         assert breaking == [
             (
                 "get_clock return type changed: Clock -> <unannotated>",
+                [function_id],
+            )
+        ]
+
+    def test_dropping_none_is_narrowed_not_breaking(self, cab):
+        function_id = "alpaca.broker.client.BrokerClient.get_account"
+        old = {
+            "functions": {
+                function_id: _callable(
+                    "alpaca.broker.models.accounts.Account"
+                    " | typing.Dict[str, typing.Any] | None"
+                )
+            }
+        }
+        new = {
+            "functions": {
+                function_id: _callable(
+                    "alpaca.broker.models.accounts.Account | typing.Dict[str, typing.Any]"
+                )
+            }
+        }
+        breaking, narrowed = cab._compare_return_annotations(old, new)
+        assert breaking == []
+        assert narrowed == [
+            (
+                "get_account return type narrowed: "
+                "None | alpaca.broker.models.accounts.Account | dict[str, Any] "
+                "-> alpaca.broker.models.accounts.Account | dict[str, Any]",
+                [function_id],
+            )
+        ]
+
+    def test_dropping_none_from_class_repr_is_narrowed(self, cab):
+        function_id = "alpaca.broker.client.BrokerClient.get_clock"
+        old = {
+            "functions": {function_id: _callable("alpaca.broker.models.Clock | None")}
+        }
+        new = {
+            "functions": {
+                function_id: _callable("<class 'alpaca.broker.models.Clock'>")
+            }
+        }
+        breaking, narrowed = cab._compare_return_annotations(old, new)
+        assert breaking == []
+        assert narrowed == [
+            (
+                "get_clock return type narrowed: "
+                "None | alpaca.broker.models.Clock -> alpaca.broker.models.Clock",
+                [function_id],
+            )
+        ]
+
+    def test_dropping_list_raw_data_is_breaking(self, cab):
+        function_id = "alpaca.broker.client.BrokerClient.get_all_subscriptions"
+        old = {
+            "functions": {
+                function_id: _callable(
+                    "typing.List[alpaca.broker.models.rebalancing.Subscription]"
+                    " | typing.List[typing.Dict[str, typing.Any]]"
+                )
+            }
+        }
+        new = {
+            "functions": {
+                function_id: _callable(
+                    "typing.List[alpaca.broker.models.rebalancing.Subscription]"
+                )
+            }
+        }
+        breaking, narrowed = cab._compare_return_annotations(old, new)
+        assert narrowed == []
+        assert breaking == [
+            (
+                "get_all_subscriptions return type changed: "
+                "list[alpaca.broker.models.rebalancing.Subscription]"
+                " | list[dict[str, Any]]"
+                " -> list[alpaca.broker.models.rebalancing.Subscription]",
+                [function_id],
+            )
+        ]
+
+    def test_dropping_none_keeps_list_raw_data_narrowed(self, cab):
+        function_id = "alpaca.broker.client.BrokerClient.get_all_subscriptions"
+        old = {
+            "functions": {
+                function_id: _callable(
+                    "typing.List[alpaca.broker.models.rebalancing.Subscription]"
+                    " | typing.List[typing.Dict[str, typing.Any]] | None"
+                )
+            }
+        }
+        new = {
+            "functions": {
+                function_id: _callable(
+                    "typing.List[alpaca.broker.models.rebalancing.Subscription]"
+                    " | typing.List[typing.Dict[str, typing.Any]]"
+                )
+            }
+        }
+        breaking, narrowed = cab._compare_return_annotations(old, new)
+        assert breaking == []
+        assert narrowed == [
+            (
+                "get_all_subscriptions return type narrowed: "
+                "None | list[alpaca.broker.models.rebalancing.Subscription]"
+                " | list[dict[str, Any]]"
+                " -> list[alpaca.broker.models.rebalancing.Subscription]"
+                " | list[dict[str, Any]]",
+                [function_id],
+            )
+        ]
+
+    def test_dropping_raw_data_is_breaking(self, cab):
+        function_id = "alpaca.broker.client.BrokerClient.get_account"
+        old = {
+            "functions": {
+                function_id: _callable(
+                    "alpaca.broker.models.accounts.Account"
+                    " | typing.Dict[str, typing.Any] | None"
+                )
+            }
+        }
+        new = {
+            "functions": {
+                function_id: _callable("alpaca.broker.models.accounts.Account | None")
+            }
+        }
+        breaking, narrowed = cab._compare_return_annotations(old, new)
+        assert narrowed == []
+        assert breaking == [
+            (
+                "get_account return type changed: "
+                "None | alpaca.broker.models.accounts.Account | dict[str, Any] "
+                "-> None | alpaca.broker.models.accounts.Account",
                 [function_id],
             )
         ]
@@ -707,6 +858,7 @@ class TestCompareReturnAnnotations:
             ]
         )
         assert function_id in reported
-        assert (
-            cab._compare_return_annotations(old, new, already_reported=reported) == []
+        assert cab._compare_return_annotations(old, new, already_reported=reported) == (
+            [],
+            [],
         )

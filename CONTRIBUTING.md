@@ -12,8 +12,7 @@ for each of these cases that will ask you to fill out some information to better
 (Note that not filling out the template or skipping questions is likely to just delay us being able to solve your issue
 and will result in us having to ask you to fill out the missing information or close out your issue for being invalid.)
 
-> **NOTE** that we can only solve issues with the SDK, if you are trying to report an issue with the API itself, then
-> please open an issue over [here](https://github.com/alpacahq/Alpaca-API) instead.
+> **NOTE** that we can only solve issues with the SDK. To report a bug in the Alpaca API itself, its OpenAPI specs, or its documentation, open an issue in [alpacahq/alpaca-api](https://github.com/alpacahq/alpaca-api/issues/new/choose) instead. For API feature requests and general questions, use the [Community Forum](https://forum.alpaca.markets/) or [Slack](https://alpaca.markets/slack).
 
 ## How do I contribute code?
 

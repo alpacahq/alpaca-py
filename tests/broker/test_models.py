@@ -1,6 +1,6 @@
 import warnings
 from datetime import datetime
-from typing import List, Union, get_args, get_type_hints
+from typing import Optional, get_args, get_type_hints
 
 import pytest
 from pydantic import TypeAdapter
@@ -522,7 +522,7 @@ def test_trusted_contact_string_street_address_warns_and_serializes_as_list():
             street_address="20 N San Mateo Dr",
         )
 
-    assert contact.street_address == ["20 N San Mateo Dr"]
+    assert contact.street_address == "20 N San Mateo Dr"
     assert contact.model_dump()["street_address"] == ["20 N San Mateo Dr"]
 
 
@@ -546,7 +546,7 @@ def test_updatable_trusted_contact_string_street_address_warns_and_serializes_as
         contact = UpdatableTrustedContact(street_address="20 N San Mateo Dr")
         fields = UpdateAccountRequest(trusted_contact=contact).to_request_fields()
 
-    assert contact.street_address == ["20 N San Mateo Dr"]
+    assert contact.street_address == "20 N San Mateo Dr"
     assert fields == {"trusted_contact": {"street_address": ["20 N San Mateo Dr"]}}
 
 
@@ -585,20 +585,38 @@ def test_account_response_string_street_address_does_not_warn():
         account = Account(**payload)
         accounts = TypeAdapter(list[Account]).validate_python([payload])
 
-    assert account.trusted_contact.street_address == ["20 N San Mateo Dr"]
-    assert accounts[0].trusted_contact.street_address == ["20 N San Mateo Dr"]
+    assert account.trusted_contact.street_address == "20 N San Mateo Dr"
+    assert accounts[0].trusted_contact.street_address == "20 N San Mateo Dr"
+    assert account.trusted_contact.model_dump()["street_address"] == [
+        "20 N San Mateo Dr"
+    ]
 
 
-def test_trusted_contact_street_address_annotation_accepts_string_or_list():
-    expected = Union[str, List[str], None]
-    assert TrustedContact.model_fields["street_address"].annotation == expected
-    assert UpdatableTrustedContact.model_fields["street_address"].annotation == expected
-    assert get_type_hints(TrustedContact)["street_address"] == expected
-    assert get_type_hints(UpdatableTrustedContact)["street_address"] == expected
+def test_account_response_list_street_address_stays_list():
+    lines = ["20 N San Mateo Dr", "Apt 1A"]
+    payload = _account_with_trusted_street_address(lines)
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", DeprecationWarning)
+        account = Account(**payload)
+        accounts = TypeAdapter(list[Account]).validate_python([payload])
+
+    assert account.trusted_contact.street_address == lines
+    assert accounts[0].trusted_contact.street_address == lines
+    assert account.trusted_contact.model_dump()["street_address"] == lines
+
+
+def test_trusted_contact_street_address_annotation_stays_optional_str():
+    assert TrustedContact.model_fields["street_address"].annotation == Optional[str]
+    assert (
+        UpdatableTrustedContact.model_fields["street_address"].annotation
+        == Optional[str]
+    )
+    assert get_type_hints(TrustedContact)["street_address"] == Optional[str]
+    assert get_type_hints(UpdatableTrustedContact)["street_address"] == Optional[str]
 
 
 def test_trusted_contact_street_address_schema_uses_stored_list():
-    string_schema = {"type": "string"}
+    string_schema = {"deprecated": True, "type": "string"}
     list_schema = {"items": {"type": "string"}, "type": "array"}
     null_schema = {"type": "null"}
     validation = TrustedContact.model_json_schema()["properties"]["street_address"]
@@ -609,9 +627,57 @@ def test_trusted_contact_street_address_schema_uses_stored_list():
     assert string_schema in validation["anyOf"]
     assert list_schema in validation["anyOf"]
     assert null_schema in validation["anyOf"]
+    assert "deprecated" not in validation
     assert list_schema in serialization["anyOf"]
     assert null_schema in serialization["anyOf"]
     assert string_schema not in serialization["anyOf"]
+    assert {"type": "string"} not in serialization["anyOf"]
+
+
+def test_trusted_contact_street_address_string_and_list_paths():
+    line = "20 N San Mateo Dr"
+    lines = [line, "Apt 1A"]
+
+    with pytest.warns(DeprecationWarning, match="street_address"):
+        as_string = TrustedContact(
+            given_name="Ada",
+            family_name="Lovelace",
+            email_address="ada@example.com",
+            street_address=line,
+        )
+        string_update = UpdatableTrustedContact(street_address=line)
+        string_fields = UpdateAccountRequest(
+            trusted_contact=string_update
+        ).to_request_fields()
+
+    assert as_string.street_address == line
+    assert as_string.model_dump()["street_address"] == [line]
+    assert string_update.street_address == line
+    assert string_fields == {"trusted_contact": {"street_address": [line]}}
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", DeprecationWarning)
+        as_list = TrustedContact(
+            given_name="Ada",
+            family_name="Lovelace",
+            email_address="ada@example.com",
+            street_address=lines,
+        )
+        list_update = UpdatableTrustedContact(street_address=lines)
+        list_fields = UpdateAccountRequest(
+            trusted_contact=list_update
+        ).to_request_fields()
+        string_account = Account(**_account_with_trusted_street_address(line))
+        list_account = Account(**_account_with_trusted_street_address(lines))
+
+    assert as_list.street_address == lines
+    assert as_list.model_dump()["street_address"] == lines
+    assert list_update.street_address == lines
+    assert list_fields == {"trusted_contact": {"street_address": lines}}
+    assert string_account.trusted_contact.street_address == line
+    assert string_account.trusted_contact.model_dump()["street_address"] == [line]
+    assert list_account.trusted_contact.street_address == lines
+    assert list_account.trusted_contact.model_dump()["street_address"] == lines
 
 
 def test_trusted_contact_rejects_non_string_street_address():

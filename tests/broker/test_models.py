@@ -851,7 +851,43 @@ def test_ach_transfer_ira_does_not_require_timing():
     assert "timing" not in fields
     assert fields["ira"]["distribution_reason"] == "normal"
     assert fields["ira"]["tax_withholding"]["fed_pct"] == "10.25"
+    assert fields["ira"]["tax_year"] == "2024"
     assert fields["transfer_type"] == TransferType.ACH
+
+
+def test_ach_transfer_sends_ira_contribution():
+    request = CreateACHTransferRequest(
+        relationship_id=uuid4(),
+        amount="100",
+        direction=TransferDirection.INCOMING,
+        ira=TransferIRA(tax_year="2026"),
+    )
+
+    fields = request.to_request_fields()
+    assert fields["transfer_type"] == TransferType.ACH
+    assert fields["ira"] == {"tax_year": "2026"}
+    assert "timing" not in fields
+
+
+def test_wire_transfer_sends_ira_distribution():
+    request = CreateBankTransferRequest(
+        bank_id=uuid4(),
+        amount="1000",
+        direction=TransferDirection.OUTGOING,
+        fee_payment_method="invoice",
+        ira=TransferIRA(
+            distribution_reason="normal",
+            tax_withholding={"fed_pct": "10", "state_pct": "5"},
+        ),
+    )
+
+    fields = request.to_request_fields()
+    assert fields["transfer_type"] == TransferType.WIRE
+    assert fields["direction"] == TransferDirection.OUTGOING
+    assert fields["ira"]["distribution_reason"] == "normal"
+    assert fields["ira"]["tax_withholding"]["fed_pct"] == "10"
+    assert fields["ira"]["tax_withholding"]["state_pct"] == "5"
+    assert "timing" not in fields
 
 
 def test_update_account_request_sends_extended_fields():

@@ -294,7 +294,7 @@ class BrokerClient(RESTClient):
         self,
         account_id: Union[UUID, str],
         update_data: UpdateAccountRequest,
-    ) -> Union[Account, RawData]:
+    ) -> Union[AccountExtended, RawData]:
         """
         Updates data for an account with an id of `account_id`. Note that not all data for an account is modifiable
         after creation so there is a special data type of AccountUpdateRequest representing the data that is
@@ -308,7 +308,7 @@ class BrokerClient(RESTClient):
             update_data (UpdateAccountRequest): The data you wish to update this account to
 
         Returns:
-            Account: Returns an Account instance with the updated data as returned from the api
+            AccountExtended: The updated account, including AccountExtended fields.
         """
         account_id = validate_uuid_id_param(account_id)
         params = update_data.to_request_fields()
@@ -321,7 +321,7 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return Account(**response)
+        return AccountExtended(**response)
 
     def delete_account(
         self,
@@ -371,7 +371,7 @@ class BrokerClient(RESTClient):
     def list_accounts(
         self,
         search_parameters: Optional[ListAccountsRequest] = None,
-    ) -> Union[List[Account], RawData]:
+    ) -> Union[List[AccountExtended], RawData]:
         """
         Get a List of Accounts allowing for passing in some filters.
 
@@ -379,7 +379,7 @@ class BrokerClient(RESTClient):
             search_parameters (Optional[ListAccountsRequest]): The various filtering criteria you can specify.
 
         Returns:
-            List[Account]: The filtered list of Accounts
+            List[AccountExtended]: The filtered list of accounts, including AccountExtended fields.
         """
 
         params = search_parameters.to_request_fields() if search_parameters else {}
@@ -395,7 +395,7 @@ class BrokerClient(RESTClient):
 
         if self._use_raw_data:
             return response
-        return TypeAdapter(List[Account]).validate_python(response)
+        return TypeAdapter(List[AccountExtended]).validate_python(response)
 
     def get_trade_account_by_id(
         self,

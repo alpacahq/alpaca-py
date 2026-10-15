@@ -677,12 +677,16 @@ class _CreateTransferRequest(NonEmptyRequest):
           type checks keep the same type.
         fee_payment_method (Optional[FeePaymentMethod]): Determines how any applicable fees will be paid. Default value
           is invoice.
+        ira (Optional[TransferIRA]): IRA contribution or distribution instructions. The Broker API
+          requires this when the account is an IRA account, for both ACH and wire transfers. Omit it
+          for a non-IRA transfer.
     """
 
     amount: str
     direction: TransferDirection
     timing: TransferTiming = None
     fee_payment_method: Optional[FeePaymentMethod] = None
+    ira: Optional[TransferIRA] = None
 
     @field_validator("amount")
     def amount_must_be_positive(cls, value: str) -> str:
@@ -696,12 +700,11 @@ class CreateACHTransferRequest(_CreateTransferRequest):
     Attributes:
         transfer_type (TransferType): Type of the transfer.
         relationship_id (Optional[UUID]): ID of the relationship to use for the transfer, required for ACH transfers.
-        ira (Optional[TransferIRA]): IRA distribution instructions. Omit for a non-IRA transfer.
+        ira (Optional[TransferIRA]): IRA contribution or distribution instructions. Omit for a non-IRA transfer.
     """
 
     relationship_id: UUID
     transfer_type: TransferType = TransferType.ACH
-    ira: Optional[TransferIRA] = None
 
     @field_validator("transfer_type")
     def transfer_type_must_be_ach(cls, value: TransferType) -> TransferType:
@@ -717,6 +720,7 @@ class CreateBankTransferRequest(_CreateTransferRequest):
     Attributes:
         bank_id (UUID): ID of the bank to use for the transfer, required for wire transfers.
         additional_information (Optional[str]): Additional wire transfer details.
+        ira (Optional[TransferIRA]): IRA contribution or distribution instructions. Omit for a non-IRA transfer.
     """
 
     bank_id: UUID

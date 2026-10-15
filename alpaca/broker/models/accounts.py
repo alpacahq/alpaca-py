@@ -531,7 +531,7 @@ class Account(ModelWithID):
 
 class AccountExtended(Account):
     """
-    Account returned by ``GET /v1/accounts/{account_id}``.
+    Account returned by the account list, account update, and ``GET /v1/accounts/{account_id}``.
 
     The Broker API documents this payload as AccountExtended. It includes the
     fields on ``Account`` plus the optional extended attributes below.

@@ -635,7 +635,10 @@ def test_update_account(reqmock, client: BrokerClient):
     account = client.update_account(account_id, update_data)
 
     assert reqmock.called_once
-    assert type(account) == Account
+    assert type(account) == AccountExtended
+    assert isinstance(account, Account)
+    assert account.disclosures.is_discretionary is False
+    assert account.trading_configurations is None
     assert account.id == UUID(account_id)
     assert account.identity.family_name == family_name
 
@@ -767,7 +770,9 @@ def test_list_accounts_no_params(reqmock, client: BrokerClient):
     assert len(accounts) == 2
 
     for account in accounts:
-        assert type(account) == Account
+        assert type(account) == AccountExtended
+        assert isinstance(account, Account)
+        assert account.trading_configurations is None
 
         # assert the optional fields we didn't request are None
         assert account.identity is None
@@ -894,7 +899,9 @@ def test_list_accounts_parses_entities_if_present(reqmock, client: BrokerClient)
     assert len(accounts) == 2
 
     for account in accounts:
-        assert type(account) == Account
+        assert type(account) == AccountExtended
+        assert isinstance(account, Account)
+        assert account.trading_configurations is None
 
         # assert the optional fields we didn't request are None and the ones we did request are set
         assert type(account.identity) == Identity

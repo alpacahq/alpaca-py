@@ -671,12 +671,11 @@ def _tokenize_annotation(text: str) -> list[str]:
             index += 3
             continue
         if char in "'\"":
-            quote = char
-            index += 1
-            start = index
-            while index < length and text[index] != quote:
-                index += 1
-            tokens.append(text[start:index])
+            end = text.find(char, index + 1)
+            if end == -1:
+                raise ValueError("unterminated string literal")
+            tokens.append(text[index : end + 1])
+            index = end
             if index < length:
                 index += 1
             continue

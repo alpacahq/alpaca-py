@@ -117,11 +117,16 @@ make check-api-breakage VERBOSE=1
 
 # Keep AexPy / contract JSON artifacts for inspection
 make check-api-breakage AGAINST=0.43.5 WORKDIR=/tmp/aexpy-alpaca
+
+# Baseline against a git ref (e.g. master, or a merge-base) instead of a release
+make check-api-breakage BASELINE_REF=master WORKDIR=/tmp/aexpy-alpaca
 ```
 
 The target runs `tools/scripts/compare_api_breakage.py`, which:
 
-1. Builds a wheel from the current tree and downloads the baseline wheel from PyPI
+1. Builds a wheel from the current tree and obtains the baseline wheel — downloaded
+   from PyPI (`--against`), or built from a git ref in a throwaway worktree and cached
+   under the workdir by commit SHA (`--baseline-ref`)
 2. Runs [AexPy](https://github.com/StardustDL/aexpy) for API-level removals and
    signature changes
 3. Snapshots public enum membership (`name -> value`) and public Pydantic model field
@@ -140,7 +145,8 @@ The Makefile target is quiet by default. Useful flags on the script itself:
 | Flag | Effect |
 | --- | --- |
 | `--against VERSION` | Baseline PyPI version (default: latest) |
-| `--workdir DIR` | Persist wheels and JSON reports |
+| `--baseline-ref GITREF` | Baseline a git ref (e.g. `master`) instead of a release; mutually exclusive with `--against` |
+| `--workdir DIR` | Persist wheels and JSON reports (and cache the `--baseline-ref` wheel) |
 | `--verbose` | Progress, full AexPy view, additive enum/model changes (Makefile: `VERBOSE=1`) |
 | `--fail-on-breaking` | Exit `1` when breakings are reported (Makefile always passes this) |
 | `--fail-on-unknown` | Also fail on AexPy "unknown" ranks (mostly alias retargets) |
@@ -149,3 +155,20 @@ The Makefile target is quiet by default. Useful flags on the script itself:
 AexPy alone can report noisy `Change alias` findings when a type moves between modules
 while remaining importable from the same public path. Treat the enum and model contract
 section as the practical backward-compatibility gate for those migrations.
+
+#### Iterating against a git ref
+
+`--baseline-ref` (Makefile `BASELINE_REF=`) builds the baseline wheel from a git ref
+in a detached worktree, so you can diff against unreleased code. Pair it with a
+persistent `WORKDIR`: the baseline wheel is cached by the ref's commit SHA and reused
+across reruns, so only the current-tree wheel rebuilds each iteration (and the cache
+refreshes automatically when the ref advances to a new commit).
+
+```shell
+# Everything on your branch vs master
+make check-api-breakage BASELINE_REF=master WORKDIR=/tmp/aexpy-alpaca
+
+# Only what the branch adds on top of master: baseline the merge-base so shared
+# history is excluded and you see just this branch's new breakages
+make check-api-breakage BASELINE_REF=$(git merge-base master HEAD) WORKDIR=/tmp/aexpy-alpaca
+```

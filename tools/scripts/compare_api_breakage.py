@@ -18,6 +18,8 @@ additionally compares:
 Examples:
   tools/scripts/compare_api_breakage.py
   tools/scripts/compare_api_breakage.py --against 0.43.5
+  tools/scripts/compare_api_breakage.py --baseline-ref master \\
+      --workdir /tmp/aexpy-alpaca
   tools/scripts/compare_api_breakage.py --workdir /tmp/aexpy-alpaca \\
       --fail-on-breaking --fail-on-unknown
 """
@@ -317,6 +319,93 @@ def _build_current_wheel(
     if not candidates:
         raise ToolError("poetry build did not produce a wheel")
     return sorted(candidates, key=lambda p: p.stat().st_mtime)[-1]
+
+
+def _resolve_ref(git: str, ref: str, *, verbose: bool = True) -> str:
+    result = _run(
+        [git, "rev-parse", "--verify", f"{ref}^{{commit}}"],
+        cwd=REPOSITORY_ROOT,
+        verbose=verbose,
+        echo_stdout=False,
+        echo_cmd=False,
+    )
+    sha = result.stdout.strip()
+    if not sha:
+        raise ToolError(f"could not resolve git ref: {ref}")
+    return sha
+
+
+def _build_ref_wheel(
+    ref: str, cache_root: Path, *, verbose: bool = True
+) -> Path:
+    """Build (and cache) a wheel from an arbitrary git ref via a throwaway worktree.
+
+    The wheel is cached under ``cache_root/<sha>`` so repeated iterations against a
+    stable baseline (for example ``master``) reuse it instead of rebuilding. The
+    worktree is detached at the resolved commit so poetry-dynamic-versioning stamps
+    the ref's own version, then removed once the wheel is built.
+    """
+    git = shutil.which("git")
+    if not git:
+        raise ToolError("git is required to build a baseline wheel from a ref")
+    poetry = shutil.which("poetry")
+    if not poetry:
+        raise ToolError("poetry is required to build a baseline wheel from a ref")
+
+    sha = _resolve_ref(git, ref, verbose=verbose)
+    wheel_dir = cache_root / sha
+    cached = sorted(wheel_dir.glob("*.whl"))
+    if cached:
+        print(f"Reusing cached baseline wheel for {ref} ({sha[:12]})", flush=True)
+        return cached[0]
+
+    wheel_dir.mkdir(parents=True, exist_ok=True)
+    worktree = cache_root / f".worktree-{sha[:12]}"
+    print(
+        f"Building baseline wheel from {ref} ({sha[:12]}); first run only, "
+        "this can take a minute...",
+        flush=True,
+    )
+    # Clear any stale worktree (e.g. from an interrupted run). `git worktree
+    # remove` errors loudly when the path isn't a registered worktree, so delete
+    # the directory and prune instead -- both are quiet and safe when there's
+    # nothing to clean up.
+    shutil.rmtree(worktree, ignore_errors=True)
+    _run(
+        [git, "worktree", "prune"],
+        cwd=REPOSITORY_ROOT,
+        check=False,
+        verbose=verbose,
+    )
+    _run(
+        [git, "worktree", "add", "--detach", str(worktree), sha],
+        cwd=REPOSITORY_ROOT,
+        verbose=verbose,
+    )
+    try:
+        _run(
+            [poetry, "build", "-f", "wheel", "-o", str(wheel_dir)],
+            cwd=worktree,
+            verbose=verbose,
+        )
+    finally:
+        _run(
+            [git, "worktree", "remove", "--force", str(worktree)],
+            cwd=REPOSITORY_ROOT,
+            check=False,
+            verbose=verbose,
+            echo_stderr=False,
+        )
+        _run(
+            [git, "worktree", "prune"],
+            cwd=REPOSITORY_ROOT,
+            check=False,
+            verbose=verbose,
+        )
+    built = sorted(wheel_dir.glob("*.whl"))
+    if not built:
+        raise ToolError(f"poetry build produced no wheel for ref {ref}")
+    return built[0]
 
 
 def _wheel_version(wheel: Path) -> str:
@@ -994,6 +1083,15 @@ def main(argv: list[str] | None = None) -> int:
         help="Published version to compare against (default: latest on PyPI)",
     )
     parser.add_argument(
+        "--baseline-ref",
+        metavar="GITREF",
+        help=(
+            "Compare against a git ref (e.g. master) instead of a PyPI release. "
+            "The ref's wheel is built in a throwaway worktree and cached in the "
+            "workdir for reuse across iterations. Mutually exclusive with --against."
+        ),
+    )
+    parser.add_argument(
         "--workdir",
         type=Path,
         help="Directory for wheels/JSON output (default: temporary directory)",
@@ -1037,8 +1135,17 @@ def main(argv: list[str] | None = None) -> int:
     skip_contracts = args.skip_contracts or args.skip_enums
     verbose = args.verbose
 
-    against = args.against or _latest_pypi_version(PACKAGE_NAME)
-    print(f"Comparing current tree against {PACKAGE_NAME}=={against}", flush=True)
+    if args.baseline_ref and args.against:
+        parser.error("--baseline-ref and --against are mutually exclusive")
+
+    baseline_ref = args.baseline_ref
+    if baseline_ref:
+        against_label = f"ref {baseline_ref}"
+        print(f"Comparing current tree against git {against_label}", flush=True)
+    else:
+        against = args.against or _latest_pypi_version(PACKAGE_NAME)
+        against_label = f"{PACKAGE_NAME}=={against}"
+        print(f"Comparing current tree against {against_label}", flush=True)
 
     cleanup_workdir = False
     if args.workdir:
@@ -1059,17 +1166,33 @@ def main(argv: list[str] | None = None) -> int:
         snapshot_old = workdir / "public_old.json"
         snapshot_new = workdir / "public_new.json"
 
+        if not verbose:
+            print(
+                f"Preparing comparison environment (AexPy {AEXPY_VERSION})...",
+                flush=True,
+            )
         python = _ensure_venv(venv_dir, verbose=verbose)
         _pip(python, "install", "-U", "pip", f"aexpy=={AEXPY_VERSION}", verbose=verbose)
 
-        old_wheel = _download_release_wheel(
-            python, against, wheels_dir, verbose=verbose
-        )
+        if baseline_ref:
+            old_wheel = _build_ref_wheel(
+                baseline_ref, workdir / "baseline", verbose=verbose
+            )
+        else:
+            if not verbose:
+                print(f"Downloading {PACKAGE_NAME}=={against} wheel...", flush=True)
+            old_wheel = _download_release_wheel(
+                python, against, wheels_dir, verbose=verbose
+            )
+        if not verbose:
+            print("Building current-tree wheel...", flush=True)
         new_wheel = _build_current_wheel(wheels_dir, exclude=old_wheel, verbose=verbose)
         if verbose:
             print(f"Old wheel: {old_wheel.name}", flush=True)
             print(f"New wheel: {new_wheel.name}", flush=True)
             print("\n=== Extracting old API ===", flush=True)
+        else:
+            print("Extracting baseline API...", flush=True)
         _extract(python, old_wheel, api_old, verbose=verbose)
         old_snapshot = (
             None
@@ -1085,6 +1208,8 @@ def main(argv: list[str] | None = None) -> int:
 
         if verbose:
             print("\n=== Extracting new API ===", flush=True)
+        else:
+            print("Extracting current API...", flush=True)
         _extract(python, new_wheel, api_new, verbose=verbose)
         new_snapshot = (
             None
@@ -1105,6 +1230,8 @@ def main(argv: list[str] | None = None) -> int:
 
         if verbose:
             print("\n=== Diffing ===", flush=True)
+        else:
+            print("Diffing APIs...", flush=True)
         _aexpy(
             python, "diff", str(api_old), str(api_new), str(changes), verbose=verbose
         )
@@ -1221,7 +1348,7 @@ def main(argv: list[str] | None = None) -> int:
                     )
 
         print(
-            f"\nSummary vs {PACKAGE_NAME}=={against}: "
+            f"\nSummary vs {against_label}: "
             f"aexpy_breaking={breaking} aexpy_compatible={compatible} "
             f"aexpy_unknown={unknown} enum_breaking={len(enum_breaking)} "
             f"model_breaking={len(model_breaking)} "

@@ -170,5 +170,5 @@ make check-api-breakage BASELINE_REF=master WORKDIR=/tmp/aexpy-alpaca
 
 # Only what the branch adds on top of master: baseline the merge-base so shared
 # history is excluded and you see just this branch's new breakages
-make check-api-breakage BASELINE_REF=$(git merge-base master HEAD) WORKDIR=/tmp/aexpy-alpaca
+make check-api-breakage BASELINE_REF=$(git merge-base origin/master HEAD) WORKDIR=/tmp/aexpy-alpaca
 ```

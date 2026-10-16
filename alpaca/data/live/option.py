@@ -1,7 +1,7 @@
 from typing import Awaitable, Callable, Dict, Optional, Union
 
 from alpaca.common.enums import BaseURL
-from alpaca.data.enums import OptionsFeed
+from alpaca.data.enums import OptionFeed, OptionsFeed
 from alpaca.data.live.websocket import DataStream
 from alpaca.data.models.quotes import Quote
 from alpaca.data.models.trades import Trade
@@ -17,7 +17,7 @@ class OptionDataStream(DataStream):
         api_key: str,
         secret_key: str,
         raw_data: bool = False,
-        feed: OptionsFeed = OptionsFeed.INDICATIVE,
+        feed: Union[OptionsFeed, OptionFeed] = OptionsFeed.INDICATIVE,
         websocket_params: Optional[Dict] = None,
         url_override: Optional[str] = None,
         data_timeout: Optional[float] = None,

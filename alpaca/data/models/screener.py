@@ -1,10 +1,16 @@
 from datetime import datetime
 from typing import List
 
+from typing_extensions import deprecated as _deprecated
+
+from alpaca.common._deprecation import (
+    deprecate_compatibility_shape as _deprecate_compatibility_shape,
+)
 from alpaca.common.models import ValidateBaseModel as BaseModel
 from alpaca.data.enums import MarketType
 
 
+@_deprecated("ActiveStock is deprecated; use MostActive instead.", category=None)
 class ActiveStock(BaseModel):
     """
     Represent one asset that was a most active on the most actives endpoint.
@@ -20,6 +26,7 @@ class ActiveStock(BaseModel):
     trade_count: float
 
 
+@_deprecated("MostActives is deprecated; use MostActivesResp instead.", category=None)
 class MostActives(BaseModel):
     """
     Represent the response model for the MostActives endpoint.
@@ -34,6 +41,7 @@ class MostActives(BaseModel):
     last_updated: datetime
 
 
+@_deprecate_compatibility_shape
 class Mover(BaseModel):
     """
     Represent one asset that was a top mover on the top market movers endpoint.
@@ -50,6 +58,7 @@ class Mover(BaseModel):
     price: float
 
 
+@_deprecated("Movers is deprecated; use MoversResp instead.", category=None)
 class Movers(BaseModel):
     """
     Represent the response model for the top market movers endpoint.

@@ -22,10 +22,10 @@ test: ## Run the unit tests
 	poetry run pytest
 
 # Compare the current tree's public API against a published PyPI release, or
-# against a git ref (e.g. master) with BASELINE_REF.
-# Optional: AGAINST=0.43.5 BASELINE_REF=master WORKDIR=/tmp/aexpy-alpaca
+# against a git ref (e.g. origin/master) with BASELINE_REF.
+# Optional: AGAINST=0.43.5 BASELINE_REF=origin/master WORKDIR=/tmp/aexpy-alpaca
 .PHONY: check-api-breakage
-check-api-breakage: ## Compare public API vs a release (AGAINST=version) or ref (BASELINE_REF=master)
+check-api-breakage: ## Compare public API vs a release (AGAINST=version) or ref (BASELINE_REF=origin/master)
 	python3 tools/scripts/compare_api_breakage.py \
 		$(if $(AGAINST),--against $(AGAINST)) \
 		$(if $(BASELINE_REF),--baseline-ref $(BASELINE_REF)) \

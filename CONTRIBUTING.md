@@ -118,8 +118,8 @@ make check-api-breakage VERBOSE=1
 # Keep AexPy / contract JSON artifacts for inspection
 make check-api-breakage AGAINST=0.43.5 WORKDIR=/tmp/aexpy-alpaca
 
-# Baseline against a git ref (e.g. master, or a merge-base) instead of a release
-make check-api-breakage BASELINE_REF=master WORKDIR=/tmp/aexpy-alpaca
+# Baseline against a fetched remote ref (e.g. origin/master) instead of a release
+make check-api-breakage BASELINE_REF=origin/master WORKDIR=/tmp/aexpy-alpaca
 ```
 
 The target runs `tools/scripts/compare_api_breakage.py`, which:
@@ -145,7 +145,7 @@ The Makefile target is quiet by default. Useful flags on the script itself:
 | Flag | Effect |
 | --- | --- |
 | `--against VERSION` | Baseline PyPI version (default: latest) |
-| `--baseline-ref GITREF` | Baseline a git ref (e.g. `master`) instead of a release; mutually exclusive with `--against` |
+| `--baseline-ref GITREF` | Baseline a git ref (e.g. `origin/master`) instead of a release; mutually exclusive with `--against` |
 | `--workdir DIR` | Persist wheels and JSON reports (and cache the `--baseline-ref` wheel) |
 | `--verbose` | Progress, full AexPy view, additive enum/model changes (Makefile: `VERBOSE=1`) |
 | `--fail-on-breaking` | Exit `1` when breakings are reported (Makefile always passes this) |
@@ -164,11 +164,16 @@ persistent `WORKDIR`: the baseline wheel is cached by the ref's commit SHA and r
 across reruns, so only the current-tree wheel rebuilds each iteration (and the cache
 refreshes automatically when the ref advances to a new commit).
 
-```shell
-# Everything on your branch vs master
-make check-api-breakage BASELINE_REF=master WORKDIR=/tmp/aexpy-alpaca
+Fetch first (`git fetch origin`) and baseline the remote-tracking ref. A stale local
+`master` makes `git merge-base` land on the old tip, so upstream API changes in
+between are reported as this branch's breakages. Fork contributors should fetch
+`upstream` and use `upstream/master` in place of `origin/master`.
 
-# Only what the branch adds on top of master: baseline the merge-base so shared
-# history is excluded and you see just this branch's new breakages
+```shell
+# Everything on your branch vs the fetched default branch
+make check-api-breakage BASELINE_REF=origin/master WORKDIR=/tmp/aexpy-alpaca
+
+# Only what the branch adds on top of the fetched default branch: baseline the
+# merge-base so shared history is excluded and you see just this branch's new breakages
 make check-api-breakage BASELINE_REF=$(git merge-base origin/master HEAD) WORKDIR=/tmp/aexpy-alpaca
 ```

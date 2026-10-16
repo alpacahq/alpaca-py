@@ -18,7 +18,7 @@ additionally compares:
 Examples:
   tools/scripts/compare_api_breakage.py
   tools/scripts/compare_api_breakage.py --against 0.43.5
-  tools/scripts/compare_api_breakage.py --baseline-ref master \\
+  tools/scripts/compare_api_breakage.py --baseline-ref origin/master \\
       --workdir /tmp/aexpy-alpaca
   tools/scripts/compare_api_breakage.py --workdir /tmp/aexpy-alpaca \\
       --fail-on-breaking --fail-on-unknown
@@ -341,7 +341,7 @@ def _build_ref_wheel(
     """Build (and cache) a wheel from an arbitrary git ref via a throwaway worktree.
 
     The wheel is cached under ``cache_root/<sha>`` so repeated iterations against a
-    stable baseline (for example ``master``) reuse it instead of rebuilding. The
+    stable baseline (for example ``origin/master``) reuse it instead of rebuilding. The
     worktree is detached at the resolved commit so poetry-dynamic-versioning stamps
     the ref's own version, then removed once the wheel is built.
     """
@@ -366,19 +366,15 @@ def _build_ref_wheel(
         "this can take a minute...",
         flush=True,
     )
-    # Clear any stale worktree (e.g. from an interrupted run). `git worktree
-    # remove` errors loudly when the path isn't a registered worktree, so delete
-    # the directory and prune instead -- both are quiet and safe when there's
-    # nothing to clean up.
+    # Clear a leftover directory from an interrupted run. `add --force` reclaims
+    # a registration whose directory is already gone. Do not `git worktree prune`:
+    # with no `--expire` it is repo-wide and drops every unlocked worktree whose
+    # directory is missing, including ones this script did not create.
+    # `remove --force` is not a substitute for this up-front step: on a first run
+    # the path is not a worktree, and `_run` still prints that error.
     shutil.rmtree(worktree, ignore_errors=True)
     _run(
-        [git, "worktree", "prune"],
-        cwd=REPOSITORY_ROOT,
-        check=False,
-        verbose=verbose,
-    )
-    _run(
-        [git, "worktree", "add", "--detach", str(worktree), sha],
+        [git, "worktree", "add", "--force", "--detach", str(worktree), sha],
         cwd=REPOSITORY_ROOT,
         verbose=verbose,
     )
@@ -395,12 +391,6 @@ def _build_ref_wheel(
             check=False,
             verbose=verbose,
             echo_stderr=False,
-        )
-        _run(
-            [git, "worktree", "prune"],
-            cwd=REPOSITORY_ROOT,
-            check=False,
-            verbose=verbose,
         )
     built = sorted(wheel_dir.glob("*.whl"))
     if not built:
@@ -1086,7 +1076,7 @@ def main(argv: list[str] | None = None) -> int:
         "--baseline-ref",
         metavar="GITREF",
         help=(
-            "Compare against a git ref (e.g. master) instead of a PyPI release. "
+            "Compare against a git ref (e.g. origin/master) instead of a PyPI release. "
             "The ref's wheel is built in a throwaway worktree and cached in the "
             "workdir for reuse across iterations. Mutually exclusive with --against."
         ),

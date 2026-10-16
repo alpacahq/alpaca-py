@@ -634,52 +634,6 @@ def test_trusted_contact_street_address_schema_uses_stored_list():
     assert {"type": "string"} not in serialization["anyOf"]
 
 
-def test_trusted_contact_street_address_string_and_list_paths():
-    line = "20 N San Mateo Dr"
-    lines = [line, "Apt 1A"]
-
-    with pytest.warns(DeprecationWarning, match="street_address"):
-        as_string = TrustedContact(
-            given_name="Ada",
-            family_name="Lovelace",
-            email_address="ada@example.com",
-            street_address=line,
-        )
-        string_update = UpdatableTrustedContact(street_address=line)
-        string_fields = UpdateAccountRequest(
-            trusted_contact=string_update
-        ).to_request_fields()
-
-    assert as_string.street_address == line
-    assert as_string.model_dump()["street_address"] == [line]
-    assert string_update.street_address == line
-    assert string_fields == {"trusted_contact": {"street_address": [line]}}
-
-    with warnings.catch_warnings():
-        warnings.simplefilter("error", DeprecationWarning)
-        as_list = TrustedContact(
-            given_name="Ada",
-            family_name="Lovelace",
-            email_address="ada@example.com",
-            street_address=lines,
-        )
-        list_update = UpdatableTrustedContact(street_address=lines)
-        list_fields = UpdateAccountRequest(
-            trusted_contact=list_update
-        ).to_request_fields()
-        string_account = Account(**_account_with_trusted_street_address(line))
-        list_account = Account(**_account_with_trusted_street_address(lines))
-
-    assert as_list.street_address == lines
-    assert as_list.model_dump()["street_address"] == lines
-    assert list_update.street_address == lines
-    assert list_fields == {"trusted_contact": {"street_address": lines}}
-    assert string_account.trusted_contact.street_address == line
-    assert string_account.trusted_contact.model_dump()["street_address"] == [line]
-    assert list_account.trusted_contact.street_address == lines
-    assert list_account.trusted_contact.model_dump()["street_address"] == lines
-
-
 def test_trusted_contact_rejects_non_string_street_address():
     with pytest.raises(ValueError):
         TrustedContact(

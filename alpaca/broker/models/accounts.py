@@ -35,7 +35,7 @@ _TRUSTED_CONTACT_RESPONSE_KEY = "trusted_contact_from_response"
 
 def _validate_trusted_street_address(
     value: Any, info: ValidationInfo
-) -> Optional[Union[str, List[str]]]:
+) -> Optional[Union[List[str], str]]:
     """Accept a string or a list and preserve the value that was supplied.
 
     The Broker API schema is an array of strings. A list is stored unchanged.
@@ -51,7 +51,7 @@ def _validate_trusted_street_address(
         if not from_response:
             _warn_at_user_code(
                 "Passing street_address as a str is deprecated and will be removed "
-                "in the next release. Pass a list of strings."
+                "in the next release."
             )
         return value
     if value is None or (
@@ -62,7 +62,7 @@ def _validate_trusted_street_address(
 
 
 def _serialize_trusted_street_address(
-    value: Optional[Union[str, List[str]]],
+    value: Optional[Union[List[str], str]],
 ) -> Optional[List[str]]:
     """Send the Broker API array shape. A stored string becomes one address line."""
     if isinstance(value, str):
@@ -73,13 +73,14 @@ def _serialize_trusted_street_address(
 class _TrustedStreetAddressSchema:
     """Accept a string or a list without changing the public field annotation.
 
-    The string alternative is deprecated. The Broker API type is an array of
-    strings, which is the form callers should pass.
+    The published annotation stays Optional[str], so existing typed callers keep
+    type-checking. A list is still accepted at runtime. The string alternative
+    is deprecated in the JSON schema.
     """
 
     @classmethod
     def __get_pydantic_core_schema__(cls, source_type: Any, handler: Any) -> Any:
-        return handler.generate_schema(Union[str, List[str], None])
+        return handler.generate_schema(Optional[Union[List[str], str]])
 
     @classmethod
     def __get_pydantic_json_schema__(cls, core_schema: Any, handler: Any) -> dict:
@@ -286,7 +287,7 @@ class TrustedContact(BaseModel):
         state (Optional[str]): The email address of the user's trusted contact
         postal_code (Optional[str]): The email address of the user's trusted contact
         country (Optional[str]): The email address of the user's trusted contact
-        street_address (Optional[str]): Street address. The Broker API uses an array of strings. Pass a list to store and send those lines. A string still works and is stored as a string, but it is deprecated and will be removed in the next release; it is sent as a one-item list.
+        street_address (Optional[str]): Street address. The Broker API stores an array of strings. A string still works and is stored as a string, but it is deprecated and will be removed in the next release; it is sent as a one-item list.
     """
 
     given_name: str

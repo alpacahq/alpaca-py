@@ -72,6 +72,93 @@ class TestDownloadReleaseWheelSelection:
         assert selected == wheel
 
 
+class TestBuildRefWheel:
+    def test_reuses_cached_wheel_without_building(self, cab, tmp_path, monkeypatch):
+        sha = "a" * 40
+        cache_root = tmp_path / "baseline"
+        wheel_dir = cache_root / sha
+        wheel_dir.mkdir(parents=True)
+        wheel = wheel_dir / "alpaca_py-0.0.0-py3-none-any.whl"
+        wheel.write_bytes(b"")
+
+        monkeypatch.setattr(cab.shutil, "which", lambda name: f"/usr/bin/{name}")
+        monkeypatch.setattr(cab, "_resolve_ref", lambda git, ref, verbose=True: sha)
+
+        def fail_run(cmd, **kwargs):
+            raise AssertionError(f"should not run commands: {cmd}")
+
+        monkeypatch.setattr(cab, "_run", fail_run)
+        selected = cab._build_ref_wheel("master", cache_root, verbose=False)
+        assert selected == wheel
+
+    def test_builds_wheel_in_detached_worktree(self, cab, tmp_path, monkeypatch):
+        sha = "b" * 40
+        cache_root = tmp_path / "baseline"
+        calls: list[list[str]] = []
+
+        monkeypatch.setattr(cab.shutil, "which", lambda name: f"/usr/bin/{name}")
+        monkeypatch.setattr(cab, "_resolve_ref", lambda git, ref, verbose=True: sha)
+
+        def fake_run(cmd, **kwargs):
+            calls.append(cmd)
+            if len(cmd) > 1 and cmd[1] == "build":
+                out_dir = Path(cmd[cmd.index("-o") + 1])
+                out_dir.mkdir(parents=True, exist_ok=True)
+                (out_dir / "alpaca_py-0.0.0-py3-none-any.whl").write_bytes(b"")
+            return None
+
+        monkeypatch.setattr(cab, "_run", fake_run)
+        selected = cab._build_ref_wheel("master", cache_root, verbose=False)
+
+        assert selected == cache_root / sha / "alpaca_py-0.0.0-py3-none-any.whl"
+        # worktree is added detached, used to build, then removed -- in that order.
+        add_idx = next(
+            i for i, c in enumerate(calls) if c[1] == "worktree" and c[2] == "add"
+        )
+        build_idx = next(i for i, c in enumerate(calls) if c[1] == "build")
+        remove_idx = next(
+            i for i, c in enumerate(calls) if c[1] == "worktree" and c[2] == "remove"
+        )
+        assert add_idx < build_idx < remove_idx
+        assert calls[add_idx][3:5] == ["--force", "--detach"]
+        assert calls[add_idx][-1] == sha
+        assert "--force" in calls[remove_idx]
+        assert not any(c[1:3] == ["worktree", "prune"] for c in calls)
+
+    def test_removes_worktree_and_skips_cache_when_build_fails(
+        self, cab, tmp_path, monkeypatch
+    ):
+        sha = "c" * 40
+        cache_root = tmp_path / "baseline"
+        calls: list[list[str]] = []
+
+        monkeypatch.setattr(cab.shutil, "which", lambda name: f"/usr/bin/{name}")
+        monkeypatch.setattr(cab, "_resolve_ref", lambda git, ref, verbose=True: sha)
+
+        def fake_run(cmd, **kwargs):
+            calls.append(cmd)
+            if len(cmd) > 1 and cmd[1] == "build":
+                raise cab.ToolError("build failed")
+
+        monkeypatch.setattr(cab, "_run", fake_run)
+        with pytest.raises(cab.ToolError, match="build failed"):
+            cab._build_ref_wheel("master", cache_root, verbose=False)
+
+        build_idx = next(i for i, c in enumerate(calls) if c[1] == "build")
+        remove_idx = next(
+            i for i, c in enumerate(calls) if c[1:3] == ["worktree", "remove"]
+        )
+        assert build_idx < remove_idx
+        assert not list((cache_root / sha).glob("*.whl"))
+
+    def test_raises_without_git(self, cab, tmp_path, monkeypatch):
+        monkeypatch.setattr(
+            cab.shutil, "which", lambda name: None if name == "git" else "/x"
+        )
+        with pytest.raises(cab.ToolError, match="git is required"):
+            cab._build_ref_wheel("master", tmp_path, verbose=False)
+
+
 class TestCompareEnums:
     def test_removed_member_is_breaking(self, cab):
         old = {

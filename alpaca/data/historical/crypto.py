@@ -4,7 +4,7 @@ from alpaca.common.enums import BaseURL, PaginationType
 from alpaca.common.rest import RESTClient
 from alpaca.common.types import Credentials, RawData
 from alpaca.data import Bar, Snapshot
-from alpaca.data.enums import CryptoFeed
+from alpaca.data.enums import CryptoFeed, CryptoHistoricalLoc, CryptoLatestLoc
 from alpaca.data.historical.utils import (
     parse_obj_as_symbol_dict,
 )
@@ -115,7 +115,7 @@ class CryptoHistoricalDataClient(RESTClient):
     def get_crypto_bars(
         self,
         request_params: CryptoBarsRequest,
-        feed: CryptoFeed = CryptoFeed.US,
+        feed: Union[CryptoFeed, CryptoHistoricalLoc] = CryptoFeed.US,
         handle_pagination: Optional[PaginationType] = None,
     ) -> Union[BarSet, RawData, Iterator[Union[BarSet, RawData]]]:
         """Gets bar/candle data for a cryptocurrency or list of cryptocurrencies.
@@ -180,7 +180,7 @@ class CryptoHistoricalDataClient(RESTClient):
     def get_crypto_quotes(
         self,
         request_params: CryptoQuoteRequest,
-        feed: CryptoFeed = CryptoFeed.US,
+        feed: Union[CryptoFeed, CryptoHistoricalLoc] = CryptoFeed.US,
         handle_pagination: Optional[PaginationType] = None,
     ) -> Union[QuoteSet, RawData, Iterator[Union[QuoteSet, RawData]]]:
         """Returns the quote data for a cryptocurrency or list of cryptocurrencies.
@@ -245,7 +245,7 @@ class CryptoHistoricalDataClient(RESTClient):
     def get_crypto_trades(
         self,
         request_params: CryptoTradesRequest,
-        feed: CryptoFeed = CryptoFeed.US,
+        feed: Union[CryptoFeed, CryptoHistoricalLoc] = CryptoFeed.US,
         handle_pagination: Optional[PaginationType] = None,
     ) -> Union[TradeSet, RawData, Iterator[Union[TradeSet, RawData]]]:
         """Returns the price and sales history over a given time period for a cryptocurrency
@@ -274,7 +274,9 @@ class CryptoHistoricalDataClient(RESTClient):
         )
 
     def get_crypto_latest_trade(
-        self, request_params: CryptoLatestTradeRequest, feed: CryptoFeed = CryptoFeed.US
+        self,
+        request_params: CryptoLatestTradeRequest,
+        feed: Union[CryptoFeed, CryptoLatestLoc] = CryptoFeed.US,
     ) -> Union[Dict[str, Trade], RawData]:
         """Returns the latest trade for a coin.
 
@@ -297,7 +299,9 @@ class CryptoHistoricalDataClient(RESTClient):
         return parse_obj_as_symbol_dict(Trade, raw_trades)
 
     def get_crypto_latest_quote(
-        self, request_params: CryptoLatestQuoteRequest, feed: CryptoFeed = CryptoFeed.US
+        self,
+        request_params: CryptoLatestQuoteRequest,
+        feed: Union[CryptoFeed, CryptoLatestLoc] = CryptoFeed.US,
     ) -> Union[Dict[str, Quote], RawData]:
         """Returns the latest quote for a coin.
 
@@ -320,7 +324,9 @@ class CryptoHistoricalDataClient(RESTClient):
         return parse_obj_as_symbol_dict(Quote, raw_quotes)
 
     def get_crypto_latest_bar(
-        self, request_params: CryptoLatestBarRequest, feed: CryptoFeed = CryptoFeed.US
+        self,
+        request_params: CryptoLatestBarRequest,
+        feed: Union[CryptoFeed, CryptoLatestLoc] = CryptoFeed.US,
     ) -> Union[Dict[str, Bar], RawData]:
         """Returns the latest minute bar for a coin.
 
@@ -345,7 +351,7 @@ class CryptoHistoricalDataClient(RESTClient):
     def get_crypto_latest_orderbook(
         self,
         request_params: CryptoLatestOrderbookRequest,
-        feed: CryptoFeed = CryptoFeed.US,
+        feed: Union[CryptoFeed, CryptoLatestLoc] = CryptoFeed.US,
     ) -> Union[Dict[str, Orderbook], RawData]:
         """
         Returns the latest orderbook state for the queried crypto symbols.
@@ -369,7 +375,9 @@ class CryptoHistoricalDataClient(RESTClient):
         return parse_obj_as_symbol_dict(Orderbook, raw_orderbooks)
 
     def get_crypto_snapshot(
-        self, request_params: CryptoSnapshotRequest, feed: CryptoFeed = CryptoFeed.US
+        self,
+        request_params: CryptoSnapshotRequest,
+        feed: Union[CryptoFeed, CryptoLatestLoc] = CryptoFeed.US,
     ) -> Union[Snapshot, RawData]:
         """Returns snapshots of queried crypto symbols. Snapshots contain latest trade, latest quote, latest minute bar,
         latest daily bar and previous daily bar data for the queried symbols.

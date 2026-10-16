@@ -1,5 +1,50 @@
 from enum import Enum
 
+from typing_extensions import deprecated as _deprecated
+
+from alpaca.data._generated.enums import (
+    CaEventCashDividendAllOfSubType,
+    CaEventEquityPartialCallAllOfLotteryType,
+    CashDividendSubType,
+    CorporateActionEventAction,
+    CorporateActionEventCapitalGainsDistributionAllOfEventType,
+    CorporateActionEventCashDividendAllOfEventType,
+    CorporateActionEventCashMergerAllOfEventType,
+    CorporateActionEventEquityPartialCallAllOfEventType,
+    CorporateActionEventForwardSplitAllOfEventType,
+    CorporateActionEventNameChangeAllOfEventType,
+    CorporateActionEventRedemptionAllOfEventType,
+    CorporateActionEventRegion,
+    CorporateActionEventReorganizationAllOfEventType,
+    CorporateActionEventReverseSplitAllOfEventType,
+    CorporateActionEventRightsDistributionAllOfEventType,
+    CorporateActionEventSpinOffAllOfEventType,
+    CorporateActionEventStockAndCashMergerAllOfEventType,
+    CorporateActionEventStockDividendAllOfEventType,
+    CorporateActionEventStockMergerAllOfEventType,
+    CorporateActionEventType,
+    CorporateActionEventUnitSplitAllOfEventType,
+    CorporateActionEventWorthlessRemovalAllOfEventType,
+    CryptoHistoricalLoc,
+    CryptoLatestLoc,
+    DataQuality,
+    MarketType,
+    MostActivesByParameter,
+    NewsImageSize,
+    NewsSortParameter,
+    OptionChainTypeParameter,
+    OptionFeed,
+    OptionMetaConditionsTicktypeParameter,
+    PartialCallLotteryType,
+    Region,
+    Sort,
+    StockHistoricalFeed,
+    StockLatestFeed,
+    StockMetaConditionsTapeParameter,
+    StockTape,
+    SubscribeToCorporateActionsEventsSSERegionParameter,
+)
+
 
 class Exchange(str, Enum):
     """The exchanges that provide data feeds to Alpaca.
@@ -53,8 +98,22 @@ class Exchange(str, Enum):
     K = "K"
 
 
+# Deprecated enums pass stacklevel=2 so the warning from ``Enum(value)`` points at
+# the caller rather than at enum.py, where Python's default filters would hide it.
+
+
+@_deprecated(
+    "DataFeed is deprecated and will be removed in a future version. "
+    "Please use `StockHistoricalFeed` for bars, quotes, trades and auctions, or "
+    "`StockLatestFeed` for latest data, snapshots and streams instead.",
+    stacklevel=2,
+)
 class DataFeed(str, Enum):
     """Equity market data feeds. OTC and SIP are available with premium data subscriptions.
+
+    .. deprecated:: 0.45.0
+        Please use `StockHistoricalFeed` for bars, quotes, trades and auctions, or
+        `StockLatestFeed` for latest data, snapshots and streams instead.
 
     Attributes:
         IEX (str): Investor's exchange data feed
@@ -78,20 +137,32 @@ class Adjustment(str, Enum):
 
     Attributes:
         RAW (str): Unadjusted data
-        SPLIT (str): Stock-split adjusted data
-        DIVIDEND (str): Dividend adjusted data
-        ALL (str): Data adjusted for all corporate actions
+        SPLIT (str): Adjust price and volume for forward and reverse stock splits
+        SPIN_OFF (str): Adjust price for spin-offs
+        DIVIDEND (str): Adjust price for cash dividends
+        ALL (str): Apply all above adjustments
     """
 
     RAW = "raw"
     SPLIT = "split"
+    SPIN_OFF = "spin-off"
     DIVIDEND = "dividend"
     ALL = "all"
 
 
+@_deprecated(
+    "CryptoFeed is deprecated and will be removed in a future version. "
+    "Please use `CryptoHistoricalLoc` for bars, quotes and trades, or "
+    "`CryptoLatestLoc` for latest data, snapshots and streams instead.",
+    stacklevel=2,
+)
 class CryptoFeed(str, Enum):
     """
     Crypto location
+
+    .. deprecated:: 0.45.0
+        Please use `CryptoHistoricalLoc` for bars, quotes and trades, or
+        `CryptoLatestLoc` for latest data, snapshots and streams instead.
 
     Attributes:
         US (str): United States crypto feed
@@ -100,10 +171,18 @@ class CryptoFeed(str, Enum):
     US = "us"
 
 
+@_deprecated(
+    "OptionsFeed is deprecated and will be removed in a future version. "
+    "Please use `OptionFeed` instead.",
+    stacklevel=2,
+)
 class OptionsFeed(str, Enum):
     """
     The source feed of the data.
     `opra` requires subscription
+
+    .. deprecated:: 0.45.0
+        Please use `OptionFeed` instead.
 
     Attributes:
         OPRA (str): Options Price Reporting Authority
@@ -114,9 +193,17 @@ class OptionsFeed(str, Enum):
     INDICATIVE = "indicative"
 
 
+@_deprecated(
+    "MostActivesBy is deprecated and will be removed in a future version. "
+    "Please use `MostActivesByParameter` instead.",
+    stacklevel=2,
+)
 class MostActivesBy(str, Enum):
     """
     Most actives possible filters.
+
+    .. deprecated:: 0.45.0
+        Please use `MostActivesByParameter` instead.
 
     Attributes:
         volume (str):
@@ -127,25 +214,6 @@ class MostActivesBy(str, Enum):
 
     VOLUME = "volume"
     TRADES = "trades"
-
-
-class MarketType(str, Enum):
-    """
-    Most actives possible filters.
-
-    Attributes:
-        stocks (str)
-        crypto (str)
-    """
-
-    STOCKS = "stocks"
-    CRYPTO = "crypto"
-
-
-class NewsImageSize(str, Enum):
-    THUMB = "thumb"
-    SMALL = "small"
-    LARGE = "large"
 
 
 class CorporateActionsType(str, Enum):
@@ -167,6 +235,9 @@ class CorporateActionsType(str, Enum):
         NAME_CHANGE (str): Name change
         WORTHLESS_REMOVAL (str): Worthless removal
         RIGHTS_DISTRIBUTION (str): Rights distribution
+        PARTIAL_CALL (str): Partial call
+        REORGANIZATION (str): Reorganization
+        CAPITAL_GAINS_DISTRIBUTION (str): Capital gains distribution
     """
 
     REVERSE_SPLIT = "reverse_split"
@@ -182,3 +253,6 @@ class CorporateActionsType(str, Enum):
     NAME_CHANGE = "name_change"
     WORTHLESS_REMOVAL = "worthless_removal"
     RIGHTS_DISTRIBUTION = "rights_distribution"
+    PARTIAL_CALL = "partial_call"
+    REORGANIZATION = "reorganization"
+    CAPITAL_GAINS_DISTRIBUTION = "capital_gains_distribution"

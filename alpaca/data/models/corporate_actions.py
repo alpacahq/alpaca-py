@@ -1,11 +1,23 @@
 from datetime import date
 from typing import Dict, List, Optional, Union
 
+import pandas as pd
+from pandas import DataFrame
+
+from alpaca.common._deprecation import (
+    deprecate_compatibility_shape as _deprecate_compatibility_shape,
+)
 from alpaca.common.models import ModelWithID as BaseModel
 from alpaca.common.types import RawData
+from alpaca.data._generated.models import (
+    CapitalGainsDistribution,
+    PartialCall,
+    Reorganization,
+)
 from alpaca.data.models.base import BaseDataSet, TimeSeriesMixin
 
 
+@_deprecate_compatibility_shape
 class ForwardSplit(BaseModel):
     corporate_action_type: str
     symbol: str
@@ -19,6 +31,7 @@ class ForwardSplit(BaseModel):
     due_bill_redemption_date: Optional[date] = None
 
 
+@_deprecate_compatibility_shape
 class ReverseSplit(BaseModel):
     corporate_action_type: str
     symbol: str
@@ -32,6 +45,7 @@ class ReverseSplit(BaseModel):
     payable_date: Optional[date] = None
 
 
+@_deprecate_compatibility_shape
 class UnitSplit(BaseModel):
     corporate_action_type: str
     old_symbol: str
@@ -48,6 +62,7 @@ class UnitSplit(BaseModel):
     payable_date: Optional[date] = None
 
 
+@_deprecate_compatibility_shape
 class StockDividend(BaseModel):
     corporate_action_type: str
     symbol: str
@@ -59,6 +74,7 @@ class StockDividend(BaseModel):
     payable_date: Optional[date] = None
 
 
+@_deprecate_compatibility_shape
 class CashDividend(BaseModel):
     corporate_action_type: str
     symbol: str
@@ -74,6 +90,7 @@ class CashDividend(BaseModel):
     due_bill_off_date: Optional[date] = None
 
 
+@_deprecate_compatibility_shape
 class SpinOff(BaseModel):
     corporate_action_type: str
     source_symbol: str
@@ -89,6 +106,7 @@ class SpinOff(BaseModel):
     due_bill_redemption_date: Optional[date] = None
 
 
+@_deprecate_compatibility_shape
 class CashMerger(BaseModel):
     corporate_action_type: str
     acquirer_symbol: Optional[str] = None
@@ -101,6 +119,7 @@ class CashMerger(BaseModel):
     payable_date: Optional[date] = None
 
 
+@_deprecate_compatibility_shape
 class StockMerger(BaseModel):
     corporate_action_type: str
     acquirer_symbol: str
@@ -114,6 +133,7 @@ class StockMerger(BaseModel):
     payable_date: Optional[date] = None
 
 
+@_deprecate_compatibility_shape
 class StockAndCashMerger(BaseModel):
     corporate_action_type: str
     acquirer_symbol: str
@@ -128,6 +148,7 @@ class StockAndCashMerger(BaseModel):
     payable_date: Optional[date] = None
 
 
+@_deprecate_compatibility_shape
 class Redemption(BaseModel):
     corporate_action_type: str
     symbol: str
@@ -137,6 +158,7 @@ class Redemption(BaseModel):
     payable_date: Optional[date] = None
 
 
+@_deprecate_compatibility_shape
 class NameChange(BaseModel):
     corporate_action_type: str
     old_symbol: str
@@ -146,6 +168,7 @@ class NameChange(BaseModel):
     process_date: date
 
 
+@_deprecate_compatibility_shape
 class WorthlessRemoval(BaseModel):
     corporate_action_type: str
     symbol: str
@@ -153,6 +176,7 @@ class WorthlessRemoval(BaseModel):
     process_date: date
 
 
+@_deprecate_compatibility_shape
 class RightsDistribution(BaseModel):
     corporate_action_type: str
     source_symbol: str
@@ -181,7 +205,18 @@ CorporateAction = Union[
     NameChange,
     WorthlessRemoval,
     RightsDistribution,
+    PartialCall,
+    Reorganization,
+    CapitalGainsDistribution,
 ]
+
+# Types with no hand-written model parse into the generated one. Generated models
+# have no corporate_action_type field; the key they are listed under names the type.
+_GENERATED_CORPORATE_ACTIONS = {
+    "partial_calls": PartialCall,
+    "reorganizations": Reorganization,
+    "capital_gains_distributions": CapitalGainsDistribution,
+}
 
 
 class CorporateActionsSet(BaseDataSet, TimeSeriesMixin):
@@ -305,5 +340,32 @@ class CorporateActionsSet(BaseDataSet, TimeSeriesMixin):
                     )
                     for corporate_action in corporate_actions
                 ]
+            elif corporate_action_type in _GENERATED_CORPORATE_ACTIONS:
+                model = _GENERATED_CORPORATE_ACTIONS[corporate_action_type]
+                parsed_corporate_actions[corporate_action_type] = [
+                    model.model_validate(corporate_action)
+                    for corporate_action in corporate_actions
+                ]
 
         super().__init__(data=parsed_corporate_actions)
+
+    @property
+    def df(self) -> DataFrame:
+        """Returns a pandas dataframe of the corporate actions, indexed by type.
+
+        The type comes from the key each action is listed under, so the generated
+        models, which have no corporate_action_type field, are labelled too.
+
+        Returns:
+            DataFrame: corporate actions in a pandas dataframe
+        """
+        rows = [
+            {"corporate_action_type": corporate_action_type, **corporate_action}
+            for corporate_action_type, corporate_actions in self.dict().items()
+            for corporate_action in corporate_actions
+        ]
+        df = pd.DataFrame(rows)
+        if not df.empty:
+            df = df.set_index(["corporate_action_type"])
+        df.dropna(axis=1, how="all", inplace=True)
+        return df

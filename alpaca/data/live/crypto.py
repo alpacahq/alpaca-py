@@ -1,7 +1,7 @@
 from typing import Awaitable, Callable, Dict, Optional, Union
 
 from alpaca.common.enums import BaseURL
-from alpaca.data.enums import CryptoFeed
+from alpaca.data.enums import CryptoFeed, CryptoLatestLoc
 from alpaca.data.live.websocket import DataStream
 from alpaca.data.models.bars import Bar
 from alpaca.data.models.orderbooks import Orderbook
@@ -19,7 +19,7 @@ class CryptoDataStream(DataStream):
         api_key: str,
         secret_key: str,
         raw_data: bool = False,
-        feed: CryptoFeed = CryptoFeed.US,
+        feed: Union[CryptoFeed, CryptoLatestLoc] = CryptoFeed.US,
         url_override: Optional[str] = None,
         websocket_params: Optional[Dict] = None,
         data_timeout: Optional[float] = None,

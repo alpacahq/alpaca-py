@@ -2,6 +2,8 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
+from alpaca.common.models import ValidateBaseModel as BaseModel
+
 from alpaca.broker.enums import (
     ACHRelationshipStatus,
     BankAccountType,
@@ -13,6 +15,42 @@ from alpaca.broker.enums import (
     FeePaymentMethod,
 )
 from alpaca.common.models import ModelWithID
+
+
+class BankAdditionalFields(BaseModel):
+    """
+    Intermediary-bank instructions for an international wire.
+
+    Attributes:
+        intermediary_bank1_bic (Optional[str]): Primary correspondent bank BIC.
+        intermediary_bank2_bic (Optional[str]): Second correspondent bank BIC.
+        intermediary_bank3_bic (Optional[str]): Third correspondent bank BIC.
+    """
+
+    intermediary_bank1_bic: Optional[str] = None
+    intermediary_bank2_bic: Optional[str] = None
+    intermediary_bank3_bic: Optional[str] = None
+
+
+class TransferIRADetails(BaseModel):
+    """
+    IRA withholding details returned on a transfer.
+
+    Attributes:
+        distribution_reason (Optional[str]): Reason for the IRA distribution.
+        fed_withholding_amount (Optional[str]): Federal withholding amount.
+        fed_withholding_pct (Optional[str]): Federal withholding percent.
+        state_withholding_amount (Optional[str]): State withholding amount.
+        state_withholding_pct (Optional[str]): State withholding percent.
+        tax_year (Optional[str]): Tax year the distribution applies to.
+    """
+
+    distribution_reason: Optional[str] = None
+    fed_withholding_amount: Optional[str] = None
+    fed_withholding_pct: Optional[str] = None
+    state_withholding_amount: Optional[str] = None
+    state_withholding_pct: Optional[str] = None
+    tax_year: Optional[str] = None
 
 
 class ACHRelationship(ModelWithID):
@@ -60,6 +98,7 @@ class Bank(ModelWithID):
         account_number (str): The bank account number.
         bank_code (str): The bank account code.
         bank_code_type (IdentifierType): The bank identifier.
+        extra_fields (Optional[BankAdditionalFields]): Intermediary-bank wire instructions.
     """
 
     account_id: UUID
@@ -75,6 +114,7 @@ class Bank(ModelWithID):
     account_number: str
     bank_code: str
     bank_code_type: IdentifierType
+    extra_fields: Optional[BankAdditionalFields] = None
 
 
 class Transfer(ModelWithID):
@@ -95,6 +135,7 @@ class Transfer(ModelWithID):
         fee (Optional[str]): Dollar amount of any applicable fees.
         fee_payment_method (Optional[FeePaymentMethod]): Denotes how any applicable fees will be paid.
         additional_information (Optional[str]): Additional information provided with wire transfers.
+        ira (Optional[TransferIRADetails]): IRA distribution and withholding details.
     """
 
     account_id: UUID
@@ -112,3 +153,4 @@ class Transfer(ModelWithID):
     fee: Optional[str] = None
     fee_payment_method: Optional[FeePaymentMethod] = None
     additional_information: Optional[str] = None
+    ira: Optional[TransferIRADetails] = None

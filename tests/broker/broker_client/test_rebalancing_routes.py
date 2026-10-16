@@ -4,7 +4,11 @@ from requests_mock import Mocker
 
 from alpaca.broker.client import BrokerClient
 from alpaca.broker.enums import WeightType
-from alpaca.broker.models import Portfolio, RebalancingRun, Subscription
+from alpaca.broker.models import (
+    Portfolio,
+    RebalancingRun,
+    Subscription,
+)
 from alpaca.broker.requests import (
     CreatePortfolioRequest,
     CreateRunRequest,
@@ -14,7 +18,7 @@ from alpaca.broker.requests import (
     GetSubscriptionsRequest,
     UpdatePortfolioRequest,
 )
-from alpaca.common.enums import BaseURL
+from alpaca.common.enums import BaseURL, PaginationType
 
 
 def test_create_portfolio(reqmock: Mocker, client: BrokerClient) -> None:
@@ -658,3 +662,126 @@ def test_cancel_run_by_id(reqmock: Mocker, client: BrokerClient) -> None:
     reqmock.delete(f"{BaseURL.BROKER_SANDBOX.value}/v1/rebalancing/runs/{run_id}")
     client.cancel_run_by_id(run_id=run_id)
     assert reqmock.called_once
+
+
+def test_get_all_subscriptions_none_returns_first_page_as_list(
+    reqmock: Mocker, client: BrokerClient
+):
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/rebalancing/subscriptions",
+        json={
+            "subscriptions": [
+                {
+                    "id": "9341be15-8786-4d23-ba1a-fc10ef4f90f4",
+                    "account_id": "bf2b0f93-f296-4276-a9cf-288586cf4fb7",
+                    "portfolio_id": "57d4ec79-9658-4916-9eb1-7c672be97e3e",
+                    "created_at": "2022-08-07T23:52:05.942964Z",
+                    "last_rebalanced_at": None,
+                }
+            ],
+            "next_page_token": "next-subscriptions",
+        },
+    )
+
+    subscriptions = client.get_all_subscriptions(handle_pagination=PaginationType.NONE)
+
+    assert reqmock.called_once
+    assert len(subscriptions) == 1
+    assert isinstance(subscriptions[0], Subscription)
+
+
+def test_get_all_subscriptions_none_raw_data_returns_item_dicts(
+    reqmock: Mocker, raw_client: BrokerClient
+):
+    subscription = {
+        "id": "9341be15-8786-4d23-ba1a-fc10ef4f90f4",
+        "account_id": "bf2b0f93-f296-4276-a9cf-288586cf4fb7",
+        "portfolio_id": "57d4ec79-9658-4916-9eb1-7c672be97e3e",
+        "created_at": "2022-08-07T23:52:05.942964Z",
+        "last_rebalanced_at": None,
+    }
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/rebalancing/subscriptions",
+        json={
+            "subscriptions": [subscription],
+            "next_page_token": "next-subscriptions",
+        },
+    )
+
+    subscriptions = raw_client.get_all_subscriptions(
+        handle_pagination=PaginationType.NONE
+    )
+
+    assert reqmock.called_once
+    assert subscriptions == [subscription]
+
+
+def test_get_all_subscriptions_none_empty_page_returns_empty_list(
+    reqmock: Mocker, client: BrokerClient
+):
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/rebalancing/subscriptions",
+        json={"subscriptions": [], "next_page_token": None},
+    )
+
+    subscriptions = client.get_all_subscriptions(handle_pagination=PaginationType.NONE)
+
+    assert reqmock.called_once
+    assert subscriptions == []
+
+
+def test_get_all_runs_none_returns_first_page_as_list(
+    reqmock: Mocker, client: BrokerClient
+):
+    run = {
+        "id": "2ad28f83-796c-4c4d-895e-d360aeb95297",
+        "account_id": "cf175fbc-ca19-4741-88ed-70d6c133f8d7",
+        "type": "full_rebalance",
+        "portfolio_id": "ac89fa84-e3bb-48ff-9b81-d5f313e77463",
+        "weights": [],
+        "created_at": "2022-04-14T10:46:08.045817Z",
+        "updated_at": "2022-04-14T13:11:07.84719Z",
+        "status": "CANCELED",
+    }
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/rebalancing/runs",
+        json={"runs": [run], "next_page_token": "next-runs"},
+    )
+
+    runs = client.get_all_runs(handle_pagination=PaginationType.NONE)
+
+    assert reqmock.called_once
+    assert len(runs) == 1
+    assert isinstance(runs[0], RebalancingRun)
+
+
+def test_get_all_runs_none_raw_data_returns_item_dicts(
+    reqmock: Mocker, raw_client: BrokerClient
+):
+    run = {
+        "id": "2ad28f83-796c-4c4d-895e-d360aeb95297",
+        "account_id": "cf175fbc-ca19-4741-88ed-70d6c133f8d7",
+    }
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/rebalancing/runs",
+        json={"runs": [run], "next_page_token": "next-runs"},
+    )
+
+    runs = raw_client.get_all_runs(handle_pagination=PaginationType.NONE)
+
+    assert reqmock.called_once
+    assert runs == [run]
+
+
+def test_get_all_runs_none_empty_page_returns_empty_list(
+    reqmock: Mocker, client: BrokerClient
+):
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/rebalancing/runs",
+        json={"runs": [], "next_page_token": None},
+    )
+
+    runs = client.get_all_runs(handle_pagination=PaginationType.NONE)
+
+    assert reqmock.called_once
+    assert runs == []

@@ -431,6 +431,18 @@ class BankStatus(str, Enum):
     CANCELED = "CANCELED"
 
 
+class RecipientBankStatus(str, Enum):
+    """
+    Filter for listing recipient banks.
+
+    This is the ``status`` query on ``GET /v1/accounts/{account_id}/recipient_banks``.
+    It is separate from ``BankStatus``, which is the lifecycle state returned on a bank.
+    """
+
+    ACTIVE = "ACTIVE"
+    INACTIVE = "INACTIVE"
+
+
 class TransferType(str, Enum):
     """
     Represents the types of transfers that can be made.

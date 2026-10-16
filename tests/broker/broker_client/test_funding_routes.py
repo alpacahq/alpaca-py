@@ -1,10 +1,12 @@
 from typing import Iterator
+from urllib.parse import parse_qs, urlparse
 from uuid import UUID
 
 from alpaca.broker.client import BrokerClient
 from alpaca.broker.enums import (
     ACHRelationshipStatus,
     IdentifierType,
+    RecipientBankStatus,
     TransferDirection,
     TransferTiming,
 )
@@ -208,6 +210,23 @@ def test_get_banks_for_account(reqmock, client: BrokerClient):
     assert reqmock.called_once
     assert isinstance(banks, list)
     assert isinstance(banks[0], Bank)
+
+
+def test_get_banks_for_account_sends_status_and_name(reqmock, client: BrokerClient):
+    account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/accounts/{account_id}/recipient_banks",
+        text="[]",
+    )
+
+    client.get_banks_for_account(
+        account_id,
+        status=RecipientBankStatus.ACTIVE,
+        bank_name="First Bank",
+    )
+
+    query = parse_qs(urlparse(reqmock.request_history[0].url).query)
+    assert query == {"status": ["ACTIVE"], "bank_name": ["First Bank"]}
 
 
 def test_delete_bank_for_account(reqmock, client: BrokerClient):
@@ -437,6 +456,23 @@ def test_get_transfers_for_account_none_pagination(reqmock, client: BrokerClient
     assert isinstance(transfers[0], Transfer)
 
 
+def test_get_transfers_for_account_none_pagination_empty_page_returns_empty_list(
+    reqmock, client: BrokerClient
+):
+    account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/accounts/{account_id}/transfers",
+        json=[],
+    )
+
+    transfers = client.get_transfers_for_account(
+        account_id, handle_pagination=PaginationType.NONE
+    )
+
+    assert reqmock.called_once
+    assert transfers == []
+
+
 def test_get_transfers_for_account_iterator_pagination(reqmock, client: BrokerClient):
     account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
     setup_reqmock_for_paginated_transfers_response(account_id, reqmock)
@@ -499,3 +535,39 @@ def test_cancel_transfer_for_account(reqmock, client: BrokerClient):
 
     assert client.cancel_transfer_for_account(account_id, transfer_id) is None
     assert reqmock.called_once
+
+
+def test_get_transfers_for_account_keeps_ira(reqmock, client: BrokerClient):
+    account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/accounts/{account_id}/transfers",
+        text="""
+        [
+          {
+            "id": "be3c368a-4c7c-4384-808e-f02c9f5a8afe",
+            "account_id": "2a87c088-ffb6-472b-a4a3-cd9305c8605c",
+            "type": "ach",
+            "status": "COMPLETE",
+            "amount": "498",
+            "direction": "INCOMING",
+            "created_at": "2021-05-05T07:55:31.190788Z",
+            "ira": {
+              "distribution_reason": "normal",
+              "fed_withholding_amount": "102.5",
+              "fed_withholding_pct": "10.25",
+              "state_withholding_amount": "97.5",
+              "state_withholding_pct": "9.75",
+              "tax_year": "2024"
+            }
+          }
+        ]
+        """,
+    )
+
+    transfers = client.get_transfers_for_account(
+        account_id, handle_pagination=PaginationType.NONE
+    )
+
+    assert transfers[0].ira.distribution_reason == "normal"
+    assert transfers[0].ira.fed_withholding_pct == "10.25"
+    assert transfers[0].model_dump()["ira"]["tax_year"] == "2024"

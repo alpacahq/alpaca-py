@@ -265,11 +265,26 @@ class AssetClass(str, Enum):
 
 class AssetStatus(str, Enum):
     """
-    Represents the various states for an Asset's lifecycle
+    Represents the various states for an Asset's lifecycle.
+
+    Broker ``GET /v1/assets`` also accepts ``all``, which returns both active
+    and inactive assets.
     """
 
     ACTIVE = "active"
     INACTIVE = "inactive"
+    ALL = "all"
+
+
+class CalendarDateType(str, Enum):
+    """
+    Which calendar date ``GET /v1/calendar`` filters on.
+
+    ``TRADING`` selects market sessions. ``SETTLEMENT`` selects settlement dates.
+    """
+
+    TRADING = "TRADING"
+    SETTLEMENT = "SETTLEMENT"
 
 
 class AssetBorrowStatus(str, Enum):

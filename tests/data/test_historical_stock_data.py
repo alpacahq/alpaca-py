@@ -1056,3 +1056,19 @@ def test_barset_contains(reqmock, stock_client: StockHistoricalDataClient):
 
     assert "AAPL" in barset
     assert "MSFT" not in barset
+
+
+def test_timeseries_request_normalizes_aware_datetimes_with_stdlib_timezone():
+    from zoneinfo import ZoneInfo
+
+    request = StockBarsRequest(
+        symbol_or_symbols="AAPL",
+        timeframe=TimeFrame.Day,
+        start=datetime(2024, 1, 2, 9, 30, tzinfo=ZoneInfo("America/New_York")),
+        end=datetime(2024, 1, 2, 16, 0, tzinfo=timezone.utc),
+    )
+
+    assert request.start == datetime(2024, 1, 2, 14, 30)
+    assert request.start.tzinfo is None
+    assert request.end == datetime(2024, 1, 2, 16, 0)
+    assert request.end.tzinfo is None

@@ -247,6 +247,17 @@ def test_get_journals(reqmock, client: BrokerClient):
     assert isinstance(response[0], Journal)
 
 
+def test_get_journals_sends_limit(reqmock, client: BrokerClient):
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/journals",
+        text="[]",
+    )
+
+    client.get_journals(journal_filter=GetJournalsRequest(limit=1))
+
+    assert reqmock.request_history[0].qs == {"limit": ["1"]}
+
+
 def test_get_journal_by_id(reqmock, client: BrokerClient):
     journal_id = "0a9152c4-d232-4b00-9102-5fa19aca40cb"
 

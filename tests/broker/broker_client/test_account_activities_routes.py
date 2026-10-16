@@ -295,6 +295,22 @@ def test_get_activities_for_account_none_pagination(reqmock, client: BrokerClien
     assert isinstance(result[0], BaseActivity)
 
 
+def test_get_activities_for_account_none_pagination_empty_page_returns_empty_list(
+    reqmock, client: BrokerClient
+):
+    reqmock.get(
+        BaseURL.BROKER_SANDBOX.value + "/v1/accounts/activities",
+        json=[],
+    )
+
+    result = client.get_account_activities(
+        GetAccountActivitiesRequest(), handle_pagination=PaginationType.NONE
+    )
+
+    assert reqmock.called_once
+    assert result == []
+
+
 def test_get_account_activities_iterator_pagination(reqmock, client: BrokerClient):
     setup_reqmock_for_paginated_account_activities_response(reqmock)
 

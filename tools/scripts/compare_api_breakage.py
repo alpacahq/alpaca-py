@@ -11,9 +11,11 @@ additionally compares:
 * every publicly exported Pydantic model's field contract (type, requiredness,
   validation/serialization aliases) and defining target
 * public callable ``returnAnnotation`` strings when AexPy did not already report
-  a resolved return-type change. A narrower return is reported and does not
-  fail the check, except dropping ``RawData`` (``dict[str, Any]``) or
-  ``List[RawData]`` (``list[dict[str, Any]]``)
+  a resolved return-type change. A narrower return (fewer union members, or a
+  subclass of the old type), or a ``None`` return that gains a value, is
+  listed under ``--verbose`` and does not fail the check, except
+  dropping ``RawData`` (``dict[str, Any]``) or ``List[RawData]``
+  (``list[dict[str, Any]]``)
 
 Examples:
   tools/scripts/compare_api_breakage.py
@@ -43,6 +45,10 @@ PACKAGE_NAME = "alpaca-py"
 TOP_MODULE = "alpaca"
 AEXPY_VERSION = "0.4.3"
 TOP_BREAKING_LIMIT = 20
+# AexPy ranks these as breaking only because a subclass overriding the method
+# with the old signature would reject the new argument. Callers are unaffected,
+# and SDK clients are used rather than subclassed, so they count as compatible.
+CALLER_COMPATIBLE_KINDS = frozenset({"AddOptionalParameter"})
 
 # Runs inside the comparison venv with one alpaca-py wheel installed. Emits, for
 # every public import path that exposes an SDK enum or Pydantic model, the target
@@ -335,9 +341,7 @@ def _resolve_ref(git: str, ref: str, *, verbose: bool = True) -> str:
     return sha
 
 
-def _build_ref_wheel(
-    ref: str, cache_root: Path, *, verbose: bool = True
-) -> Path:
+def _build_ref_wheel(ref: str, cache_root: Path, *, verbose: bool = True) -> Path:
     """Build (and cache) a wheel from an arbitrary git ref via a throwaway worktree.
 
     The wheel is cached under ``cache_root/<sha>`` so repeated iterations against a
@@ -707,7 +711,8 @@ def _canonicalize_annotation_name(name: str) -> str:
     return name
 
 
-def _split_top_level_union(text: str) -> list[str]:
+def _split_top_level(text: str, separator: str) -> list[str]:
+    """Split on ``separator`` outside any ``[...]`` nesting."""
     parts: list[str] = []
     depth = 0
     start = 0
@@ -716,11 +721,15 @@ def _split_top_level_union(text: str) -> list[str]:
             depth += 1
         elif char == "]":
             depth = max(0, depth - 1)
-        elif char == "|" and depth == 0:
+        elif char == separator and depth == 0:
             parts.append(text[start:index].strip())
             start = index + 1
     parts.append(text[start:].strip())
     return [part for part in parts if part]
+
+
+def _split_top_level_union(text: str) -> list[str]:
+    return _split_top_level(text, "|")
 
 
 def _union_of(parts: list[str]) -> str:
@@ -921,12 +930,104 @@ def _drops_raw_data(old_members: set[str], new_members: set[str]) -> bool:
     return bool(removed.intersection({_RAW_DATA_ANNOTATION, _RAW_DATA_LIST_ANNOTATION}))
 
 
+def _class_ancestry(api: dict) -> dict[str, set[str]]:
+    """Map each extracted class id to its AexPy MRO ids (itself included)."""
+    classes = api.get("classes") or {}
+    entries = classes.values() if isinstance(classes, dict) else classes
+    ancestry: dict[str, set[str]] = {}
+    for entry in entries:
+        if not isinstance(entry, dict) or not isinstance(entry.get("id"), str):
+            continue
+        mros = entry.get("mros") or []
+        ancestry[entry["id"]] = {entry["id"], *(m for m in mros if isinstance(m, str))}
+    return ancestry
+
+
+def _split_generic(member: str) -> tuple[str, list[str]] | None:
+    """``list[a.B]`` -> ``("list", ["a.B"])``; ``None`` for a non-generic member."""
+    bracket = member.find("[")
+    if bracket <= 0 or not member.endswith("]"):
+        return None
+    return member[:bracket], _split_top_level(member[bracket + 1 : -1], ",")
+
+
+# Generics whose arguments only flow out to a caller reading an SDK result,
+# so ``list[Sub]`` narrows ``list[Base]``. Mutable containers are invariant to
+# a type checker, but callers read these results rather than writing base
+# instances back. Callable parameters and Generator/Coroutine send types flow
+# in (contravariant), so anything not listed needs an exact match.
+_COVARIANT_GENERICS = frozenset(
+    {
+        "list",
+        "tuple",
+        "set",
+        "frozenset",
+        "dict",
+        "type",
+        "collections.abc.Iterable",
+        "collections.abc.Iterator",
+        "collections.abc.Sequence",
+        "collections.abc.Mapping",
+        "collections.abc.AsyncIterable",
+        "collections.abc.AsyncIterator",
+        "collections.abc.Awaitable",
+    }
+)
+# A top-level ``Any`` or ``object`` return accepts any narrower type. Only the
+# top level: inside ``dict[str, Any]`` that would hide a RawData change.
+_TOP_TYPES = frozenset({"Any", "object"})
+
+
+def _is_subtype(new: str, old: str, ancestry: dict[str, set[str]]) -> bool:
+    """True when every value of normalized type ``new`` is also an ``old``.
+
+    Classes follow the new wheel's MRO. Arguments of ``_COVARIANT_GENERICS``
+    are compared covariantly; any other generic needs an exact match.
+    """
+    if new == old:
+        return True
+    new_generic = _split_generic(new)
+    old_generic = _split_generic(old)
+    if new_generic is None and old_generic is None:
+        return old in ancestry.get(new, ())
+    if new_generic is None or old_generic is None:
+        return False
+    (new_origin, new_args), (old_origin, old_args) = new_generic, old_generic
+    if (
+        new_origin != old_origin
+        or new_origin not in _COVARIANT_GENERICS
+        or len(new_args) != len(old_args)
+    ):
+        return False
+    return all(
+        _union_narrows(new_arg, old_arg, ancestry)
+        for new_arg, old_arg in zip(new_args, old_args)
+    )
+
+
+def _union_narrows(new: str, old: str, ancestry: dict[str, set[str]]) -> bool:
+    """True when ``new`` narrows ``old`` without dropping a RawData branch.
+
+    The RawData guard applies at every union level, so dropping the raw branch
+    inside a generic (``Iterator[List[RawData] | List[Model]]`` ->
+    ``Iterator[List[Model]]``) is not a narrowing either.
+    """
+    old_members = _split_top_level_union(old)
+    new_members = _split_top_level_union(new)
+    if _drops_raw_data(set(old_members), set(new_members)):
+        return False
+    return all(
+        any(_is_subtype(member, old_member, ancestry) for old_member in old_members)
+        for member in new_members
+    )
+
+
 def _compare_return_annotations(
     old_api: dict,
     new_api: dict,
     already_reported: set[str] | None = None,
 ) -> tuple[Findings, Findings]:
-    """Return ``(breaking, narrowed)`` public return-annotation changes.
+    """Return ``(breaking, compatible)`` public return-annotation changes.
 
     AexPy only emits ``ChangeReturnType`` when mypy filled ``returnType`` on
     both sides. Unions that include ``dict[str, Any]`` stay null, so the
@@ -936,16 +1037,24 @@ def _compare_return_annotations(
 
     A narrower return is compatible for callers: AexPy 0.4.3 ranks that
     covariance ``Compatible`` in ``ChangeReturnType``. Those are reported as
-    narrowed and do not fail the check. Dropping ``dict[str, Any]``
+    compatible and do not fail the check. Narrower means every new union member
+    is an old member or a subclass of one, also inside covariant generic
+    arguments (``list[Account]`` -> ``list[AccountExtended]``), or the old
+    return was a top-level ``Any``/``object``. Dropping ``dict[str, Any]``
     (``RawData``) or ``list[dict[str, Any]]`` (``List[RawData]``) stays
-    breaking, because in this SDK it means ``raw_data=True`` stopped being
-    honored.
+    breaking at any nesting level (``Iterator[List[RawData] | ...]``), because
+    in this SDK it means ``raw_data=True`` stopped being honored.
+
+    A ``None`` return that gains a value is also compatible. Type checkers
+    reject using the result of a ``None`` return, so callers could only
+    discard it.
     """
     reported = already_reported or set()
+    ancestry = _class_ancestry(new_api)
     old_functions = _function_index(old_api)
     new_functions = _function_index(new_api)
     breaking: dict[str, list[str]] = {}
-    narrowed: dict[str, list[str]] = {}
+    compatible: dict[str, list[str]] = {}
 
     for api_id in sorted(set(old_functions) & set(new_functions)):
         if api_id in reported or not _is_public_callable_id(api_id):
@@ -968,23 +1077,33 @@ def _compare_return_annotations(
         if new_members and new_members == old_members:
             continue
         short_name = api_id.rsplit(".", 1)[-1]
+        if old_normalized == "None" and new_members:
+            message = (
+                f"{short_name} return type gained a value: "
+                f"{old_normalized} -> {new_normalized}"
+            )
+            compatible.setdefault(message, []).append(api_id)
+            continue
         # An empty new annotation is not a narrowing: the return became untyped.
         if (
             new_members
-            and new_members < old_members
+            and (
+                old_members & _TOP_TYPES
+                or _union_narrows(new_normalized, old_normalized, ancestry)
+            )
             and not _drops_raw_data(old_members, new_members)
         ):
             message = (
                 f"{short_name} return type narrowed: "
                 f"{old_normalized} -> {new_normalized}"
             )
-            narrowed.setdefault(message, []).append(api_id)
+            compatible.setdefault(message, []).append(api_id)
             continue
         shown_new = new_normalized or "<unannotated>"
         message = f"{short_name} return type changed: {old_normalized} -> {shown_new}"
         breaking.setdefault(message, []).append(api_id)
 
-    return _sorted_findings(breaking), _sorted_findings(narrowed)
+    return _sorted_findings(breaking), _sorted_findings(compatible)
 
 
 def _rank_value(entry: dict) -> int:
@@ -995,6 +1114,14 @@ def _rank_value(entry: dict) -> int:
         return int(rank)
     except (TypeError, ValueError):
         return 0
+
+
+def _is_caller_compatible(entry: dict) -> bool:
+    return entry.get("kind") in CALLER_COMPATIBLE_KINDS and _rank_value(entry) > 0
+
+
+def _effective_rank(entry: dict) -> int:
+    return 0 if _is_caller_compatible(entry) else _rank_value(entry)
 
 
 def _change_entries(changes_json: Path) -> list[dict]:
@@ -1009,7 +1136,7 @@ def _summarize_changes(changes_json: Path) -> tuple[int, int, int]:
     """Return (breaking, compatible, unknown) counts using AexPy ranks."""
     breaking = compatible = unknown = 0
     for entry in _change_entries(changes_json):
-        rank = _rank_value(entry)
+        rank = _effective_rank(entry)
         if rank > 0:
             breaking += 1
         elif rank == 0:
@@ -1033,12 +1160,23 @@ def _top_breaking_entries(
     breaking = [
         {"rank": _rank_value(entry), "message": _entry_message(entry)}
         for entry in _change_entries(changes_json)
-        if _rank_value(entry) > 0
+        if _effective_rank(entry) > 0
     ]
     breaking.sort(key=lambda item: (-item["rank"], item["message"]))
     if limit is None:
         return breaking
     return breaking[:limit]
+
+
+def _caller_compatible_entries(changes_json: Path) -> list[dict]:
+    """AexPy breakings reclassified as compatible, for the verbose report."""
+    entries = [
+        {"rank": _rank_value(entry), "message": _entry_message(entry)}
+        for entry in _change_entries(changes_json)
+        if _is_caller_compatible(entry)
+    ]
+    entries.sort(key=lambda item: item["message"])
+    return entries
 
 
 def _unknown_entries(changes_json: Path) -> list[dict]:
@@ -1296,7 +1434,7 @@ def main(argv: list[str] | None = None) -> int:
                 _print_findings("Enum breakings", enum_breaking)
                 _print_findings("Model breakings", model_breaking)
 
-        return_breaking, return_narrowed = _compare_return_annotations(
+        return_breaking, return_compatible = _compare_return_annotations(
             json.loads(api_old.read_text()),
             json.loads(api_new.read_text()),
             already_reported=_reported_return_type_ids(_change_entries(changes)),
@@ -1305,13 +1443,12 @@ def main(argv: list[str] | None = None) -> int:
             print("\n=== Return annotations ===", flush=True)
             if return_breaking:
                 _print_findings("Breaking", return_breaking)
-            if return_narrowed:
-                _print_findings("Narrowed", return_narrowed)
-            if not return_breaking and not return_narrowed:
+            if return_compatible:
+                _print_findings("Compatible", return_compatible)
+            if not return_breaking and not return_compatible:
                 print("No public return annotations changed.", flush=True)
         else:
             _print_findings("Return type breakings", return_breaking)
-            _print_findings("Return type narrowings", return_narrowed)
 
         breaking, compatible, unknown = _summarize_changes(changes)
 
@@ -1325,6 +1462,17 @@ def main(argv: list[str] | None = None) -> int:
                 for entry in top_breaking:
                     print(
                         f"  [rank={entry['rank']}] {entry['message']}",
+                        flush=True,
+                    )
+            relaxed = _caller_compatible_entries(changes)
+            if relaxed:
+                print(
+                    f"\nAexPy breakings treated as compatible ({len(relaxed)}):",
+                    flush=True,
+                )
+                for entry in relaxed:
+                    print(
+                        f"  [aexpy rank={entry['rank']}] {entry['message']}",
                         flush=True,
                     )
         else:
@@ -1343,7 +1491,7 @@ def main(argv: list[str] | None = None) -> int:
             f"aexpy_unknown={unknown} enum_breaking={len(enum_breaking)} "
             f"model_breaking={len(model_breaking)} "
             f"return_breaking={len(return_breaking)} "
-            f"return_narrowed={len(return_narrowed)}",
+            f"return_compatible={len(return_compatible)}",
             flush=True,
         )
 

@@ -554,6 +554,35 @@ class TestSummarizeAndTopBreaking:
         assert len(top) == cab.TOP_BREAKING_LIMIT
         assert top[0]["message"] == "m24"
 
+    def test_optional_parameter_on_method_is_compatible(self, cab, tmp_path):
+        changes = tmp_path / "changes.json"
+        changes.write_text(
+            json.dumps(
+                {
+                    "entries": {
+                        "opt": {
+                            "kind": "AddOptionalParameter",
+                            "rank": 60,
+                            "message": "Add PositionalOrKeyword parameter: page.",
+                        },
+                        "req": {
+                            "kind": "AddRequiredParameter",
+                            "rank": 100,
+                            "message": "Add required parameter: id.",
+                        },
+                    }
+                }
+            )
+        )
+
+        assert cab._summarize_changes(changes) == (1, 1, 0)
+        assert [e["message"] for e in cab._top_breaking_entries(changes)] == [
+            "Add required parameter: id."
+        ]
+        assert cab._caller_compatible_entries(changes) == [
+            {"rank": 60, "message": "Add PositionalOrKeyword parameter: page."}
+        ]
+
     def test_unknown_entries_lists_negative_ranks(self, cab, tmp_path):
         changes = tmp_path / "changes.json"
         changes.write_text(
@@ -659,6 +688,19 @@ class TestSnapshotImportGuards:
 
 def _callable(annotation):
     return {"returnAnnotation": annotation, "private": False}
+
+
+_ACCOUNT_EXTENDED_MRO = [
+    "alpaca.broker.models.accounts.AccountExtended",
+    "alpaca.broker.models.accounts.Account",
+    "pydantic.main.BaseModel",
+    "builtins.object",
+]
+
+
+def _classes(mro):
+    """AexPy ``classes`` entry for ``mro[0]``, shaped like ``api.json``."""
+    return {mro[0]: {"id": mro[0], "mros": mro}}
 
 
 class TestNormalizeTypeAnnotation:
@@ -926,6 +968,306 @@ class TestCompareReturnAnnotations:
                 "get_account return type changed: "
                 "None | alpaca.broker.models.accounts.Account | dict[str, Any] "
                 "-> None | alpaca.broker.models.accounts.Account",
+                [function_id],
+            )
+        ]
+
+    def test_subclass_return_is_narrowed(self, cab):
+        get_id = "alpaca.broker.client.BrokerClient.get_account_by_id"
+        list_id = "alpaca.broker.client.BrokerClient.list_accounts"
+        old = {
+            "functions": {
+                get_id: _callable(
+                    "alpaca.broker.models.accounts.Account"
+                    " | typing.Dict[str, typing.Any]"
+                ),
+                list_id: _callable(
+                    "typing.List[alpaca.broker.models.accounts.Account]"
+                    " | typing.Dict[str, typing.Any]"
+                ),
+            }
+        }
+        new = {
+            "classes": _classes(_ACCOUNT_EXTENDED_MRO),
+            "functions": {
+                get_id: _callable(
+                    "alpaca.broker.models.accounts.AccountExtended"
+                    " | typing.Dict[str, typing.Any]"
+                ),
+                list_id: _callable(
+                    "typing.List[alpaca.broker.models.accounts.AccountExtended]"
+                    " | typing.Dict[str, typing.Any]"
+                ),
+            },
+        }
+        breaking, narrowed = cab._compare_return_annotations(old, new)
+        assert breaking == []
+        assert narrowed == [
+            (
+                "get_account_by_id return type narrowed: "
+                "alpaca.broker.models.accounts.Account | dict[str, Any] "
+                "-> alpaca.broker.models.accounts.AccountExtended | dict[str, Any]",
+                [get_id],
+            ),
+            (
+                "list_accounts return type narrowed: "
+                "dict[str, Any] | list[alpaca.broker.models.accounts.Account] "
+                "-> dict[str, Any] | list[alpaca.broker.models.accounts.AccountExtended]",
+                [list_id],
+            ),
+        ]
+
+    def test_superclass_return_is_breaking(self, cab):
+        function_id = "alpaca.broker.client.BrokerClient.get_account_by_id"
+        old = {
+            "functions": {
+                function_id: _callable("alpaca.broker.models.accounts.AccountExtended")
+            }
+        }
+        new = {
+            "classes": _classes(_ACCOUNT_EXTENDED_MRO),
+            "functions": {
+                function_id: _callable("alpaca.broker.models.accounts.Account")
+            },
+        }
+        breaking, narrowed = cab._compare_return_annotations(old, new)
+        assert narrowed == []
+        assert [message for message, _ in breaking] == [
+            "get_account_by_id return type changed: "
+            "alpaca.broker.models.accounts.AccountExtended "
+            "-> alpaca.broker.models.accounts.Account"
+        ]
+
+    def test_unrelated_class_return_is_breaking(self, cab):
+        function_id = "alpaca.broker.client.BrokerClient.list_accounts"
+        old = {
+            "functions": {
+                function_id: _callable(
+                    "typing.List[alpaca.broker.models.accounts.Account]"
+                )
+            }
+        }
+        new = {
+            "classes": _classes(["alpaca.broker.models.accounts.TradeAccount"]),
+            "functions": {
+                function_id: _callable(
+                    "typing.List[alpaca.broker.models.accounts.TradeAccount]"
+                )
+            },
+        }
+        breaking, narrowed = cab._compare_return_annotations(old, new)
+        assert narrowed == []
+        assert len(breaking) == 1
+
+    def test_subclass_does_not_hide_dropped_raw_data(self, cab):
+        function_id = "alpaca.broker.client.BrokerClient.get_account_by_id"
+        old = {
+            "functions": {
+                function_id: _callable(
+                    "alpaca.broker.models.accounts.Account"
+                    " | typing.Dict[str, typing.Any]"
+                )
+            }
+        }
+        new = {
+            "classes": _classes(_ACCOUNT_EXTENDED_MRO),
+            "functions": {
+                function_id: _callable("alpaca.broker.models.accounts.AccountExtended")
+            },
+        }
+        breaking, narrowed = cab._compare_return_annotations(old, new)
+        assert narrowed == []
+        assert len(breaking) == 1
+
+    def test_callable_parameters_are_not_covariant(self, cab):
+        function_id = "alpaca.data.live.stock.StockDataStream.get_handler"
+        old = {
+            "functions": {
+                function_id: _callable(
+                    "typing.Callable[[alpaca.broker.models.accounts.Account], None]"
+                )
+            }
+        }
+        new = {
+            "classes": _classes(_ACCOUNT_EXTENDED_MRO),
+            "functions": {
+                function_id: _callable(
+                    "typing.Callable"
+                    "[[alpaca.broker.models.accounts.AccountExtended], None]"
+                )
+            },
+        }
+        breaking, narrowed = cab._compare_return_annotations(old, new)
+        assert narrowed == []
+        assert len(breaking) == 1
+
+    def test_generator_send_type_is_not_covariant(self, cab):
+        function_id = "alpaca.data.live.stock.StockDataStream.stream"
+        old = {
+            "functions": {
+                function_id: _callable(
+                    "typing.Generator[int, alpaca.broker.models.accounts.Account, None]"
+                )
+            }
+        }
+        new = {
+            "classes": _classes(_ACCOUNT_EXTENDED_MRO),
+            "functions": {
+                function_id: _callable(
+                    "typing.Generator"
+                    "[int, alpaca.broker.models.accounts.AccountExtended, None]"
+                )
+            },
+        }
+        breaking, compatible = cab._compare_return_annotations(old, new)
+        assert compatible == []
+        assert len(breaking) == 1
+
+    def test_any_return_becoming_concrete_is_narrowed(self, cab):
+        function_id = "alpaca.trading.client.TradingClient.get_clock"
+        old = {"functions": {function_id: _callable("typing.Any")}}
+        new = {"functions": {function_id: _callable("alpaca.trading.models.Clock")}}
+        breaking, compatible = cab._compare_return_annotations(old, new)
+        assert breaking == []
+        assert compatible == [
+            (
+                "get_clock return type narrowed: Any -> alpaca.trading.models.Clock",
+                [function_id],
+            )
+        ]
+
+    def test_dropping_raw_data_list_inside_iterator_is_breaking(self, cab):
+        function_id = "alpaca.broker.client.BrokerClient.get_runs"
+        old = {
+            "functions": {
+                function_id: _callable(
+                    "typing.Iterator[typing.List[typing.Dict[str, typing.Any]]"
+                    " | typing.List[alpaca.broker.models.rebalancing.RebalancingRun]]"
+                )
+            }
+        }
+        new = {
+            "functions": {
+                function_id: _callable(
+                    "typing.Iterator"
+                    "[typing.List[alpaca.broker.models.rebalancing.RebalancingRun]]"
+                )
+            }
+        }
+        breaking, compatible = cab._compare_return_annotations(old, new)
+        assert compatible == []
+        assert breaking == [
+            (
+                "get_runs return type changed: collections.abc.Iterator["
+                "list[alpaca.broker.models.rebalancing.RebalancingRun]"
+                " | list[dict[str, Any]]] -> collections.abc.Iterator["
+                "list[alpaca.broker.models.rebalancing.RebalancingRun]]",
+                [function_id],
+            )
+        ]
+
+    def test_dropping_raw_data_inside_list_argument_is_breaking(self, cab):
+        function_id = "alpaca.broker.client.BrokerClient.get_runs"
+        old = {
+            "functions": {
+                function_id: _callable(
+                    "typing.List[typing.Dict[str, typing.Any]"
+                    " | alpaca.broker.models.rebalancing.RebalancingRun]"
+                )
+            }
+        }
+        new = {
+            "functions": {
+                function_id: _callable(
+                    "typing.List[alpaca.broker.models.rebalancing.RebalancingRun]"
+                )
+            }
+        }
+        breaking, compatible = cab._compare_return_annotations(old, new)
+        assert compatible == []
+        assert len(breaking) == 1
+
+    def test_dropping_none_inside_iterator_keeps_raw_data_narrowed(self, cab):
+        function_id = "alpaca.broker.client.BrokerClient.get_runs"
+        old = {
+            "functions": {
+                function_id: _callable(
+                    "typing.Iterator[typing.List[typing.Dict[str, typing.Any]]"
+                    " | typing.List[alpaca.broker.models.rebalancing.RebalancingRun]"
+                    " | None]"
+                )
+            }
+        }
+        new = {
+            "functions": {
+                function_id: _callable(
+                    "typing.Iterator[typing.List[typing.Dict[str, typing.Any]]"
+                    " | typing.List[alpaca.broker.models.rebalancing.RebalancingRun]]"
+                )
+            }
+        }
+        breaking, compatible = cab._compare_return_annotations(old, new)
+        assert breaking == []
+        assert len(compatible) == 1
+
+    def test_raw_data_value_type_change_is_breaking(self, cab):
+        function_id = "alpaca.broker.client.BrokerClient.get_account_by_id"
+        old = {
+            "functions": {
+                function_id: _callable(
+                    "alpaca.broker.models.accounts.Account"
+                    " | typing.Dict[str, typing.Any]"
+                )
+            }
+        }
+        new = {
+            "classes": _classes(_ACCOUNT_EXTENDED_MRO),
+            "functions": {
+                function_id: _callable(
+                    "alpaca.broker.models.accounts.Account"
+                    " | typing.Dict[str, alpaca.broker.models.accounts.Account]"
+                )
+            },
+        }
+        breaking, compatible = cab._compare_return_annotations(old, new)
+        assert compatible == []
+        assert len(breaking) == 1
+
+    def test_none_return_gaining_a_value_is_compatible(self, cab):
+        function_id = (
+            "alpaca.broker.client.BrokerClient"
+            ".exercise_options_position_for_account_by_id"
+        )
+        old = {"functions": {function_id: _callable("None")}}
+        new = {
+            "functions": {
+                function_id: _callable(
+                    "alpaca.broker.models.trading.OptionExerciseResponse"
+                    " | typing.Dict[str, typing.Any] | None"
+                )
+            }
+        }
+        breaking, compatible = cab._compare_return_annotations(old, new)
+        assert breaking == []
+        assert compatible == [
+            (
+                "exercise_options_position_for_account_by_id return type gained "
+                "a value: None -> None"
+                " | alpaca.broker.models.trading.OptionExerciseResponse"
+                " | dict[str, Any]",
+                [function_id],
+            )
+        ]
+
+    def test_none_return_becoming_unannotated_is_breaking(self, cab):
+        function_id = "alpaca.broker.client.BrokerClient.cancel_run_by_id"
+        old = {"functions": {function_id: _callable("None")}}
+        new = {"functions": {function_id: _callable("")}}
+        breaking, compatible = cab._compare_return_annotations(old, new)
+        assert compatible == []
+        assert breaking == [
+            (
+                "cancel_run_by_id return type changed: None -> <unannotated>",
                 [function_id],
             )
         ]

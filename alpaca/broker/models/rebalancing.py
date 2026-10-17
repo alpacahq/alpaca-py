@@ -2,6 +2,8 @@ from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
 
+from pydantic import Field, field_validator
+
 from alpaca.broker.enums import PortfolioStatus, RunInitiatedFrom, RunStatus, RunType
 from alpaca.broker.models import Order
 from alpaca.broker.requests import RebalancingConditions, Weight
@@ -38,6 +40,26 @@ class Subscription(BaseModel):
     portfolio_id: UUID
     created_at: datetime
     last_rebalanced_at: Optional[datetime] = None
+
+
+class SubscriptionPage(BaseModel):
+    """
+    One page from the list-subscriptions endpoint.
+
+    ``BrokerClient.get_subscriptions`` returns this when ``handle_pagination``
+    is ``PaginationType.NONE``. The token is how a caller requests the next page.
+    An empty body or ``"subscriptions": null`` is an empty page.
+
+    https://docs.alpaca.markets/reference/get-v1-rebalancing-subscriptions-1
+    """
+
+    subscriptions: List[Subscription] = Field(default_factory=list)
+    next_page_token: Optional[str] = None
+
+    @field_validator("subscriptions", mode="before")
+    @classmethod
+    def _null_as_empty(cls, value):
+        return [] if value is None else value
 
 
 class SkippedOrder(BaseModel):
@@ -78,3 +100,23 @@ class RebalancingRun(BaseModel):
     orders: Optional[List[Order]] = None
     failed_orders: Optional[List[Order]] = None
     skipped_orders: Optional[List[SkippedOrder]] = None
+
+
+class RebalancingRunPage(BaseModel):
+    """
+    One page from the list-runs endpoint.
+
+    ``BrokerClient.get_runs`` returns this when ``handle_pagination`` is
+    ``PaginationType.NONE``. The token is how a caller requests the next page.
+    An empty body or ``"runs": null`` is an empty page.
+
+    https://docs.alpaca.markets/reference/get-v1-rebalancing-runs
+    """
+
+    runs: List[RebalancingRun] = Field(default_factory=list)
+    next_page_token: Optional[str] = None
+
+    @field_validator("runs", mode="before")
+    @classmethod
+    def _null_as_empty(cls, value):
+        return [] if value is None else value

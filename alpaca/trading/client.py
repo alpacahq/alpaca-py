@@ -1,9 +1,9 @@
 import json
-import warnings
 from typing import List, Optional, Union
 from uuid import UUID
 
 from pydantic import TypeAdapter
+from typing_extensions import deprecated as _deprecated
 
 from alpaca.common import RawData
 from alpaca.common.enums import BaseURL
@@ -674,13 +674,18 @@ class TradingClient(RESTClient):
 
     # ############################## CORPORATE ACTIONS ################################# #
 
+    @_deprecated(
+        "get_corporate_announcements is deprecated and will be removed in a future version. "
+        "Please use alpaca.data.historical.corporate_actions.CorporateActionsClient.get_corporate_actions() instead",
+    )
     def get_corporate_announcements(
         self, filter: GetCorporateAnnouncementsRequest
     ) -> Union[List[CorporateActionAnnouncement], RawData]:
         """
-        DEPRECATED: Please use the new corporate actions endpoint instead.
-        alpaca.data.historical.corporate_actions.CorporateActionsClient.get_corporate_actions()
-        ref. https://docs.alpaca.markets/reference/corporateactions-1
+        .. deprecated:: 0.42.1
+            Please use the new corporate actions endpoint instead.
+            alpaca.data.historical.corporate_actions.CorporateActionsClient.get_corporate_actions()
+            ref. https://docs.alpaca.markets/reference/corporateactions-1
 
         Returns corporate action announcements data given specified search criteria.
 
@@ -689,12 +694,6 @@ class TradingClient(RESTClient):
         Returns:
             List[CorporateActionAnnouncement]: The resulting announcements from the search.
         """
-        warnings.warn(
-            "get_corporate_announcements is deprecated and will be removed in a future version."
-            "Please use alpaca.data.historical.corporate_actions.CorporateActionsClient.get_corporate_actions() instead",
-            DeprecationWarning,
-        )
-
         params = filter.to_request_fields() if filter else {}
 
         if "ca_types" in params and isinstance(params["ca_types"], list):
@@ -707,10 +706,19 @@ class TradingClient(RESTClient):
 
         return TypeAdapter(List[CorporateActionAnnouncement]).validate_python(response)
 
+    @_deprecated(
+        "get_corporate_announcement_by_id is deprecated and will be removed in a future version. "
+        "Please use alpaca.data.historical.corporate_actions.CorporateActionsClient.get_corporate_actions() instead",
+    )
     def get_corporate_announcement_by_id(
         self, corporate_announcment_id: Union[UUID, str]
     ) -> Union[CorporateActionAnnouncement, RawData]:
         """
+        .. deprecated:: 0.45.0
+            Please use the new corporate actions endpoint instead.
+            alpaca.data.historical.corporate_actions.CorporateActionsClient.get_corporate_actions()
+            ref. https://docs.alpaca.markets/reference/corporateactions-1
+
         Returns a specific corporate action announcement.
         Args:
             corporate_announcment_id: The id of the desired corporate action announcement

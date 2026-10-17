@@ -78,3 +78,35 @@ def test_get_announcements(reqmock, trading_client: TradingClient):
     assert isinstance(response, List)
     assert len(response) > 0
     assert isinstance(response[0], CorporateActionAnnouncement)
+
+
+def test_get_announcements_is_marked_deprecated():
+    assert TradingClient.get_corporate_announcements.__deprecated__.startswith(
+        "get_corporate_announcements is deprecated"
+    )
+
+
+def test_get_announcements_warning_points_at_caller(
+    reqmock, trading_client: TradingClient
+):
+    reqmock.get(
+        f"{BaseURL.TRADING_PAPER.value}/v2/corporate_actions/announcements",
+        text="[]",
+    )
+
+    with pytest.deprecated_call() as caught:
+        trading_client.get_corporate_announcements(
+            GetCorporateAnnouncementsRequest(
+                ca_types=[CorporateActionType.DIVIDEND.value],
+                since="2021-01-01",
+                until="2021-02-01",
+            )
+        )
+
+    assert caught[0].filename == __file__
+
+
+def test_get_announcement_by_id_is_deprecated():
+    assert TradingClient.get_corporate_announcement_by_id.__deprecated__.startswith(
+        "get_corporate_announcement_by_id is deprecated"
+    )

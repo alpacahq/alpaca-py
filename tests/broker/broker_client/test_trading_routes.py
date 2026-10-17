@@ -1,4 +1,5 @@
 import datetime
+import pytest
 from alpaca.broker.client import BrokerClient
 from alpaca.common.enums import BaseURL
 from alpaca.trading.requests import (
@@ -66,7 +67,8 @@ def test_get_all_accounts_positions(reqmock, client: BrokerClient):
         """,
     )
 
-    all_accounts_positions = client.get_all_accounts_positions()
+    with pytest.deprecated_call(match="/v1/reporting/eod/positions"):
+        all_accounts_positions = client.get_all_accounts_positions()
 
     assert reqmock.called_once
     assert isinstance(all_accounts_positions, AllAccountsPositions)
@@ -81,7 +83,8 @@ def test_get_all_accounts_positions_sends_page(reqmock, client: BrokerClient):
         text='{"as_of": "2023-03-29T16:00:00-04:00", "positions": {}}',
     )
 
-    client.get_all_accounts_positions(page=2)
+    with pytest.deprecated_call():
+        client.get_all_accounts_positions(page=2)
 
     assert reqmock.request_history[0].qs == {"page": ["2"]}
 

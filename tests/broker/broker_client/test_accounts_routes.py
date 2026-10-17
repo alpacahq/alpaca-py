@@ -689,6 +689,27 @@ def test_delete_account(reqmock, client: BrokerClient):
     assert reqmock.called_once
 
 
+def test_delete_account_is_marked_deprecated():
+    assert BrokerClient.delete_account.__deprecated__ == (
+        "delete_account is deprecated and will be removed in a future version. "
+        "Please use `close_account(account_id)` instead"
+    )
+
+
+def test_delete_account_warning_points_at_caller(reqmock, client: BrokerClient):
+    account_id = "0d969814-40d6-4b2b-99ac-2e37427f1ad2"
+
+    reqmock.post(
+        f"https://broker-api.sandbox.alpaca.markets/v1/accounts/{account_id}/actions/close",
+        status_code=204,
+    )
+
+    with pytest.deprecated_call() as caught:
+        client.delete_account(account_id)
+
+    assert caught[0].filename == __file__
+
+
 def test_delete_account_validates_account_id(reqmock, client: BrokerClient):
     with pytest.deprecated_call(), pytest.raises(ValueError):
         client.delete_account("not a uuid")

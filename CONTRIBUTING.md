@@ -128,17 +128,23 @@ The target runs `tools/scripts/compare_api_breakage.py`, which:
    from PyPI (`--against`), or built from a git ref in a throwaway worktree and cached
    under the workdir by commit SHA (`--baseline-ref`)
 2. Runs [AexPy](https://github.com/StardustDL/aexpy) for API-level removals and
-   signature changes
+   signature changes. AexPy ranks a new optional parameter on a method as breaking
+   because a subclass override with the old signature would reject it; callers are
+   unaffected, so the script counts those as compatible and lists them under
+   `VERBOSE=1`
 3. Snapshots public enum membership (`name -> value`) and public Pydantic model field
    contracts (type, requiredness, aliases), then reports removals and value/contract
    changes as breaking
 4. Compares public callable return annotations when AexPy left the resolved return
    type empty. Equivalent spellings (`List` / `list`, reordered unions, `Optional[X]`
-   / `X | None`) are ignored. A narrower return, such as dropping `| None`, is
-   reported and does not fail the check. Dropping `RawData` (`dict[str, Any]`) or
-   `List[RawData]` (`list[dict[str, Any]]`) is breaking, because that means
-   `raw_data=True` stopped being honored. Any other change to an existing
-   annotation is breaking.
+   / `X | None`) are ignored. A narrower return, such as dropping `| None` or
+   returning a subclass (`Account` -> `AccountExtended`, also inside `List[...]`),
+   does not fail the check. Neither does a `None` return that gains a value:
+   type checkers reject using a `None` result, so callers could only discard it.
+   These compatible changes are listed under `VERBOSE=1`. Dropping `RawData`
+   (`dict[str, Any]`) or `List[RawData]` (`list[dict[str, Any]]`) is breaking, also
+   inside a generic such as `Iterator[...]`, because that means `raw_data=True`
+   stopped being honored. Any other change to an existing annotation is breaking.
 
 The Makefile target is quiet by default. Useful flags on the script itself:
 

@@ -237,6 +237,26 @@ def test_mleg_order_class_only_supports_market_and_limit_requests():
         TrailingStopOrderRequest(**base_kwargs, trail_price=1)
 
 
+def test_mleg_legs_as_dicts():
+    legs = [
+        {"symbol": "AAPL250117P00200000", "ratio_qty": 1, "side": OrderSide.BUY},
+        {"symbol": "AAPL250117P00250000", "ratio_qty": 1, "side": OrderSide.SELL},
+    ]
+
+    order = MarketOrderRequest(
+        qty=1, time_in_force=TimeInForce.DAY, order_class=OrderClass.MLEG, legs=legs
+    )
+    assert all(isinstance(leg, OptionLegRequest) for leg in order.legs)
+
+    with pytest.raises(ValueError, match="All legs must have unique symbols."):
+        MarketOrderRequest(
+            qty=1,
+            time_in_force=TimeInForce.DAY,
+            order_class=OrderClass.MLEG,
+            legs=[legs[0], legs[0]],
+        )
+
+
 def test_mleg_options() -> None:
     symbols = [
         "AAPL250117P00200000",

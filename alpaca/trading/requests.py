@@ -413,7 +413,13 @@ class OrderRequest(NonEmptyRequest):
                 raise ValueError(
                     "At least 2 legs are required for the mleg order class."
                 )
-            n_unique = len(set([l.symbol for l in values["legs"]]))
+            # legs may still be dicts here, since this runs before field validation
+            n_unique = len(
+                set(
+                    l["symbol"] if isinstance(l, dict) else l.symbol
+                    for l in values["legs"]
+                )
+            )
             if n_unique != l_len:
                 raise ValueError("All legs must have unique symbols.")
         else:

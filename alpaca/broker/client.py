@@ -1042,9 +1042,11 @@ class BrokerClient(RESTClient):
         # We need to track total items retrieved.
         total_items = 0
         request_fields = transfers_filter.to_request_fields()
+        # Start from the caller's offset, if one was given.
+        start_offset = request_fields.get("offset") or 0
 
         while True:
-            request_fields["offset"] = total_items
+            request_fields["offset"] = start_offset + total_items
             result = self.get(f"/accounts/{account_id}/transfers", request_fields)
 
             # The api returns [] when it's done.

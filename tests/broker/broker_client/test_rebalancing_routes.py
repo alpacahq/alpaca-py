@@ -1,5 +1,6 @@
 from uuid import UUID
 
+import pytest
 from requests_mock import Mocker
 
 from alpaca.broker.client import BrokerClient
@@ -7,7 +8,9 @@ from alpaca.broker.enums import WeightType
 from alpaca.broker.models import (
     Portfolio,
     RebalancingRun,
+    RebalancingRunPage,
     Subscription,
+    SubscriptionPage,
 )
 from alpaca.broker.requests import (
     CreatePortfolioRequest,
@@ -381,8 +384,8 @@ def test_create_subscription(reqmock: Mocker, client: BrokerClient) -> None:
     assert isinstance(subscription, Subscription)
 
 
-def test_get_all_subscriptions(reqmock: Mocker, client: BrokerClient) -> None:
-    """Test the get_all_subscriptions method."""
+def test_get_subscriptions(reqmock: Mocker, client: BrokerClient) -> None:
+    """Test the get_subscriptions method."""
     reqmock.get(
         f"{BaseURL.BROKER_SANDBOX.value}/v1/rebalancing/subscriptions",
         text="""
@@ -400,7 +403,7 @@ def test_get_all_subscriptions(reqmock: Mocker, client: BrokerClient) -> None:
 }
         """,
     )
-    response = client.get_all_subscriptions(filter=GetSubscriptionsRequest())
+    response = client.get_subscriptions(filter=GetSubscriptionsRequest())
 
     assert reqmock.called_once
     assert len(response) > 0
@@ -497,8 +500,8 @@ def test_create_manual_run(reqmock: Mocker, client: BrokerClient) -> None:
     assert isinstance(run_resp, RebalancingRun)
 
 
-def test_get_all_runs(reqmock: Mocker, client: BrokerClient) -> None:
-    """Test the get_all_runs method."""
+def test_get_runs(reqmock: Mocker, client: BrokerClient) -> None:
+    """Test the get_runs method."""
     reqmock.get(
         f"{BaseURL.BROKER_SANDBOX.value}/v1/rebalancing/runs",
         response_list=[
@@ -592,7 +595,7 @@ def test_get_all_runs(reqmock: Mocker, client: BrokerClient) -> None:
             """},
         ],
     )
-    response = client.get_all_runs(filter=GetRunsRequest())
+    response = client.get_runs(filter=GetRunsRequest())
 
     assert reqmock.call_count == 2
     assert len(response) == 2
@@ -664,6 +667,131 @@ def test_cancel_run_by_id(reqmock: Mocker, client: BrokerClient) -> None:
     assert reqmock.called_once
 
 
+def test_get_subscriptions_none_returns_first_page(
+    reqmock: Mocker, client: BrokerClient
+):
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/rebalancing/subscriptions",
+        json={
+            "subscriptions": [
+                {
+                    "id": "9341be15-8786-4d23-ba1a-fc10ef4f90f4",
+                    "account_id": "bf2b0f93-f296-4276-a9cf-288586cf4fb7",
+                    "portfolio_id": "57d4ec79-9658-4916-9eb1-7c672be97e3e",
+                    "created_at": "2022-08-07T23:52:05.942964Z",
+                    "last_rebalanced_at": None,
+                }
+            ],
+            "next_page_token": "next-subscriptions",
+        },
+    )
+
+    page = client.get_subscriptions(handle_pagination=PaginationType.NONE)
+
+    assert reqmock.called_once
+    assert isinstance(page, SubscriptionPage)
+    assert len(page.subscriptions) == 1
+    assert isinstance(page.subscriptions[0], Subscription)
+    assert page.next_page_token == "next-subscriptions"
+
+
+def test_get_subscriptions_none_raw_data_returns_page(
+    reqmock: Mocker, raw_client: BrokerClient
+):
+    subscription = {
+        "id": "9341be15-8786-4d23-ba1a-fc10ef4f90f4",
+        "account_id": "bf2b0f93-f296-4276-a9cf-288586cf4fb7",
+        "portfolio_id": "57d4ec79-9658-4916-9eb1-7c672be97e3e",
+        "created_at": "2022-08-07T23:52:05.942964Z",
+        "last_rebalanced_at": None,
+    }
+    payload = {
+        "subscriptions": [subscription],
+        "next_page_token": "next-subscriptions",
+    }
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/rebalancing/subscriptions",
+        json=payload,
+    )
+
+    page = raw_client.get_subscriptions(handle_pagination=PaginationType.NONE)
+
+    assert reqmock.called_once
+    assert page == payload
+
+
+def test_get_subscriptions_none_empty_page_keeps_token(
+    reqmock: Mocker, client: BrokerClient
+):
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/rebalancing/subscriptions",
+        json={"subscriptions": [], "next_page_token": None},
+    )
+
+    page = client.get_subscriptions(handle_pagination=PaginationType.NONE)
+
+    assert reqmock.called_once
+    assert isinstance(page, SubscriptionPage)
+    assert page.subscriptions == []
+    assert page.next_page_token is None
+
+
+def test_get_runs_none_returns_first_page(reqmock: Mocker, client: BrokerClient):
+    run = {
+        "id": "2ad28f83-796c-4c4d-895e-d360aeb95297",
+        "account_id": "cf175fbc-ca19-4741-88ed-70d6c133f8d7",
+        "type": "full_rebalance",
+        "portfolio_id": "ac89fa84-e3bb-48ff-9b81-d5f313e77463",
+        "weights": [],
+        "created_at": "2022-04-14T10:46:08.045817Z",
+        "updated_at": "2022-04-14T13:11:07.84719Z",
+        "status": "CANCELED",
+    }
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/rebalancing/runs",
+        json={"runs": [run], "next_page_token": "next-runs"},
+    )
+
+    page = client.get_runs(handle_pagination=PaginationType.NONE)
+
+    assert reqmock.called_once
+    assert isinstance(page, RebalancingRunPage)
+    assert len(page.runs) == 1
+    assert isinstance(page.runs[0], RebalancingRun)
+    assert page.next_page_token == "next-runs"
+
+
+def test_get_runs_none_raw_data_returns_page(reqmock: Mocker, raw_client: BrokerClient):
+    run = {
+        "id": "2ad28f83-796c-4c4d-895e-d360aeb95297",
+        "account_id": "cf175fbc-ca19-4741-88ed-70d6c133f8d7",
+    }
+    payload = {"runs": [run], "next_page_token": "next-runs"}
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/rebalancing/runs",
+        json=payload,
+    )
+
+    page = raw_client.get_runs(handle_pagination=PaginationType.NONE)
+
+    assert reqmock.called_once
+    assert page == payload
+
+
+def test_get_runs_none_empty_page_keeps_token(reqmock: Mocker, client: BrokerClient):
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/rebalancing/runs",
+        json={"runs": [], "next_page_token": None},
+    )
+
+    page = client.get_runs(handle_pagination=PaginationType.NONE)
+
+    assert reqmock.called_once
+    assert isinstance(page, RebalancingRunPage)
+    assert page.runs == []
+    assert page.next_page_token is None
+
+
 def test_get_all_subscriptions_none_returns_first_page_as_list(
     reqmock: Mocker, client: BrokerClient
 ):
@@ -683,7 +811,10 @@ def test_get_all_subscriptions_none_returns_first_page_as_list(
         },
     )
 
-    subscriptions = client.get_all_subscriptions(handle_pagination=PaginationType.NONE)
+    with pytest.warns(DeprecationWarning):
+        subscriptions = client.get_all_subscriptions(
+            handle_pagination=PaginationType.NONE
+        )
 
     assert reqmock.called_once
     assert len(subscriptions) == 1
@@ -708,9 +839,10 @@ def test_get_all_subscriptions_none_raw_data_returns_item_dicts(
         },
     )
 
-    subscriptions = raw_client.get_all_subscriptions(
-        handle_pagination=PaginationType.NONE
-    )
+    with pytest.warns(DeprecationWarning):
+        subscriptions = raw_client.get_all_subscriptions(
+            handle_pagination=PaginationType.NONE
+        )
 
     assert reqmock.called_once
     assert subscriptions == [subscription]
@@ -724,7 +856,10 @@ def test_get_all_subscriptions_none_empty_page_returns_empty_list(
         json={"subscriptions": [], "next_page_token": None},
     )
 
-    subscriptions = client.get_all_subscriptions(handle_pagination=PaginationType.NONE)
+    with pytest.warns(DeprecationWarning):
+        subscriptions = client.get_all_subscriptions(
+            handle_pagination=PaginationType.NONE
+        )
 
     assert reqmock.called_once
     assert subscriptions == []
@@ -748,7 +883,8 @@ def test_get_all_runs_none_returns_first_page_as_list(
         json={"runs": [run], "next_page_token": "next-runs"},
     )
 
-    runs = client.get_all_runs(handle_pagination=PaginationType.NONE)
+    with pytest.warns(DeprecationWarning):
+        runs = client.get_all_runs(handle_pagination=PaginationType.NONE)
 
     assert reqmock.called_once
     assert len(runs) == 1
@@ -767,7 +903,8 @@ def test_get_all_runs_none_raw_data_returns_item_dicts(
         json={"runs": [run], "next_page_token": "next-runs"},
     )
 
-    runs = raw_client.get_all_runs(handle_pagination=PaginationType.NONE)
+    with pytest.warns(DeprecationWarning):
+        runs = raw_client.get_all_runs(handle_pagination=PaginationType.NONE)
 
     assert reqmock.called_once
     assert runs == [run]
@@ -781,7 +918,89 @@ def test_get_all_runs_none_empty_page_returns_empty_list(
         json={"runs": [], "next_page_token": None},
     )
 
-    runs = client.get_all_runs(handle_pagination=PaginationType.NONE)
+    with pytest.warns(DeprecationWarning):
+        runs = client.get_all_runs(handle_pagination=PaginationType.NONE)
 
     assert reqmock.called_once
     assert runs == []
+
+
+def test_get_runs_none_sends_page_token(reqmock: Mocker, client: BrokerClient):
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/rebalancing/runs",
+        json={"runs": [], "next_page_token": None},
+    )
+
+    client.get_runs(
+        filter=GetRunsRequest(page_token="next-runs"),
+        handle_pagination=PaginationType.NONE,
+    )
+
+    assert reqmock.called_once
+    assert reqmock.last_request.qs["page_token"] == ["next-runs"]
+
+
+def test_get_all_subscriptions_is_deprecated_and_returns_list(
+    reqmock: Mocker, client: BrokerClient
+):
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/rebalancing/subscriptions",
+        json={"subscriptions": [], "next_page_token": None},
+    )
+
+    with pytest.warns(DeprecationWarning, match="get_subscriptions"):
+        subscriptions = client.get_all_subscriptions()
+
+    assert subscriptions == []
+
+
+def test_get_all_runs_is_deprecated_and_returns_list(
+    reqmock: Mocker, client: BrokerClient
+):
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/rebalancing/runs",
+        json={"runs": [], "next_page_token": None},
+    )
+
+    with pytest.warns(DeprecationWarning, match="get_runs"):
+        runs = client.get_all_runs()
+
+    assert runs == []
+
+
+def test_get_subscriptions_none_null_list_is_empty_page(
+    reqmock: Mocker, client: BrokerClient
+):
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/rebalancing/subscriptions",
+        json={"subscriptions": None, "next_page_token": None},
+    )
+
+    page = client.get_subscriptions(handle_pagination=PaginationType.NONE)
+
+    assert isinstance(page, SubscriptionPage)
+    assert page.subscriptions == []
+
+
+def test_get_runs_none_empty_body_is_empty_page(reqmock: Mocker, client: BrokerClient):
+    reqmock.get(f"{BaseURL.BROKER_SANDBOX.value}/v1/rebalancing/runs", text="")
+
+    page = client.get_runs(handle_pagination=PaginationType.NONE)
+
+    assert isinstance(page, RebalancingRunPage)
+    assert page.runs == []
+    assert page.next_page_token is None
+
+
+def test_get_all_runs_none_empty_body_returns_empty_list(
+    reqmock: Mocker, client: BrokerClient, raw_client: BrokerClient
+):
+    reqmock.get(f"{BaseURL.BROKER_SANDBOX.value}/v1/rebalancing/runs", text="")
+
+    with pytest.warns(DeprecationWarning):
+        runs = client.get_all_runs(handle_pagination=PaginationType.NONE)
+    with pytest.warns(DeprecationWarning):
+        raw_runs = raw_client.get_all_runs(handle_pagination=PaginationType.NONE)
+
+    assert runs == []
+    assert raw_runs == []

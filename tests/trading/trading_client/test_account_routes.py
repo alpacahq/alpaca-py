@@ -1,4 +1,5 @@
 import json
+import pytest
 from alpaca.common.enums import BaseURL
 from alpaca.trading.models import TradeAccount, AccountConfiguration
 from alpaca.trading.client import TradingClient
@@ -130,8 +131,10 @@ def test_get_account_configurations_without_deprecated_pdt_fields(
     account_configurations = trading_client.get_account_configurations()
     assert reqmock.called_once
     assert isinstance(account_configurations, AccountConfiguration)
-    assert account_configurations.dtbp_check is None
-    assert account_configurations.pdt_check is None
+    with pytest.deprecated_call(match="dtbp_check"):
+        assert account_configurations.dtbp_check is None
+    with pytest.deprecated_call(match="pdt_check"):
+        assert account_configurations.pdt_check is None
 
 
 def test_set_account_configurations(reqmock: Mocker, trading_client: TradingClient):

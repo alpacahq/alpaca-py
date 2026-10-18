@@ -291,7 +291,10 @@ class Order(ModelWithID):
     filled_qty: Optional[Union[str, float]] = None
     filled_avg_price: Optional[Union[str, float]] = None
     order_class: OrderClass
-    order_type: Optional[OrderType] = None
+    order_type: Optional[OrderType] = Field(
+        default=None,
+        deprecated="Order.order_type is deprecated. Use type instead.",
+    )
     type: Optional[OrderType] = None
     side: Optional[OrderSide] = None
     time_in_force: TimeInForce
@@ -621,14 +624,29 @@ class TradeAccount(ModelWithID):
     buying_power: Optional[str] = None
     effective_buying_power: Optional[str] = None
     regt_buying_power: Optional[str] = None
-    daytrading_buying_power: Optional[str] = None
+    daytrading_buying_power: Optional[str] = Field(
+        default=None,
+        deprecated=(
+            "TradeAccount.daytrading_buying_power is deprecated. "
+            "Removed from Alpaca responses on 2026-07-06 following the FINRA intraday-margin migration."
+        ),
+    )
     non_marginable_buying_power: Optional[str] = None
     cash: Optional[str] = None
     accrued_fees: Optional[str] = None
     pending_transfer_out: Optional[str] = None
     pending_transfer_in: Optional[str] = None
-    portfolio_value: Optional[str] = None
-    pattern_day_trader: Optional[bool] = None
+    portfolio_value: Optional[str] = Field(
+        default=None,
+        deprecated="TradeAccount.portfolio_value is deprecated. Use equity instead.",
+    )
+    pattern_day_trader: Optional[bool] = Field(
+        default=None,
+        deprecated=(
+            "TradeAccount.pattern_day_trader is deprecated. "
+            "Removed from Alpaca responses on 2026-07-06 following the FINRA intraday-margin migration."
+        ),
+    )
     trading_blocked: Optional[bool] = None
     transfers_blocked: Optional[bool] = None
     account_blocked: Optional[bool] = None
@@ -645,7 +663,13 @@ class TradeAccount(ModelWithID):
     maintenance_margin: Optional[str] = None
     last_maintenance_margin: Optional[str] = None
     sma: Optional[str] = None
-    daytrade_count: Optional[int] = None
+    daytrade_count: Optional[int] = Field(
+        default=None,
+        deprecated=(
+            "TradeAccount.daytrade_count is deprecated. "
+            "Removed from Alpaca responses on 2026-07-06 following the FINRA intraday-margin migration."
+        ),
+    )
     options_buying_power: Optional[str] = None
     options_approved_level: Optional[int] = None
     options_trading_level: Optional[int] = None
@@ -674,11 +698,23 @@ class AccountConfiguration(BaseModel):
           Omitted from PATCH bodies when the caller did not set it, so a default null is not sent.
     """
 
-    dtbp_check: Optional[DTBPCheck] = None
+    dtbp_check: Optional[DTBPCheck] = Field(
+        default=None,
+        deprecated=(
+            "AccountConfiguration.dtbp_check is deprecated. "
+            "Removed from Alpaca responses on 2026-07-06 following the FINRA intraday-margin migration."
+        ),
+    )
     fractional_trading: bool
     max_margin_multiplier: str
     no_shorting: bool
-    pdt_check: Optional[PDTCheck] = None
+    pdt_check: Optional[PDTCheck] = Field(
+        default=None,
+        deprecated=(
+            "AccountConfiguration.pdt_check is deprecated. "
+            "Removed from Alpaca responses on 2026-07-06 following the FINRA intraday-margin migration."
+        ),
+    )
     suspend_trade: bool
     trade_confirm_email: TradeConfirmationEmail
     ptp_no_exception_entry: bool

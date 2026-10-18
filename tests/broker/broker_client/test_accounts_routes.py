@@ -1065,11 +1065,15 @@ def test_get_trade_account_by_id_without_deprecated_pdt_fields(
     assert reqmock.called_once
     assert type(account) == TradeAccount
     assert account.id == UUID(account_id)
-    assert account.daytrading_buying_power is None
-    assert account.pattern_day_trader is None
-    assert account.daytrade_count is None
-    assert account.last_daytrading_buying_power is None
-    assert account.last_daytrade_count is None
+    for field in (
+        "daytrading_buying_power",
+        "pattern_day_trader",
+        "daytrade_count",
+        "last_daytrading_buying_power",
+        "last_daytrade_count",
+    ):
+        with pytest.deprecated_call(match=field):
+            assert getattr(account, field) is None
 
 
 def test_get_trade_account_by_id_validates_account_id(reqmock, client: BrokerClient):
@@ -1108,8 +1112,10 @@ def test_get_trade_configuration_for_account(reqmock, client: BrokerClient):
 
     assert reqmock.called_once
     assert isinstance(config, TradeAccountConfiguration)
-    assert config.dtbp_check == DTBPCheck.BOTH
-    assert config.pdt_check == PDTCheck.ENTRY
+    with pytest.deprecated_call(match="dtbp_check"):
+        assert config.dtbp_check == DTBPCheck.BOTH
+    with pytest.deprecated_call(match="pdt_check"):
+        assert config.pdt_check == PDTCheck.ENTRY
 
 
 def test_get_trade_configuration_for_account_validates_id(

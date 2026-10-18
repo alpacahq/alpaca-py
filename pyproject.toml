@@ -18,7 +18,7 @@ include = [ "alpaca/py.typed" ]
 [tool.poetry.dependencies]
 python = "^3.10.0"
 requests = "^2.30.0"
-pydantic = "^2.0.3"
+pydantic = "^2.7.0"
 pandas = ">=1.5.3"
 msgpack = "^1.0.3"
 websockets = ">=10.4"

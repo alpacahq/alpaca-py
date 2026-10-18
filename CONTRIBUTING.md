@@ -136,10 +136,14 @@ The target runs `tools/scripts/compare_api_breakage.py`, which:
    contracts (type, requiredness, aliases), then reports removals and value/contract
    changes as breaking
 4. Compares public callable return annotations when AexPy left the resolved return
-   type empty. Equivalent spellings (`List` / `list`, reordered unions, `Optional[X]`
-   / `X | None`) are ignored. A narrower return, such as dropping `| None` or
-   returning a subclass (`Account` -> `AccountExtended`, also inside `List[...]`),
-   does not fail the check. Neither does a `None` return that gains a value:
+   type empty. A resolved change AexPy ranked compatible is checked again only for
+   `dict` / `Mapping` keys: AexPy treats every generic argument as covariant, so
+   `Mapping[Base, V]` -> `Mapping[Sub, V]` would otherwise pass even though
+   `result[base_key]` no longer type-checks. Equivalent spellings (`List` / `list`,
+   reordered unions, `Optional[X]` / `X | None`) are ignored. A narrower return,
+   such as dropping `| None` or returning a subclass (`Account` -> `AccountExtended`,
+   also inside `List[...]`), does not fail the check. Neither does a `None` return
+   that gains a value:
    type checkers reject using a `None` result, so callers could only discard it.
    These compatible changes are listed under `VERBOSE=1`. Dropping `RawData`
    (`dict[str, Any]`) or `List[RawData]` (`list[dict[str, Any]]`) is breaking, also

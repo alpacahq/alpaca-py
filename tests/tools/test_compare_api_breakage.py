@@ -690,6 +690,19 @@ def _callable(annotation):
     return {"returnAnnotation": annotation, "private": False}
 
 
+def _change_return(function_id, rank=None):
+    """One AexPy ``ChangeReturnType`` entry. Omit ``rank`` to leave it unset."""
+    entry = {
+        "kind": "ChangeReturnType",
+        "message": f"Change return type ({function_id}): old => new",
+        "old": {"id": function_id},
+        "new": {"id": function_id},
+    }
+    if rank is not None:
+        entry["rank"] = rank
+    return entry
+
+
 _ACCOUNT_EXTENDED_MRO = [
     "alpaca.broker.models.accounts.AccountExtended",
     "alpaca.broker.models.accounts.Account",
@@ -1079,6 +1092,78 @@ class TestCompareReturnAnnotations:
         assert narrowed == []
         assert len(breaking) == 1
 
+    def test_mapping_key_narrowing_is_breaking(self, cab):
+        mapping_id = "alpaca.broker.client.BrokerClient.get_by_account"
+        dict_id = "alpaca.broker.client.BrokerClient.get_dict_by_account"
+        old = {
+            "functions": {
+                mapping_id: _callable(
+                    "typing.Mapping[alpaca.broker.models.accounts.Account, str]"
+                ),
+                dict_id: _callable(
+                    "typing.Dict[alpaca.broker.models.accounts.Account, str]"
+                ),
+            }
+        }
+        new = {
+            "classes": _classes(_ACCOUNT_EXTENDED_MRO),
+            "functions": {
+                mapping_id: _callable(
+                    "typing.Mapping["
+                    "alpaca.broker.models.accounts.AccountExtended, str]"
+                ),
+                dict_id: _callable(
+                    "typing.Dict[alpaca.broker.models.accounts.AccountExtended, str]"
+                ),
+            },
+        }
+        breaking, narrowed = cab._compare_return_annotations(old, new)
+        assert narrowed == []
+        assert breaking == [
+            (
+                "get_by_account return type changed: "
+                "collections.abc.Mapping[alpaca.broker.models.accounts.Account, str] "
+                "-> collections.abc.Mapping["
+                "alpaca.broker.models.accounts.AccountExtended, str]",
+                [mapping_id],
+            ),
+            (
+                "get_dict_by_account return type changed: "
+                "dict[alpaca.broker.models.accounts.Account, str] "
+                "-> dict[alpaca.broker.models.accounts.AccountExtended, str]",
+                [dict_id],
+            ),
+        ]
+
+    def test_mapping_value_narrowing_is_compatible(self, cab):
+        function_id = "alpaca.broker.client.BrokerClient.get_by_account"
+        old = {
+            "functions": {
+                function_id: _callable(
+                    "typing.Mapping[str, alpaca.broker.models.accounts.Account]"
+                )
+            }
+        }
+        new = {
+            "classes": _classes(_ACCOUNT_EXTENDED_MRO),
+            "functions": {
+                function_id: _callable(
+                    "typing.Mapping[str, alpaca.broker.models.accounts.AccountExtended]"
+                )
+            },
+        }
+        breaking, narrowed = cab._compare_return_annotations(old, new)
+        assert breaking == []
+        assert narrowed == [
+            (
+                "get_by_account return type narrowed: "
+                "collections.abc.Mapping[str, alpaca.broker.models.accounts.Account] "
+                "-> collections.abc.Mapping["
+                "str, alpaca.broker.models.accounts.AccountExtended]",
+                [function_id],
+            )
+        ]
+
     def test_callable_parameters_are_not_covariant(self, cab):
         function_id = "alpaca.data.live.stock.StockDataStream.get_handler"
         old = {
@@ -1291,3 +1376,235 @@ class TestCompareReturnAnnotations:
             [],
             [],
         )
+
+    def test_aexpy_compatible_subclass_is_not_duplicated(self, cab):
+        """A rank-0 subclass return stays AexPy's finding, not a second one."""
+        function_id = "alpaca.broker.client.BrokerClient.get_account_by_id"
+        list_id = "alpaca.broker.client.BrokerClient.list_accounts"
+        old = {
+            "functions": {
+                function_id: _callable("alpaca.broker.models.accounts.Account"),
+                list_id: _callable(
+                    "typing.List[alpaca.broker.models.accounts.Account]"
+                ),
+            }
+        }
+        new = {
+            "classes": _classes(_ACCOUNT_EXTENDED_MRO),
+            "functions": {
+                function_id: _callable("alpaca.broker.models.accounts.AccountExtended"),
+                list_id: _callable(
+                    "typing.List[alpaca.broker.models.accounts.AccountExtended]"
+                ),
+            },
+        }
+        entries = [
+            _change_return(function_id, rank=0),
+            _change_return(list_id, rank=0),
+        ]
+        reported = cab._reported_return_type_ids(entries)
+        assert cab._compare_return_annotations(
+            old,
+            new,
+            already_reported=reported,
+            aexpy_compatible=cab._aexpy_compatible_return_ids(entries),
+        ) == ([], [])
+
+    def test_aexpy_compatible_mapping_key_narrowing_is_breaking(self, cab):
+        mapping_id = "alpaca.broker.client.BrokerClient.get_by_account"
+        nested_id = "alpaca.broker.client.BrokerClient.list_by_account"
+        old = {
+            "functions": {
+                mapping_id: _callable(
+                    "typing.Mapping[alpaca.broker.models.accounts.Account, str]"
+                ),
+                nested_id: _callable(
+                    "typing.List[typing.Dict["
+                    "alpaca.broker.models.accounts.Account, str]]"
+                ),
+            }
+        }
+        new = {
+            "functions": {
+                mapping_id: _callable(
+                    "typing.Mapping["
+                    "alpaca.broker.models.accounts.AccountExtended, str]"
+                ),
+                nested_id: _callable(
+                    "typing.List[typing.Dict["
+                    "alpaca.broker.models.accounts.AccountExtended, str]]"
+                ),
+            }
+        }
+        entries = [
+            _change_return(mapping_id, rank=0),
+            _change_return(nested_id, rank=0),
+        ]
+        breaking, compatible = cab._compare_return_annotations(
+            old,
+            new,
+            already_reported=cab._reported_return_type_ids(entries),
+            aexpy_compatible=cab._aexpy_compatible_return_ids(entries),
+        )
+        assert compatible == []
+        assert breaking == [
+            (
+                "get_by_account return type changed a mapping key: "
+                "collections.abc.Mapping[alpaca.broker.models.accounts.Account, str] "
+                "-> collections.abc.Mapping["
+                "alpaca.broker.models.accounts.AccountExtended, str]",
+                [mapping_id],
+            ),
+            (
+                "list_by_account return type changed a mapping key: "
+                "list[dict[alpaca.broker.models.accounts.Account, str]] "
+                "-> list[dict[alpaca.broker.models.accounts.AccountExtended, str]]",
+                [nested_id],
+            ),
+        ]
+
+    @pytest.mark.parametrize(
+        "wrapper",
+        ["list[{}]", "dict[str, {}]", "typing.Callable[[{}], None]"],
+    )
+    @pytest.mark.parametrize("keep_compatible_arm", [False, True])
+    def test_aexpy_mapping_key_change_with_unrelated_union_arm(
+        self, cab, wrapper, keep_compatible_arm
+    ):
+        function_id = "alpaca.broker.client.BrokerClient.get_by_account"
+        old_mapping = wrapper.format("typing.Mapping[Base, str]")
+        new_mapping = wrapper.format("typing.Mapping[Sub, str]")
+        old_annotation = f"{old_mapping} | {wrapper.format('int')}"
+        if keep_compatible_arm:
+            old_annotation += f" | {new_mapping}"
+        old = {"functions": {function_id: _callable(old_annotation)}}
+        new = {"functions": {function_id: _callable(new_mapping)}}
+        entries = [_change_return(function_id, rank=0)]
+
+        breaking, compatible = cab._compare_return_annotations(
+            old,
+            new,
+            already_reported=cab._reported_return_type_ids(entries),
+            aexpy_compatible=cab._aexpy_compatible_return_ids(entries),
+        )
+
+        assert compatible == []
+        if keep_compatible_arm:
+            assert breaking == []
+        else:
+            assert breaking == [
+                (
+                    "get_by_account return type changed a mapping key: "
+                    f"{cab._normalize_type_annotation(old_annotation)} "
+                    f"-> {cab._normalize_type_annotation(new_mapping)}",
+                    [function_id],
+                )
+            ]
+
+    @pytest.mark.parametrize("wrapper", ["{}", "list[{}]"])
+    @pytest.mark.parametrize("keep_compatible_arm", [False, True])
+    def test_aexpy_mapping_union_with_subclass_value(
+        self, cab, wrapper, keep_compatible_arm
+    ):
+        function_id = "alpaca.broker.client.BrokerClient.get_by_account"
+        base, sub = _ACCOUNT_EXTENDED_MRO[1], _ACCOUNT_EXTENDED_MRO[0]
+        old_annotation = f"typing.Mapping[{base}, {base}]"
+        if keep_compatible_arm:
+            old_annotation += f" | typing.Mapping[{sub}, {base}]"
+        new_annotation = f"typing.Mapping[{sub}, {sub}]"
+        old = {"functions": {function_id: _callable(wrapper.format(old_annotation))}}
+        new = {
+            "classes": _classes(_ACCOUNT_EXTENDED_MRO),
+            "functions": {function_id: _callable(wrapper.format(new_annotation))},
+        }
+        entries = [_change_return(function_id, rank=0)]
+
+        breaking, compatible = cab._compare_return_annotations(
+            old,
+            new,
+            already_reported=cab._reported_return_type_ids(entries),
+            aexpy_compatible=cab._aexpy_compatible_return_ids(entries),
+        )
+
+        assert compatible == []
+        if keep_compatible_arm:
+            assert breaking == []
+        else:
+            assert len(breaking) == 1
+            assert breaking[0][1] == [function_id]
+
+    def test_aexpy_compatible_mapping_value_is_not_duplicated(self, cab):
+        function_id = "alpaca.broker.client.BrokerClient.get_by_account"
+        old = {
+            "functions": {
+                function_id: _callable(
+                    "typing.Mapping[str, alpaca.broker.models.accounts.Account]"
+                )
+            }
+        }
+        new = {
+            "functions": {
+                function_id: _callable(
+                    "typing.Mapping[str, alpaca.broker.models.accounts.AccountExtended]"
+                )
+            }
+        }
+        entries = [_change_return(function_id, rank=0)]
+        assert cab._compare_return_annotations(
+            old,
+            new,
+            already_reported=cab._reported_return_type_ids(entries),
+            aexpy_compatible=cab._aexpy_compatible_return_ids(entries),
+        ) == ([], [])
+
+    def test_aexpy_compatible_callable_widening_is_not_overridden(self, cab):
+        """Parameter widening is compatible. The key veto must not reject it."""
+        function_id = "alpaca.data.live.stock.StockDataStream.get_handler"
+        old = {
+            "functions": {
+                function_id: _callable(
+                    "typing.Callable"
+                    "[[alpaca.broker.models.accounts.AccountExtended], None]"
+                )
+            }
+        }
+        new = {
+            "functions": {
+                function_id: _callable(
+                    "typing.Callable[[alpaca.broker.models.accounts.Account], None]"
+                )
+            }
+        }
+        entries = [_change_return(function_id, rank=0)]
+        assert cab._compare_return_annotations(
+            old,
+            new,
+            already_reported=cab._reported_return_type_ids(entries),
+            aexpy_compatible=cab._aexpy_compatible_return_ids(entries),
+        ) == ([], [])
+
+    def test_aexpy_breaking_mapping_key_is_not_duplicated(self, cab):
+        function_id = "alpaca.broker.client.BrokerClient.get_by_account"
+        old = {
+            "functions": {
+                function_id: _callable(
+                    "typing.Mapping[alpaca.broker.models.accounts.Account, str]"
+                )
+            }
+        }
+        new = {
+            "functions": {
+                function_id: _callable(
+                    "typing.Mapping["
+                    "alpaca.broker.models.accounts.AccountExtended, str]"
+                )
+            }
+        }
+        entries = [_change_return(function_id, rank=60)]
+        assert cab._aexpy_compatible_return_ids(entries) == set()
+        assert cab._compare_return_annotations(
+            old,
+            new,
+            already_reported=cab._reported_return_type_ids(entries),
+            aexpy_compatible=cab._aexpy_compatible_return_ids(entries),
+        ) == ([], [])

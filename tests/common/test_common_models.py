@@ -243,6 +243,43 @@ def test_missing_easy_to_borrow_follows_borrow_status():
         assert null_value.easy_to_borrow is True
 
 
+@pytest.mark.parametrize(
+    "field,value,default,message",
+    [
+        ("easy_to_borrow", True, False, "Use borrow_status instead"),
+        (
+            "maintenance_margin_requirement",
+            30.0,
+            None,
+            "Use margin_requirement_long or margin_requirement_short",
+        ),
+    ],
+)
+def test_asset_field_deprecations_preserve_round_trip(field, value, default, message):
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", DeprecationWarning)
+        asset = Asset.model_validate(_asset_payload(**{field: value}))
+        assert asset.model_dump(mode="json")[field] == value
+        assert (
+            Asset.model_validate_json(
+                asset.model_dump_json(by_alias=True)
+            ).model_dump()[field]
+            == value
+        )
+        omitted = Asset.model_validate(_asset_payload())
+        assert omitted.model_dump()[field] == default
+        schema = Asset.model_json_schema()["properties"][field]
+        assert schema["deprecated"] is True
+        assert schema["default"] == default
+
+    with pytest.warns(DeprecationWarning, match=message) as caught:
+        assert getattr(asset, field) == value
+    assert len(caught) == 1
+    assert caught[0].filename == __file__
+    with pytest.warns(DeprecationWarning, match=message):
+        assert getattr(omitted, field) == default
+
+
 def test_deprecated_asset_fields_warn_on_read():
     asset = Asset(
         **_asset_payload(

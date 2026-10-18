@@ -2,7 +2,6 @@ from alpaca.common.models import ModelWithID, ValidateBaseModel as BaseModel
 from uuid import UUID
 from datetime import datetime, date
 from typing import Any, Optional, List, Union, Dict
-from alpaca._deprecating_enum import _warn_at_user_code
 from alpaca.trading.enums import (
     AssetBorrowStatus,
     AssetClass,
@@ -33,20 +32,6 @@ from alpaca.trading.enums import (
     TradeEvent,
 )
 from pydantic import Field, model_validator
-
-# Read-time only. Asset responses still include these fields, so warning while
-# parsing would fire once per asset on get_all_assets.
-_DEPRECATED_ASSET_FIELDS = {
-    "easy_to_borrow": (
-        "Asset.easy_to_borrow is deprecated and will be removed in the next release. "
-        "Use borrow_status instead."
-    ),
-    "maintenance_margin_requirement": (
-        "Asset.maintenance_margin_requirement is deprecated and will be removed in the next release. "
-        "Use margin_requirement_long or margin_requirement_short instead. "
-        "Those fields are decimal strings."
-    ),
-}
 
 
 class Asset(ModelWithID):
@@ -90,12 +75,25 @@ class Asset(ModelWithID):
     tradable: bool
     marginable: bool
     shortable: bool
-    easy_to_borrow: bool = False
+    easy_to_borrow: bool = Field(
+        default=False,
+        deprecated=(
+            "Asset.easy_to_borrow is deprecated and will be removed in the next release. "
+            "Use borrow_status instead."
+        ),
+    )
     fractionable: bool
     min_order_size: Optional[float] = None
     min_trade_increment: Optional[float] = None
     price_increment: Optional[float] = None
-    maintenance_margin_requirement: Optional[float] = None
+    maintenance_margin_requirement: Optional[float] = Field(
+        default=None,
+        deprecated=(
+            "Asset.maintenance_margin_requirement is deprecated and will be removed in the next release. "
+            "Use margin_requirement_long or margin_requirement_short instead. "
+            "Those fields are decimal strings."
+        ),
+    )
     attributes: Optional[List[str]] = None
     borrow_status: Optional[AssetBorrowStatus] = None
     cusip: Optional[str] = None
@@ -117,12 +115,6 @@ class Asset(ModelWithID):
             data.get("borrow_status") == AssetBorrowStatus.EASY_TO_BORROW
         )
         return filled
-
-    def __getattribute__(self, name: str) -> Any:
-        message = _DEPRECATED_ASSET_FIELDS.get(name)
-        if message is not None:
-            _warn_at_user_code(message)
-        return super().__getattribute__(name)
 
 
 class USDPositionValues(BaseModel):

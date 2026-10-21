@@ -12,10 +12,10 @@ additionally compares:
   validation/serialization aliases) and defining target
 * public callable ``returnAnnotation`` strings when AexPy did not already report
   a resolved return-type change, and when AexPy ranked that change compatible
-  but a ``dict`` or ``Mapping`` key changed. A narrower return (fewer union
-  members, or a subclass of the old type), or a ``None`` return that gains a
-  value, is listed under ``--verbose`` and does not fail the check, except
-  dropping ``RawData`` (``dict[str, Any]``) or ``List[RawData]``
+  but a ``dict``, ``Mapping``, or ``MutableMapping`` key changed. A narrower
+  return (fewer union members, or a subclass of the old type), or a ``None``
+  return that gains a value, is listed under ``--verbose`` and does not fail the
+  check, except dropping ``RawData`` (``dict[str, Any]``) or ``List[RawData]``
   (``list[dict[str, Any]]``)
 
 Examples:

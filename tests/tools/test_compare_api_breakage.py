@@ -1413,6 +1413,7 @@ class TestCompareReturnAnnotations:
     def test_aexpy_compatible_mapping_key_narrowing_is_breaking(self, cab):
         mapping_id = "alpaca.broker.client.BrokerClient.get_by_account"
         nested_id = "alpaca.broker.client.BrokerClient.list_by_account"
+        mutable_id = "alpaca.broker.client.BrokerClient.get_mutable_by_account"
         old = {
             "functions": {
                 mapping_id: _callable(
@@ -1421,6 +1422,10 @@ class TestCompareReturnAnnotations:
                 nested_id: _callable(
                     "typing.List[typing.Dict["
                     "alpaca.broker.models.accounts.Account, str]]"
+                ),
+                mutable_id: _callable(
+                    "typing.MutableMapping["
+                    "alpaca.broker.models.accounts.Account, str]"
                 ),
             }
         }
@@ -1434,11 +1439,16 @@ class TestCompareReturnAnnotations:
                     "typing.List[typing.Dict["
                     "alpaca.broker.models.accounts.AccountExtended, str]]"
                 ),
+                mutable_id: _callable(
+                    "typing.MutableMapping["
+                    "alpaca.broker.models.accounts.AccountExtended, str]"
+                ),
             }
         }
         entries = [
             _change_return(mapping_id, rank=0),
             _change_return(nested_id, rank=0),
+            _change_return(mutable_id, rank=0),
         ]
         breaking, compatible = cab._compare_return_annotations(
             old,
@@ -1454,6 +1464,14 @@ class TestCompareReturnAnnotations:
                 "-> collections.abc.Mapping["
                 "alpaca.broker.models.accounts.AccountExtended, str]",
                 [mapping_id],
+            ),
+            (
+                "get_mutable_by_account return type changed a mapping key: "
+                "collections.abc.MutableMapping["
+                "alpaca.broker.models.accounts.Account, str] "
+                "-> collections.abc.MutableMapping["
+                "alpaca.broker.models.accounts.AccountExtended, str]",
+                [mutable_id],
             ),
             (
                 "list_by_account return type changed a mapping key: "

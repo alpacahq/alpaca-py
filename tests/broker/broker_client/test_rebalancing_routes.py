@@ -1,6 +1,7 @@
 from uuid import UUID
 
 import pytest
+from pydantic import ValidationError
 from requests_mock import Mocker
 
 from alpaca.broker.client import BrokerClient
@@ -1004,3 +1005,35 @@ def test_get_all_runs_none_empty_body_returns_empty_list(
 
     assert runs == []
     assert raw_runs == []
+
+
+# https://github.com/alpacahq/alpaca-py/pull/823#discussion_r4328504239
+# raw_data returns the body untouched, and only an empty body (``None``)
+# is coerced into an empty page for the model path.
+
+
+def test_get_subscriptions_none_raw_data_returns_non_dict_body(
+    reqmock: Mocker, raw_client: BrokerClient
+):
+    """raw_data=True returns the response body as the API sent it."""
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/rebalancing/subscriptions",
+        json=["unexpected", "list", "body"],
+    )
+
+    page = raw_client.get_subscriptions(handle_pagination=PaginationType.NONE)
+
+    assert page == ["unexpected", "list", "body"]
+
+
+def test_get_subscriptions_none_rejects_non_dict_body(
+    reqmock: Mocker, client: BrokerClient
+):
+    """A non-dict body is not an empty page under PaginationType.NONE."""
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/rebalancing/subscriptions",
+        json=["unexpected", "list", "body"],
+    )
+
+    with pytest.raises(ValidationError):
+        client.get_subscriptions(handle_pagination=PaginationType.NONE)

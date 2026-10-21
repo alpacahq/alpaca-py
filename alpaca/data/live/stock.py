@@ -8,6 +8,16 @@ from alpaca.data.models.bars import Bar
 from alpaca.data.models.quotes import Quote
 from alpaca.data.models.trades import Trade, TradeCancel, TradeCorrection, TradingStatus
 
+# Stream endpoint version per feed, as documented in
+# https://docs.alpaca.markets/us/docs/real-time-stock-pricing-data
+_FEED_VERSIONS = {
+    DataFeed.IEX: "v2",
+    DataFeed.SIP: "v2",
+    DataFeed.DELAYED_SIP: "v2",
+    DataFeed.BOATS: "v1beta1",
+    DataFeed.OVERNIGHT: "v1beta1",
+}
+
 
 class StockDataStream(DataStream):
     """
@@ -31,8 +41,8 @@ class StockDataStream(DataStream):
             api_key (str): Alpaca API key.
             secret_key (str): Alpaca API secret key.
             raw_data (bool, optional): Whether to return wrapped data or raw API data. Defaults to False.
-            feed (DataFeed, optional): Which market data feed to use; IEX or SIP.
-                Defaults to IEX. SIP requires a subscription.
+            feed (DataFeed, optional): Which market data feed to use; IEX, SIP, DELAYED_SIP,
+                BOATS or OVERNIGHT. Defaults to IEX. SIP requires a subscription.
             websocket_params (Optional[Dict], optional): Any parameters for configuring websocket connection. Defaults to None.
             url_override (Optional[str]): If specified allows you to override the base url the client
                 points to for proxy/testing. Defaults to None.
@@ -42,16 +52,18 @@ class StockDataStream(DataStream):
                 Pass a positive number of seconds to opt in for frequently-updated subscriptions.
 
         Raises:
-            ValueError: Only IEX or SIP market data feeds are supported
+            ValueError: Only IEX, SIP, DELAYED_SIP, BOATS or OVERNIGHT market data feeds are supported
         """
-        if feed not in (DataFeed.IEX, DataFeed.SIP):
-            raise ValueError("only IEX and SIP feeds ar supported")
+        if feed not in _FEED_VERSIONS:
+            raise ValueError(
+                "only IEX, SIP, DELAYED_SIP, BOATS and OVERNIGHT feeds are supported"
+            )
 
         super().__init__(
             endpoint=(
                 url_override
                 if url_override is not None
-                else BaseURL.MARKET_DATA_STREAM.value + "/v2/" + feed.value
+                else f"{BaseURL.MARKET_DATA_STREAM.value}/{_FEED_VERSIONS[feed]}/{feed.value}"
             ),
             api_key=api_key,
             secret_key=secret_key,

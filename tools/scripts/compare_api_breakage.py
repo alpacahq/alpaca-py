@@ -602,10 +602,20 @@ def _compare_models(old: dict, new: dict) -> tuple[Findings, Findings]:
                 breaking.setdefault(message, []).append(path)
                 continue
             new_field = new_fields[field_name]
-            if old_field.get("type") != new_field.get("type"):
+            old_type = old_field.get("type")
+            new_type = new_field.get("type")
+            # Union member order is not part of the type (Union[str, float] ==
+            # Union[float, str]); only a real change should be reported. The
+            # same normalizer return-annotation comparison uses also collapses
+            # typing-alias spelling differences (``typing.List`` vs ``list``),
+            # which the public-API dumper does not otherwise produce, but is
+            # harmless to apply here too.
+            if _normalize_type_annotation(str(old_type)) != _normalize_type_annotation(
+                str(new_type)
+            ):
                 message = (
                     f"{short_name}.{field_name} type changed: "
-                    f"{old_field.get('type')} -> {new_field.get('type')}"
+                    f"{old_type} -> {new_type}"
                 )
                 breaking.setdefault(message, []).append(path)
             old_required = bool(old_field.get("required"))

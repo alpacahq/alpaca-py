@@ -451,6 +451,40 @@ class TestCompareModels:
         breaking, _ = cab._compare_models(old, new)
         assert any("type changed" in msg for msg, _ in breaking)
 
+    def test_union_member_reorder_is_not_breaking(self, cab):
+        old = {
+            "models": {
+                "alpaca.trading.Order": self._model(
+                    "alpaca.trading.models.Order",
+                    {
+                        "qty": {
+                            "type": "Union[str, float, NoneType]",
+                            "required": False,
+                            "validation_aliases": [],
+                            "serialization_alias": None,
+                        },
+                    },
+                )
+            }
+        }
+        new = {
+            "models": {
+                "alpaca.trading.Order": self._model(
+                    "alpaca.trading.models.Order",
+                    {
+                        "qty": {
+                            "type": "Union[float, str, NoneType]",
+                            "required": False,
+                            "validation_aliases": [],
+                            "serialization_alias": None,
+                        },
+                    },
+                )
+            }
+        }
+        breaking, _ = cab._compare_models(old, new)
+        assert breaking == []
+
     def test_validation_alias_change_is_breaking(self, cab):
         old = {
             "models": {

@@ -6,8 +6,9 @@ import pytest
 from msgpack.ext import Timestamp
 
 from alpaca.common.utils import get_default_user_agent
-from alpaca.data.enums import Exchange
+from alpaca.data.enums import DataFeed, Exchange
 from alpaca.data.models import Bar, Trade, News
+from alpaca.data.live.stock import StockDataStream
 from alpaca.data.live.websocket import DataStream
 from alpaca.data.models import Bar, Trade
 from alpaca.data.models.news import News
@@ -299,3 +300,22 @@ async def test_dispatch(ws_client: DataStream, timestamp: Timestamp):
     assert len(articles_b) == 1
     assert len(articles_star) == 2
     assert articles_star[1].headline == "c"
+
+
+@pytest.mark.parametrize(
+    "feed, endpoint",
+    [
+        (DataFeed.IEX, "wss://stream.data.alpaca.markets/v2/iex"),
+        (DataFeed.SIP, "wss://stream.data.alpaca.markets/v2/sip"),
+        (DataFeed.DELAYED_SIP, "wss://stream.data.alpaca.markets/v2/delayed_sip"),
+        (DataFeed.BOATS, "wss://stream.data.alpaca.markets/v1beta1/boats"),
+        (DataFeed.OVERNIGHT, "wss://stream.data.alpaca.markets/v1beta1/overnight"),
+    ],
+)
+def test_stock_data_stream_feed_endpoint(feed: DataFeed, endpoint: str):
+    assert StockDataStream("key-id", "secret-key", feed=feed)._endpoint == endpoint
+
+
+def test_stock_data_stream_rejects_unsupported_feed():
+    with pytest.raises(ValueError):
+        StockDataStream("key-id", "secret-key", feed=DataFeed.OTC)

@@ -106,7 +106,25 @@ def test_get_announcements_warning_points_at_caller(
     assert caught[0].filename == __file__
 
 
-def test_get_announcement_by_id_is_deprecated():
-    assert TradingClient.get_corporate_announcement_by_id.__deprecated__.startswith(
-        "get_corporate_announcement_by_id is deprecated"
+def test_get_announcement_by_id_is_deprecated(reqmock, trading_client: TradingClient):
+    announcement_id = "be3c368a-4c7c-4384-808e-f02c9f5a8afe"
+    reqmock.get(
+        f"{BaseURL.TRADING_PAPER.value}/v2/corporate_actions/announcements/{announcement_id}",
+        json={
+            "id": announcement_id,
+            "corporate_action_id": "F58684224_XY37",
+            "ca_type": "dividend",
+            "ca_sub_type": "cash",
+            "initiating_symbol": "MLLAX",
+            "initiating_original_cusip": "55275E101",
+            "cash": "0.018",
+            "old_rate": "1",
+            "new_rate": "1",
+        },
     )
+
+    with pytest.deprecated_call(match="get_corporate_actions") as caught:
+        response = trading_client.get_corporate_announcement_by_id(announcement_id)
+
+    assert caught[0].filename == __file__
+    assert isinstance(response, CorporateActionAnnouncement)

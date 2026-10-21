@@ -20,7 +20,9 @@ from alpaca.broker.models import (
     Order,
     Portfolio,
     RebalancingRun,
+    RebalancingRunPage,
     Subscription,
+    SubscriptionPage,
     TradeAccount,
     TradeDocument,
     Transfer,
@@ -238,6 +240,22 @@ class BrokerClient(RESTClient):
                 break
 
             params["page_token"] = page_token
+
+    def _get_single_page(
+        self,
+        endpoint: str,
+        params: Dict[str, Any],
+        page_model: Type[BaseModel],
+    ) -> Union[BaseModel, RawData]:
+        """Return one response page, including its ``next_page_token``."""
+        response = self.get(endpoint, params)
+        if self._use_raw_data:
+            return response
+        # An empty body is ``None``; the page model treats that as no items.
+        # Any other non-dict body is left for validation to reject.
+        if response is None:
+            response = {}
+        return TypeAdapter(page_model).validate_python(response)
 
     # ############################## ACCOUNTS/TRADING ACCOUNTS ################################# #
 
@@ -2193,6 +2211,60 @@ class BrokerClient(RESTClient):
 
         return Subscription(**response)
 
+    def get_subscriptions(
+        self,
+        filter: Optional[GetSubscriptionsRequest] = None,
+        max_items_limit: Optional[int] = None,
+        handle_pagination: Optional[PaginationType] = None,
+    ) -> Union[
+        List[Subscription],
+        Iterator[List[Subscription]],
+        SubscriptionPage,
+        List[RawData],
+        Iterator[List[RawData]],
+        RawData,
+    ]:
+        """
+        Retrieves subscriptions based on the filter provided.
+
+        ref. https://docs.alpaca.markets/reference/get-v1-rebalancing-subscriptions-1
+
+        Args:
+            filter (Optional[GetSubscriptionsRequest]): Filter criteria to narrow down subscription list.
+              Set ``page_token`` to request the page after a ``SubscriptionPage``.
+            max_items_limit (Optional[int]): A maximum number of items to return over all for when handle_pagination is
+              of type `PaginationType.FULL`. Ignored otherwise.
+            handle_pagination (Optional[PaginationType]): What kind of pagination you want. If None then defaults to
+              `PaginationType.FULL`.
+
+        Returns:
+            Union[List[Subscription], Iterator[List[Subscription]], SubscriptionPage]:
+            Every subscription for ``PaginationType.FULL``, an iterator of pages
+            for ``PaginationType.ITERATOR``, or one ``SubscriptionPage``
+            (including ``next_page_token``) for ``PaginationType.NONE``.
+        """
+        handle_pagination = BrokerClient._validate_pagination(
+            max_items_limit, handle_pagination
+        )
+        params = filter.to_request_fields() if filter else {}
+
+        if handle_pagination == PaginationType.NONE:
+            return self._get_single_page(
+                "/rebalancing/subscriptions", params, SubscriptionPage
+            )
+
+        subscriptions_iterator = self._iterate_over_pages(
+            endpoint="/rebalancing/subscriptions",
+            params=params,
+            response_field="subscriptions",
+            base_model_type=Subscription,
+            max_items_limit=max_items_limit,
+        )
+
+        return BrokerClient._return_paginated_result(
+            subscriptions_iterator, handle_pagination
+        )
+
     def get_all_subscriptions(
         self,
         filter: Optional[GetSubscriptionsRequest] = None,
@@ -2200,6 +2272,11 @@ class BrokerClient(RESTClient):
         handle_pagination: Optional[PaginationType] = None,
     ) -> Union[List[Subscription], List[RawData]]:
         """
+        DEPRECATED:
+            get_all_subscriptions is deprecated and will be removed in a future version.
+            Please use `get_subscriptions()` instead. With `PaginationType.NONE` it
+            returns a `SubscriptionPage` that includes `next_page_token`.
+
         Retrieves all subscriptions based on the filter provided.
 
         ref. https://docs.alpaca.markets/reference/get-v1-rebalancing-subscriptions-1
@@ -2214,22 +2291,21 @@ class BrokerClient(RESTClient):
         Returns:
             List[Subscription]: List of subscriptions.
         """
-        handle_pagination = BrokerClient._validate_pagination(
-            max_items_limit, handle_pagination
-        )
-        params = filter.to_request_fields() if filter else {}
-
-        subscriptions_iterator = self._iterate_over_pages(
-            endpoint="/rebalancing/subscriptions",
-            params=params,
-            response_field="subscriptions",
-            base_model_type=Subscription,
-            max_items_limit=max_items_limit,
+        warnings.warn(
+            "get_all_subscriptions is deprecated and will be removed in a future version. "
+            "Please use `get_subscriptions()` instead",
+            DeprecationWarning,
+            stacklevel=2,
         )
 
-        return BrokerClient._return_paginated_result(
-            subscriptions_iterator, handle_pagination
-        )
+        result = self.get_subscriptions(filter, max_items_limit, handle_pagination)
+        if handle_pagination != PaginationType.NONE:
+            return result
+        # Released behavior: one page is returned as its item list, without the token.
+        if self._use_raw_data:
+            items = result.get("subscriptions") if isinstance(result, dict) else None
+            return items if isinstance(items, list) else []
+        return result.subscriptions
 
     def get_subscription_by_id(
         self, subscription_id: Union[UUID, str]
@@ -2287,6 +2363,58 @@ class BrokerClient(RESTClient):
 
         return RebalancingRun(**response)
 
+    def get_runs(
+        self,
+        filter: Optional[GetRunsRequest] = None,
+        max_items_limit: Optional[int] = None,
+        handle_pagination: Optional[PaginationType] = None,
+    ) -> Union[
+        List[RebalancingRun],
+        Iterator[List[RebalancingRun]],
+        RebalancingRunPage,
+        List[RawData],
+        Iterator[List[RawData]],
+        RawData,
+    ]:
+        """
+        Get rebalancing runs.
+
+        ref. https://docs.alpaca.markets/reference/get-v1-rebalancing-runs
+
+        Args:
+            filter (Optional[GetRunsRequest]): Filter criteria to narrow down run list.
+              Set ``page_token`` to request the page after a ``RebalancingRunPage``.
+            max_items_limit (Optional[int]): A maximum number of items to return over all for when handle_pagination is
+              of type `PaginationType.FULL`. Ignored otherwise.
+            handle_pagination (Optional[PaginationType]): What kind of pagination you want. If None then defaults to
+              `PaginationType.FULL`.
+
+        Returns:
+            Union[List[RebalancingRun], Iterator[List[RebalancingRun]], RebalancingRunPage]:
+            Every run for ``PaginationType.FULL``, an iterator of pages for
+            ``PaginationType.ITERATOR``, or one ``RebalancingRunPage``
+            (including ``next_page_token``) for ``PaginationType.NONE``.
+        """
+        handle_pagination = BrokerClient._validate_pagination(
+            max_items_limit, handle_pagination
+        )
+        params = filter.to_request_fields() if filter else {}
+
+        if handle_pagination == PaginationType.NONE:
+            return self._get_single_page(
+                "/rebalancing/runs", params, RebalancingRunPage
+            )
+
+        runs_iterator = self._iterate_over_pages(
+            endpoint="/rebalancing/runs",
+            params=params,
+            response_field="runs",
+            base_model_type=RebalancingRun,
+            max_items_limit=max_items_limit,
+        )
+
+        return BrokerClient._return_paginated_result(runs_iterator, handle_pagination)
+
     def get_all_runs(
         self,
         filter: Optional[GetRunsRequest] = None,
@@ -2294,6 +2422,11 @@ class BrokerClient(RESTClient):
         handle_pagination: Optional[PaginationType] = None,
     ) -> Union[List[RebalancingRun], List[RawData]]:
         """
+        DEPRECATED:
+            get_all_runs is deprecated and will be removed in a future version.
+            Please use `get_runs()` instead. With `PaginationType.NONE` it returns
+            a `RebalancingRunPage` that includes `next_page_token`.
+
         Get all runs.
 
         Args:
@@ -2306,20 +2439,21 @@ class BrokerClient(RESTClient):
         Returns:
             List[RebalancingRun]: List of rebalancing runs.
         """
-        handle_pagination = BrokerClient._validate_pagination(
-            max_items_limit, handle_pagination
-        )
-        params = filter.to_request_fields() if filter else {}
-
-        runs_iterator = self._iterate_over_pages(
-            endpoint="/rebalancing/runs",
-            params=params,
-            response_field="runs",
-            base_model_type=RebalancingRun,
-            max_items_limit=max_items_limit,
+        warnings.warn(
+            "get_all_runs is deprecated and will be removed in a future version. "
+            "Please use `get_runs()` instead",
+            DeprecationWarning,
+            stacklevel=2,
         )
 
-        return BrokerClient._return_paginated_result(runs_iterator, handle_pagination)
+        result = self.get_runs(filter, max_items_limit, handle_pagination)
+        if handle_pagination != PaginationType.NONE:
+            return result
+        # Released behavior: one page is returned as its item list, without the token.
+        if self._use_raw_data:
+            items = result.get("runs") if isinstance(result, dict) else None
+            return items if isinstance(items, list) else []
+        return result.runs
 
     def get_run_by_id(self, run_id: Union[UUID, str]) -> Union[RebalancingRun, RawData]:
         """

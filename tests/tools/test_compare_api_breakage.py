@@ -1576,6 +1576,31 @@ class TestCompareReturnAnnotations:
                 )
             ]
 
+    def test_aexpy_mapping_key_matches_object_value_arm(self, cab):
+        """An ``object``-valued old union arm accepts the narrowed new value.
+
+        ``Mapping[Base, str] | Mapping[Sub, object]`` -> ``Mapping[Sub, str]``
+        fits the second old arm: the key matches and ``object`` accepts any
+        narrowed value. The mapping-key veto must not treat ``str`` vs.
+        ``object`` as an unrelated mismatch and report a break from the first
+        (non-matching) arm instead.
+        """
+        function_id = "alpaca.broker.client.BrokerClient.get_by_account"
+        old_annotation = "typing.Mapping[Base, str] | typing.Mapping[Sub, object]"
+        new_annotation = "typing.Mapping[Sub, str]"
+        old = {"functions": {function_id: _callable(old_annotation)}}
+        new = {"functions": {function_id: _callable(new_annotation)}}
+        entries = [_change_return(function_id, rank=0)]
+
+        breaking, compatible = cab._compare_return_annotations(
+            old,
+            new,
+            already_reported=cab._reported_return_type_ids(entries),
+            aexpy_compatible=cab._aexpy_compatible_return_ids(entries),
+        )
+
+        assert breaking == []
+
     @pytest.mark.parametrize("wrapper", ["{}", "list[{}]"])
     @pytest.mark.parametrize("keep_compatible_arm", [False, True])
     def test_aexpy_mapping_union_with_subclass_value(

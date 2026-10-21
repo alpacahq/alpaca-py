@@ -1141,8 +1141,16 @@ def _key_relation(new: str, old: str, ancestry: dict[str, set[str]]) -> str:
     AexPy 0.4.3 compares every generic argument covariantly, including these
     keys. This walk only looks for that disagreement. Callable parameter
     widening and other caller-safe changes stay ``ok`` or ``unrelated``.
+
+    An ``old`` branch of ``Any``/``object`` matches here at any depth, not
+    just the top level like ``_TOP_TYPES`` elsewhere: a mapping value typed
+    ``object`` already accepted anything, so no key disagreement can hide
+    behind it. The RawData veto this skips for the overall annotation is
+    checked separately by ``_annotation_drops_raw_data``.
     """
     if new == old or old in ancestry.get(new, ()):
+        return "ok"
+    if old in _TOP_TYPES:
         return "ok"
     new_params = _bracket_items(new)
     old_params = _bracket_items(old)

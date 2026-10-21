@@ -249,10 +249,12 @@ class BrokerClient(RESTClient):
     ) -> Union[BaseModel, RawData]:
         """Return one response page, including its ``next_page_token``."""
         response = self.get(endpoint, params)
-        if not isinstance(response, dict):
-            response = {}
         if self._use_raw_data:
             return response
+        # An empty body is ``None``; the page model treats that as no items.
+        # Any other non-dict body is left for validation to reject.
+        if response is None:
+            response = {}
         return TypeAdapter(page_model).validate_python(response)
 
     # ############################## ACCOUNTS/TRADING ACCOUNTS ################################# #
@@ -2334,7 +2336,7 @@ class BrokerClient(RESTClient):
             return result
         # Released behavior: one page is returned as its item list, without the token.
         if self._use_raw_data:
-            items = result.get("subscriptions")
+            items = result.get("subscriptions") if isinstance(result, dict) else None
             return items if isinstance(items, list) else []
         return result.subscriptions
 
@@ -2479,7 +2481,7 @@ class BrokerClient(RESTClient):
             return result
         # Released behavior: one page is returned as its item list, without the token.
         if self._use_raw_data:
-            items = result.get("runs")
+            items = result.get("runs") if isinstance(result, dict) else None
             return items if isinstance(items, list) else []
         return result.runs
 

@@ -11,9 +11,13 @@ additionally compares:
 * every publicly exported Pydantic model's field contract (type, requiredness,
   validation/serialization aliases) and defining target
 * public callable ``returnAnnotation`` strings when AexPy did not already report
-  a resolved return-type change. A narrower return is reported and does not
-  fail the check, except dropping ``RawData`` (``dict[str, Any]``) or
-  ``List[RawData]`` (``list[dict[str, Any]]``)
+  a resolved return-type change, and when AexPy ranked that change compatible
+  but a ``dict``, ``Mapping``, or ``MutableMapping`` key changed or a ``RawData``
+  / ``List[RawData]`` member was dropped. A narrower return (fewer union
+  members, or a subclass of the old type), or a ``None`` return that gains a
+  value, is listed under ``--verbose`` and does not fail the check, except
+  dropping ``RawData`` (``dict[str, Any]``) or ``List[RawData]``
+  (``list[dict[str, Any]]``)
 
 Examples:
   tools/scripts/compare_api_breakage.py
@@ -43,6 +47,10 @@ PACKAGE_NAME = "alpaca-py"
 TOP_MODULE = "alpaca"
 AEXPY_VERSION = "0.4.3"
 TOP_BREAKING_LIMIT = 20
+# AexPy ranks these as breaking only because a subclass overriding the method
+# with the old signature would reject the new argument. Callers are unaffected,
+# and SDK clients are used rather than subclassed, so they count as compatible.
+CALLER_COMPATIBLE_KINDS = frozenset({"AddOptionalParameter"})
 
 # Runs inside the comparison venv with one alpaca-py wheel installed. Emits, for
 # every public import path that exposes an SDK enum or Pydantic model, the target
@@ -335,9 +343,7 @@ def _resolve_ref(git: str, ref: str, *, verbose: bool = True) -> str:
     return sha
 
 
-def _build_ref_wheel(
-    ref: str, cache_root: Path, *, verbose: bool = True
-) -> Path:
+def _build_ref_wheel(ref: str, cache_root: Path, *, verbose: bool = True) -> Path:
     """Build (and cache) a wheel from an arbitrary git ref via a throwaway worktree.
 
     The wheel is cached under ``cache_root/<sha>`` so repeated iterations against a
@@ -707,7 +713,8 @@ def _canonicalize_annotation_name(name: str) -> str:
     return name
 
 
-def _split_top_level_union(text: str) -> list[str]:
+def _split_top_level(text: str, separator: str) -> list[str]:
+    """Split on ``separator`` outside any ``[...]`` nesting."""
     parts: list[str] = []
     depth = 0
     start = 0
@@ -716,11 +723,15 @@ def _split_top_level_union(text: str) -> list[str]:
             depth += 1
         elif char == "]":
             depth = max(0, depth - 1)
-        elif char == "|" and depth == 0:
+        elif char == separator and depth == 0:
             parts.append(text[start:index].strip())
             start = index + 1
     parts.append(text[start:].strip())
     return [part for part in parts if part]
+
+
+def _split_top_level_union(text: str) -> list[str]:
+    return _split_top_level(text, "|")
 
 
 def _union_of(parts: list[str]) -> str:
@@ -896,23 +907,46 @@ def _function_index(api: dict) -> dict[str, dict]:
     return indexed
 
 
+def _change_return_ids(entry: dict) -> list[str]:
+    """Function ids named by one AexPy ``ChangeReturnType`` entry."""
+    kind = entry.get("kind") or ""
+    message = entry.get("message") or ""
+    if kind != "ChangeReturnType" and not message.startswith("Change return type ("):
+        return []
+    ids: list[str] = []
+    for side in ("old", "new"):
+        payload = entry.get(side)
+        if isinstance(payload, dict) and isinstance(payload.get("id"), str):
+            ids.append(payload["id"])
+    if message.startswith("Change return type (") and "):" in message:
+        ids.append(message.split("(", 1)[1].split("):", 1)[0])
+    return ids
+
+
 def _reported_return_type_ids(entries: list[dict]) -> set[str]:
     """Function ids whose return type AexPy already resolved and diffed."""
     reported: set[str] = set()
     for entry in entries:
-        kind = entry.get("kind") or ""
-        message = entry.get("message") or ""
-        if kind != "ChangeReturnType" and not message.startswith(
-            "Change return type ("
-        ):
-            continue
-        for side in ("old", "new"):
-            payload = entry.get(side)
-            if isinstance(payload, dict) and isinstance(payload.get("id"), str):
-                reported.add(payload["id"])
-        if message.startswith("Change return type (") and "):" in message:
-            reported.add(message.split("(", 1)[1].split("):", 1)[0])
+        reported.update(_change_return_ids(entry))
     return reported
+
+
+def _aexpy_compatible_return_ids(entries: list[dict]) -> set[str]:
+    """ChangeReturnType ids AexPy explicitly ranked compatible (rank 0).
+
+    A missing rank is not compatible: the annotation check then stays out of
+    the way, which is what an entry without a rank used to mean. An id that
+    also appears in a rank above 0 is already failing the build.
+    """
+    grouped: dict[str, list[dict]] = {}
+    for entry in entries:
+        for api_id in _change_return_ids(entry):
+            grouped.setdefault(api_id, []).append(entry)
+    return {
+        api_id
+        for api_id, group in grouped.items()
+        if group and all("rank" in entry and _rank_value(entry) == 0 for entry in group)
+    }
 
 
 def _drops_raw_data(old_members: set[str], new_members: set[str]) -> bool:
@@ -921,12 +955,305 @@ def _drops_raw_data(old_members: set[str], new_members: set[str]) -> bool:
     return bool(removed.intersection({_RAW_DATA_ANNOTATION, _RAW_DATA_LIST_ANNOTATION}))
 
 
+def _class_ancestry(api: dict) -> dict[str, set[str]]:
+    """Map each extracted class id to its AexPy MRO ids (itself included)."""
+    classes = api.get("classes") or {}
+    entries = classes.values() if isinstance(classes, dict) else classes
+    ancestry: dict[str, set[str]] = {}
+    for entry in entries:
+        if not isinstance(entry, dict) or not isinstance(entry.get("id"), str):
+            continue
+        mros = entry.get("mros") or []
+        ancestry[entry["id"]] = {entry["id"], *(m for m in mros if isinstance(m, str))}
+    return ancestry
+
+
+def _split_generic(member: str) -> tuple[str, list[str]] | None:
+    """``list[a.B]`` -> ``("list", ["a.B"])``; ``None`` for a non-generic member."""
+    bracket = member.find("[")
+    if bracket <= 0 or not member.endswith("]"):
+        return None
+    return member[:bracket], _split_top_level(member[bracket + 1 : -1], ",")
+
+
+def _annotation_drops_raw_data(new: str, old: str) -> bool:
+    """True when ``new`` removes a ``RawData`` or ``List[RawData]`` ``old`` had.
+
+    Checked at every union, including inside a generic argument, so a resolved
+    return AexPy ranked compatible still fails when ``raw_data=True`` stopped
+    being honored. Members sharing a generic origin (e.g. two ``list[...]``
+    arms) are merged position-wise rather than matched one-to-one, so a group
+    with more than one member on either side still catches a dropped
+    ``RawData`` branch instead of being skipped outright. This is not the
+    full narrowing check, which would also reject callable-parameter changes
+    AexPy correctly accepts.
+    """
+    old_members = _split_top_level_union(old)
+    new_members = _split_top_level_union(new)
+    if _drops_raw_data(set(old_members), set(new_members)):
+        return True
+    if len(old_members) == 1 and len(new_members) == 1:
+        return _generic_args_drop_raw_data(new_members[0], old_members[0])
+    old_by_origin: dict[str, list[tuple[str, list[str]]]] = {}
+    new_by_origin: dict[str, list[tuple[str, list[str]]]] = {}
+    for member in old_members:
+        generic = _split_generic(member)
+        if generic is not None:
+            old_by_origin.setdefault(generic[0], []).append(generic)
+    for member in new_members:
+        generic = _split_generic(member)
+        if generic is not None:
+            new_by_origin.setdefault(generic[0], []).append(generic)
+    for origin, old_group in old_by_origin.items():
+        new_group = new_by_origin.get(origin)
+        if new_group and _generic_group_drops_raw_data(new_group, old_group):
+            return True
+    return False
+
+
+def _generic_args_drop_raw_data(new: str, old: str) -> bool:
+    new_generic = _split_generic(new)
+    old_generic = _split_generic(old)
+    if (
+        new_generic is None
+        or old_generic is None
+        or new_generic[0] != old_generic[0]
+        or len(new_generic[1]) != len(old_generic[1])
+    ):
+        return False
+    return any(
+        _annotation_drops_raw_data(new_arg, old_arg)
+        for new_arg, old_arg in zip(new_generic[1], old_generic[1])
+    )
+
+
+def _generic_group_drops_raw_data(
+    new_group: list[tuple[str, list[str]]], old_group: list[tuple[str, list[str]]]
+) -> bool:
+    """True when a shared-origin member group loses a ``RawData`` branch.
+
+    ``list[Model | dict[str, Any]] | list[int]`` narrowing to
+    ``list[Model] | list[int]`` puts two members in the ``list`` group on
+    each side, so no single old/new pair lines up one-to-one. Merging each
+    argument position across the whole group -- instead of requiring exactly
+    one member per side -- still finds the dropped ``dict[str, Any]`` arm:
+    position 0 becomes ``Model | dict[str, Any] | int`` on the old side and
+    ``Model | int`` on the new side, and that union lost ``dict[str, Any]``.
+    Groups whose members disagree on arity (e.g. mixed-length ``tuple``
+    members sharing the ``tuple`` origin) are left alone; merging positions
+    there would pair unrelated arguments.
+    """
+    arity = len(old_group[0][1])
+    if any(len(args) != arity for _, args in old_group) or any(
+        len(args) != arity for _, args in new_group
+    ):
+        return False
+    for position in range(arity):
+        old_arg = _union_of([args[position] for _, args in old_group])
+        new_arg = _union_of([args[position] for _, args in new_group])
+        if _annotation_drops_raw_data(new_arg, old_arg):
+            return True
+    return False
+
+
+# Generics whose arguments only flow out to a caller reading an SDK result,
+# so ``list[Sub]`` narrows ``list[Base]``. Mutable containers are invariant to
+# a type checker, but callers read these results rather than writing base
+# instances back. Callable parameters and Generator/Coroutine send types flow
+# in (contravariant), so anything not listed needs an exact match.
+# ``dict`` and ``Mapping`` are included for their values only. Their keys are
+# invariant: callers look values up with ``result[key]``, and a narrower key
+# rejects keys the old return type accepted. See ``_MAPPING_GENERICS``.
+_COVARIANT_GENERICS = frozenset(
+    {
+        "list",
+        "tuple",
+        "set",
+        "frozenset",
+        "dict",
+        "type",
+        "collections.abc.Iterable",
+        "collections.abc.Iterator",
+        "collections.abc.Sequence",
+        "collections.abc.Mapping",
+        "collections.abc.AsyncIterable",
+        "collections.abc.AsyncIterator",
+        "collections.abc.Awaitable",
+    }
+)
+# Key parameter is invariant; the value parameter may narrow.
+# ``MutableMapping`` is not in ``_COVARIANT_GENERICS``, so the annotation
+# fallback already rejects every change to it. AexPy still compares its
+# arguments covariantly when mypy resolves the return, so the veto below
+# includes it.
+_MAPPING_GENERICS = frozenset({"dict", "collections.abc.Mapping"})
+_INVARIANT_KEY_GENERICS = _MAPPING_GENERICS | {"collections.abc.MutableMapping"}
+# A top-level ``Any`` or ``object`` return accepts any narrower type. Only the
+# top level: inside ``dict[str, Any]`` that would hide a RawData change.
+_TOP_TYPES = frozenset({"Any", "object"})
+
+
+def _mapping_key_differs(new_args: list[str], old_args: list[str]) -> bool:
+    """Mapping keys are invariant: ``result[old_key]`` must still type-check."""
+    return len(new_args) != 2 or new_args[0] != old_args[0]
+
+
+def _is_subtype(new: str, old: str, ancestry: dict[str, set[str]]) -> bool:
+    """True when every value of normalized type ``new`` is also an ``old``.
+
+    Classes follow the new wheel's MRO. Arguments of ``_COVARIANT_GENERICS``
+    are compared covariantly, except mapping keys, which must match exactly.
+    Any other generic needs an exact match.
+    """
+    if new == old:
+        return True
+    new_generic = _split_generic(new)
+    old_generic = _split_generic(old)
+    if new_generic is None and old_generic is None:
+        return old in ancestry.get(new, ())
+    if new_generic is None or old_generic is None:
+        return False
+    (new_origin, new_args), (old_origin, old_args) = new_generic, old_generic
+    if (
+        new_origin != old_origin
+        or new_origin not in _COVARIANT_GENERICS
+        or len(new_args) != len(old_args)
+    ):
+        return False
+    if new_origin in _MAPPING_GENERICS:
+        if _mapping_key_differs(new_args, old_args):
+            return False
+        return _union_narrows(new_args[1], old_args[1], ancestry)
+    return all(
+        _union_narrows(new_arg, old_arg, ancestry)
+        for new_arg, old_arg in zip(new_args, old_args)
+    )
+
+
+def _union_narrows(new: str, old: str, ancestry: dict[str, set[str]]) -> bool:
+    """True when ``new`` narrows ``old`` without dropping a RawData branch.
+
+    The RawData guard applies at every union level, so dropping the raw branch
+    inside a generic (``Iterator[List[RawData] | List[Model]]`` ->
+    ``Iterator[List[Model]]``) is not a narrowing either.
+    """
+    old_members = _split_top_level_union(old)
+    new_members = _split_top_level_union(new)
+    if _drops_raw_data(set(old_members), set(new_members)):
+        return False
+    return all(
+        any(_is_subtype(member, old_member, ancestry) for old_member in old_members)
+        for member in new_members
+    )
+
+
+def _bracket_items(text: str) -> list[str] | None:
+    """``[int, str]`` -> ``["int", "str"]``; None when ``text`` is not a list."""
+    if len(text) < 2 or not text.startswith("[") or not text.endswith("]"):
+        return None
+    inner = text[1:-1].strip()
+    if not inner:
+        return []
+    return _split_top_level(inner, ",")
+
+
+def _key_relation(new: str, old: str, ancestry: dict[str, set[str]]) -> str:
+    """How ``new`` relates to ``old`` for mapping-key invariance.
+
+    ``ok``: same keys along the shared generic spine, including subclass values.
+    ``break``: a ``dict`` / ``Mapping`` / ``MutableMapping`` key differs.
+    ``unrelated``: no shared spine, so this pair cannot explain a union arm.
+
+    AexPy 0.4.3 compares every generic argument covariantly, including these
+    keys. This walk only looks for that disagreement. Callable parameter
+    widening and other caller-safe changes stay ``ok`` or ``unrelated``.
+
+    An ``old`` branch of ``Any``/``object`` matches here at any depth, not
+    just the top level like ``_TOP_TYPES`` elsewhere: a mapping value typed
+    ``object`` already accepted anything, so no key disagreement can hide
+    behind it. The RawData veto this skips for the overall annotation is
+    checked separately by ``_annotation_drops_raw_data``.
+    """
+    if new == old or old in ancestry.get(new, ()):
+        return "ok"
+    if old in _TOP_TYPES:
+        return "ok"
+    new_params = _bracket_items(new)
+    old_params = _bracket_items(old)
+    if new_params is not None or old_params is not None:
+        if (
+            new_params is None
+            or old_params is None
+            or len(new_params) != len(old_params)
+        ):
+            return "unrelated"
+        relations = [
+            _key_relation(item, other, ancestry)
+            for item, other in zip(new_params, old_params)
+        ]
+        if any(relation == "break" for relation in relations):
+            return "break"
+        if "unrelated" in relations:
+            return "unrelated"
+        return "ok"
+    new_members = _split_top_level_union(new)
+    old_members = _split_top_level_union(old)
+    if len(new_members) != 1 or len(old_members) != 1:
+        saw_break = False
+        saw_unrelated = False
+        for new_member in new_members:
+            relations = [
+                _key_relation(new_member, old_member, ancestry)
+                for old_member in old_members
+            ]
+            if "ok" in relations:
+                continue
+            if "break" in relations:
+                saw_break = True
+            else:
+                saw_unrelated = True
+        if saw_break:
+            return "break"
+        return "unrelated" if saw_unrelated else "ok"
+    new_generic = _split_generic(new)
+    old_generic = _split_generic(old)
+    if (
+        new_generic is None
+        or old_generic is None
+        or new_generic[0] != old_generic[0]
+        or len(new_generic[1]) != len(old_generic[1])
+    ):
+        return "unrelated"
+    origin, new_args = new_generic
+    old_args = old_generic[1]
+    if origin in _INVARIANT_KEY_GENERICS:
+        if _mapping_key_differs(new_args, old_args):
+            return "break"
+        return _key_relation(new_args[1], old_args[1], ancestry)
+    relations = [
+        _key_relation(arg, other, ancestry) for arg, other in zip(new_args, old_args)
+    ]
+    if any(relation == "break" for relation in relations):
+        return "break"
+    # Sharing an outer container does not make unrelated arguments a valid
+    # union match: list[int] cannot explain list[Mapping[Sub, str]].
+    if "unrelated" in relations:
+        return "unrelated"
+    return "ok"
+
+
+def _mapping_key_breaks(new: str, old: str, ancestry: dict[str, set[str]]) -> bool:
+    """True when a mapping key changed inside an otherwise compatible return."""
+    return _key_relation(new, old, ancestry) == "break"
+
+
 def _compare_return_annotations(
     old_api: dict,
     new_api: dict,
     already_reported: set[str] | None = None,
+    aexpy_compatible: set[str] | None = None,
 ) -> tuple[Findings, Findings]:
-    """Return ``(breaking, narrowed)`` public return-annotation changes.
+    """Return ``(breaking, compatible)`` public return-annotation changes.
 
     AexPy only emits ``ChangeReturnType`` when mypy filled ``returnType`` on
     both sides. Unions that include ``dict[str, Any]`` stay null, so the
@@ -934,21 +1261,43 @@ def _compare_return_annotations(
     the baseline had none is left alone. Spellings that normalize to the same
     type are not changes.
 
+    A resolved change AexPy ranked breaking is left to AexPy. A resolved
+    change it ranked compatible is left alone too, except for two vetoes:
+    a mapping key changed (AexPy 0.4.3 compares that key covariantly, and
+    ``result[old_key]`` then fails to type-check), or a ``RawData`` /
+    ``List[RawData]`` member was dropped, including inside a generic. The full
+    annotation check is not re-run for those ids. That check rejects
+    callable-parameter changes AexPy correctly treats as compatible.
+
     A narrower return is compatible for callers: AexPy 0.4.3 ranks that
     covariance ``Compatible`` in ``ChangeReturnType``. Those are reported as
-    narrowed and do not fail the check. Dropping ``dict[str, Any]``
+    compatible and do not fail the check. Narrower means every new union member
+    is an old member or a subclass of one, also inside covariant generic
+    arguments (``list[Account]`` -> ``list[AccountExtended]``), or the old
+    return was a top-level ``Any``/``object``. ``dict`` and ``Mapping`` keys
+    are compared exactly (``Mapping[Base, V]`` -> ``Mapping[Sub, V]`` is
+    breaking); only their values may narrow. Dropping ``dict[str, Any]``
     (``RawData``) or ``list[dict[str, Any]]`` (``List[RawData]``) stays
-    breaking, because in this SDK it means ``raw_data=True`` stopped being
-    honored.
+    breaking at any nesting level (``Iterator[List[RawData] | ...]``), because
+    in this SDK it means ``raw_data=True`` stopped being honored.
+
+    A ``None`` return that gains a value is also compatible. Type checkers
+    reject using the result of a ``None`` return, so callers could only
+    discard it.
     """
     reported = already_reported or set()
+    compatible_resolved = reported & (aexpy_compatible or set())
+    ancestry = _class_ancestry(new_api)
     old_functions = _function_index(old_api)
     new_functions = _function_index(new_api)
     breaking: dict[str, list[str]] = {}
-    narrowed: dict[str, list[str]] = {}
+    compatible: dict[str, list[str]] = {}
 
     for api_id in sorted(set(old_functions) & set(new_functions)):
-        if api_id in reported or not _is_public_callable_id(api_id):
+        if not _is_public_callable_id(api_id):
+            continue
+        # Rank > 0 is already failing. Rank 0 still needs the vetoes below.
+        if api_id in reported and api_id not in compatible_resolved:
             continue
         old_entry = old_functions[api_id]
         new_entry = new_functions[api_id]
@@ -960,6 +1309,23 @@ def _compare_return_annotations(
         new_annotation = new_entry.get("returnAnnotation") or ""
         old_normalized = _normalize_type_annotation(str(old_annotation))
         new_normalized = _normalize_type_annotation(str(new_annotation))
+        if api_id in compatible_resolved:
+            if old_normalized == new_normalized:
+                continue
+            short_name = api_id.rsplit(".", 1)[-1]
+            if _annotation_drops_raw_data(new_normalized, old_normalized):
+                message = (
+                    f"{short_name} return type dropped RawData: "
+                    f"{old_normalized} -> {new_normalized}"
+                )
+                breaking.setdefault(message, []).append(api_id)
+            elif _mapping_key_breaks(new_normalized, old_normalized, ancestry):
+                message = (
+                    f"{short_name} return type changed a mapping key: "
+                    f"{old_normalized} -> {new_normalized}"
+                )
+                breaking.setdefault(message, []).append(api_id)
+            continue
         if old_normalized == new_normalized:
             continue
         old_members = set(_split_top_level_union(old_normalized))
@@ -968,23 +1334,33 @@ def _compare_return_annotations(
         if new_members and new_members == old_members:
             continue
         short_name = api_id.rsplit(".", 1)[-1]
+        if old_normalized == "None" and new_members:
+            message = (
+                f"{short_name} return type gained a value: "
+                f"{old_normalized} -> {new_normalized}"
+            )
+            compatible.setdefault(message, []).append(api_id)
+            continue
         # An empty new annotation is not a narrowing: the return became untyped.
         if (
             new_members
-            and new_members < old_members
+            and (
+                old_members & _TOP_TYPES
+                or _union_narrows(new_normalized, old_normalized, ancestry)
+            )
             and not _drops_raw_data(old_members, new_members)
         ):
             message = (
                 f"{short_name} return type narrowed: "
                 f"{old_normalized} -> {new_normalized}"
             )
-            narrowed.setdefault(message, []).append(api_id)
+            compatible.setdefault(message, []).append(api_id)
             continue
         shown_new = new_normalized or "<unannotated>"
         message = f"{short_name} return type changed: {old_normalized} -> {shown_new}"
         breaking.setdefault(message, []).append(api_id)
 
-    return _sorted_findings(breaking), _sorted_findings(narrowed)
+    return _sorted_findings(breaking), _sorted_findings(compatible)
 
 
 def _rank_value(entry: dict) -> int:
@@ -995,6 +1371,14 @@ def _rank_value(entry: dict) -> int:
         return int(rank)
     except (TypeError, ValueError):
         return 0
+
+
+def _is_caller_compatible(entry: dict) -> bool:
+    return entry.get("kind") in CALLER_COMPATIBLE_KINDS and _rank_value(entry) > 0
+
+
+def _effective_rank(entry: dict) -> int:
+    return 0 if _is_caller_compatible(entry) else _rank_value(entry)
 
 
 def _change_entries(changes_json: Path) -> list[dict]:
@@ -1009,7 +1393,7 @@ def _summarize_changes(changes_json: Path) -> tuple[int, int, int]:
     """Return (breaking, compatible, unknown) counts using AexPy ranks."""
     breaking = compatible = unknown = 0
     for entry in _change_entries(changes_json):
-        rank = _rank_value(entry)
+        rank = _effective_rank(entry)
         if rank > 0:
             breaking += 1
         elif rank == 0:
@@ -1033,12 +1417,23 @@ def _top_breaking_entries(
     breaking = [
         {"rank": _rank_value(entry), "message": _entry_message(entry)}
         for entry in _change_entries(changes_json)
-        if _rank_value(entry) > 0
+        if _effective_rank(entry) > 0
     ]
     breaking.sort(key=lambda item: (-item["rank"], item["message"]))
     if limit is None:
         return breaking
     return breaking[:limit]
+
+
+def _caller_compatible_entries(changes_json: Path) -> list[dict]:
+    """AexPy breakings reclassified as compatible, for the verbose report."""
+    entries = [
+        {"rank": _rank_value(entry), "message": _entry_message(entry)}
+        for entry in _change_entries(changes_json)
+        if _is_caller_compatible(entry)
+    ]
+    entries.sort(key=lambda item: item["message"])
+    return entries
 
 
 def _unknown_entries(changes_json: Path) -> list[dict]:
@@ -1296,22 +1691,23 @@ def main(argv: list[str] | None = None) -> int:
                 _print_findings("Enum breakings", enum_breaking)
                 _print_findings("Model breakings", model_breaking)
 
-        return_breaking, return_narrowed = _compare_return_annotations(
+        change_entries = _change_entries(changes)
+        return_breaking, return_compatible = _compare_return_annotations(
             json.loads(api_old.read_text()),
             json.loads(api_new.read_text()),
-            already_reported=_reported_return_type_ids(_change_entries(changes)),
+            already_reported=_reported_return_type_ids(change_entries),
+            aexpy_compatible=_aexpy_compatible_return_ids(change_entries),
         )
         if verbose:
             print("\n=== Return annotations ===", flush=True)
             if return_breaking:
                 _print_findings("Breaking", return_breaking)
-            if return_narrowed:
-                _print_findings("Narrowed", return_narrowed)
-            if not return_breaking and not return_narrowed:
+            if return_compatible:
+                _print_findings("Compatible", return_compatible)
+            if not return_breaking and not return_compatible:
                 print("No public return annotations changed.", flush=True)
         else:
             _print_findings("Return type breakings", return_breaking)
-            _print_findings("Return type narrowings", return_narrowed)
 
         breaking, compatible, unknown = _summarize_changes(changes)
 
@@ -1325,6 +1721,17 @@ def main(argv: list[str] | None = None) -> int:
                 for entry in top_breaking:
                     print(
                         f"  [rank={entry['rank']}] {entry['message']}",
+                        flush=True,
+                    )
+            relaxed = _caller_compatible_entries(changes)
+            if relaxed:
+                print(
+                    f"\nAexPy breakings treated as compatible ({len(relaxed)}):",
+                    flush=True,
+                )
+                for entry in relaxed:
+                    print(
+                        f"  [aexpy rank={entry['rank']}] {entry['message']}",
                         flush=True,
                     )
         else:
@@ -1343,7 +1750,7 @@ def main(argv: list[str] | None = None) -> int:
             f"aexpy_unknown={unknown} enum_breaking={len(enum_breaking)} "
             f"model_breaking={len(model_breaking)} "
             f"return_breaking={len(return_breaking)} "
-            f"return_narrowed={len(return_narrowed)}",
+            f"return_compatible={len(return_compatible)}",
             flush=True,
         )
 

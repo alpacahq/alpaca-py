@@ -137,9 +137,10 @@ The target runs `tools/scripts/compare_api_breakage.py`, which:
    changes as breaking
 4. Compares public callable return annotations when AexPy left the resolved return
    type empty. A resolved change AexPy ranked compatible is checked again only for
-   `dict` / `Mapping` / `MutableMapping` keys: AexPy treats every generic argument
-   as covariant, so `Mapping[Base, V]` -> `Mapping[Sub, V]` would otherwise pass
-   even though `result[base_key]` no longer type-checks. Equivalent spellings
+   `dict` / `Mapping` / `MutableMapping` keys and for a dropped `RawData` or
+   `List[RawData]` member: AexPy treats every generic argument as covariant, so
+   `Mapping[Base, V]` -> `Mapping[Sub, V]` would otherwise pass even though
+   `result[base_key]` no longer type-checks. Equivalent spellings
    (`List` / `list`, reordered unions, `Optional[X]` / `X | None`) are ignored.
    A narrower return, such as dropping `| None` or returning a subclass
    (`Account` -> `AccountExtended`, also inside `List[...]`), does not fail the
@@ -147,8 +148,9 @@ The target runs `tools/scripts/compare_api_breakage.py`, which:
    using a `None` result, so callers could only discard it.
    These compatible changes are listed under `VERBOSE=1`. Dropping `RawData`
    (`dict[str, Any]`) or `List[RawData]` (`list[dict[str, Any]]`) is breaking, also
-   inside a generic such as `Iterator[...]`, because that means `raw_data=True`
-   stopped being honored. Any other change to an existing annotation is breaking.
+   inside a generic such as `Iterator[...]` and when AexPy ranked the change
+   compatible, because that means `raw_data=True` stopped being honored. Any other
+   change to an existing annotation is breaking.
 
 The Makefile target is quiet by default. Useful flags on the script itself:
 

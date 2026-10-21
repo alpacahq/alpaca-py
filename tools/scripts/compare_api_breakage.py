@@ -12,10 +12,11 @@ additionally compares:
   validation/serialization aliases) and defining target
 * public callable ``returnAnnotation`` strings when AexPy did not already report
   a resolved return-type change, and when AexPy ranked that change compatible
-  but a ``dict``, ``Mapping``, or ``MutableMapping`` key changed. A narrower
-  return (fewer union members, or a subclass of the old type), or a ``None``
-  return that gains a value, is listed under ``--verbose`` and does not fail the
-  check, except dropping ``RawData`` (``dict[str, Any]``) or ``List[RawData]``
+  but a ``dict``, ``Mapping``, or ``MutableMapping`` key changed or a ``RawData``
+  / ``List[RawData]`` member was dropped. A narrower return (fewer union
+  members, or a subclass of the old type), or a ``None`` return that gains a
+  value, is listed under ``--verbose`` and does not fail the check, except
+  dropping ``RawData`` (``dict[str, Any]``) or ``List[RawData]``
   (``list[dict[str, Any]]``)
 
 Examples:
@@ -975,6 +976,60 @@ def _split_generic(member: str) -> tuple[str, list[str]] | None:
     return member[:bracket], _split_top_level(member[bracket + 1 : -1], ",")
 
 
+def _annotation_drops_raw_data(new: str, old: str) -> bool:
+    """True when ``new`` removes a ``RawData`` or ``List[RawData]`` ``old`` had.
+
+    Checked at every union, including inside a generic argument, so a resolved
+    return AexPy ranked compatible still fails when ``raw_data=True`` stopped
+    being honored. Only generic arguments with one old and one new member of
+    the same origin are walked. That avoids pairing unrelated arms that merely
+    share ``list`` or ``Mapping``. This is not the full narrowing check, which
+    would also reject callable-parameter changes AexPy correctly accepts.
+    """
+    old_members = _split_top_level_union(old)
+    new_members = _split_top_level_union(new)
+    if _drops_raw_data(set(old_members), set(new_members)):
+        return True
+    if len(old_members) == 1 and len(new_members) == 1:
+        return _generic_args_drop_raw_data(new_members[0], old_members[0])
+    old_by_origin: dict[str, list[str]] = {}
+    new_by_origin: dict[str, list[str]] = {}
+    for member in old_members:
+        generic = _split_generic(member)
+        if generic is not None:
+            old_by_origin.setdefault(generic[0], []).append(member)
+    for member in new_members:
+        generic = _split_generic(member)
+        if generic is not None:
+            new_by_origin.setdefault(generic[0], []).append(member)
+    for origin, old_group in old_by_origin.items():
+        new_group = new_by_origin.get(origin)
+        if (
+            new_group
+            and len(old_group) == 1
+            and len(new_group) == 1
+            and _generic_args_drop_raw_data(new_group[0], old_group[0])
+        ):
+            return True
+    return False
+
+
+def _generic_args_drop_raw_data(new: str, old: str) -> bool:
+    new_generic = _split_generic(new)
+    old_generic = _split_generic(old)
+    if (
+        new_generic is None
+        or old_generic is None
+        or new_generic[0] != old_generic[0]
+        or len(new_generic[1]) != len(old_generic[1])
+    ):
+        return False
+    return any(
+        _annotation_drops_raw_data(new_arg, old_arg)
+        for new_arg, old_arg in zip(new_generic[1], old_generic[1])
+    )
+
+
 # Generics whose arguments only flow out to a caller reading an SDK result,
 # so ``list[Sub]`` narrows ``list[Base]``. Mutable containers are invariant to
 # a type checker, but callers read these results rather than writing base
@@ -1173,11 +1228,12 @@ def _compare_return_annotations(
     type are not changes.
 
     A resolved change AexPy ranked breaking is left to AexPy. A resolved
-    change it ranked compatible is left alone too, except when a mapping key
-    changed: AexPy 0.4.3 compares that key covariantly, and ``result[old_key]``
-    then fails to type-check. The full annotation check is not re-run for
-    those ids. That check rejects callable-parameter changes AexPy correctly
-    treats as compatible.
+    change it ranked compatible is left alone too, except for two vetoes:
+    a mapping key changed (AexPy 0.4.3 compares that key covariantly, and
+    ``result[old_key]`` then fails to type-check), or a ``RawData`` /
+    ``List[RawData]`` member was dropped, including inside a generic. The full
+    annotation check is not re-run for those ids. That check rejects
+    callable-parameter changes AexPy correctly treats as compatible.
 
     A narrower return is compatible for callers: AexPy 0.4.3 ranks that
     covariance ``Compatible`` in ``ChangeReturnType``. Those are reported as
@@ -1206,7 +1262,7 @@ def _compare_return_annotations(
     for api_id in sorted(set(old_functions) & set(new_functions)):
         if not _is_public_callable_id(api_id):
             continue
-        # Rank > 0 is already failing. Rank 0 still needs the key veto below.
+        # Rank > 0 is already failing. Rank 0 still needs the vetoes below.
         if api_id in reported and api_id not in compatible_resolved:
             continue
         old_entry = old_functions[api_id]
@@ -1220,10 +1276,16 @@ def _compare_return_annotations(
         old_normalized = _normalize_type_annotation(str(old_annotation))
         new_normalized = _normalize_type_annotation(str(new_annotation))
         if api_id in compatible_resolved:
-            if old_normalized != new_normalized and _mapping_key_breaks(
-                new_normalized, old_normalized, ancestry
-            ):
-                short_name = api_id.rsplit(".", 1)[-1]
+            if old_normalized == new_normalized:
+                continue
+            short_name = api_id.rsplit(".", 1)[-1]
+            if _annotation_drops_raw_data(new_normalized, old_normalized):
+                message = (
+                    f"{short_name} return type dropped RawData: "
+                    f"{old_normalized} -> {new_normalized}"
+                )
+                breaking.setdefault(message, []).append(api_id)
+            elif _mapping_key_breaks(new_normalized, old_normalized, ancestry):
                 message = (
                     f"{short_name} return type changed a mapping key: "
                     f"{old_normalized} -> {new_normalized}"

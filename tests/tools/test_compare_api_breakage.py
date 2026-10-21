@@ -1410,6 +1410,63 @@ class TestCompareReturnAnnotations:
             aexpy_compatible=cab._aexpy_compatible_return_ids(entries),
         ) == ([], [])
 
+    def test_aexpy_compatible_dropped_raw_data_is_breaking(self, cab):
+        """A rank-0 return that drops RawData still fails the build.
+
+        AexPy ranks ``Model | RawData`` -> ``Model`` compatible because the new
+        return is assignable to the old one. ``raw_data=True`` is a client
+        constructor argument, so that ranking is not enough.
+        """
+        account_id = "alpaca.broker.client.BrokerClient.get_account"
+        runs_id = "alpaca.broker.client.BrokerClient.get_runs"
+        old = {
+            "functions": {
+                account_id: _callable(
+                    "alpaca.broker.models.accounts.Account"
+                    " | typing.Dict[str, typing.Any]"
+                ),
+                runs_id: _callable(
+                    "typing.Iterator[typing.List[typing.Dict[str, typing.Any]]"
+                    " | typing.List[alpaca.broker.models.rebalancing.RebalancingRun]]"
+                ),
+            }
+        }
+        new = {
+            "functions": {
+                account_id: _callable("alpaca.broker.models.accounts.Account"),
+                runs_id: _callable(
+                    "typing.Iterator"
+                    "[typing.List[alpaca.broker.models.rebalancing.RebalancingRun]]"
+                ),
+            }
+        }
+        entries = [
+            _change_return(account_id, rank=0),
+            _change_return(runs_id, rank=0),
+        ]
+        breaking, compatible = cab._compare_return_annotations(
+            old,
+            new,
+            already_reported=cab._reported_return_type_ids(entries),
+            aexpy_compatible=cab._aexpy_compatible_return_ids(entries),
+        )
+        assert compatible == []
+        assert breaking == [
+            (
+                "get_account return type dropped RawData: "
+                "alpaca.broker.models.accounts.Account | dict[str, Any] "
+                "-> alpaca.broker.models.accounts.Account",
+                [account_id],
+            ),
+            (
+                "get_runs return type dropped RawData: collections.abc.Iterator["
+                "list[alpaca.broker.models.rebalancing.RebalancingRun]"
+                " | list[dict[str, Any]]] -> collections.abc.Iterator["
+                "list[alpaca.broker.models.rebalancing.RebalancingRun]]",
+                [runs_id],
+            ),
+        ]
+
     def test_aexpy_compatible_mapping_key_narrowing_is_breaking(self, cab):
         mapping_id = "alpaca.broker.client.BrokerClient.get_by_account"
         nested_id = "alpaca.broker.client.BrokerClient.list_by_account"

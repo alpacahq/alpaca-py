@@ -42,7 +42,8 @@ class StockDataStream(DataStream):
             secret_key (str): Alpaca API secret key.
             raw_data (bool, optional): Whether to return wrapped data or raw API data. Defaults to False.
             feed (DataFeed, optional): Which market data feed to use; IEX, SIP, DELAYED_SIP,
-                BOATS or OVERNIGHT. Defaults to IEX. SIP requires a subscription.
+                BOATS or OVERNIGHT. Defaults to IEX. Access to each feed is enforced by the server
+                at authentication.
             websocket_params (Optional[Dict], optional): Any parameters for configuring websocket connection. Defaults to None.
             url_override (Optional[str]): If specified allows you to override the base url the client
                 points to for proxy/testing. Defaults to None.
@@ -55,9 +56,8 @@ class StockDataStream(DataStream):
             ValueError: Only IEX, SIP, DELAYED_SIP, BOATS or OVERNIGHT market data feeds are supported
         """
         if feed not in _FEED_VERSIONS:
-            raise ValueError(
-                "only IEX, SIP, DELAYED_SIP, BOATS and OVERNIGHT feeds are supported"
-            )
+            supported = ", ".join(f.name for f in _FEED_VERSIONS)
+            raise ValueError(f"only {supported} feeds are supported")
 
         super().__init__(
             endpoint=(

@@ -876,12 +876,14 @@ class TestNormalizeTypeAnnotation:
         )
 
     def test_preserve_union_order_keeps_declaration_order(self, cab):
-        assert cab._normalize_type_annotation(
-            "B | A", preserve_union_order=True
-        ) == "B | A"
-        assert cab._normalize_type_annotation(
-            "A | B", preserve_union_order=True
-        ) == "A | B"
+        assert (
+            cab._normalize_type_annotation("B | A", preserve_union_order=True)
+            == "B | A"
+        )
+        assert (
+            cab._normalize_type_annotation("A | B", preserve_union_order=True)
+            == "A | B"
+        )
         assert cab._normalize_type_annotation(
             "B | A", preserve_union_order=True
         ) != cab._normalize_type_annotation("A | B", preserve_union_order=True)

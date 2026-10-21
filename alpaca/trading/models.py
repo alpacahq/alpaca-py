@@ -566,7 +566,7 @@ class TradeAccount(ModelWithID):
           buying_power = max(equity-initial_margin(0) * 2). If multiplier = 1 then buying_power = cash.
         effective_buying_power (Optional[str]): Buying power available for new orders after current requirements.
         regt_buying_power (Optional[str]): User’s buying power under Regulation T
-          (excess equity - (equity - margin value) - * margin multiplier)
+          ((excess equity - (equity - margin value)) * margin multiplier)
         daytrading_buying_power (Optional[str]): The buying power for day trades for the account.
           Deprecated; removed from Alpaca responses on 2026-07-06 (FINRA intraday-margin migration) and defaults to None.
         non_marginable_buying_power (Optional[str]): The non marginable buying power for the account

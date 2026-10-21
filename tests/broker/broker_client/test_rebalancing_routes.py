@@ -969,6 +969,17 @@ def test_get_all_runs_is_deprecated_and_returns_list(
     assert runs == []
 
 
+def test_get_all_subscriptions_and_get_all_runs_are_marked_deprecated():
+    assert BrokerClient.get_all_subscriptions.__deprecated__ == (
+        "get_all_subscriptions is deprecated and will be removed in a future version. "
+        "Please use `get_subscriptions()` instead"
+    )
+    assert BrokerClient.get_all_runs.__deprecated__ == (
+        "get_all_runs is deprecated and will be removed in a future version. "
+        "Please use `get_runs()` instead"
+    )
+
+
 def test_get_subscriptions_none_null_list_is_empty_page(
     reqmock: Mocker, client: BrokerClient
 ):

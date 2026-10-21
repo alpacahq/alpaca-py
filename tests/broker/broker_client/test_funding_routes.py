@@ -2,6 +2,8 @@ from typing import Iterator
 from urllib.parse import parse_qs, urlparse
 from uuid import UUID
 
+import pytest
+
 from alpaca.broker.client import BrokerClient
 from alpaca.broker.enums import (
     ACHRelationshipStatus,
@@ -571,3 +573,11 @@ def test_get_transfers_for_account_keeps_ira(reqmock, client: BrokerClient):
     assert transfers[0].ira.distribution_reason == "normal"
     assert transfers[0].ira.fed_withholding_pct == "10.25"
     assert transfers[0].model_dump()["ira"]["tax_year"] == "2024"
+
+
+def test_get_transfer_events_is_deprecated(client: BrokerClient):
+    # The deprecation warning fires when the generator is created, before any request.
+    with pytest.deprecated_call(match="/v2/events/funding/status") as caught:
+        client.get_transfer_events()
+
+    assert caught[0].filename == __file__

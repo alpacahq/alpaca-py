@@ -2,7 +2,6 @@ from alpaca.common.models import ModelWithID, ValidateBaseModel as BaseModel
 from uuid import UUID
 from datetime import datetime, date
 from typing import Any, Optional, List, Union, Dict
-from alpaca._deprecating_enum import _warn_at_user_code
 from alpaca.trading.enums import (
     AssetBorrowStatus,
     AssetClass,
@@ -33,20 +32,6 @@ from alpaca.trading.enums import (
     TradeEvent,
 )
 from pydantic import Field, model_validator
-
-# Read-time only. Asset responses still include these fields, so warning while
-# parsing would fire once per asset on get_all_assets.
-_DEPRECATED_ASSET_FIELDS = {
-    "easy_to_borrow": (
-        "Asset.easy_to_borrow is deprecated and will be removed in the next release. "
-        "Use borrow_status instead."
-    ),
-    "maintenance_margin_requirement": (
-        "Asset.maintenance_margin_requirement is deprecated and will be removed in the next release. "
-        "Use margin_requirement_long or margin_requirement_short instead. "
-        "Those fields are decimal strings."
-    ),
-}
 
 
 class Asset(ModelWithID):
@@ -90,12 +75,25 @@ class Asset(ModelWithID):
     tradable: bool
     marginable: bool
     shortable: bool
-    easy_to_borrow: bool = False
+    easy_to_borrow: bool = Field(
+        default=False,
+        deprecated=(
+            "Asset.easy_to_borrow is deprecated and will be removed in the next release. "
+            "Use borrow_status instead."
+        ),
+    )
     fractionable: bool
     min_order_size: Optional[float] = None
     min_trade_increment: Optional[float] = None
     price_increment: Optional[float] = None
-    maintenance_margin_requirement: Optional[float] = None
+    maintenance_margin_requirement: Optional[float] = Field(
+        default=None,
+        deprecated=(
+            "Asset.maintenance_margin_requirement is deprecated and will be removed in the next release. "
+            "Use margin_requirement_long or margin_requirement_short instead. "
+            "Those fields are decimal strings."
+        ),
+    )
     attributes: Optional[List[str]] = None
     borrow_status: Optional[AssetBorrowStatus] = None
     cusip: Optional[str] = None
@@ -117,12 +115,6 @@ class Asset(ModelWithID):
             data.get("borrow_status") == AssetBorrowStatus.EASY_TO_BORROW
         )
         return filled
-
-    def __getattribute__(self, name: str) -> Any:
-        message = _DEPRECATED_ASSET_FIELDS.get(name)
-        if message is not None:
-            _warn_at_user_code(message)
-        return super().__getattribute__(name)
 
 
 class USDPositionValues(BaseModel):
@@ -291,7 +283,10 @@ class Order(ModelWithID):
     filled_qty: Optional[Union[str, float]] = None
     filled_avg_price: Optional[Union[str, float]] = None
     order_class: OrderClass
-    order_type: Optional[OrderType] = None
+    order_type: Optional[OrderType] = Field(
+        default=None,
+        deprecated="Order.order_type is deprecated. Use type instead.",
+    )
     type: Optional[OrderType] = None
     side: Optional[OrderSide] = None
     time_in_force: TimeInForce
@@ -621,14 +616,29 @@ class TradeAccount(ModelWithID):
     buying_power: Optional[str] = None
     effective_buying_power: Optional[str] = None
     regt_buying_power: Optional[str] = None
-    daytrading_buying_power: Optional[str] = None
+    daytrading_buying_power: Optional[str] = Field(
+        default=None,
+        deprecated=(
+            "TradeAccount.daytrading_buying_power is deprecated. "
+            "Removed from Alpaca responses on 2026-07-06 following the FINRA intraday-margin migration."
+        ),
+    )
     non_marginable_buying_power: Optional[str] = None
     cash: Optional[str] = None
     accrued_fees: Optional[str] = None
     pending_transfer_out: Optional[str] = None
     pending_transfer_in: Optional[str] = None
-    portfolio_value: Optional[str] = None
-    pattern_day_trader: Optional[bool] = None
+    portfolio_value: Optional[str] = Field(
+        default=None,
+        deprecated="TradeAccount.portfolio_value is deprecated. Use equity instead.",
+    )
+    pattern_day_trader: Optional[bool] = Field(
+        default=None,
+        deprecated=(
+            "TradeAccount.pattern_day_trader is deprecated. "
+            "Removed from Alpaca responses on 2026-07-06 following the FINRA intraday-margin migration."
+        ),
+    )
     trading_blocked: Optional[bool] = None
     transfers_blocked: Optional[bool] = None
     account_blocked: Optional[bool] = None
@@ -645,7 +655,13 @@ class TradeAccount(ModelWithID):
     maintenance_margin: Optional[str] = None
     last_maintenance_margin: Optional[str] = None
     sma: Optional[str] = None
-    daytrade_count: Optional[int] = None
+    daytrade_count: Optional[int] = Field(
+        default=None,
+        deprecated=(
+            "TradeAccount.daytrade_count is deprecated. "
+            "Removed from Alpaca responses on 2026-07-06 following the FINRA intraday-margin migration."
+        ),
+    )
     options_buying_power: Optional[str] = None
     options_approved_level: Optional[int] = None
     options_trading_level: Optional[int] = None
@@ -674,11 +690,23 @@ class AccountConfiguration(BaseModel):
           Omitted from PATCH bodies when the caller did not set it, so a default null is not sent.
     """
 
-    dtbp_check: Optional[DTBPCheck] = None
+    dtbp_check: Optional[DTBPCheck] = Field(
+        default=None,
+        deprecated=(
+            "AccountConfiguration.dtbp_check is deprecated. "
+            "Removed from Alpaca responses on 2026-07-06 following the FINRA intraday-margin migration."
+        ),
+    )
     fractional_trading: bool
     max_margin_multiplier: str
     no_shorting: bool
-    pdt_check: Optional[PDTCheck] = None
+    pdt_check: Optional[PDTCheck] = Field(
+        default=None,
+        deprecated=(
+            "AccountConfiguration.pdt_check is deprecated. "
+            "Removed from Alpaca responses on 2026-07-06 following the FINRA intraday-margin migration."
+        ),
+    )
     suspend_trade: bool
     trade_confirm_email: TradeConfirmationEmail
     ptp_no_exception_entry: bool

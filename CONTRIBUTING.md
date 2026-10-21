@@ -100,6 +100,34 @@ And so the final method looks like:
 def remove_symbol_from_watchlist_by_id(self, watchlist_id: UUID, symbol: str) -> Watchlist:
 ```
 
+#### Deprecations
+
+Deprecate a method or function with `typing_extensions.deprecated` (PEP 702) rather than a manual `warnings.warn`
+call. The decorator emits the runtime `DeprecationWarning`, attributed to the caller's line. It also lets tools flag
+calls before the code runs: Pylance shows them struck through, mypy reports them with
+`--enable-error-code deprecated`, and pyright reports them when `reportDeprecated` is enabled. Import it under a
+private name so `from alpaca.<module> import *` doesn't re-export it, and add a `.. deprecated:: <version>`
+directive to the docstring so the API reference shows it.
+
+```python
+from typing_extensions import deprecated as _deprecated
+
+@_deprecated("old_method is deprecated and will be removed in a future version. Please use `new_method` instead")
+def old_method(self) -> None:
+    """
+    .. deprecated:: 0.45.0
+        Please use `new_method` instead.
+    """
+```
+
+`@deprecated` does not apply to enum members. To deprecate one, give the enum `alpaca._deprecating_enum.DeprecatingEnumMeta`
+as its metaclass and pass a `deprecations={member_name: message}` mapping, as `ActivityType` in
+`alpaca/trading/enums.py` does.
+
+To deprecate a model field, use Pydantic's `Field(deprecated="...")` and keep the field's existing type and default.
+Pydantic warns when the field is read and stays silent during parsing and serialization, as `Asset.easy_to_borrow` in
+`alpaca/trading/models.py` does.
+
 ### Checking backward compatibility
 
 Before merging changes that touch the public SDK surface, compare this branch against a

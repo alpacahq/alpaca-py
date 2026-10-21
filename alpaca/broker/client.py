@@ -1,11 +1,11 @@
 import base64
-import warnings
 from typing import Any, Callable, Dict, Iterator, List, Optional, Type, Union
 from uuid import UUID
 
 import sseclient
 from pydantic import TypeAdapter
 from requests import HTTPError, Response
+from typing_extensions import deprecated as _deprecated
 
 from alpaca.broker.enums import ACHRelationshipStatus, RecipientBankStatus
 from alpaca.broker.models import (
@@ -341,12 +341,16 @@ class BrokerClient(RESTClient):
 
         return AccountExtended(**response)
 
+    @_deprecated(
+        "delete_account is deprecated and will be removed in a future version. "
+        "Please use `close_account(account_id)` instead",
+    )
     def delete_account(
         self,
         account_id: Union[UUID, str],
     ) -> None:
         """
-        DEPRECATED:
+        .. deprecated:: 0.23.0
             delete_account is deprecated and will be removed in a future version.
             Please use `close_account(account_id)` instead
 
@@ -356,12 +360,6 @@ class BrokerClient(RESTClient):
         Returns:
             None:
         """
-        warnings.warn(
-            "delete_account is deprecated and will be removed in a future version."
-            "Please use `close_account(account_id)` instead",
-            DeprecationWarning,
-        )
-
         self.close_account(account_id)
 
     def close_account(
@@ -1126,11 +1124,21 @@ class BrokerClient(RESTClient):
             return response
         return TypeAdapter(List[Position]).validate_python(response)
 
+    @_deprecated(
+        "get_all_accounts_positions is deprecated and will be removed in a future version. "
+        "The Broker API endpoint it calls (GET /v1/accounts/positions) is deprecated; "
+        "use GET /v1/reporting/eod/positions instead",
+    )
     def get_all_accounts_positions(
         self,
         page: Optional[int] = None,
     ) -> Union[AllAccountsPositions, RawData]:
         """
+        .. deprecated:: 0.45.0
+            The Broker API endpoint this method calls (GET /v1/accounts/positions) is deprecated.
+            Please use GET /v1/reporting/eod/positions instead.
+            ref. https://docs.alpaca.markets/reference/get-v1-reporting-eod-positions
+
         Gets all the current positions for every account in bulk.
 
         Args:
@@ -1857,10 +1865,19 @@ class BrokerClient(RESTClient):
 
     # ############################## CORPORATE ACTIONS ################################# #
 
+    @_deprecated(
+        "get_corporate_announcements is deprecated and will be removed in a future version. "
+        "Please use alpaca.data.historical.corporate_actions.CorporateActionsClient.get_corporate_actions() instead",
+    )
     def get_corporate_announcements(
         self, filter: GetCorporateAnnouncementsRequest
     ) -> Union[List[CorporateActionAnnouncement], RawData]:
         """
+        .. deprecated:: 0.45.0
+            Please use the new corporate actions endpoint instead.
+            alpaca.data.historical.corporate_actions.CorporateActionsClient.get_corporate_actions()
+            ref. https://docs.alpaca.markets/reference/corporateactions-1
+
         Returns corporate action announcements data given specified search criteria.
         Args:
             filter (GetCorporateAnnouncementsRequest): The parameters to filter the search by.
@@ -1881,10 +1898,19 @@ class BrokerClient(RESTClient):
             List[CorporateActionAnnouncement],
         ).validate_python(response)
 
+    @_deprecated(
+        "get_corporate_announcement_by_id is deprecated and will be removed in a future version. "
+        "Please use alpaca.data.historical.corporate_actions.CorporateActionsClient.get_corporate_actions() instead",
+    )
     def get_corporate_announcement_by_id(
         self, corporate_announcment_id: Union[UUID, str]
     ) -> Union[CorporateActionAnnouncement, RawData]:
         """
+        .. deprecated:: 0.45.0
+            Please use the new corporate actions endpoint instead.
+            alpaca.data.historical.corporate_actions.CorporateActionsClient.get_corporate_actions()
+            ref. https://docs.alpaca.markets/reference/corporateactions-1
+
         Returns a specific corporate action announcement.
         Args:
             corporate_announcment_id: The id of the desired corporate action announcement
@@ -1996,10 +2022,20 @@ class BrokerClient(RESTClient):
         for event in client.events():
             yield event.data
 
+    @_deprecated(
+        "get_transfer_events is deprecated and will be removed in a future version. "
+        "The legacy transfer events endpoint (GET /v1/events/transfers/status) is deprecated; "
+        "use GET /v2/events/funding/status instead",
+    )
     def get_transfer_events(
         self, filter: Optional[GetEventsRequest] = None
     ) -> Iterator:
         """
+        .. deprecated:: 0.45.0
+            The legacy transfer events endpoint this method calls (GET /v1/events/transfers/status)
+            is deprecated and only available to existing broker partners.
+            Please use GET /v2/events/funding/status instead.
+
         Subscribes to SSE stream for transfer status events.
 
         Args:
@@ -2265,6 +2301,10 @@ class BrokerClient(RESTClient):
             subscriptions_iterator, handle_pagination
         )
 
+    @_deprecated(
+        "get_all_subscriptions is deprecated and will be removed in a future version. "
+        "Please use `get_subscriptions()` instead",
+    )
     def get_all_subscriptions(
         self,
         filter: Optional[GetSubscriptionsRequest] = None,
@@ -2272,7 +2312,7 @@ class BrokerClient(RESTClient):
         handle_pagination: Optional[PaginationType] = None,
     ) -> Union[List[Subscription], List[RawData]]:
         """
-        DEPRECATED:
+        .. deprecated:: 0.45.0
             get_all_subscriptions is deprecated and will be removed in a future version.
             Please use `get_subscriptions()` instead. With `PaginationType.NONE` it
             returns a `SubscriptionPage` that includes `next_page_token`.
@@ -2291,13 +2331,6 @@ class BrokerClient(RESTClient):
         Returns:
             List[Subscription]: List of subscriptions.
         """
-        warnings.warn(
-            "get_all_subscriptions is deprecated and will be removed in a future version. "
-            "Please use `get_subscriptions()` instead",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
         result = self.get_subscriptions(filter, max_items_limit, handle_pagination)
         if handle_pagination != PaginationType.NONE:
             return result
@@ -2415,6 +2448,10 @@ class BrokerClient(RESTClient):
 
         return BrokerClient._return_paginated_result(runs_iterator, handle_pagination)
 
+    @_deprecated(
+        "get_all_runs is deprecated and will be removed in a future version. "
+        "Please use `get_runs()` instead",
+    )
     def get_all_runs(
         self,
         filter: Optional[GetRunsRequest] = None,
@@ -2422,7 +2459,7 @@ class BrokerClient(RESTClient):
         handle_pagination: Optional[PaginationType] = None,
     ) -> Union[List[RebalancingRun], List[RawData]]:
         """
-        DEPRECATED:
+        .. deprecated:: 0.45.0
             get_all_runs is deprecated and will be removed in a future version.
             Please use `get_runs()` instead. With `PaginationType.NONE` it returns
             a `RebalancingRunPage` that includes `next_page_token`.
@@ -2439,13 +2476,6 @@ class BrokerClient(RESTClient):
         Returns:
             List[RebalancingRun]: List of rebalancing runs.
         """
-        warnings.warn(
-            "get_all_runs is deprecated and will be removed in a future version. "
-            "Please use `get_runs()` instead",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
         result = self.get_runs(filter, max_items_limit, handle_pagination)
         if handle_pagination != PaginationType.NONE:
             return result

@@ -1,8 +1,22 @@
 from enum import Enum
 
+from alpaca._deprecating_enum import DeprecatingEnumMeta as _DeprecatingEnumMeta
 
-class BaseURL(str, Enum):
-    """Base urls for API endpoints"""
+_DEPRECATED_BASE_URLS = {
+    "OPTION_DATA_STREAM": (
+        "BaseURL.OPTION_DATA_STREAM is deprecated. "
+        "Use BaseURL.MARKET_DATA_STREAM instead."
+    ),
+}
+
+
+class BaseURL(
+    str, Enum, metaclass=_DeprecatingEnumMeta, deprecations=_DEPRECATED_BASE_URLS
+):
+    """Base urls for API endpoints.
+
+    OPTION_DATA_STREAM is deprecated. Use MARKET_DATA_STREAM instead.
+    """
 
     BROKER_SANDBOX = "https://broker-api.sandbox.alpaca.markets"
     BROKER_PRODUCTION = "https://broker-api.alpaca.markets"
@@ -11,7 +25,7 @@ class BaseURL(str, Enum):
     DATA = "https://data.alpaca.markets"
     DATA_SANDBOX = "https://data.sandbox.alpaca.markets"
     MARKET_DATA_STREAM = "wss://stream.data.alpaca.markets"
-    OPTION_DATA_STREAM = "wss://stream.data.alpaca.markets"  # Deprecated: use MARKET_DATA_STREAM instead!
+    OPTION_DATA_STREAM = MARKET_DATA_STREAM
     TRADING_STREAM_PAPER = "wss://paper-api.alpaca.markets/stream"
     TRADING_STREAM_LIVE = "wss://api.alpaca.markets/stream"
 

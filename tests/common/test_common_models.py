@@ -1,6 +1,7 @@
 import warnings
 
 import pytest
+from alpaca.broker.models.accounts import TradeAccount as BrokerTradeAccount
 from alpaca.trading.models import (
     AccountConfiguration,
     Asset,
@@ -36,6 +37,97 @@ from alpaca.trading.models import (
     Order,
 )
 from factories import create_dummy_order
+
+
+@pytest.mark.parametrize(
+    "model,field,value,replacement",
+    [
+        (Order, "order_type", "market", "Use type instead"),
+        (TradeAccount, "portfolio_value", "1000", "Use equity instead"),
+        (TradeAccount, "daytrading_buying_power", "4000", "intraday-margin migration"),
+        (TradeAccount, "pattern_day_trader", True, "intraday-margin migration"),
+        (TradeAccount, "daytrade_count", 3, "intraday-margin migration"),
+        (AccountConfiguration, "dtbp_check", "both", "intraday-margin migration"),
+        (AccountConfiguration, "pdt_check", "both", "intraday-margin migration"),
+        (
+            BrokerTradeAccount,
+            "last_daytrading_buying_power",
+            "4000",
+            "intraday-margin migration",
+        ),
+        (BrokerTradeAccount, "last_daytrade_count", 3, "intraday-margin migration"),
+        (BrokerTradeAccount, "portfolio_value", "1000", "Use equity instead"),
+        (
+            BrokerTradeAccount,
+            "daytrading_buying_power",
+            "4000",
+            "intraday-margin migration",
+        ),
+        (BrokerTradeAccount, "pattern_day_trader", True, "intraday-margin migration"),
+        (BrokerTradeAccount, "daytrade_count", 3, "intraday-margin migration"),
+    ],
+)
+def test_deprecated_model_fields_warn_only_on_access(model, field, value, replacement):
+    if model is Order:
+        payload = create_dummy_order().model_dump(mode="json")
+    elif model is AccountConfiguration:
+        payload = {
+            "fractional_trading": True,
+            "max_margin_multiplier": "4",
+            "no_shorting": False,
+            "suspend_trade": False,
+            "trade_confirm_email": "all",
+            "ptp_no_exception_entry": False,
+        }
+    else:
+        payload = {
+            "id": "904837e3-3b76-47ec-b432-046db621571b",
+            "account_number": "010203ABCD",
+            "status": "ACTIVE",
+        }
+        if model is BrokerTradeAccount:
+            payload.update(
+                dict.fromkeys(
+                    (
+                        "cash_withdrawable",
+                        "cash_transferable",
+                        "previous_close",
+                        "last_long_market_value",
+                        "last_short_market_value",
+                        "last_cash",
+                        "last_initial_margin",
+                        "last_regt_buying_power",
+                        "last_buying_power",
+                        "clearing_broker",
+                    )
+                )
+            )
+    payload[field] = value
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", DeprecationWarning)
+        instance = model.model_validate(payload)
+        assert instance.model_dump(mode="json")[field] == value
+        assert (
+            model.model_validate_json(instance.model_dump_json()).model_dump(
+                mode="json"
+            )[field]
+            == value
+        )
+        schema = model.model_json_schema()
+        fields_schema = schema
+        if "properties" not in schema:
+            fields_schema = schema["$defs"][model.__name__]
+        assert fields_schema["properties"][field]["deprecated"] is True
+        payload.pop(field)
+        omitted = model.model_validate(payload)
+        assert omitted.model_dump()[field] is None
+
+    with pytest.warns(DeprecationWarning, match=replacement) as caught:
+        assert getattr(instance, field) == value
+    assert caught[0].filename == __file__
+    with pytest.warns(DeprecationWarning, match=replacement):
+        assert getattr(omitted, field) is None
 
 
 def test_clock_timestamps():
@@ -149,6 +241,43 @@ def test_missing_easy_to_borrow_follows_borrow_status():
         assert explicit.easy_to_borrow is False
     with pytest.warns(DeprecationWarning, match="Use borrow_status instead"):
         assert null_value.easy_to_borrow is True
+
+
+@pytest.mark.parametrize(
+    "field,value,default,message",
+    [
+        ("easy_to_borrow", True, False, "Use borrow_status instead"),
+        (
+            "maintenance_margin_requirement",
+            30.0,
+            None,
+            "Use margin_requirement_long or margin_requirement_short",
+        ),
+    ],
+)
+def test_asset_field_deprecations_preserve_round_trip(field, value, default, message):
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", DeprecationWarning)
+        asset = Asset.model_validate(_asset_payload(**{field: value}))
+        assert asset.model_dump(mode="json")[field] == value
+        assert (
+            Asset.model_validate_json(
+                asset.model_dump_json(by_alias=True)
+            ).model_dump()[field]
+            == value
+        )
+        omitted = Asset.model_validate(_asset_payload())
+        assert omitted.model_dump()[field] == default
+        schema = Asset.model_json_schema()["properties"][field]
+        assert schema["deprecated"] is True
+        assert schema["default"] == default
+
+    with pytest.warns(DeprecationWarning, match=message) as caught:
+        assert getattr(asset, field) == value
+    assert len(caught) == 1
+    assert caught[0].filename == __file__
+    with pytest.warns(DeprecationWarning, match=message):
+        assert getattr(omitted, field) == default
 
 
 def test_deprecated_asset_fields_warn_on_read():

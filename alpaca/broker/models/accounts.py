@@ -4,6 +4,7 @@ from uuid import UUID
 
 from pydantic import (
     BeforeValidator,
+    Field,
     PlainSerializer,
     TypeAdapter,
     ValidationInfo,
@@ -647,7 +648,19 @@ class TradeAccount(BaseTradeAccount):
     last_cash: Optional[str]
     last_initial_margin: Optional[str]
     last_regt_buying_power: Optional[str]
-    last_daytrading_buying_power: Optional[str] = None
-    last_daytrade_count: Optional[int] = None
+    last_daytrading_buying_power: Optional[str] = Field(
+        default=None,
+        deprecated=(
+            "TradeAccount.last_daytrading_buying_power is deprecated. "
+            "Removed from Alpaca responses on 2026-07-06 following the FINRA intraday-margin migration."
+        ),
+    )
+    last_daytrade_count: Optional[int] = Field(
+        default=None,
+        deprecated=(
+            "TradeAccount.last_daytrade_count is deprecated. "
+            "Removed from Alpaca responses on 2026-07-06 following the FINRA intraday-margin migration."
+        ),
+    )
     last_buying_power: Optional[str]
     clearing_broker: Optional[ClearingBroker]

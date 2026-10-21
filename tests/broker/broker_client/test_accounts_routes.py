@@ -689,6 +689,27 @@ def test_delete_account(reqmock, client: BrokerClient):
     assert reqmock.called_once
 
 
+def test_delete_account_is_marked_deprecated():
+    assert BrokerClient.delete_account.__deprecated__ == (
+        "delete_account is deprecated and will be removed in a future version. "
+        "Please use `close_account(account_id)` instead"
+    )
+
+
+def test_delete_account_warning_points_at_caller(reqmock, client: BrokerClient):
+    account_id = "0d969814-40d6-4b2b-99ac-2e37427f1ad2"
+
+    reqmock.post(
+        f"https://broker-api.sandbox.alpaca.markets/v1/accounts/{account_id}/actions/close",
+        status_code=204,
+    )
+
+    with pytest.deprecated_call() as caught:
+        client.delete_account(account_id)
+
+    assert caught[0].filename == __file__
+
+
 def test_delete_account_validates_account_id(reqmock, client: BrokerClient):
     with pytest.deprecated_call(), pytest.raises(ValueError):
         client.delete_account("not a uuid")
@@ -1044,11 +1065,15 @@ def test_get_trade_account_by_id_without_deprecated_pdt_fields(
     assert reqmock.called_once
     assert type(account) == TradeAccount
     assert account.id == UUID(account_id)
-    assert account.daytrading_buying_power is None
-    assert account.pattern_day_trader is None
-    assert account.daytrade_count is None
-    assert account.last_daytrading_buying_power is None
-    assert account.last_daytrade_count is None
+    for field in (
+        "daytrading_buying_power",
+        "pattern_day_trader",
+        "daytrade_count",
+        "last_daytrading_buying_power",
+        "last_daytrade_count",
+    ):
+        with pytest.deprecated_call(match=field):
+            assert getattr(account, field) is None
 
 
 def test_get_trade_account_by_id_validates_account_id(reqmock, client: BrokerClient):
@@ -1087,8 +1112,10 @@ def test_get_trade_configuration_for_account(reqmock, client: BrokerClient):
 
     assert reqmock.called_once
     assert isinstance(config, TradeAccountConfiguration)
-    assert config.dtbp_check == DTBPCheck.BOTH
-    assert config.pdt_check == PDTCheck.ENTRY
+    with pytest.deprecated_call(match="dtbp_check"):
+        assert config.dtbp_check == DTBPCheck.BOTH
+    with pytest.deprecated_call(match="pdt_check"):
+        assert config.pdt_check == PDTCheck.ENTRY
 
 
 def test_get_trade_configuration_for_account_validates_id(

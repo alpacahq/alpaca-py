@@ -1467,6 +1467,50 @@ class TestCompareReturnAnnotations:
             ),
         ]
 
+    def test_aexpy_compatible_dropped_raw_data_in_shared_origin_group(self, cab):
+        """Two ``list[...]`` arms on each side still catch a dropped RawData.
+
+        ``list[RebalancingRun | dict[str, Any]] | list[int]`` narrows to
+        ``list[RebalancingRun] | list[int]``: both unions put two members in
+        the ``list`` group, so a check that only compares a single old/new
+        pair per origin would skip the group entirely and miss the dropped
+        ``dict[str, Any]`` arm.
+        """
+        function_id = "alpaca.broker.client.BrokerClient.get_runs"
+        old = {
+            "functions": {
+                function_id: _callable(
+                    "typing.List[alpaca.broker.models.rebalancing.RebalancingRun"
+                    " | typing.Dict[str, typing.Any]] | typing.List[int]"
+                )
+            }
+        }
+        new = {
+            "functions": {
+                function_id: _callable(
+                    "typing.List[alpaca.broker.models.rebalancing.RebalancingRun]"
+                    " | typing.List[int]"
+                )
+            }
+        }
+        entries = [_change_return(function_id, rank=0)]
+        breaking, compatible = cab._compare_return_annotations(
+            old,
+            new,
+            already_reported=cab._reported_return_type_ids(entries),
+            aexpy_compatible=cab._aexpy_compatible_return_ids(entries),
+        )
+        assert compatible == []
+        assert breaking == [
+            (
+                "get_runs return type dropped RawData: "
+                "list[alpaca.broker.models.rebalancing.RebalancingRun"
+                " | dict[str, Any]] | list[int] -> "
+                "list[alpaca.broker.models.rebalancing.RebalancingRun] | list[int]",
+                [function_id],
+            )
+        ]
+
     def test_aexpy_compatible_mapping_key_narrowing_is_breaking(self, cab):
         mapping_id = "alpaca.broker.client.BrokerClient.get_by_account"
         nested_id = "alpaca.broker.client.BrokerClient.list_by_account"

@@ -981,10 +981,12 @@ def _annotation_drops_raw_data(new: str, old: str) -> bool:
 
     Checked at every union, including inside a generic argument, so a resolved
     return AexPy ranked compatible still fails when ``raw_data=True`` stopped
-    being honored. Only generic arguments with one old and one new member of
-    the same origin are walked. That avoids pairing unrelated arms that merely
-    share ``list`` or ``Mapping``. This is not the full narrowing check, which
-    would also reject callable-parameter changes AexPy correctly accepts.
+    being honored. Members sharing a generic origin (e.g. two ``list[...]``
+    arms) are merged position-wise rather than matched one-to-one, so a group
+    with more than one member on either side still catches a dropped
+    ``RawData`` branch instead of being skipped outright. This is not the
+    full narrowing check, which would also reject callable-parameter changes
+    AexPy correctly accepts.
     """
     old_members = _split_top_level_union(old)
     new_members = _split_top_level_union(new)
@@ -992,24 +994,19 @@ def _annotation_drops_raw_data(new: str, old: str) -> bool:
         return True
     if len(old_members) == 1 and len(new_members) == 1:
         return _generic_args_drop_raw_data(new_members[0], old_members[0])
-    old_by_origin: dict[str, list[str]] = {}
-    new_by_origin: dict[str, list[str]] = {}
+    old_by_origin: dict[str, list[tuple[str, list[str]]]] = {}
+    new_by_origin: dict[str, list[tuple[str, list[str]]]] = {}
     for member in old_members:
         generic = _split_generic(member)
         if generic is not None:
-            old_by_origin.setdefault(generic[0], []).append(member)
+            old_by_origin.setdefault(generic[0], []).append(generic)
     for member in new_members:
         generic = _split_generic(member)
         if generic is not None:
-            new_by_origin.setdefault(generic[0], []).append(member)
+            new_by_origin.setdefault(generic[0], []).append(generic)
     for origin, old_group in old_by_origin.items():
         new_group = new_by_origin.get(origin)
-        if (
-            new_group
-            and len(old_group) == 1
-            and len(new_group) == 1
-            and _generic_args_drop_raw_data(new_group[0], old_group[0])
-        ):
+        if new_group and _generic_group_drops_raw_data(new_group, old_group):
             return True
     return False
 
@@ -1028,6 +1025,35 @@ def _generic_args_drop_raw_data(new: str, old: str) -> bool:
         _annotation_drops_raw_data(new_arg, old_arg)
         for new_arg, old_arg in zip(new_generic[1], old_generic[1])
     )
+
+
+def _generic_group_drops_raw_data(
+    new_group: list[tuple[str, list[str]]], old_group: list[tuple[str, list[str]]]
+) -> bool:
+    """True when a shared-origin member group loses a ``RawData`` branch.
+
+    ``list[Model | dict[str, Any]] | list[int]`` narrowing to
+    ``list[Model] | list[int]`` puts two members in the ``list`` group on
+    each side, so no single old/new pair lines up one-to-one. Merging each
+    argument position across the whole group -- instead of requiring exactly
+    one member per side -- still finds the dropped ``dict[str, Any]`` arm:
+    position 0 becomes ``Model | dict[str, Any] | int`` on the old side and
+    ``Model | int`` on the new side, and that union lost ``dict[str, Any]``.
+    Groups whose members disagree on arity (e.g. mixed-length ``tuple``
+    members sharing the ``tuple`` origin) are left alone; merging positions
+    there would pair unrelated arguments.
+    """
+    arity = len(old_group[0][1])
+    if any(len(args) != arity for _, args in old_group) or any(
+        len(args) != arity for _, args in new_group
+    ):
+        return False
+    for position in range(arity):
+        old_arg = _union_of([args[position] for _, args in old_group])
+        new_arg = _union_of([args[position] for _, args in new_group])
+        if _annotation_drops_raw_data(new_arg, old_arg):
+            return True
+    return False
 
 
 # Generics whose arguments only flow out to a caller reading an SDK result,

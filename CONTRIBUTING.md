@@ -124,6 +124,10 @@ def old_method(self) -> None:
 as its metaclass and pass a `deprecations={member_name: message}` mapping, as `ActivityType` in
 `alpaca/trading/enums.py` does.
 
+To deprecate a model field, use Pydantic's `Field(deprecated="...")` and keep the field's existing type and default.
+Pydantic warns when the field is read and stays silent during parsing and serialization, as `Asset.easy_to_borrow` in
+`alpaca/trading/models.py` does.
+
 ### Checking backward compatibility
 
 Before merging changes that touch the public SDK surface, compare this branch against a

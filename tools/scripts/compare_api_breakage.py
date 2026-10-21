@@ -1012,6 +1012,11 @@ _INVARIANT_KEY_GENERICS = _MAPPING_GENERICS | {"collections.abc.MutableMapping"}
 _TOP_TYPES = frozenset({"Any", "object"})
 
 
+def _mapping_key_differs(new_args: list[str], old_args: list[str]) -> bool:
+    """Mapping keys are invariant: ``result[old_key]`` must still type-check."""
+    return len(new_args) != 2 or new_args[0] != old_args[0]
+
+
 def _is_subtype(new: str, old: str, ancestry: dict[str, set[str]]) -> bool:
     """True when every value of normalized type ``new`` is also an ``old``.
 
@@ -1035,8 +1040,7 @@ def _is_subtype(new: str, old: str, ancestry: dict[str, set[str]]) -> bool:
     ):
         return False
     if new_origin in _MAPPING_GENERICS:
-        # ``result[base_key]`` stops type-checking when the key narrows.
-        if len(new_args) != 2 or new_args[0] != old_args[0]:
+        if _mapping_key_differs(new_args, old_args):
             return False
         return _union_narrows(new_args[1], old_args[1], ancestry)
     return all(
@@ -1134,7 +1138,7 @@ def _key_relation(new: str, old: str, ancestry: dict[str, set[str]]) -> str:
     origin, new_args = new_generic
     old_args = old_generic[1]
     if origin in _INVARIANT_KEY_GENERICS:
-        if len(new_args) != 2 or new_args[0] != old_args[0]:
+        if _mapping_key_differs(new_args, old_args):
             return "break"
         return _key_relation(new_args[1], old_args[1], ancestry)
     relations = [

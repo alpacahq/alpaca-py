@@ -113,6 +113,18 @@ def _alias_strings(alias):
     return [repr(alias)]
 
 
+def _field_union_mode(field_info):
+    # Field(union_mode=...) is stored as metadata on the field rather than a
+    # dedicated attribute. "left_to_right" tries members in declaration order
+    # and keeps the first that validates, so a reorder changes which type a
+    # value ends up as; "smart" (the default) does not make that guarantee.
+    for meta in getattr(field_info, "metadata", None) or []:
+        mode = getattr(meta, "union_mode", None)
+        if mode is not None:
+            return mode
+    return None
+
+
 def _field_snapshot(field_info):
     validation = sorted(set(_alias_strings(field_info.validation_alias)))
     serialization = field_info.serialization_alias
@@ -123,6 +135,7 @@ def _field_snapshot(field_info):
         "required": bool(field_info.is_required()),
         "validation_aliases": validation,
         "serialization_alias": serialization,
+        "union_mode": _field_union_mode(field_info),
     }}
 
 
@@ -610,8 +623,21 @@ def _compare_models(old: dict, new: dict) -> tuple[Findings, Findings]:
             # typing-alias spelling differences (``typing.List`` vs ``list``),
             # which the public-API dumper does not otherwise produce, but is
             # harmless to apply here too.
-            if _normalize_type_annotation(str(old_type)) != _normalize_type_annotation(
-                str(new_type)
+            #
+            # That normalization is wrong for a field using
+            # union_mode="left_to_right": pydantic tries members in
+            # declaration order and keeps the first that validates, so
+            # reordering them changes which type a value like "entry" ends
+            # up as (OrderGroupRole.ENTRY vs the plain str). Preserve order
+            # for those fields so a meaningful reorder is still reported.
+            preserve_union_order = "left_to_right" in (
+                old_field.get("union_mode"),
+                new_field.get("union_mode"),
+            )
+            if _normalize_type_annotation(
+                str(old_type), preserve_union_order=preserve_union_order
+            ) != _normalize_type_annotation(
+                str(new_type), preserve_union_order=preserve_union_order
             ):
                 message = (
                     f"{short_name}.{field_name} type changed: "
@@ -744,7 +770,7 @@ def _split_top_level_union(text: str) -> list[str]:
     return _split_top_level(text, "|")
 
 
-def _union_of(parts: list[str]) -> str:
+def _union_of(parts: list[str], *, preserve_order: bool = False) -> str:
     flat: list[str] = []
     for part in parts:
         for item in _split_top_level_union(part):
@@ -752,7 +778,12 @@ def _union_of(parts: list[str]) -> str:
                 flat.append(item)
     if len(flat) == 1:
         return flat[0]
-    return " | ".join(sorted(flat))
+    # Union[str, float] == Union[float, str] for most fields, so sorting
+    # lets a harmless reorder normalize away. A field using
+    # union_mode="left_to_right" is order-sensitive (see
+    # ``_field_union_mode``), so ``preserve_order`` keeps declaration order
+    # there instead.
+    return " | ".join(flat if preserve_order else sorted(flat))
 
 
 def _tokenize_annotation(text: str) -> list[str]:
@@ -793,9 +824,10 @@ def _tokenize_annotation(text: str) -> list[str]:
 
 
 class _AnnotationParser:
-    def __init__(self, tokens: list[str]) -> None:
+    def __init__(self, tokens: list[str], *, preserve_union_order: bool = False) -> None:
         self.tokens = tokens
         self.index = 0
+        self.preserve_union_order = preserve_union_order
 
     def peek(self) -> str | None:
         if self.index >= len(self.tokens):
@@ -820,7 +852,7 @@ class _AnnotationParser:
         while self.peek() == "|":
             self.eat("|")
             parts.append(self.parse_term())
-        return _union_of(parts)
+        return _union_of(parts, preserve_order=self.preserve_union_order)
 
     def parse_term(self) -> str:
         if self.peek() == "[":
@@ -862,9 +894,9 @@ class _AnnotationParser:
         if name == "Optional":
             if len(args) != 1:
                 raise ValueError("Optional expects one argument")
-            return _union_of([args[0], "None"])
+            return _union_of([args[0], "None"], preserve_order=self.preserve_union_order)
         if name == "Union":
-            return _union_of(args)
+            return _union_of(args, preserve_order=self.preserve_union_order)
         if not args:
             return name
         return f"{name}[{', '.join(args)}]"
@@ -884,18 +916,28 @@ _RAW_DATA_ANNOTATION = "dict[str, Any]"
 _RAW_DATA_LIST_ANNOTATION = f"list[{_RAW_DATA_ANNOTATION}]"
 
 
-def _normalize_type_annotation(annotation: str) -> str:
+def _normalize_type_annotation(
+    annotation: str, *, preserve_union_order: bool = False
+) -> str:
     """Canonical form for equivalent typing spellings.
 
     Unparseable text falls back to collapsed whitespace so a real change is
     still reported. Object addresses are stripped first, then ``<class '...'>``
     wrappers are unwrapped so a bare class matches that class inside a union.
+
+    ``preserve_union_order`` keeps declaration order instead of sorting union
+    members. Pass it for a field whose ``union_mode="left_to_right"`` makes
+    member order observable (see ``_field_union_mode``); every other caller
+    should leave it off, since ``Union[str, float] == Union[float, str]``
+    otherwise.
     """
     text = _CLASS_REPR.sub(r"\1", _OBJECT_ADDRESS.sub("", " ".join(annotation.split())))
     if not text:
         return ""
     try:
-        return _AnnotationParser(_tokenize_annotation(text)).parse()
+        return _AnnotationParser(
+            _tokenize_annotation(text), preserve_union_order=preserve_union_order
+        ).parse()
     except ValueError:
         return text
 

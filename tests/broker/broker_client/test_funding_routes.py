@@ -458,6 +458,40 @@ def test_get_transfers_for_account_none_pagination(reqmock, client: BrokerClient
     assert isinstance(transfers[0], Transfer)
 
 
+def test_get_transfers_for_account_none_pagination_with_offset(
+    reqmock, client: BrokerClient
+):
+    account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
+    setup_reqmock_for_paginated_transfers_response(account_id, reqmock)
+
+    transfers = client.get_transfers_for_account(
+        account_id,
+        GetTransfersRequest(limit=3, offset=6),
+        handle_pagination=PaginationType.NONE,
+    )
+
+    assert reqmock.call_count == 1
+    assert len(transfers) == 3
+    assert reqmock.request_history[0].qs == {"limit": ["3"], "offset": ["6"]}
+
+
+def test_get_transfers_for_account_full_pagination_with_offset(
+    reqmock, client: BrokerClient
+):
+    account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
+    setup_reqmock_for_paginated_transfers_response(account_id, reqmock)
+
+    transfers = client.get_transfers_for_account(
+        account_id, GetTransfersRequest(offset=6)
+    )
+
+    assert reqmock.call_count == 3
+    assert len(transfers) == 6
+    assert reqmock.request_history[0].qs == {"offset": ["6"]}
+    assert reqmock.request_history[1].qs == {"offset": ["9"]}
+    assert reqmock.request_history[2].qs == {"offset": ["12"]}
+
+
 def test_get_transfers_for_account_none_pagination_empty_page_returns_empty_list(
     reqmock, client: BrokerClient
 ):

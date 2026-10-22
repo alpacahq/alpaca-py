@@ -1,3 +1,6 @@
+import asyncio
+import threading
+import time
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock, patch
 
@@ -319,3 +322,138 @@ def test_stock_data_stream_feed_endpoint(feed: DataFeed, endpoint: str):
 def test_stock_data_stream_rejects_unsupported_feed():
     with pytest.raises(ValueError):
         StockDataStream("key-id", "secret-key", feed=DataFeed.OTC)
+
+
+@pytest.mark.asyncio
+async def test_run_forever_unblocks_on_subscribe(ws_client: DataStream):
+    """DataStream should suspend startup until a qualifying handler is registered."""
+
+    async def mock_handler(data):
+        pass
+
+    async def mock_consume_side_effect():
+        await ws_client.stop_ws()
+
+    with (
+        patch.object(ws_client, "_start_ws", new_callable=AsyncMock) as mock_start,
+        patch.object(ws_client, "_send_subscribe_msg", new_callable=AsyncMock),
+        patch.object(ws_client, "_consume", new_callable=AsyncMock) as mock_consume,
+    ):
+        mock_consume.side_effect = mock_consume_side_effect
+
+        task = asyncio.create_task(ws_client._run_forever())
+        await asyncio.sleep(0.05)
+        assert not mock_start.called
+
+        ws_client._subscribe(mock_handler, ("AAPL",), ws_client._handlers["quotes"])
+        await asyncio.wait_for(task, timeout=2.0)
+        assert mock_start.called
+
+
+@pytest.mark.asyncio
+async def test_run_forever_ignores_non_qualifying_subscriptions(ws_client: DataStream):
+    """DataStream should not start on cancelErrors/corrections alone until a data channel is subscribed."""
+
+    async def mock_handler(data):
+        pass
+
+    async def mock_consume_side_effect():
+        await ws_client.stop_ws()
+
+    with (
+        patch.object(ws_client, "_start_ws", new_callable=AsyncMock) as mock_start,
+        patch.object(ws_client, "_send_subscribe_msg", new_callable=AsyncMock),
+        patch.object(ws_client, "_consume", new_callable=AsyncMock) as mock_consume,
+    ):
+        mock_consume.side_effect = mock_consume_side_effect
+
+        task = asyncio.create_task(ws_client._run_forever())
+        await asyncio.sleep(0.05)
+
+        ws_client._subscribe(
+            mock_handler, ("AAPL",), ws_client._handlers["cancelErrors"]
+        )
+        await asyncio.sleep(0.05)
+        assert not mock_start.called
+
+        ws_client._subscribe(mock_handler, ("AAPL",), ws_client._handlers["quotes"])
+        await asyncio.wait_for(task, timeout=2.0)
+        assert mock_start.called
+
+
+@pytest.mark.asyncio
+async def test_run_forever_stops_cleanly_when_no_subscriptions(ws_client: DataStream):
+    """DataStream should exit cleanly on stop_ws() without ever starting connection if unsubscribed."""
+    with patch.object(ws_client, "_start_ws", new_callable=AsyncMock) as mock_start:
+        task = asyncio.create_task(ws_client._run_forever())
+        await asyncio.sleep(0.05)
+        assert not mock_start.called
+
+        await ws_client.stop_ws()
+        await asyncio.wait_for(task, timeout=2.0)
+        assert not mock_start.called
+
+
+def test_run_forever_unblocks_on_subscribe_cross_thread(ws_client: DataStream):
+    """DataStream should unblock when subscribed from an external thread/loop."""
+    loop = asyncio.new_event_loop()
+    started_event = threading.Event()
+    unblocked_event = threading.Event()
+
+    async def mock_start_ws():
+        unblocked_event.set()
+        await ws_client.stop_ws()
+
+    async def runner():
+        with (
+            patch.object(ws_client, "_start_ws", side_effect=mock_start_ws),
+            patch.object(ws_client, "_send_subscribe_msg", new_callable=AsyncMock),
+            patch.object(ws_client, "_consume", new_callable=AsyncMock),
+        ):
+            started_event.set()
+            await ws_client._run_forever()
+
+    thread = threading.Thread(target=lambda: loop.run_until_complete(runner()))
+    thread.start()
+
+    try:
+        assert started_event.wait(timeout=2.0)
+        time.sleep(0.05)
+        assert not unblocked_event.is_set()
+
+        async def dummy_handler(data):
+            pass
+
+        ws_client._subscribe(dummy_handler, ("AAPL",), ws_client._handlers["quotes"])
+        assert unblocked_event.wait(timeout=2.0)
+    finally:
+        thread.join(timeout=2.0)
+        loop.close()
+
+
+def test_run_forever_stops_cleanly_cross_thread_when_no_subscriptions(
+    ws_client: DataStream,
+):
+    """DataStream should exit cleanly when stop_ws is called from an external thread/loop."""
+    loop = asyncio.new_event_loop()
+    started_event = threading.Event()
+
+    async def runner():
+        with patch.object(ws_client, "_start_ws", new_callable=AsyncMock) as mock_start:
+            started_event.set()
+            await ws_client._run_forever()
+            assert not mock_start.called
+
+    thread = threading.Thread(target=lambda: loop.run_until_complete(runner()))
+    thread.start()
+
+    try:
+        assert started_event.wait(timeout=2.0)
+        time.sleep(0.05)
+        asyncio.run(ws_client.stop_ws())
+        thread.join(timeout=2.0)
+        assert not thread.is_alive()
+    finally:
+        if thread.is_alive():
+            thread.join(timeout=1.0)
+        loop.close()

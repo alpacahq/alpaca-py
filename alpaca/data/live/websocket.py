@@ -113,6 +113,7 @@ class DataStream:
         self._reconnect_max_backoff = 30.0
         self._stop_stream_queue = queue.Queue()
         self._stop_stream_event: Optional[asyncio.Event] = None
+        self._has_subscription_event: Optional[asyncio.Event] = None
         self._handlers = {channel: {} for channel in _CHANNEL_TYPES.values()}
         self._name = "data"
         self._should_run = True
@@ -219,6 +220,15 @@ class DataStream:
         else:
             self._running = False
 
+    def _notify_subscription_event(self) -> None:
+        event = self._has_subscription_event
+        if event is None:
+            return
+        if self._loop is not None and self._loop.is_running():
+            self._loop.call_soon_threadsafe(event.set)
+        else:
+            event.set()
+
     async def stop_ws(self) -> None:
         """Signals websocket connection should close by adding a closing message to the stop_stream_queue"""
         self._should_run = False
@@ -226,6 +236,7 @@ class DataStream:
             self._stop_stream_event.set()
         if self._stop_stream_queue.empty():
             self._stop_stream_queue.put_nowait({"should_stop": True})
+        self._notify_subscription_event()
         await asyncio.sleep(0)
 
     async def _consume(self) -> bool:
@@ -380,6 +391,7 @@ class DataStream:
         self._ensure_coroutine(handler)
         for symbol in symbols:
             handlers[symbol] = handler
+        self._notify_subscription_event()
         if self._running:
             asyncio.run_coroutine_threadsafe(
                 self._send_subscribe_msg(), self._loop
@@ -423,6 +435,14 @@ class DataStream:
         distributing messages
         """
         self._loop = asyncio.get_running_loop()
+        self._has_subscription_event = asyncio.Event()
+        if any(
+            v
+            for k, v in self._handlers.items()
+            if k not in ("cancelErrors", "corrections")
+        ):
+            self._has_subscription_event.set()
+
         # do not start the websocket connection until we subscribe to something
         while not any(
             v
@@ -434,7 +454,8 @@ class DataStream:
                 # we break
                 self._stop_stream_queue.get(timeout=1)
                 return
-            await asyncio.sleep(0)
+            await self._has_subscription_event.wait()
+            self._has_subscription_event.clear()
         log.info(f"started {self._name} stream")
         self._should_run = True
         while not self._stop_stream_queue.empty():

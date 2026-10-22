@@ -451,6 +451,112 @@ class TestCompareModels:
         breaking, _ = cab._compare_models(old, new)
         assert any("type changed" in msg for msg, _ in breaking)
 
+    def test_union_member_reorder_is_not_breaking(self, cab):
+        old = {
+            "models": {
+                "alpaca.trading.Order": self._model(
+                    "alpaca.trading.models.Order",
+                    {
+                        "qty": {
+                            "type": "Union[str, float, NoneType]",
+                            "required": False,
+                            "validation_aliases": [],
+                            "serialization_alias": None,
+                        },
+                    },
+                )
+            }
+        }
+        new = {
+            "models": {
+                "alpaca.trading.Order": self._model(
+                    "alpaca.trading.models.Order",
+                    {
+                        "qty": {
+                            "type": "Union[float, str, NoneType]",
+                            "required": False,
+                            "validation_aliases": [],
+                            "serialization_alias": None,
+                        },
+                    },
+                )
+            }
+        }
+        breaking, _ = cab._compare_models(old, new)
+        assert breaking == []
+
+    def test_left_to_right_union_reorder_is_breaking(self, cab):
+        old = {
+            "models": {
+                "alpaca.trading.Order": self._model(
+                    "alpaca.trading.models.Order",
+                    {
+                        "group_role": {
+                            "type": "Union[alpaca.trading.enums.OrderGroupRole, str, NoneType]",
+                            "required": False,
+                            "validation_aliases": [],
+                            "serialization_alias": None,
+                            "union_mode": "left_to_right",
+                        },
+                    },
+                )
+            }
+        }
+        new = {
+            "models": {
+                "alpaca.trading.Order": self._model(
+                    "alpaca.trading.models.Order",
+                    {
+                        "group_role": {
+                            "type": "Union[str, alpaca.trading.enums.OrderGroupRole, NoneType]",
+                            "required": False,
+                            "validation_aliases": [],
+                            "serialization_alias": None,
+                            "union_mode": "left_to_right",
+                        },
+                    },
+                )
+            }
+        }
+        breaking, _ = cab._compare_models(old, new)
+        assert any("group_role type changed" in msg for msg, _ in breaking)
+
+    def test_non_left_to_right_union_reorder_is_not_breaking(self, cab):
+        old = {
+            "models": {
+                "alpaca.trading.Order": self._model(
+                    "alpaca.trading.models.Order",
+                    {
+                        "qty": {
+                            "type": "Union[str, float, NoneType]",
+                            "required": False,
+                            "validation_aliases": [],
+                            "serialization_alias": None,
+                            "union_mode": None,
+                        },
+                    },
+                )
+            }
+        }
+        new = {
+            "models": {
+                "alpaca.trading.Order": self._model(
+                    "alpaca.trading.models.Order",
+                    {
+                        "qty": {
+                            "type": "Union[float, str, NoneType]",
+                            "required": False,
+                            "validation_aliases": [],
+                            "serialization_alias": None,
+                            "union_mode": None,
+                        },
+                    },
+                )
+            }
+        }
+        breaking, _ = cab._compare_models(old, new)
+        assert breaking == []
+
     def test_validation_alias_change_is_breaking(self, cab):
         old = {
             "models": {
@@ -767,6 +873,33 @@ class TestNormalizeTypeAnnotation:
             "<class 'alpaca.broker.models.accounts.Account'> | None"
         ) == cab._normalize_type_annotation(
             "alpaca.broker.models.accounts.Account | None"
+        )
+
+    def test_preserve_union_order_keeps_declaration_order(self, cab):
+        assert (
+            cab._normalize_type_annotation("B | A", preserve_union_order=True)
+            == "B | A"
+        )
+        assert (
+            cab._normalize_type_annotation("A | B", preserve_union_order=True)
+            == "A | B"
+        )
+        assert cab._normalize_type_annotation(
+            "B | A", preserve_union_order=True
+        ) != cab._normalize_type_annotation("A | B", preserve_union_order=True)
+
+    def test_preserve_union_order_applies_inside_generics(self, cab):
+        assert (
+            cab._normalize_type_annotation(
+                "typing.Tuple[str | int, int]", preserve_union_order=True
+            )
+            == "tuple[str | int, int]"
+        )
+        assert (
+            cab._normalize_type_annotation(
+                "typing.Tuple[int | str, int]", preserve_union_order=True
+            )
+            == "tuple[int | str, int]"
         )
 
 

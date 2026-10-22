@@ -48,6 +48,7 @@ class TradingStream:
         self._raw_data = raw_data
         self._stop_stream_queue = queue.Queue()
         self._stop_stream_event: Optional[asyncio.Event] = None
+        self._has_subscription_event: Optional[asyncio.Event] = None
         self._should_run = True
         self._data_received = False
         self._reconnect_min_backoff = 1.0
@@ -144,6 +145,15 @@ class TradingStream:
                 json.dumps({"action": "listen", "data": {"streams": ["trade_updates"]}})
             )
 
+    def _notify_subscription_event(self) -> None:
+        event = self._has_subscription_event
+        if event is None:
+            return
+        if self._loop is not None and self._loop.is_running():
+            self._loop.call_soon_threadsafe(event.set)
+        else:
+            event.set()
+
     def subscribe_trade_updates(self, handler: Callable):
         """
         Subscribes to trade updates for your trading account.
@@ -156,11 +166,7 @@ class TradingStream:
         """
         self._ensure_coroutine(handler)
         self._trade_updates_handler = handler
-        if hasattr(self, "_has_subscription_event") and self._has_subscription_event is not None:
-            if hasattr(self, "_loop") and self._loop and self._loop.is_running():
-                self._loop.call_soon_threadsafe(self._has_subscription_event.set)
-            else:
-                self._has_subscription_event.set()
+        self._notify_subscription_event()
         if self._running:
             asyncio.run_coroutine_threadsafe(
                 self._subscribe_trade_updates(), self._loop
@@ -263,15 +269,12 @@ class TradingStream:
     async def stop_ws(self) -> None:
         """Signals websocket connection should close by adding a closing message to the stop_stream_queue"""
         self._should_run = False
-        if hasattr(self, "_has_subscription_event") and self._has_subscription_event is not None:
-            if hasattr(self, "_loop") and self._loop and self._loop.is_running():
-                self._loop.call_soon_threadsafe(self._has_subscription_event.set)
-            else:
-                self._has_subscription_event.set()
         if self._stop_stream_event is not None:
             self._stop_stream_event.set()
         if self._stop_stream_queue.empty():
             self._stop_stream_queue.put_nowait({"should_stop": True})
+        self._notify_subscription_event()
+        await asyncio.sleep(0)
 
     def stop(self) -> None:
         """Stops the websocket connection."""

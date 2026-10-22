@@ -48,6 +48,7 @@ class TradingStream:
         self._raw_data = raw_data
         self._stop_stream_queue = queue.Queue()
         self._stop_stream_event: Optional[asyncio.Event] = None
+        self._subscription_ready: Optional[asyncio.Event] = None
         self._should_run = True
         self._data_received = False
         self._reconnect_min_backoff = 1.0
@@ -156,6 +157,7 @@ class TradingStream:
         """
         self._ensure_coroutine(handler)
         self._trade_updates_handler = handler
+        self._wake_subscription_wait()
         if self._running:
             asyncio.run_coroutine_threadsafe(
                 self._subscribe_trade_updates(), self._loop
@@ -186,14 +188,45 @@ class TradingStream:
                     # to break the loop when needed
                     pass
 
-    async def _run_forever(self):
-        self._loop = asyncio.get_running_loop()
-        # do not start the websocket connection until we subscribe to something
+    def _wake_subscription_wait(self) -> None:
+        """Wake the startup wait from this thread or another one."""
+        event = self._subscription_ready
+        loop = self._loop
+        if event is None or loop is None:
+            return
+        try:
+            if loop.is_running():
+                loop.call_soon_threadsafe(event.set)
+            else:
+                event.set()
+        except RuntimeError:
+            return
+
+    async def _wait_for_trade_subscription(self) -> bool:
+        """Block until a trade-update handler is registered.
+
+        Returns False when stop was requested first. The wait is an event,
+        not a 100ms poll.
+        """
+        self._subscription_ready = asyncio.Event()
         while not self._trade_updates_handler:
             if not self._stop_stream_queue.empty():
                 self._stop_stream_queue.get(timeout=1)
-                return
-            await asyncio.sleep(0.1)
+                return False
+            self._subscription_ready.clear()
+            if self._trade_updates_handler:
+                return True
+            if not self._stop_stream_queue.empty():
+                self._stop_stream_queue.get(timeout=1)
+                return False
+            await self._subscription_ready.wait()
+        return True
+
+    async def _run_forever(self):
+        self._loop = asyncio.get_running_loop()
+        # do not start the websocket connection until we subscribe to something
+        if not await self._wait_for_trade_subscription():
+            return
         log.info("started trading stream")
         self._should_run = True
         while not self._stop_stream_queue.empty():
@@ -258,6 +291,8 @@ class TradingStream:
             self._stop_stream_event.set()
         if self._stop_stream_queue.empty():
             self._stop_stream_queue.put_nowait({"should_stop": True})
+        if self._subscription_ready is not None:
+            self._subscription_ready.set()
 
     def stop(self) -> None:
         """Stops the websocket connection."""

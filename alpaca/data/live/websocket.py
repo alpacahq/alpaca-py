@@ -113,6 +113,7 @@ class DataStream:
         self._reconnect_max_backoff = 30.0
         self._stop_stream_queue = queue.Queue()
         self._stop_stream_event: Optional[asyncio.Event] = None
+        self._subscription_ready: Optional[asyncio.Event] = None
         self._handlers = {channel: {} for channel in _CHANNEL_TYPES.values()}
         self._name = "data"
         self._should_run = True
@@ -226,6 +227,8 @@ class DataStream:
             self._stop_stream_event.set()
         if self._stop_stream_queue.empty():
             self._stop_stream_queue.put_nowait({"should_stop": True})
+        if self._subscription_ready is not None:
+            self._subscription_ready.set()
         await asyncio.sleep(0)
 
     async def _consume(self) -> bool:
@@ -380,6 +383,7 @@ class DataStream:
         self._ensure_coroutine(handler)
         for symbol in symbols:
             handlers[symbol] = handler
+        self._wake_subscription_wait()
         if self._running:
             asyncio.run_coroutine_threadsafe(
                 self._send_subscribe_msg(), self._loop
@@ -418,23 +422,55 @@ class DataStream:
                 )
             )
 
+    def _has_market_subscription(self) -> bool:
+        return any(
+            handlers
+            for channel, handlers in self._handlers.items()
+            if channel not in ("cancelErrors", "corrections") and handlers
+        )
+
+    def _wake_subscription_wait(self) -> None:
+        """Wake the startup wait from this thread or another one."""
+        event = self._subscription_ready
+        loop = self._loop
+        if event is None or loop is None:
+            return
+        try:
+            if loop.is_running():
+                loop.call_soon_threadsafe(event.set)
+            else:
+                event.set()
+        except RuntimeError:
+            return
+
+    async def _wait_for_market_subscription(self) -> bool:
+        """Block until a market-data subscription exists.
+
+        Returns False when stop was requested first. The wait is an event,
+        not a polling sleep, so an idle stream does not stay runnable.
+        """
+        self._subscription_ready = asyncio.Event()
+        while not self._has_market_subscription():
+            if not self._stop_stream_queue.empty():
+                self._stop_stream_queue.get(timeout=1)
+                return False
+            self._subscription_ready.clear()
+            if self._has_market_subscription():
+                return True
+            if not self._stop_stream_queue.empty():
+                self._stop_stream_queue.get(timeout=1)
+                return False
+            await self._subscription_ready.wait()
+        return True
+
     async def _run_forever(self) -> None:
         """Starts event loop for receiving data from websocket connection and handles
         distributing messages
         """
         self._loop = asyncio.get_running_loop()
         # do not start the websocket connection until we subscribe to something
-        while not any(
-            v
-            for k, v in self._handlers.items()
-            if k not in ("cancelErrors", "corrections")
-        ):
-            if not self._stop_stream_queue.empty():
-                # the ws was signaled to stop before starting the loop so
-                # we break
-                self._stop_stream_queue.get(timeout=1)
-                return
-            await asyncio.sleep(0)
+        if not await self._wait_for_market_subscription():
+            return
         log.info(f"started {self._name} stream")
         self._should_run = True
         while not self._stop_stream_queue.empty():

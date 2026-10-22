@@ -6,6 +6,7 @@ import pytest
 from pydantic import TypeAdapter
 
 from alpaca.common.enums import BaseURL
+from alpaca.trading.enums import AssetExchange
 
 
 @pytest.mark.parametrize("lookup", [getattr, lambda cls, name: cls[name]])
@@ -46,3 +47,12 @@ def test_base_url_import_does_not_warn():
         text=True,
     )
     assert result.returncode == 0, result.stderr
+
+
+def test_asset_exchange_txse():
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", DeprecationWarning)
+        assert AssetExchange.TXSE.value == "TXSE"
+        assert AssetExchange("TXSE") is AssetExchange.TXSE
+        adapter = TypeAdapter(AssetExchange)
+        assert adapter.validate_python("TXSE") is AssetExchange.TXSE

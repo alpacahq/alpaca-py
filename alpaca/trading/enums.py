@@ -330,6 +330,7 @@ class AssetExchange(
     ERSX = "ERSX"
     OTC = "OTC"
     CRYPTO = "CRYPTO"
+    TXSE = "TXSE"
     EMPTY = ""
 
 

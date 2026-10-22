@@ -133,3 +133,37 @@ def test_get_asset(reqmock, trading_client: TradingClient):
     assert asset.symbol == symbol
     assert asset.status == AssetStatus.ACTIVE
     assert asset.attributes == ["attribute1", "attribute2"]
+
+
+def test_get_all_assets_txse_exchange(reqmock, trading_client: TradingClient):
+    reqmock.get(
+        f"{BaseURL.TRADING_PAPER.value}/v2/assets",
+        text="""
+        [
+            {
+              "id": "e6a27e7a-9cb8-4f8e-8dbf-1c3905cf5f5c",
+              "class": "us_equity",
+              "exchange": "TXSE",
+              "symbol": "TXS",
+              "name": "Texas Stock Exchange Sample Stock",
+              "status": "active",
+              "tradable": true,
+              "marginable": true,
+              "shortable": true,
+              "easy_to_borrow": true,
+              "fractionable": false
+            }
+        ]
+        """,
+    )
+
+    assets = trading_client.get_all_assets()
+
+    assert reqmock.called_once
+    assert isinstance(assets, List)
+    assert len(assets) == 1
+    assert isinstance(assets[0], Asset)
+    asset = assets[0]
+    assert asset.symbol == "TXS"
+    assert asset.exchange == AssetExchange.TXSE
+    assert asset.exchange.value == "TXSE"

@@ -133,3 +133,31 @@ def test_get_asset(reqmock, trading_client: TradingClient):
     assert asset.symbol == symbol
     assert asset.status == AssetStatus.ACTIVE
     assert asset.attributes == ["attribute1", "attribute2"]
+
+
+def test_get_asset_txse_exchange(reqmock, trading_client: TradingClient):
+    symbol = "AAPL"
+
+    reqmock.get(
+        f"{BaseURL.TRADING_PAPER.value}/v2/assets/{symbol}",
+        text="""
+            {
+              "id": "904837e3-3b76-47ec-b432-046db621571b",
+              "class": "us_equity",
+              "exchange": "TXSE",
+              "symbol": "AAPL",
+              "name": "Apple Inc. Common Stock",
+              "status": "active",
+              "tradable": true,
+              "marginable": true,
+              "shortable": true,
+              "easy_to_borrow": true,
+              "fractionable": true
+            }
+            """,
+    )
+
+    asset = trading_client.get_asset(symbol)
+
+    assert reqmock.called_once
+    assert asset.exchange == AssetExchange.TXSE

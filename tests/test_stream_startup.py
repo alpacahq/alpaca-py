@@ -57,6 +57,44 @@ async def test_idle_startup_does_not_poll_and_stop_skips_connect(stream, monkeyp
     assert started == []
 
 
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "make_stream, subscribe",
+    [
+        (
+            lambda: DataStream("endpoint", "key-id", "secret-key"),
+            lambda stream: stream._subscribe(
+                _handler, ("AAPL",), stream._handlers["trades"]
+            ),
+        ),
+        (
+            lambda: TradingStream("key-id", "secret-key"),
+            lambda stream: stream.subscribe_trade_updates(_handler),
+        ),
+    ],
+    ids=["data", "trading"],
+)
+async def test_stop_after_subscribe_wins_before_waiter_resumes(make_stream, subscribe):
+    stream = make_stream()
+    started = []
+
+    async def record_connect():
+        started.append(True)
+        await stream.stop_ws()
+
+    stream._start_ws = record_connect
+    task = asyncio.create_task(stream._run_forever())
+    await asyncio.sleep(0)
+    assert stream._subscription_ready is not None
+
+    # No await between these, so both land before the parked waiter resumes.
+    subscribe(stream)
+    await stream.stop_ws()
+
+    await asyncio.wait_for(task, timeout=1)
+    assert started == []
+
+
 @pytest.mark.parametrize(
     "make_stream, subscribe",
     [

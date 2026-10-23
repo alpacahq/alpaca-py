@@ -13,7 +13,7 @@ async def _handler(_):
     return None
 
 
-def _patch_sleep(monkeypatch, module):
+def _patch_sleep(monkeypatch):
     sleeps = []
     real_sleep = asyncio.sleep
 
@@ -21,25 +21,23 @@ def _patch_sleep(monkeypatch, module):
         sleeps.append(delay)
         return await real_sleep(delay, result)
 
-    monkeypatch.setattr(module.asyncio, "sleep", spy)
+    monkeypatch.setattr(asyncio, "sleep", spy)
     return sleeps, real_sleep
 
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "stream",
+    "make_stream",
     [
-        DataStream("endpoint", "key-id", "secret-key"),
-        TradingStream("key-id", "secret-key"),
+        lambda: DataStream("endpoint", "key-id", "secret-key"),
+        lambda: TradingStream("key-id", "secret-key"),
     ],
 )
-async def test_idle_startup_does_not_poll_and_stop_skips_connect(stream, monkeypatch):
-    module = (
-        __import__("alpaca.data.live.websocket", fromlist=["asyncio"])
-        if isinstance(stream, DataStream)
-        else __import__("alpaca.trading.stream", fromlist=["asyncio"])
-    )
-    sleeps, real_sleep = _patch_sleep(monkeypatch, module)
+async def test_idle_startup_does_not_poll_and_stop_skips_connect(
+    make_stream, monkeypatch
+):
+    stream = make_stream()
+    sleeps, real_sleep = _patch_sleep(monkeypatch)
     started = []
 
     async def fail_if_connected():

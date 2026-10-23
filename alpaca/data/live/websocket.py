@@ -60,6 +60,9 @@ _CHANNEL_TYPES = {
     _MsgType.CANCEL_ERROR: "cancelErrors",
 }
 
+# Channels delivered alongside trades; they are never subscribed on their own.
+_NON_MARKET_DATA_CHANNELS = ("cancelErrors", "corrections")
+
 
 def _is_market_data(msg: Dict) -> bool:
     msg_type = msg.get("T")
@@ -392,7 +395,7 @@ class DataStream:
     async def _send_subscribe_msg(self) -> None:
         msg = defaultdict(list)
         for k, v in self._handlers.items():
-            if k not in ("cancelErrors", "corrections") and v:
+            if k not in _NON_MARKET_DATA_CHANNELS and v:
                 for s in v.keys():
                     msg[k].append(s)
         msg["action"] = "subscribe"
@@ -426,7 +429,7 @@ class DataStream:
         return any(
             handlers
             for channel, handlers in self._handlers.items()
-            if channel not in ("cancelErrors", "corrections") and handlers
+            if channel not in _NON_MARKET_DATA_CHANNELS
         )
 
     def _wake_subscription_wait(self) -> None:

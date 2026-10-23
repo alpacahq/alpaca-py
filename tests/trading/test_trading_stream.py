@@ -17,13 +17,14 @@ async def test_connect_sets_user_agent_header(trading_stream: TradingStream):
     mock_ws = AsyncMock()
 
     with patch(
-        "alpaca.trading.stream.websockets_legacy.connect",
+        "alpaca.trading.stream.websockets.connect",
         new=AsyncMock(return_value=mock_ws),
     ) as mock_connect:
         await trading_stream._connect()
 
     _, kwargs = mock_connect.call_args
-    assert kwargs["extra_headers"]["User-Agent"] == get_default_user_agent()
+    headers = kwargs.get("additional_headers") or kwargs.get("extra_headers")
+    assert headers["User-Agent"] == get_default_user_agent()
 
 
 @pytest.mark.asyncio
@@ -40,11 +41,12 @@ async def test_connect_preserves_user_agent_when_extra_headers_overridden():
     mock_ws = AsyncMock()
 
     with patch(
-        "alpaca.trading.stream.websockets_legacy.connect",
+        "alpaca.trading.stream.websockets.connect",
         new=AsyncMock(return_value=mock_ws),
     ) as mock_connect:
         await stream._connect()
 
     _, kwargs = mock_connect.call_args
-    assert kwargs["extra_headers"]["X-Test"] == "1"
-    assert kwargs["extra_headers"]["User-Agent"] == get_default_user_agent()
+    headers = kwargs.get("additional_headers") or kwargs.get("extra_headers")
+    assert headers["X-Test"] == "1"
+    assert headers["User-Agent"] == get_default_user_agent()

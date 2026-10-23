@@ -5,7 +5,7 @@ import msgpack
 import pytest
 from msgpack.ext import Timestamp
 
-from alpaca.common.utils import get_default_user_agent
+from alpaca.common.utils import get_default_user_agent, get_websocket_headers_key
 from alpaca.data.enums import DataFeed, Exchange
 from alpaca.data.live.stock import StockDataStream
 from alpaca.data.live.websocket import DataStream
@@ -177,6 +177,12 @@ def test_cast(ws_client: DataStream, raw_ws_client: DataStream, timestamp: Times
     assert type(raw_bar) == dict
     assert raw_bar["S"] == "AAPL"
     assert raw_bar["h"] == 178.005
+
+
+def test_get_websocket_headers_key_returns_valid_param():
+    """Verify that get_websocket_headers_key returns an accepted keyword for websockets.connect."""
+    key = get_websocket_headers_key()
+    assert key in ("additional_headers", "extra_headers")
 
 
 @pytest.mark.asyncio

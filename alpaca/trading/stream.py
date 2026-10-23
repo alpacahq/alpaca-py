@@ -9,7 +9,11 @@ from pydantic import BaseModel
 
 from alpaca.common import RawData
 from alpaca.common.enums import BaseURL
-from alpaca.common.utils import get_default_user_agent, reconnect_delay
+from alpaca.common.utils import (
+    get_default_user_agent,
+    get_websocket_headers_key,
+    reconnect_delay,
+)
 from alpaca.trading import TradeUpdate
 
 log = logging.getLogger(__name__)
@@ -92,9 +96,7 @@ class TradingStream:
             "User-Agent": get_default_user_agent(),
         }
 
-        header_key = (
-            "additional_headers" if hasattr(websockets, "asyncio") else "extra_headers"
-        )
+        header_key = get_websocket_headers_key()
         connect_kwargs = {
             header_key: extra_headers,
             **params,

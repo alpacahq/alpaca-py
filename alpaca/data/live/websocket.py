@@ -10,7 +10,11 @@ import websockets
 from pydantic import BaseModel
 
 from alpaca.common.types import RawData
-from alpaca.common.utils import get_default_user_agent, reconnect_delay
+from alpaca.common.utils import (
+    get_default_user_agent,
+    get_websocket_headers_key,
+    reconnect_delay,
+)
 from alpaca.data.models import (
     Bar,
     News,
@@ -167,9 +171,7 @@ class DataStream:
             "User-Agent": get_default_user_agent(),
         }
 
-        header_key = (
-            "additional_headers" if hasattr(websockets, "asyncio") else "extra_headers"
-        )
+        header_key = get_websocket_headers_key()
         connect_kwargs = {
             header_key: extra_headers,
             **params,

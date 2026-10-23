@@ -208,19 +208,18 @@ class TradingStream:
         Returns False when stop was requested first. The wait is an event,
         not a 100ms poll.
         """
+        # A stop left over from a previous run must not cancel this one.
+        while not self._stop_stream_queue.empty():
+            self._stop_stream_queue.get_nowait()
         self._subscription_ready = asyncio.Event()
-        while not self._trade_updates_handler:
+        while True:
+            self._subscription_ready.clear()
             if not self._stop_stream_queue.empty():
                 self._stop_stream_queue.get(timeout=1)
                 return False
-            self._subscription_ready.clear()
             if self._trade_updates_handler:
                 return True
-            if not self._stop_stream_queue.empty():
-                self._stop_stream_queue.get(timeout=1)
-                return False
             await self._subscription_ready.wait()
-        return True
 
     async def _run_forever(self):
         self._loop = asyncio.get_running_loop()

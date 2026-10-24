@@ -130,6 +130,20 @@ def test_get_activities_for_account_default_asserts(reqmock, client: BrokerClien
     }
 
 
+def test_get_activities_for_account_raw_data_returns_dicts(
+    reqmock, raw_client: BrokerClient
+):
+    setup_reqmock_for_paginated_account_activities_response(reqmock)
+
+    result = raw_client.get_account_activities(GetAccountActivitiesRequest())
+
+    assert reqmock.call_count == 3
+    assert isinstance(result, List)
+    assert len(result) == 8
+    assert all(isinstance(activity, dict) for activity in result)
+    assert result[0]["activity_type"] == "CSD"
+
+
 def test_get_activities_for_account_full_pagination(reqmock, client: BrokerClient):
     setup_reqmock_for_paginated_account_activities_response(reqmock)
 

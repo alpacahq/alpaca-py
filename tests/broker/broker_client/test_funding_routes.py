@@ -458,6 +458,21 @@ def test_get_transfers_for_account_none_pagination(reqmock, client: BrokerClient
     assert isinstance(transfers[0], Transfer)
 
 
+def test_get_transfers_for_account_raw_data_returns_dicts(
+    reqmock, raw_client: BrokerClient
+):
+    account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
+    setup_reqmock_for_paginated_transfers_response(account_id, reqmock)
+
+    transfers = raw_client.get_transfers_for_account(account_id)
+
+    assert reqmock.call_count == 3
+    assert isinstance(transfers, list)
+    assert len(transfers) == 6
+    assert all(isinstance(transfer, dict) for transfer in transfers)
+    assert transfers[0]["id"] == "bf438b6d-4ea3-4241-9e1c-a0e55b47f4e0"
+
+
 def test_get_transfers_for_account_none_pagination_with_offset(
     reqmock, client: BrokerClient
 ):

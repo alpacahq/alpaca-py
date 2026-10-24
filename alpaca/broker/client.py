@@ -587,9 +587,11 @@ class BrokerClient(RESTClient):
         iterator = self._get_account_activities_iterator(
             activity_filter=activity_filter,
             max_items_limit=max_items_limit,
-            mapping=lambda raw_activities: [
-                self._parse_activity(activity) for activity in raw_activities
-            ],
+            mapping=lambda raw_activities: (
+                raw_activities
+                if self._use_raw_data
+                else [self._parse_activity(activity) for activity in raw_activities]
+            ),
         )
 
         return BrokerClient._return_paginated_result(iterator, handle_pagination)
@@ -1080,7 +1082,10 @@ class BrokerClient(RESTClient):
             else:
                 total_items += num_items_returned
 
-            yield TypeAdapter(List[Transfer]).validate_python(result)
+            if self._use_raw_data:
+                yield result
+            else:
+                yield TypeAdapter(List[Transfer]).validate_python(result)
 
             if max_items_limit is not None and total_items >= max_items_limit:
                 break

@@ -473,12 +473,12 @@ class BaseActivity(BaseModel):
         id (str): Unique ID of this Activity. Note that IDs for Activity instances are formatted like
           `20220203000000000::045b3b8d-c566-4bef-b741-2bf598dd6ae7` the first part before the `::` is a date string
           while the part after is a UUID
-        account_id (UUID): id of the Account this activity relates too
+        account_id (Optional[UUID]): id of the Account this activity relates too. Only sent by the Broker API.
         activity_type (ActivityType): What specific kind of Activity this was
     """
 
     id: str
-    account_id: UUID
+    account_id: Optional[UUID] = None
     activity_type: ActivityType
 
     def __init__(self, *args, **data):
@@ -496,7 +496,8 @@ class NonTradeActivity(BaseActivity):
         date (date): The date on which the activity occurred or on which the transaction associated with the
           activity settled.
         net_amount (float): The net amount of money (positive or negative) associated with the activity.
-        description (str): Extra description of the NTA if needed. Can be empty string ""
+        description (Optional[str]): Extra description of the NTA if needed. Can be empty string "". Not present
+          for all activity types.
         status (NonTradeActivityStatus): Status of the activity. Not present for all activity types.
         symbol (Optional[str]): The symbol of the security involved with the activity. Not present for all activity
           types.
@@ -509,7 +510,7 @@ class NonTradeActivity(BaseActivity):
 
     date: date
     net_amount: float
-    description: str
+    description: Optional[str] = None
     status: Optional[NonTradeActivityStatus] = None
     symbol: Optional[str] = None
     qty: Optional[float] = None

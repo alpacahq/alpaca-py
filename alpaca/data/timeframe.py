@@ -26,12 +26,22 @@ class TimeFrameUnit(str, Enum):
 class TimeFrame:
     """A time interval specified in multiples of defined units (minute, day, etc)
 
+    Pass a ``TimeFrameUnit`` and a positive integer amount, or use a preset
+    directly::
+
+        TimeFrame(amount=5, unit=TimeFrameUnit.Minute)
+        TimeFrame.Hour
+
+    Presets such as ``TimeFrame.Hour`` are already ``TimeFrame`` instances.
+    Pass the preset as the timeframe. Do not wrap one as ``unit``.
+
     Attributes:
         amount_value (int): The number of multiples of the TimeFrameUnit interval
         unit_value (TimeFrameUnit): The base unit of time interval that is used to measure the TimeFrame
 
     Raises:
         ValueError: Raised if the amount_value and unit_value are not consistent with each other
+        TypeError: Raised if unit is not a TimeFrameUnit
     """
 
     amount_value: int
@@ -79,16 +89,19 @@ class TimeFrame:
 
         Raises:
             ValueError: Raised if the values of amount and unit are not consistent with each other
-            TypeError: Raised if unit is not a TimeFrameUnit
+            TypeError: Raised if unit is not a TimeFrameUnit. A nested TimeFrame
+                names the TimeFrameUnit to use instead.
         """
         if isinstance(amount, bool) or not isinstance(amount, Integral) or amount <= 0:
             raise ValueError("Amount must be a positive integer value.")
 
         if isinstance(unit, TimeFrame):
+            nested_unit_name = unit.unit.name
             raise TypeError(
                 "Unit must be a TimeFrameUnit value, not a TimeFrame. "
-                "Pass a preset such as TimeFrame.Hour directly, or use "
-                "TimeFrame(amount=1, unit=TimeFrameUnit.Hour)."
+                f"Pass a preset such as TimeFrame.{nested_unit_name} directly, "
+                "or use "
+                f"TimeFrame(amount=1, unit=TimeFrameUnit.{nested_unit_name})."
             )
 
         if not isinstance(unit, TimeFrameUnit):

@@ -14,6 +14,48 @@ def test_timeframe_rejects_non_unit_value():
         TimeFrame(1, "Min")
 
 
-def test_timeframe_rejects_nested_timeframe_preset_as_unit():
-    with pytest.raises(TypeError, match="not a TimeFrame"):
-        TimeFrame(amount=1, unit=TimeFrame.Hour)
+PRESETS = [
+    TimeFrame.Minute,
+    TimeFrame.Hour,
+    TimeFrame.Day,
+    TimeFrame.Week,
+    TimeFrame.Month,
+]
+
+
+@pytest.mark.parametrize("preset", PRESETS)
+def test_timeframe_rejects_nested_timeframe_preset_as_unit(preset):
+    unit_name = preset.unit.name
+    with pytest.raises(TypeError, match=rf"TimeFrameUnit\.{unit_name}"):
+        TimeFrame(amount=1, unit=preset)
+
+
+def test_timeframe_rejects_nested_timeframe_before_amount_checks():
+    with pytest.raises(TypeError, match=r"TimeFrameUnit\.Hour"):
+        TimeFrame(amount=3, unit=TimeFrame.Hour)
+
+
+def test_timeframe_rejects_constructed_timeframe_as_unit():
+    nested = TimeFrame(amount=5, unit=TimeFrameUnit.Minute)
+    with pytest.raises(TypeError, match=r"TimeFrameUnit\.Minute"):
+        TimeFrame(amount=1, unit=nested)
+
+
+def test_timeframe_rejects_timeframe_passed_as_amount():
+    with pytest.raises(ValueError, match="positive integer"):
+        TimeFrame(amount=TimeFrame.Hour, unit=TimeFrameUnit.Hour)
+
+
+@pytest.mark.parametrize(
+    ("preset", "expected"),
+    [
+        (TimeFrame.Minute, "1Min"),
+        (TimeFrame.Hour, "1Hour"),
+        (TimeFrame.Day, "1Day"),
+        (TimeFrame.Week, "1Week"),
+        (TimeFrame.Month, "1Month"),
+    ],
+)
+def test_timeframe_presets_serialize_for_the_api(preset, expected):
+    assert preset.value == expected
+    assert str(preset) == expected

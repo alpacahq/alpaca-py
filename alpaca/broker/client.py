@@ -557,7 +557,12 @@ class BrokerClient(RESTClient):
         activity_filter: GetAccountActivitiesRequest,
         max_items_limit: Optional[int] = None,
         handle_pagination: Optional[PaginationType] = None,
-    ) -> Union[List[BaseActivity], Iterator[List[BaseActivity]]]:
+    ) -> Union[
+        List[BaseActivity],
+        Iterator[List[BaseActivity]],
+        List[RawData],
+        Iterator[List[RawData]],
+    ]:
         """
         Gets a list of Account activities, with various filtering options. Please see the documentation for
         GetAccountActivitiesRequest for more information as to what filters are available.
@@ -576,8 +581,8 @@ class BrokerClient(RESTClient):
               `PaginationType.FULL`
 
         Returns:
-            Union[List[BaseActivity], Iterator[List[BaseActivity]]]: Either a list or an Iterator of lists of
-              BaseActivity child classes
+            Union[List[BaseActivity], Iterator[List[BaseActivity]], List[RawData], Iterator[List[RawData]]]: Either a
+              list or an Iterator of lists of BaseActivity child classes (or raw dictionaries when raw_data=True).
         """
         handle_pagination = BrokerClient._validate_pagination(
             max_items_limit, handle_pagination
@@ -587,9 +592,15 @@ class BrokerClient(RESTClient):
         iterator = self._get_account_activities_iterator(
             activity_filter=activity_filter,
             max_items_limit=max_items_limit,
-            mapping=lambda raw_activities: [
-                self._parse_activity(activity) for activity in raw_activities
-            ],
+            mapping=(
+                (lambda raw_activities: raw_activities)
+                if self._use_raw_data
+                else (
+                    lambda raw_activities: [
+                        self._parse_activity(activity) for activity in raw_activities
+                    ]
+                )
+            ),
         )
 
         return BrokerClient._return_paginated_result(iterator, handle_pagination)
@@ -597,9 +608,9 @@ class BrokerClient(RESTClient):
     def _get_account_activities_iterator(
         self,
         activity_filter: GetAccountActivitiesRequest,
-        mapping: Callable[[HTTPResult], List[BaseActivity]],
+        mapping: Callable[[HTTPResult], Union[List[BaseActivity], List[RawData]]],
         max_items_limit: Optional[int] = None,
-    ) -> Iterator[List[BaseActivity]]:
+    ) -> Iterator[Union[List[BaseActivity], List[RawData]]]:
         """
         Private method for handling the iterator parts of get_account_activities
         """
@@ -1013,7 +1024,12 @@ class BrokerClient(RESTClient):
         transfers_filter: Optional[GetTransfersRequest] = None,
         max_items_limit: Optional[int] = None,
         handle_pagination: Optional[PaginationType] = None,
-    ) -> Union[List[Transfer], Iterator[List[Transfer]]]:
+    ) -> Union[
+        List[Transfer],
+        Iterator[List[Transfer]],
+        List[RawData],
+        Iterator[List[RawData]],
+    ]:
         """
         Gets the transfers for an account.
 
@@ -1026,8 +1042,8 @@ class BrokerClient(RESTClient):
               `PaginationType.FULL`.
 
         Returns:
-            Union[List[Transfer], Iterator[List[Transfer]]]: Either a list or an Iterator of lists of Transfer child
-              classes.
+            Union[List[Transfer], Iterator[List[Transfer]], List[RawData], Iterator[List[RawData]]]: Either a list or
+              an Iterator of lists of Transfer child classes (or raw dictionaries when raw_data=True).
         """
         account_id = validate_uuid_id_param(account_id)
         handle_pagination = BrokerClient._validate_pagination(
@@ -1051,7 +1067,7 @@ class BrokerClient(RESTClient):
         account_id: UUID,
         transfers_filter: GetTransfersRequest,
         max_items_limit: Optional[int],
-    ) -> Iterator[List[Transfer]]:
+    ) -> Iterator[Union[List[Transfer], List[RawData]]]:
         """
         Private method for handling the iterator parts of get_transfers_for_account.
         """
@@ -1080,7 +1096,10 @@ class BrokerClient(RESTClient):
             else:
                 total_items += num_items_returned
 
-            yield TypeAdapter(List[Transfer]).validate_python(result)
+            if self._use_raw_data:
+                yield result
+            else:
+                yield TypeAdapter(List[Transfer]).validate_python(result)
 
             if max_items_limit is not None and total_items >= max_items_limit:
                 break

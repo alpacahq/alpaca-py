@@ -1,4 +1,5 @@
 from enum import Enum
+from numbers import Integral
 
 
 class classproperty(property):
@@ -78,9 +79,13 @@ class TimeFrame:
 
         Raises:
             ValueError: Raised if the values of amount and unit are not consistent with each other
+            TypeError: Raised if unit is not a TimeFrameUnit
         """
-        if amount <= 0:
+        if isinstance(amount, bool) or not isinstance(amount, Integral) or amount <= 0:
             raise ValueError("Amount must be a positive integer value.")
+
+        if not isinstance(unit, TimeFrameUnit):
+            raise TypeError("Unit must be a TimeFrameUnit value.")
 
         if unit == TimeFrameUnit.Minute and amount > 59:
             raise ValueError(

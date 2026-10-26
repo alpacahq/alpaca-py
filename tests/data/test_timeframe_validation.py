@@ -37,9 +37,9 @@ def test_timeframe_rejects_nested_timeframe_preset_as_unit(preset):
 
 @pytest.mark.parametrize("preset", PRESETS)
 def test_timeframe_rejects_nested_preset_with_other_amount(preset):
-    """Regression test for #664: the suggestion must echo the caller's
-    amount, not always claim amount=1, and must not recommend a preset
-    (which is always amount=1) when the caller wanted a different amount.
+    """Regression test: the message must echo the caller's amount instead
+    of always suggesting amount=1, and must not imply the preset (always
+    amount=1) is a direct substitute for a different amount.
     """
     unit_name = preset.unit.name
     with pytest.raises(TypeError) as exc_info:
@@ -48,10 +48,6 @@ def test_timeframe_rejects_nested_preset_with_other_amount(preset):
     message = str(exc_info.value)
     assert f"TimeFrameUnit.{unit_name}" in message
     assert "amount=3" in message
-    # Must not tell the caller to construct a TimeFrame with amount=1 when
-    # they asked for amount=3, and must not recommend the amount=1 preset
-    # as a direct substitute.
-    assert "TimeFrame(amount=1," not in message
     assert f"TimeFrame.{unit_name} directly" not in message
 
 

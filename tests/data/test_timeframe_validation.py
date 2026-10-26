@@ -26,8 +26,12 @@ PRESETS = [
 @pytest.mark.parametrize("preset", PRESETS)
 def test_timeframe_rejects_nested_timeframe_preset_as_unit(preset):
     unit_name = preset.unit.name
-    with pytest.raises(TypeError, match=rf"TimeFrameUnit\.{unit_name}"):
+    with pytest.raises(TypeError) as exc_info:
         TimeFrame(amount=1, unit=preset)
+
+    message = str(exc_info.value)
+    assert f"TimeFrame.{unit_name}" in message
+    assert f"TimeFrameUnit.{unit_name}" in message
 
 
 def test_timeframe_rejects_nested_timeframe_before_amount_checks():

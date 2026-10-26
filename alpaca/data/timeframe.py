@@ -84,6 +84,13 @@ class TimeFrame:
         if isinstance(amount, bool) or not isinstance(amount, Integral) or amount <= 0:
             raise ValueError("Amount must be a positive integer value.")
 
+        if isinstance(unit, TimeFrame):
+            raise TypeError(
+                "Unit must be a TimeFrameUnit value, not a TimeFrame. "
+                "Pass a preset such as TimeFrame.Hour directly, or use "
+                "TimeFrame(amount=1, unit=TimeFrameUnit.Hour)."
+            )
+
         if not isinstance(unit, TimeFrameUnit):
             raise TypeError("Unit must be a TimeFrameUnit value.")
 

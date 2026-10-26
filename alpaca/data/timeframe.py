@@ -97,11 +97,22 @@ class TimeFrame:
 
         if isinstance(unit, TimeFrame):
             nested_unit_name = unit.unit.name
+            constructor_suggestion = (
+                f"TimeFrame(amount={amount}, unit=TimeFrameUnit.{nested_unit_name})"
+            )
+            if amount == 1:
+                preset_suggestion = (
+                    f"Pass a preset such as TimeFrame.{nested_unit_name} directly, "
+                    f"or use {constructor_suggestion}."
+                )
+            else:
+                preset_suggestion = (
+                    f"Presets like TimeFrame.{nested_unit_name} always represent "
+                    f"amount=1. Use {constructor_suggestion} instead."
+                )
             raise TypeError(
                 "Unit must be a TimeFrameUnit value, not a TimeFrame. "
-                f"Pass a preset such as TimeFrame.{nested_unit_name} directly, "
-                "or use "
-                f"TimeFrame(amount=1, unit=TimeFrameUnit.{nested_unit_name})."
+                f"{preset_suggestion}"
             )
 
         if not isinstance(unit, TimeFrameUnit):

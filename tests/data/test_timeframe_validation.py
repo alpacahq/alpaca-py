@@ -32,11 +32,27 @@ def test_timeframe_rejects_nested_timeframe_preset_as_unit(preset):
     message = str(exc_info.value)
     assert f"TimeFrame.{unit_name}" in message
     assert f"TimeFrameUnit.{unit_name}" in message
+    assert "amount=1" in message
 
 
-def test_timeframe_rejects_nested_timeframe_before_amount_checks():
-    with pytest.raises(TypeError, match=r"TimeFrameUnit\.Hour"):
-        TimeFrame(amount=3, unit=TimeFrame.Hour)
+@pytest.mark.parametrize("preset", PRESETS)
+def test_timeframe_rejects_nested_preset_with_other_amount(preset):
+    """Regression test for #664: the suggestion must echo the caller's
+    amount, not always claim amount=1, and must not recommend a preset
+    (which is always amount=1) when the caller wanted a different amount.
+    """
+    unit_name = preset.unit.name
+    with pytest.raises(TypeError) as exc_info:
+        TimeFrame(amount=3, unit=preset)
+
+    message = str(exc_info.value)
+    assert f"TimeFrameUnit.{unit_name}" in message
+    assert "amount=3" in message
+    # Must not tell the caller to construct a TimeFrame with amount=1 when
+    # they asked for amount=3, and must not recommend the amount=1 preset
+    # as a direct substitute.
+    assert "TimeFrame(amount=1," not in message
+    assert f"TimeFrame.{unit_name} directly" not in message
 
 
 def test_timeframe_rejects_constructed_timeframe_as_unit():

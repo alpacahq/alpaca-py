@@ -142,6 +142,8 @@ def test_get_activities_for_account_raw_data(reqmock, raw_client: BrokerClient):
     assert not any(
         isinstance(activity, (TradeActivity, NonTradeActivity)) for activity in result
     )
+    # Field values must survive untouched, not just the container type.
+    assert result[0]["activity_type"] == "CSD"
 
 
 def test_get_activities_for_account_full_pagination(reqmock, client: BrokerClient):

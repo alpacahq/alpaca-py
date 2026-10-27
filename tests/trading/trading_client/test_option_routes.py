@@ -357,3 +357,44 @@ def test_get_option_contract_delayed_settlement_null_amount(
     assert deliverable.settlement_method == OptionDeliverableSettlementMethod.BTOB
     assert deliverable.delayed_settlement is True
     assert deliverable.asset_id == asset_id
+
+
+def test_get_option_contracts_strike_price_types(
+    reqmock, trading_client: TradingClient
+):
+    import re
+
+    reqmock.get(
+        re.compile(r".*/options/contracts.*"),
+        text="""
+        {
+            "option_contracts": [],
+            "next_page_token": null
+        }
+        """,
+    )
+
+    # Float strike prices
+    req_float = GetOptionContractsRequest(
+        underlying_symbols=["AAPL"],
+        strike_price_gte=150.5,
+        strike_price_lte=200.0,
+    )
+    assert req_float.strike_price_gte == 150.5
+    assert req_float.strike_price_lte == 200.0
+    res = trading_client.get_option_contracts(req_float)
+    assert isinstance(res, OptionContractsResponse)
+    assert reqmock.request_history[0].qs["strike_price_gte"] == ["150.5"]
+    assert reqmock.request_history[0].qs["strike_price_lte"] == ["200.0"]
+
+    # String strike prices
+    req_str = GetOptionContractsRequest(
+        underlying_symbols=["AAPL"],
+        strike_price_gte="150.5",
+        strike_price_lte="200",
+    )
+    assert req_str.strike_price_gte == "150.5"
+    assert req_str.strike_price_lte == "200"
+    trading_client.get_option_contracts(req_str)
+    assert reqmock.request_history[1].qs["strike_price_gte"] == ["150.5"]
+    assert reqmock.request_history[1].qs["strike_price_lte"] == ["200"]

@@ -1,4 +1,5 @@
 import asyncio
+import inspect
 import json
 import logging
 import queue
@@ -328,5 +329,5 @@ class TradingStream:
         Raises:
             ValueError: Raised if the input method is not a coroutine
         """
-        if not asyncio.iscoroutinefunction(handler):
+        if not inspect.iscoroutinefunction(handler):
             raise ValueError("handler must be a coroutine function")

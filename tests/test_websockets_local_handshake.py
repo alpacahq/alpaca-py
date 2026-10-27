@@ -10,16 +10,33 @@ should actually round-trip through a socket, and the stream's event
 dispatch should actually deliver a message to a handler.
 """
 
+import asyncio
 import json
 import sys
 
 import msgpack
 import pytest
-from websockets.asyncio.server import serve
 
 from alpaca.common.utils import get_default_user_agent
 from alpaca.data.live.websocket import DataStream
 from alpaca.trading.stream import TradingStream
+
+# ``websockets.asyncio.server`` was introduced in websockets 13.0; pyproject.toml
+# still allows websockets>=10.4, so importing it unconditionally at module scope
+# would break collection (not just skip these tests) on older pinned versions.
+# Guard the import and skip this module on those releases instead.
+asyncio_server = pytest.importorskip(
+    "websockets.asyncio.server",
+    reason="requires websockets>=13 for the asyncio server API used by these tests",
+)
+serve = asyncio_server.serve
+
+# Deadline for each client/server socket exchange below. Without this, a
+# regression that stops the client from sending an expected message (e.g.
+# ``_send_subscribe_msg()`` returning without sending) would leave the server
+# handler awaiting that message while the test awaits the server's reply,
+# hanging the test (and the suite) forever instead of failing.
+_HANDSHAKE_TIMEOUT = 5
 
 
 def test_stream_modules_import_without_legacy_deprecation():
@@ -95,9 +112,10 @@ async def test_data_stream_local_handshake_auth_subscription_and_dispatch():
 
         stream._handlers["bars"]["SPY"] = on_bar
 
-        await stream._start_ws()
-        await stream._send_subscribe_msg()
-        for msg in msgpack.unpackb(await stream._ws.recv()):
+        await asyncio.wait_for(stream._start_ws(), _HANDSHAKE_TIMEOUT)
+        await asyncio.wait_for(stream._send_subscribe_msg(), _HANDSHAKE_TIMEOUT)
+        r = await asyncio.wait_for(stream._ws.recv(), _HANDSHAKE_TIMEOUT)
+        for msg in msgpack.unpackb(r):
             await stream._dispatch(msg)
         await stream.close()
 
@@ -165,8 +183,9 @@ async def test_trading_stream_local_handshake_auth_subscription_and_dispatch():
 
         stream.subscribe_trade_updates(on_trade)
 
-        await stream._start_ws()
-        await stream._dispatch(json.loads(await stream._ws.recv()))
+        await asyncio.wait_for(stream._start_ws(), _HANDSHAKE_TIMEOUT)
+        r = await asyncio.wait_for(stream._ws.recv(), _HANDSHAKE_TIMEOUT)
+        await stream._dispatch(json.loads(r))
         await stream.close()
 
     assert observed_headers["user_agent"] == get_default_user_agent()

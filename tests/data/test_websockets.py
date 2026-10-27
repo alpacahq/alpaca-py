@@ -5,12 +5,11 @@ import msgpack
 import pytest
 from msgpack.ext import Timestamp
 
-from alpaca.common.utils import get_default_user_agent
+from alpaca.common.utils import get_default_user_agent, get_websocket_headers_key
 from alpaca.data.enums import DataFeed, Exchange
-from alpaca.data.models import Bar, Trade, News
 from alpaca.data.live.stock import StockDataStream
 from alpaca.data.live.websocket import DataStream
-from alpaca.data.models import Bar, Trade
+from alpaca.data.models import Bar, News, Trade
 from alpaca.data.models.news import News
 from alpaca.data.models.orderbooks import Orderbook, OrderbookQuote
 from alpaca.data.models.quotes import Quote
@@ -180,6 +179,12 @@ def test_cast(ws_client: DataStream, raw_ws_client: DataStream, timestamp: Times
     assert raw_bar["h"] == 178.005
 
 
+def test_get_websocket_headers_key_returns_valid_param():
+    """Verify that get_websocket_headers_key returns an accepted keyword for websockets.connect."""
+    key = get_websocket_headers_key()
+    assert key in ("additional_headers", "extra_headers")
+
+
 @pytest.mark.asyncio
 async def test_connect_sets_user_agent_header(ws_client: DataStream):
     """The websocket connection should send the same User-Agent format as REST requests."""
@@ -187,13 +192,14 @@ async def test_connect_sets_user_agent_header(ws_client: DataStream):
     mock_ws.recv.return_value = msgpack.packb([{"T": "success", "msg": "connected"}])
 
     with patch(
-        "alpaca.data.live.websocket.websockets_legacy.connect",
+        "alpaca.data.live.websocket.websockets.connect",
         new=AsyncMock(return_value=mock_ws),
     ) as mock_connect:
         await ws_client._connect()
 
     _, kwargs = mock_connect.call_args
-    assert kwargs["extra_headers"]["User-Agent"] == get_default_user_agent()
+    headers = kwargs.get("additional_headers") or kwargs.get("extra_headers")
+    assert headers["User-Agent"] == get_default_user_agent()
 
 
 @pytest.mark.asyncio
@@ -209,14 +215,15 @@ async def test_connect_preserves_user_agent_when_extra_headers_overridden(
     }
 
     with patch(
-        "alpaca.data.live.websocket.websockets_legacy.connect",
+        "alpaca.data.live.websocket.websockets.connect",
         new=AsyncMock(return_value=mock_ws),
     ) as mock_connect:
         await ws_client._connect()
 
     _, kwargs = mock_connect.call_args
-    assert kwargs["extra_headers"]["X-Test"] == "1"
-    assert kwargs["extra_headers"]["User-Agent"] == get_default_user_agent()
+    headers = kwargs.get("additional_headers") or kwargs.get("extra_headers")
+    assert headers["X-Test"] == "1"
+    assert headers["User-Agent"] == get_default_user_agent()
     assert "ping_interval" in kwargs
 
 
@@ -235,14 +242,15 @@ async def test_connect_preserves_content_type_when_extra_headers_overridden(
     }
 
     with patch(
-        "alpaca.data.live.websocket.websockets_legacy.connect",
+        "alpaca.data.live.websocket.websockets.connect",
         new=AsyncMock(return_value=mock_ws),
     ) as mock_connect:
         await ws_client._connect()
 
     _, kwargs = mock_connect.call_args
-    assert kwargs["extra_headers"]["Content-Type"] == "application/msgpack"
-    assert kwargs["extra_headers"]["User-Agent"] == get_default_user_agent()
+    headers = kwargs.get("additional_headers") or kwargs.get("extra_headers")
+    assert headers["Content-Type"] == "application/msgpack"
+    assert headers["User-Agent"] == get_default_user_agent()
 
 
 @pytest.mark.asyncio

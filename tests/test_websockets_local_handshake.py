@@ -21,15 +21,20 @@ from alpaca.common.utils import get_default_user_agent
 from alpaca.data.live.websocket import DataStream
 from alpaca.trading.stream import TradingStream
 
-# ``websockets.asyncio.server`` was introduced in websockets 13.0; pyproject.toml
-# still allows websockets>=10.4, so importing it unconditionally at module scope
-# would break collection (not just skip these tests) on older pinned versions.
-# Guard the import and skip this module on those releases instead.
-asyncio_server = pytest.importorskip(
-    "websockets.asyncio.server",
+# ``websockets.asyncio.server`` needs websockets>=13, but pyproject.toml still
+# allows websockets>=10.4. Import it defensively so only the two tests below
+# that need a local server are skipped on older versions -- not the whole
+# module (which would also drop the DeprecationWarning check that must run on
+# every supported websockets version).
+try:
+    from websockets.asyncio.server import serve
+except ImportError:
+    serve = None
+
+_requires_asyncio_server = pytest.mark.skipif(
+    serve is None,
     reason="requires websockets>=13 for the asyncio server API used by these tests",
 )
-serve = asyncio_server.serve
 
 # Deadline for each client/server socket exchange below. Without this, a
 # regression that stops the client from sending an expected message (e.g.
@@ -37,6 +42,35 @@ serve = asyncio_server.serve
 # handler awaiting that message while the test awaits the server's reply,
 # hanging the test (and the suite) forever instead of failing.
 _HANDSHAKE_TIMEOUT = 5
+
+
+def _capturing_handler(handler):
+    """Wrap a server connection handler so its exceptions surface in the test.
+
+    websockets logs/swallows exceptions raised inside a connection handler
+    instead of propagating them to the client. Without this, a failed
+    ``assert`` in ``handler`` only closes the socket, and the test sees an
+    unhelpful ``ConnectionClosedError`` from its own ``recv()``/``send()``
+    instead of the real assertion failure.
+
+    Returns the wrapped handler plus a ``check()`` callable; call ``check()``
+    after the ``async with serve(...)`` block exits to re-raise any error the
+    handler hit.
+    """
+    captured = []
+
+    async def wrapped(socket):
+        try:
+            await handler(socket)
+        except BaseException as exc:
+            captured.append(exc)
+            raise
+
+    def check() -> None:
+        if captured:
+            raise captured[0]
+
+    return wrapped, check
 
 
 def test_stream_modules_import_without_legacy_deprecation():
@@ -62,6 +96,7 @@ def test_stream_modules_import_without_legacy_deprecation():
     assert result.returncode == 0, result.stderr
 
 
+@_requires_asyncio_server
 @pytest.mark.asyncio
 async def test_data_stream_local_handshake_auth_subscription_and_dispatch():
     """Connect, authenticate, subscribe, and dispatch one bar to a handler."""
@@ -103,27 +138,37 @@ async def test_data_stream_local_handshake_auth_subscription_and_dispatch():
             )
         )
 
-    async with serve(handler, "127.0.0.1", 0) as server:
-        port = server.sockets[0].getsockname()[1]
-        stream = DataStream(f"ws://127.0.0.1:{port}", "key", "secret")
+    handler, check_handler = _capturing_handler(handler)
 
-        async def on_bar(bar):
-            received["bar"] = bar
+    try:
+        async with serve(handler, "127.0.0.1", 0) as server:
+            port = server.sockets[0].getsockname()[1]
+            stream = DataStream(f"ws://127.0.0.1:{port}", "key", "secret")
 
-        stream._handlers["bars"]["SPY"] = on_bar
+            async def on_bar(bar):
+                received["bar"] = bar
 
-        await asyncio.wait_for(stream._start_ws(), _HANDSHAKE_TIMEOUT)
-        await asyncio.wait_for(stream._send_subscribe_msg(), _HANDSHAKE_TIMEOUT)
-        r = await asyncio.wait_for(stream._ws.recv(), _HANDSHAKE_TIMEOUT)
-        for msg in msgpack.unpackb(r):
-            await stream._dispatch(msg)
-        await stream.close()
+            stream._handlers["bars"]["SPY"] = on_bar
+
+            await asyncio.wait_for(stream._start_ws(), _HANDSHAKE_TIMEOUT)
+            await asyncio.wait_for(stream._send_subscribe_msg(), _HANDSHAKE_TIMEOUT)
+            r = await asyncio.wait_for(stream._ws.recv(), _HANDSHAKE_TIMEOUT)
+            for msg in msgpack.unpackb(r):
+                await stream._dispatch(msg)
+            await stream.close()
+    finally:
+        # Re-raises any handler-side assertion even if the client side failed
+        # first (e.g. with a ConnectionClosedError from the aborted socket),
+        # so the real cause of the failure is what the test reports.
+        check_handler()
 
     assert observed_headers["user_agent"] == get_default_user_agent()
     assert observed_headers["content_type"] == "application/msgpack"
+    assert "bar" in received, "handler never dispatched a bar"
     assert received["bar"].symbol == "SPY"
 
 
+@_requires_asyncio_server
 @pytest.mark.asyncio
 async def test_trading_stream_local_handshake_auth_subscription_and_dispatch():
     """Connect, authenticate, subscribe, and dispatch one trade update."""
@@ -172,21 +217,30 @@ async def test_trading_stream_local_handshake_auth_subscription_and_dispatch():
             )
         )
 
-    async with serve(handler, "127.0.0.1", 0) as server:
-        port = server.sockets[0].getsockname()[1]
-        stream = TradingStream(
-            "key", "secret", paper=True, url_override=f"ws://127.0.0.1:{port}"
-        )
+    handler, check_handler = _capturing_handler(handler)
 
-        async def on_trade(update):
-            received["update"] = update
+    try:
+        async with serve(handler, "127.0.0.1", 0) as server:
+            port = server.sockets[0].getsockname()[1]
+            stream = TradingStream(
+                "key", "secret", paper=True, url_override=f"ws://127.0.0.1:{port}"
+            )
 
-        stream.subscribe_trade_updates(on_trade)
+            async def on_trade(update):
+                received["update"] = update
 
-        await asyncio.wait_for(stream._start_ws(), _HANDSHAKE_TIMEOUT)
-        r = await asyncio.wait_for(stream._ws.recv(), _HANDSHAKE_TIMEOUT)
-        await stream._dispatch(json.loads(r))
-        await stream.close()
+            stream.subscribe_trade_updates(on_trade)
+
+            await asyncio.wait_for(stream._start_ws(), _HANDSHAKE_TIMEOUT)
+            r = await asyncio.wait_for(stream._ws.recv(), _HANDSHAKE_TIMEOUT)
+            await stream._dispatch(json.loads(r))
+            await stream.close()
+    finally:
+        # Re-raises any handler-side assertion even if the client side failed
+        # first (e.g. with a ConnectionClosedError from the aborted socket),
+        # so the real cause of the failure is what the test reports.
+        check_handler()
 
     assert observed_headers["user_agent"] == get_default_user_agent()
+    assert "update" in received, "handler never dispatched a trade update"
     assert received["update"].order.symbol == "SPY"

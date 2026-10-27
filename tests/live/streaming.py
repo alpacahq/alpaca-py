@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import functools
 import os
 import threading
 import time
@@ -74,6 +75,7 @@ def probe_stream(
     stop_lock = threading.Lock()
     stopped = False
 
+    @functools.wraps(real_connect)
     async def capturing_connect(uri: Any, *args: Any, **kwargs: Any) -> Any:
         # str(Enum) can print "BaseURL.X"; prefer the URL value when present.
         result.url = getattr(uri, "value", None) or str(uri)

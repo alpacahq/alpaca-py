@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Callable, Optional
+import functools
+import inspect
+from typing import Callable, Dict, Optional
 from unittest.mock import AsyncMock, patch
 
+import alpaca.common.utils as alpaca_utils
 from alpaca.data.live import websocket as data_ws
 from tests.live.streaming import StreamProbeResult, probe_stream, stream_timeout_seconds
 
@@ -99,6 +102,78 @@ def test_probe_stream_captures_headers_and_message():
     assert result.headers["User-Agent"] == "test-ua"
     assert len(result.messages) == 1
     assert stream.stop_calls >= 1 or not stream._running
+
+
+def test_probe_stream_connect_wrapper_preserves_header_key_detection(monkeypatch):
+    """Regression: capturing_connect must not poison get_websocket_headers_key.
+
+    probe_stream swaps in ``capturing_connect`` for ``websockets.connect``
+    while the stream runs. ``get_websocket_headers_key()`` caches its result
+    process-wide the first time it's called, based on
+    ``inspect.signature(websockets.connect)``. If the installed wrapper only
+    exposes ``(uri, *args, **kwargs)`` instead of mirroring the real
+    ``connect`` signature, the very first call made while the probe is active
+    would permanently cache the wrong header kwarg name (``extra_headers``
+    instead of ``additional_headers`` on modern ``websockets`` versions),
+    breaking every subsequent live connection.
+    """
+    real_connect = data_ws.websockets.connect
+    expected_key = (
+        "additional_headers"
+        if "additional_headers" in inspect.signature(real_connect).parameters
+        else "extra_headers"
+    )
+
+    fake_ws = AsyncMock()
+
+    # Stand in for the network layer without actually connecting, but keep
+    # the real signature intact (as the production websockets.connect would)
+    # so this test actually exercises capturing_connect's own wrapping.
+    @functools.wraps(real_connect)
+    async def fake_network_connect(uri, *args, **kwargs):
+        return fake_ws
+
+    captured_key: Dict[str, str] = {}
+
+    class _HeaderCheckingStream(_FakeStream):
+        def run(self) -> None:
+            async def _run() -> None:
+                self._loop = asyncio.get_running_loop()
+                # Resolve the header kwarg name for the first time ever,
+                # while websockets.connect has been replaced by
+                # probe_stream's capturing_connect wrapper.
+                captured_key["value"] = alpaca_utils.get_websocket_headers_key()
+                await data_ws.websockets.connect(
+                    "wss://example.test/v2/iex",
+                    **{captured_key["value"]: {"User-Agent": "test-ua"}},
+                )
+                self._running = True
+                if self._handler:
+                    await self._handler({"T": "q", "S": "SPY"})
+                while self._running:
+                    await asyncio.sleep(0.01)
+
+            asyncio.run(_run())
+
+    # Force the "first call ever" path regardless of test execution order.
+    monkeypatch.setattr(alpaca_utils, "_WS_HEADERS_KEY", None)
+
+    stream = _HeaderCheckingStream()
+    with patch(
+        "tests.live.streaming.websockets.connect",
+        new=fake_network_connect,
+    ):
+        result = probe_stream(
+            stream,
+            subscribe=lambda s, h: s.subscribe(h),
+            connect_path=CONNECT_PATH,
+            timeout=5,
+            min_messages=1,
+            require_message=True,
+        )
+
+    assert result.error is None
+    assert captured_key.get("value") == expected_key
 
 
 def test_probe_stream_require_message_timeout():

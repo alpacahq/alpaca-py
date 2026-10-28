@@ -148,6 +148,7 @@ class BrokerClient(RESTClient):
         self,
         api_key: Optional[str] = None,
         secret_key: Optional[str] = None,
+        oauth_token: Optional[str] = None,
         api_version: str = "v1",
         sandbox: bool = True,
         raw_data: bool = False,
@@ -157,6 +158,7 @@ class BrokerClient(RESTClient):
         Args:
             api_key (Optional[str]): Broker API key - set sandbox to true if using sandbox keys. Defaults to None.
             secret_key (Optional[str]): Broker API secret key - set sandbox to true if using sandbox keys. Defaults to None.
+            oauth_token (Optional[str]): The oauth token if authenticating via OAuth. Defaults to None.
             api_version (str): API version. Defaults to 'v1'.
             sandbox (bool): True if using sandbox mode. Defaults to True.
             raw_data (bool): True if you want raw response instead of wrapped responses. Defaults to False.
@@ -173,13 +175,18 @@ class BrokerClient(RESTClient):
             base_url=base_url,
             api_key=api_key,
             secret_key=secret_key,
+            oauth_token=oauth_token,
             api_version=api_version,
             sandbox=sandbox,
             raw_data=raw_data,
         )
 
     def _get_auth_headers(self) -> dict:
-        # We override this since we use Basic auth
+        # Broker API accepts either Basic credentials or an OAuth access token,
+        # so only build the Basic header when no token was supplied.
+        if self._oauth_token:
+            return {"Authorization": "Bearer " + self._oauth_token}
+
         auth_string = f"{self._api_key}:{self._secret_key}"
         auth_string_encoded = base64.b64encode(str.encode(auth_string))
 

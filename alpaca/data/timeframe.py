@@ -80,6 +80,33 @@ class TimeFrame:
         return f"{self.amount}{self.unit.value}"
 
     @staticmethod
+    def _is_amount_valid_for_unit(amount: int, unit: TimeFrameUnit) -> bool:
+        """Returns whether ``amount`` is a legal value for ``unit``.
+
+        This is the single source of truth for the amount/unit constraints
+        enforced below, so error-message hints (e.g. for a nested TimeFrame)
+        can check whether a constructor call they are about to recommend
+        would itself be legal, instead of duplicating these rules and
+        risking drift.
+
+        Args:
+            amount (int): The number of multiples of unit
+            unit (TimeFrameUnit): The base unit of time interval
+
+        Returns:
+            bool: True if amount is valid for unit
+        """
+        if unit == TimeFrameUnit.Minute:
+            return amount <= 59
+        if unit == TimeFrameUnit.Hour:
+            return amount <= 23
+        if unit in (TimeFrameUnit.Day, TimeFrameUnit.Week):
+            return amount == 1
+        if unit == TimeFrameUnit.Month:
+            return amount in (1, 2, 3, 6, 12)
+        return True
+
+    @staticmethod
     def validate_timeframe(amount: int, unit: TimeFrameUnit):
         """Validates the amount value against the TimeFrameUnit value for consistency
 
@@ -96,21 +123,35 @@ class TimeFrame:
             raise ValueError("Amount must be a positive integer value.")
 
         if isinstance(unit, TimeFrame):
-            nested_unit_name = unit.unit.name
+            nested_unit = unit.unit
+            nested_unit_name = nested_unit.name
             if amount == 1:
                 hint = (
                     f"Pass a preset such as TimeFrame.{nested_unit_name} directly, "
                     f"or use TimeFrame(amount=1, unit=TimeFrameUnit.{nested_unit_name})."
                 )
-            else:
+            elif TimeFrame._is_amount_valid_for_unit(amount, nested_unit):
                 # Presets are always amount=1, so they can't stand in for the
                 # caller's amount. Echo it in the constructor form instead;
-                # if it's not a valid amount for this unit, the usual
-                # ValueError below will say so once unit is fixed.
+                # amount is confirmed valid for this unit, so the suggested
+                # call will not itself raise.
                 hint = (
                     f"Presets like TimeFrame.{nested_unit_name} are always "
                     f"amount=1. Use TimeFrame(amount={amount}, "
                     f"unit=TimeFrameUnit.{nested_unit_name}) instead."
+                )
+            else:
+                # amount is not valid for this unit at all (e.g. amount=3
+                # with TimeFrameUnit.Day), so recommending
+                # TimeFrame(amount={amount}, unit=TimeFrameUnit.{name})
+                # would itself immediately raise. Don't present that as
+                # the fix; point to the amount=1 preset instead.
+                hint = (
+                    f"Presets like TimeFrame.{nested_unit_name} are always "
+                    f"amount=1, and amount={amount} is not valid for "
+                    f"TimeFrameUnit.{nested_unit_name}. Pass a preset such "
+                    f"as TimeFrame.{nested_unit_name} directly, or use "
+                    f"TimeFrame(amount=1, unit=TimeFrameUnit.{nested_unit_name})."
                 )
 
             raise TypeError(
@@ -120,19 +161,28 @@ class TimeFrame:
         if not isinstance(unit, TimeFrameUnit):
             raise TypeError("Unit must be a TimeFrameUnit value.")
 
-        if unit == TimeFrameUnit.Minute and amount > 59:
+        if unit == TimeFrameUnit.Minute and not TimeFrame._is_amount_valid_for_unit(
+            amount, unit
+        ):
             raise ValueError(
                 "Second or Minute units can only be "
                 + "used with amounts between 1-59."
             )
 
-        if unit == TimeFrameUnit.Hour and amount > 23:
+        if unit == TimeFrameUnit.Hour and not TimeFrame._is_amount_valid_for_unit(
+            amount, unit
+        ):
             raise ValueError("Hour units can only be used with amounts 1-23")
 
-        if unit in (TimeFrameUnit.Day, TimeFrameUnit.Week) and amount != 1:
+        if unit in (
+            TimeFrameUnit.Day,
+            TimeFrameUnit.Week,
+        ) and not TimeFrame._is_amount_valid_for_unit(amount, unit):
             raise ValueError("Day and Week units can only be used with amount 1")
 
-        if unit == TimeFrameUnit.Month and amount not in (1, 2, 3, 6, 12):
+        if unit == TimeFrameUnit.Month and not TimeFrame._is_amount_valid_for_unit(
+            amount, unit
+        ):
             raise ValueError(
                 "Month units can only be used with amount 1, 2, 3, 6 and 12"
             )

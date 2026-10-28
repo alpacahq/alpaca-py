@@ -6,11 +6,14 @@ from typing import Callable, Dict, Optional, Union
 
 import websockets
 from pydantic import BaseModel
-from websockets.legacy import client as websockets_legacy
 
 from alpaca.common import RawData
 from alpaca.common.enums import BaseURL
-from alpaca.common.utils import get_default_user_agent, reconnect_delay
+from alpaca.common.utils import (
+    get_default_user_agent,
+    get_websocket_headers_key,
+    reconnect_delay,
+)
 from alpaca.trading import TradeUpdate
 
 log = logging.getLogger(__name__)
@@ -88,12 +91,21 @@ class TradingStream:
 
     async def _connect(self):
         params = dict(self._websocket_params or {})
-        extra_headers = dict(params.pop("extra_headers", {}) or {})
-        extra_headers["User-Agent"] = get_default_user_agent()
-        self._ws = await websockets_legacy.connect(
-            self._endpoint,
-            extra_headers=extra_headers,
+        extra_headers = {
+            **dict(params.pop("extra_headers", {}) or {}),
+            **dict(params.pop("additional_headers", {}) or {}),
+            "User-Agent": get_default_user_agent(),
+        }
+
+        header_key = get_websocket_headers_key()
+        connect_kwargs = {
+            header_key: extra_headers,
             **params,
+        }
+
+        self._ws = await websockets.connect(
+            self._endpoint,
+            **connect_kwargs,
         )
 
     async def _auth(self):
@@ -303,8 +315,9 @@ class TradingStream:
         self._mark_stop_requested()
         if self._stop_stream_event is not None:
             self._stop_stream_event.set()
-        if self._subscription_ready is not None:
-            self._subscription_ready.set()
+        # Event.set() from another thread does not wake this loop.
+        self._wake_subscription_wait()
+        await asyncio.sleep(0)
 
     async def _wake_after_stop(self) -> None:
         """Sets the asyncio-only wakeups for a stop already made visible by
@@ -316,8 +329,9 @@ class TradingStream:
         """
         if self._stop_stream_event is not None:
             self._stop_stream_event.set()
-        if self._subscription_ready is not None:
-            self._subscription_ready.set()
+        # Event.set() from another thread does not wake this loop.
+        self._wake_subscription_wait()
+        await asyncio.sleep(0)
 
     def stop(self) -> None:
         """Stops the websocket connection."""

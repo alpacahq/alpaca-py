@@ -45,3 +45,32 @@ def test_request_sends_user_agent_header(
 
     assert reqmock.called_once
     assert reqmock.last_request.headers["User-Agent"] == get_default_user_agent()
+
+
+def test_request_retries_rate_limited_response(
+    reqmock: Mocker, trading_client: TradingClient, monkeypatch
+):
+    """A 429 (Rate Limit) response is retried by default instead of raised."""
+    monkeypatch.setattr("alpaca.common.rest.time.sleep", lambda seconds: None)
+    reqmock.get(
+        f"{BaseURL.TRADING_PAPER.value}/v2/clock",
+        [
+            {"status_code": 429, "text": '{"message": "rate limit exceeded"}'},
+            {
+                "status_code": 200,
+                "text": """
+                {
+                  "timestamp": "2022-04-28T14:07:04.451420928-04:00",
+                  "is_open": true,
+                  "next_open": "2022-04-29T09:30:00-04:00",
+                  "next_close": "2022-04-28T16:00:00-04:00"
+                }
+                """,
+            },
+        ],
+    )
+
+    clock = trading_client.get_clock()
+
+    assert reqmock.call_count == 2
+    assert clock.is_open

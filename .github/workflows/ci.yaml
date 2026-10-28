@@ -18,7 +18,7 @@ jobs:
         run: pipx install poetry
       - uses: actions/setup-python@v7
         with:
-          python-version: 3.11
+          python-version: 3.11.18
           cache: "poetry"
       - name: Poetry install
         run: poetry install
@@ -31,7 +31,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ "3.10", "3.11" ] #we'll want to add other versions down the road
+        python-version: [ "3.10", "3.11.18" ] #we'll want to add other versions down the road
         os: [ ubuntu-latest ] #in the future we should add windows here
     runs-on: ${{ matrix.os }}
     steps:

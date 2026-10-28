@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import queue
+import threading
 from collections import defaultdict
 from enum import Enum
 from typing import Callable, Dict, List, Optional, Tuple, Union
@@ -118,6 +119,11 @@ class DataStream:
         self._reconnect_min_backoff = 1.0
         self._reconnect_max_backoff = 30.0
         self._stop_stream_queue = queue.Queue()
+        # Guards the check-then-insert in _mark_stop_requested(): that method
+        # now runs on arbitrary caller threads (stop()) as well as the loop
+        # thread (stop_ws()), and queue.Queue.empty()+put_nowait() is not
+        # atomic across threads on its own.
+        self._stop_requested_lock = threading.Lock()
         self._stop_stream_event: Optional[asyncio.Event] = None
         self._subscription_ready: Optional[asyncio.Event] = None
         self._handlers = {channel: {} for channel in _CHANNEL_TYPES.values()}
@@ -236,13 +242,19 @@ class DataStream:
         """Makes a stop visible to any waiter: flips the run flag and
         ensures exactly one token sits in the queue.
 
-        Only touches a plain attribute and a thread-safe queue.Queue, so
-        this is safe to call from any thread without going through the
-        loop.
+        Only touches a plain attribute and a thread-safe queue.Queue, plus
+        a plain Lock, so this is safe to call from any thread without going
+        through the loop. The lock makes the empty-check-then-insert atomic:
+        without it, two overlapping callers (e.g. a threaded stop() racing a
+        handler's ``await stop_ws()`` on the loop) could both observe an
+        empty queue and each insert a token, leaving an extra one behind
+        for a waiter to consume only one of and leak the other into the
+        next run.
         """
         self._should_run = False
-        if self._stop_stream_queue.empty():
-            self._stop_stream_queue.put_nowait({"should_stop": True})
+        with self._stop_requested_lock:
+            if self._stop_stream_queue.empty():
+                self._stop_stream_queue.put_nowait({"should_stop": True})
 
     async def stop_ws(self) -> None:
         """Signals websocket connection should close by adding a closing message to the stop_stream_queue"""
@@ -590,9 +602,19 @@ class DataStream:
         # the waiter could then resume and see an empty queue, since
         # nothing has run on the loop yet to insert the token.
         self._mark_stop_requested()
-        asyncio.run_coroutine_threadsafe(self._wake_after_stop(), self._loop).result(
-            timeout=5
-        )
+        wakeup = self._wake_after_stop()
+        try:
+            asyncio.run_coroutine_threadsafe(wakeup, self._loop).result(timeout=5)
+        except RuntimeError:
+            # The loop can finish _run_forever (it already saw the stop
+            # token just queued above, e.g. via the periodic check in
+            # _consume()) and close between the is_running() check at the
+            # top of this method and this submission. The stop already
+            # succeeded in that case; there is just nothing left on the
+            # loop to deliver the wakeup to, so the coroutine was never
+            # scheduled and must be closed explicitly to avoid a
+            # "coroutine was never awaited" warning.
+            wakeup.close()
 
     def _ensure_coroutine(self, handler: Callable) -> None:
         """Checks if a method is an asyncio coroutine method

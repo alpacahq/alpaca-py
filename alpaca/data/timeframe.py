@@ -107,6 +107,24 @@ class TimeFrame:
         return True
 
     @staticmethod
+    def _amount_constraint_message(unit: TimeFrameUnit) -> str:
+        """Returns a human-readable description of the legal amounts for ``unit``.
+
+        Shared by the ``ValueError`` messages below and by nested-TimeFrame
+        error hints, so the wording always matches what
+        ``_is_amount_valid_for_unit`` actually enforces.
+        """
+        if unit == TimeFrameUnit.Minute:
+            return "Second or Minute units can only be used with amounts between 1-59."
+        if unit == TimeFrameUnit.Hour:
+            return "Hour units can only be used with amounts 1-23"
+        if unit in (TimeFrameUnit.Day, TimeFrameUnit.Week):
+            return "Day and Week units can only be used with amount 1"
+        if unit == TimeFrameUnit.Month:
+            return "Month units can only be used with amount 1, 2, 3, 6 and 12"
+        return f"amount is not valid for TimeFrameUnit.{unit.name}"
+
+    @staticmethod
     def validate_timeframe(amount: int, unit: TimeFrameUnit):
         """Validates the amount value against the TimeFrameUnit value for consistency
 
@@ -144,14 +162,15 @@ class TimeFrame:
                 # amount is not valid for this unit at all (e.g. amount=3
                 # with TimeFrameUnit.Day), so recommending
                 # TimeFrame(amount={amount}, unit=TimeFrameUnit.{name})
-                # would itself immediately raise. Don't present that as
-                # the fix; point to the amount=1 preset instead.
+                # would itself immediately raise. Suggesting amount=1
+                # instead would silently change the interval the caller
+                # asked for, so state the unit's actual constraint rather
+                # than propose a replacement amount.
                 hint = (
                     f"Presets like TimeFrame.{nested_unit_name} are always "
                     f"amount=1, and amount={amount} is not valid for "
-                    f"TimeFrameUnit.{nested_unit_name}. Pass a preset such "
-                    f"as TimeFrame.{nested_unit_name} directly, or use "
-                    f"TimeFrame(amount=1, unit=TimeFrameUnit.{nested_unit_name})."
+                    f"TimeFrameUnit.{nested_unit_name}. "
+                    f"{TimeFrame._amount_constraint_message(nested_unit)}"
                 )
 
             raise TypeError(
@@ -161,31 +180,8 @@ class TimeFrame:
         if not isinstance(unit, TimeFrameUnit):
             raise TypeError("Unit must be a TimeFrameUnit value.")
 
-        if unit == TimeFrameUnit.Minute and not TimeFrame._is_amount_valid_for_unit(
-            amount, unit
-        ):
-            raise ValueError(
-                "Second or Minute units can only be "
-                + "used with amounts between 1-59."
-            )
-
-        if unit == TimeFrameUnit.Hour and not TimeFrame._is_amount_valid_for_unit(
-            amount, unit
-        ):
-            raise ValueError("Hour units can only be used with amounts 1-23")
-
-        if unit in (
-            TimeFrameUnit.Day,
-            TimeFrameUnit.Week,
-        ) and not TimeFrame._is_amount_valid_for_unit(amount, unit):
-            raise ValueError("Day and Week units can only be used with amount 1")
-
-        if unit == TimeFrameUnit.Month and not TimeFrame._is_amount_valid_for_unit(
-            amount, unit
-        ):
-            raise ValueError(
-                "Month units can only be used with amount 1, 2, 3, 6 and 12"
-            )
+        if not TimeFrame._is_amount_valid_for_unit(amount, unit):
+            raise ValueError(TimeFrame._amount_constraint_message(unit))
 
     def __str__(self):
         return self.value

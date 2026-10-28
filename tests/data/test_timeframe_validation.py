@@ -63,27 +63,42 @@ def test_timeframe_rejects_nested_preset_with_valid_other_amount(preset, amount)
     assert f"TimeFrame(amount={amount}, unit=TimeFrameUnit.{unit_name})" in message
 
 
-# (preset, amount) pairs where amount != 1 is NOT a legal amount for that
-# preset's unit (Day/Week only allow amount=1; Minute/Hour/Month have their
-# own ranges). The error hint must not recommend
-# TimeFrame(amount=<amount>, unit=TimeFrameUnit.<name>) here, since that
-# exact call would itself immediately raise a ValueError.
+# (preset, amount, expected_constraint) tuples where amount != 1 is NOT a
+# legal amount for that preset's unit (Day/Week only allow amount=1;
+# Minute/Hour/Month have their own ranges). The error hint must not
+# recommend TimeFrame(amount=<amount>, unit=TimeFrameUnit.<name>) here,
+# since that exact call would itself immediately raise a ValueError. It
+# also must not silently suggest amount=1 as a "fix", since that would
+# change the interval the caller actually asked for; it should instead
+# state the unit's real constraint.
 INVALID_OTHER_AMOUNTS = [
-    (TimeFrame.Day, 3),
-    (TimeFrame.Week, 2),
-    (TimeFrame.Minute, 60),
-    (TimeFrame.Hour, 24),
-    (TimeFrame.Month, 4),
+    (TimeFrame.Day, 3, "Day and Week units can only be used with amount 1"),
+    (TimeFrame.Week, 2, "Day and Week units can only be used with amount 1"),
+    (
+        TimeFrame.Minute,
+        60,
+        "Second or Minute units can only be used with amounts between 1-59.",
+    ),
+    (TimeFrame.Hour, 24, "Hour units can only be used with amounts 1-23"),
+    (
+        TimeFrame.Month,
+        4,
+        "Month units can only be used with amount 1, 2, 3, 6 and 12",
+    ),
 ]
 
 
-@pytest.mark.parametrize(("preset", "amount"), INVALID_OTHER_AMOUNTS)
-def test_timeframe_rejects_nested_preset_with_invalid_other_amount(preset, amount):
+@pytest.mark.parametrize(("preset", "amount", "constraint"), INVALID_OTHER_AMOUNTS)
+def test_timeframe_rejects_nested_preset_with_invalid_other_amount(
+    preset, amount, constraint
+):
     """Regression test for the case where the caller's amount is not a
     legal amount for the nested unit at all (e.g. TimeFrame(3,
     TimeFrame.Day)). The hint must not present
-    TimeFrame(amount=<amount>, unit=TimeFrameUnit.<name>) as the fix,
-    since that replacement would itself raise ValueError.
+    TimeFrame(amount=<amount>, unit=TimeFrameUnit.<name>) as the fix, since
+    that replacement would itself raise ValueError, and it must not
+    silently suggest amount=1 instead, since that changes the interval the
+    caller asked for. It should instead state the unit's real constraint.
     """
     unit_name = preset.unit.name
     with pytest.raises(TypeError) as exc_info:
@@ -93,8 +108,10 @@ def test_timeframe_rejects_nested_preset_with_invalid_other_amount(preset, amoun
     assert f"TimeFrameUnit.{unit_name}" in message
     assert f"amount={amount}" in message
     assert f"TimeFrame(amount={amount}, unit=TimeFrameUnit.{unit_name})" not in message
-    # The fallback guidance should point to the always-valid amount=1 form.
-    assert f"TimeFrame(amount=1, unit=TimeFrameUnit.{unit_name})" in message
+    # Must not silently propose a different interval than the caller asked
+    # for (e.g. "use TimeFrame(amount=1, ...)" for a 3-day request).
+    assert "TimeFrame(amount=1" not in message
+    assert constraint in message
 
 
 def test_timeframe_rejects_constructed_timeframe_as_unit():

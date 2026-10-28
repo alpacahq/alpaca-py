@@ -93,6 +93,52 @@ async def test_stop_after_subscribe_wins_before_waiter_resumes(make_stream, subs
     assert started == []
 
 
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "make_stream, subscribe",
+    [
+        (
+            lambda: DataStream("endpoint", "key-id", "secret-key"),
+            lambda stream: stream._subscribe(
+                _handler, ("AAPL",), stream._handlers["trades"]
+            ),
+        ),
+        (
+            lambda: TradingStream("key-id", "secret-key"),
+            lambda stream: stream.subscribe_trade_updates(_handler),
+        ),
+    ],
+    ids=["data", "trading"],
+)
+async def test_stop_queued_before_first_run_is_not_treated_as_stale(
+    make_stream, subscribe
+):
+    """A stop meant for a brand-new run must not be discarded as a leftover
+    from a previous run.
+
+    Subscribing before the task is created means the startup wait would
+    otherwise resolve immediately, so draining every queued stop on entry
+    (instead of only a genuinely stale one) would wrongly let this run
+    connect.
+    """
+    stream = make_stream()
+    subscribe(stream)
+    started = []
+
+    async def fail_if_connected():
+        started.append(True)
+
+    stream._start_ws = fail_if_connected
+    task = asyncio.create_task(stream._run_forever())
+    # No await between create_task and stop_ws, so the stop is queued
+    # before the task's first line of code ever runs, yet it must still
+    # be honored as this run's own stop request.
+    await stream.stop_ws()
+
+    await asyncio.wait_for(task, timeout=1)
+    assert started == []
+
+
 @pytest.mark.parametrize(
     "make_stream, subscribe",
     [

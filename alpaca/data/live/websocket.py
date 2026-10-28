@@ -452,9 +452,6 @@ class DataStream:
         Returns False when stop was requested first. The wait is an event,
         not a polling sleep, so an idle stream does not stay runnable.
         """
-        # A stop left over from a previous run must not cancel this one.
-        while not self._stop_stream_queue.empty():
-            self._stop_stream_queue.get_nowait()
         self._subscription_ready = asyncio.Event()
         while True:
             self._subscription_ready.clear()
@@ -483,6 +480,12 @@ class DataStream:
         while True:
             try:
                 if not self._should_run:
+                    # A stop during the reconnect backoff wait is observed via
+                    # _stop_stream_event, not drained from the queue. Consume
+                    # it now, while this run is the one exiting, so it cannot
+                    # be mistaken for a stop meant for the next run.
+                    while not self._stop_stream_queue.empty():
+                        self._stop_stream_queue.get_nowait()
                     # when signaling to stop, this is how we break run_forever
                     log.info("{} stream stopped".format(self._name))
                     return

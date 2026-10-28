@@ -32,6 +32,7 @@ from alpaca.broker.requests import (
     UpdatableIdentity,
     UpdatableDisclosures,
     GetAccountActivitiesRequest,
+    GetEventsRequest,
     GetJournalsRequest,
     GetTradeDocumentsRequest,
     CreateAccountRequest,
@@ -559,6 +560,32 @@ def test_updatable_trusted_contact_list_street_address_serializes_as_list():
 
     assert contact.street_address == lines
     assert fields == {"trusted_contact": {"street_address": lines}}
+
+
+def test_get_events_request_since_id_and_until_id_warn_on_read():
+    request = GetEventsRequest(since_id=1, until_id=2)
+
+    with pytest.warns(DeprecationWarning, match="since_id"):
+        assert request.since_id == 1
+
+    with pytest.warns(DeprecationWarning, match="until_id"):
+        assert request.until_id == 2
+
+    assert request.to_request_fields() == {"since_id": 1, "until_id": 2}
+
+
+def test_get_events_request_since_ulid_and_until_ulid_do_not_warn():
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", DeprecationWarning)
+        request = GetEventsRequest(
+            since_ulid="01ARZ3NDEKTSV4RRFFQ69G5FAV",
+            until_ulid="01ARZ3NDEKTSV4RRFFQ69G5FAW",
+        )
+
+    assert request.to_request_fields() == {
+        "since_ulid": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "until_ulid": "01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    }
 
 
 def _account_with_trusted_street_address(street_address):

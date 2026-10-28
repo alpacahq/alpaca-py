@@ -1129,3 +1129,64 @@ async def test_connect_timeout_is_retried_without_error_traceback(stream_type, c
         r.levelno == logging.WARNING and "connection" in r.getMessage()
         for r in caplog.records
     )
+
+
+@pytest.mark.asyncio
+async def test_callback_oserror_keeps_healthy_connection(caplog):
+    """An OSError raised by user code must not be retried as a connect error.
+
+    Handlers run unguarded inside ``_consume``, so a callback that fails while
+    writing to a file (``PermissionError``) surfaces here too. That is an
+    application error on a healthy socket, so it is reported and the connection
+    is left alone instead of being torn down and rebuilt.
+    """
+
+    stream = DataStream("endpoint", "key-id", "secret-key")
+
+    async def handler(_):
+        raise PermissionError("callback cannot write its output file")
+
+    stream._handlers["trades"]["AAPL"] = handler
+
+    connects = 0
+    closes = 0
+    consume_calls = 0
+
+    async def fake_start_ws():
+        nonlocal connects
+        connects += 1
+        stream._ws = object()
+
+    async def fake_send_subscribe_msg():
+        pass
+
+    async def fake_consume():
+        nonlocal consume_calls
+        consume_calls += 1
+        if consume_calls == 1:
+            # Mirrors _dispatch awaiting a handler that fails on a healthy socket.
+            await stream._handlers["trades"]["AAPL"](None)
+        await stream.stop_ws()
+        return False
+
+    async def fake_close():
+        nonlocal closes
+        closes += 1
+        stream._ws = None
+        stream._running = False
+
+    stream._start_ws = fake_start_ws
+    stream._send_subscribe_msg = fake_send_subscribe_msg
+    stream._consume = fake_consume
+    stream.close = fake_close
+
+    with caplog.at_level(logging.INFO):
+        await asyncio.wait_for(stream._run_forever(), timeout=5)
+
+    assert connects == 1
+    assert closes == 0
+    assert any(
+        r.levelno == logging.ERROR and isinstance(r.exc_info[1], PermissionError)
+        for r in caplog.records
+        if r.exc_info
+    )

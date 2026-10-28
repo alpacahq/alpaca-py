@@ -270,22 +270,30 @@ class TradingStream:
                 )
                 await self._wait_before_reconnect(retries)
             except (asyncio.TimeoutError, OSError) as e:
-                # Handshake timeouts, DNS failures, refused or reset connections
-                # are transient and retried below. Reporting them through the
-                # catch-all branch printed a traceback (with the chained
-                # asyncio.CancelledError of the abandoned handshake) on every
-                # retry, so treat them like any other reconnectable error.
-                await self.close()
-                self._running = False
-                if self._data_received:
-                    retries = 0
-                retries += 1
-                log.warning(
-                    "trading stream websocket connection error, restarting "
-                    + " connection: "
-                    + str(e)
-                )
-                await self._wait_before_reconnect(retries)
+                if self._running:
+                    # Once the session is up an OSError or timeout comes from
+                    # user code (a handler writing to a file, for example), not
+                    # from the connection, so report it and keep the socket.
+                    log.exception(
+                        "error during websocket " "communication: {}".format(str(e))
+                    )
+                    if self._data_received:
+                        retries = 0
+                else:
+                    # Handshake timeouts, DNS failures, refused or reset
+                    # connections are transient and retried below. Reporting
+                    # them through the catch-all branch printed a traceback
+                    # (with the chained asyncio.CancelledError of the abandoned
+                    # handshake) on every retry, so treat them like any other
+                    # reconnectable error.
+                    await self.close()
+                    retries += 1
+                    log.warning(
+                        "trading stream websocket connection error, restarting "
+                        + " connection: "
+                        + str(e)
+                    )
+                    await self._wait_before_reconnect(retries)
             except Exception as e:
                 log.exception(
                     "error during websocket " "communication: {}".format(str(e))

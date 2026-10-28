@@ -236,8 +236,8 @@ class DataStream:
             self._stop_stream_event.set()
         if self._stop_stream_queue.empty():
             self._stop_stream_queue.put_nowait({"should_stop": True})
-        if self._subscription_ready is not None:
-            self._subscription_ready.set()
+        # Event.set() from another thread does not wake this loop.
+        self._wake_subscription_wait()
         await asyncio.sleep(0)
 
     async def _consume(self) -> bool:

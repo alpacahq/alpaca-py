@@ -47,7 +47,7 @@ You can also find the API Reference of Alpaca APIs: https://docs.alpaca.markets/
 
 ## Installation <a name="installation"></a>
 
-Alpaca-py is supported on Python 3.10+. You can install Alpaca-py using pip.
+Alpaca-py is supported on Python 3.11+. You can install Alpaca-py using pip.
 
 Run the following command in your terminal.
 

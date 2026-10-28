@@ -3,6 +3,7 @@
 import asyncio
 import threading
 
+import msgpack
 import pytest
 
 from alpaca.data.live.websocket import DataStream
@@ -246,3 +247,49 @@ def test_threaded_subscribe_then_stop_never_connects(make_stream, subscribe):
         thread.join(timeout=2)
     assert not thread.is_alive()
     assert started == []
+    # The stop must not leak a second, orphaned token into the queue: one
+    # was already consumed by the waiter, and stop()'s own loop wakeup
+    # must not re-insert one behind it.
+    assert stream._stop_stream_queue.empty()
+
+
+def test_data_stream_run_can_restart_after_a_completed_run():
+    """run()'s own `finally: self.stop()` must not leave a stop token
+    behind for the next run() to wrongly consume.
+
+    stop() previously inserted a token unconditionally. Once a run ends
+    on its own (subscription acked, handler closes the socket), that
+    finally-triggered stop() ran against a loop that was already closed,
+    yet still queued a token. The next run() then found that stale token
+    at the very first subscription check and aborted immediately instead
+    of connecting.
+    """
+    stream = DataStream("endpoint", "key-id", "secret-key")
+    stream._handlers["trades"]["AAPL"] = _handler
+    connects = []
+
+    class _Socket:
+        async def recv(self):
+            # End this run the same way a server-initiated close would:
+            # a direct stop_ws(), not stream.stop().
+            await stream.stop_ws()
+            return msgpack.packb([{"T": "subscription", "trades": ["AAPL"]}])
+
+        async def close(self):
+            pass
+
+    async def fake_start_ws():
+        connects.append(True)
+        stream._ws = _Socket()
+
+    async def fake_send_subscribe_msg():
+        return None
+
+    stream._start_ws = fake_start_ws
+    stream._send_subscribe_msg = fake_send_subscribe_msg
+
+    stream.run()
+    assert stream._stop_stream_queue.empty()
+
+    stream.run()
+    assert len(connects) == 2

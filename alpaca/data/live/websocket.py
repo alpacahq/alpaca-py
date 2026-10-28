@@ -223,13 +223,37 @@ class DataStream:
         else:
             self._running = False
 
-    async def stop_ws(self) -> None:
-        """Signals websocket connection should close by adding a closing message to the stop_stream_queue"""
+    def _mark_stop_requested(self) -> None:
+        """Makes a stop visible to any waiter: flips the run flag and
+        ensures exactly one token sits in the queue.
+
+        Only touches a plain attribute and a thread-safe queue.Queue, so
+        this is safe to call from any thread without going through the
+        loop.
+        """
         self._should_run = False
-        if self._stop_stream_event is not None:
-            self._stop_stream_event.set()
         if self._stop_stream_queue.empty():
             self._stop_stream_queue.put_nowait({"should_stop": True})
+
+    async def stop_ws(self) -> None:
+        """Signals websocket connection should close by adding a closing message to the stop_stream_queue"""
+        self._mark_stop_requested()
+        if self._stop_stream_event is not None:
+            self._stop_stream_event.set()
+        if self._subscription_ready is not None:
+            self._subscription_ready.set()
+        await asyncio.sleep(0)
+
+    async def _wake_after_stop(self) -> None:
+        """Sets the asyncio-only wakeups for a stop already made visible by
+        stop() (see _mark_stop_requested).
+
+        Must not touch the queue again: by the time this runs, a waiter
+        may have already drained the token stop() inserted, and
+        re-inserting here would leak an orphaned token into the next run.
+        """
+        if self._stop_stream_event is not None:
+            self._stop_stream_event.set()
         if self._subscription_ready is not None:
             self._subscription_ready.set()
         await asyncio.sleep(0)
@@ -544,19 +568,22 @@ class DataStream:
 
     def stop(self) -> None:
         """Stops the websocket connection."""
+        if not self._loop.is_running():
+            # No active run to signal. Do not touch should_run or the
+            # queue here: run()'s own finally calls stop() after the loop
+            # has already closed, and inserting a token in that case would
+            # leak into, and wrongly abort, the next run().
+            return
         # Make the stop visible synchronously, from this thread, before
         # scheduling anything on the loop. A subscribe() immediately
         # followed by stop() from another thread would otherwise schedule
-        # the subscription-ready wakeup first and the stop_ws() coroutine
-        # second; the waiter could then resume and see an empty queue,
-        # since stop_ws() has not run yet to insert the token.
-        self._should_run = False
-        if self._stop_stream_queue.empty():
-            self._stop_stream_queue.put_nowait({"should_stop": True})
-        if self._loop.is_running():
-            asyncio.run_coroutine_threadsafe(self.stop_ws(), self._loop).result(
-                timeout=5
-            )
+        # the subscription-ready wakeup first and the loop wakeup second;
+        # the waiter could then resume and see an empty queue, since
+        # nothing has run on the loop yet to insert the token.
+        self._mark_stop_requested()
+        asyncio.run_coroutine_threadsafe(self._wake_after_stop(), self._loop).result(
+            timeout=5
+        )
 
     def _ensure_coroutine(self, handler: Callable) -> None:
         """Checks if a method is an asyncio coroutine method

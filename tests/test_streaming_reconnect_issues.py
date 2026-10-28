@@ -17,6 +17,7 @@ behavior after the fixes:
 
 import asyncio
 import json
+import logging
 from datetime import datetime, timezone
 from typing import Dict
 
@@ -1081,3 +1082,50 @@ def test_restart_after_backoff_stop_connects_once(stream_type):
 
     asyncio.run(stop_during_backoff())
     asyncio.run(restart_successfully())
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("stream_type", [DataStream, TradingStream])
+async def test_connect_timeout_is_retried_without_error_traceback(stream_type, caplog):
+    """A handshake timeout is retried as a warning, not logged as an error.
+
+    ``websockets.connect`` reports its open timeout as ``TimeoutError``. That
+    used to fall through to the catch-all ``except Exception`` branch, which
+    logged a full traceback on every retry, including the chained
+    ``asyncio.CancelledError`` from the abandoned handshake (issue #643).
+    """
+
+    async def handler(_):
+        pass
+
+    if stream_type is DataStream:
+        stream = DataStream("endpoint", "key-id", "secret-key")
+        stream._handlers["trades"]["AAPL"] = handler
+    else:
+        stream = TradingStream("key-id", "secret-key")
+        stream._trade_updates_handler = handler
+
+    attempts = 0
+
+    async def fake_start_ws():
+        nonlocal attempts
+        attempts += 1
+        raise TimeoutError("timed out during opening handshake")
+
+    def fake_reconnect_delay(retries):
+        if retries >= 2:
+            stream._should_run = False
+        return 0
+
+    stream._start_ws = fake_start_ws
+    stream._reconnect_delay = fake_reconnect_delay
+
+    with caplog.at_level(logging.INFO):
+        await asyncio.wait_for(stream._run_forever(), timeout=5)
+
+    assert attempts == 2
+    assert [r for r in caplog.records if r.levelno >= logging.ERROR] == []
+    assert any(
+        r.levelno == logging.WARNING and "connection" in r.getMessage()
+        for r in caplog.records
+    )

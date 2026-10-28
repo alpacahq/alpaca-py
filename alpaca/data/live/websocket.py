@@ -544,6 +544,15 @@ class DataStream:
 
     def stop(self) -> None:
         """Stops the websocket connection."""
+        # Make the stop visible synchronously, from this thread, before
+        # scheduling anything on the loop. A subscribe() immediately
+        # followed by stop() from another thread would otherwise schedule
+        # the subscription-ready wakeup first and the stop_ws() coroutine
+        # second; the waiter could then resume and see an empty queue,
+        # since stop_ws() has not run yet to insert the token.
+        self._should_run = False
+        if self._stop_stream_queue.empty():
+            self._stop_stream_queue.put_nowait({"should_stop": True})
         if self._loop.is_running():
             asyncio.run_coroutine_threadsafe(self.stop_ws(), self._loop).result(
                 timeout=5

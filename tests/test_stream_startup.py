@@ -191,3 +191,58 @@ def test_subscription_from_another_thread_starts_without_waiting(
                 pass
             thread.join(timeout=2)
     assert not thread.is_alive()
+
+
+@pytest.mark.parametrize(
+    "make_stream, subscribe",
+    [
+        (
+            lambda: DataStream("endpoint", "key-id", "secret-key"),
+            lambda stream: stream._subscribe(
+                _handler, ("AAPL",), stream._handlers["trades"]
+            ),
+        ),
+        (
+            lambda: TradingStream("key-id", "secret-key"),
+            lambda stream: stream.subscribe_trade_updates(_handler),
+        ),
+    ],
+    ids=["data", "trading"],
+)
+def test_threaded_subscribe_then_stop_never_connects(make_stream, subscribe):
+    """A cross-thread stop() right after subscribe() must win even though
+    subscribe()'s wakeup is scheduled on the loop first.
+
+    subscribe() schedules the subscription-ready wakeup via
+    call_soon_threadsafe before stop() schedules stop_ws() via
+    run_coroutine_threadsafe. If the waiter resumes before stop_ws() has
+    run (inserting the queue token), it would observe the registered
+    handler and proceed to connect.
+    """
+    stream = make_stream()
+    started = []
+
+    async def fail_if_connected():
+        started.append(True)
+
+    stream._start_ws = fail_if_connected
+
+    thread = threading.Thread(target=lambda: asyncio.run(stream._run_forever()))
+    thread.start()
+    try:
+        for _ in range(100):
+            if stream._loop is not None and stream._subscription_ready is not None:
+                break
+            threading.Event().wait(0.01)
+        else:
+            raise AssertionError("waiter never started")
+
+        # No sleep between these: subscribe()'s wakeup is scheduled on the
+        # loop first, then stop() is scheduled right behind it, exercising
+        # the exact ordering the regression targets.
+        subscribe(stream)
+        stream.stop()
+    finally:
+        thread.join(timeout=2)
+    assert not thread.is_alive()
+    assert started == []

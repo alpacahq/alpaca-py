@@ -424,6 +424,8 @@ def test_get_transfers_for_account_raw_data(reqmock, raw_client: BrokerClient):
     assert len(transfers) == 6
     assert all(isinstance(transfer, dict) for transfer in transfers)
     assert not any(isinstance(transfer, Transfer) for transfer in transfers)
+    # Field values must survive untouched, not just the container type.
+    assert transfers[0]["id"] == "bf438b6d-4ea3-4241-9e1c-a0e55b47f4e0"
 
 
 def test_get_transfers_for_account_full_pagination(reqmock, client: BrokerClient):

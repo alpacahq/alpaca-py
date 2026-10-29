@@ -1,6 +1,6 @@
 import asyncio
+import inspect
 import logging
-import queue
 import threading
 from collections import defaultdict
 from enum import Enum
@@ -118,12 +118,28 @@ class DataStream:
         self._data_received = False
         self._reconnect_min_backoff = 1.0
         self._reconnect_max_backoff = 30.0
-        self._stop_stream_queue = queue.Queue()
-        # Guards the check-then-insert in _mark_stop_requested(): that method
-        # now runs on arbitrary caller threads (stop()) as well as the loop
-        # thread (stop_ws()), and queue.Queue.empty()+put_nowait() is not
-        # atomic across threads on its own.
-        self._stop_requested_lock = threading.Lock()
+        # Identifies which run of _run_forever() a stop request applies to.
+        # _run_generation is the generation of the run that is currently
+        # active, or -- when no run is active -- the generation that will be
+        # claimed by whichever run starts next (see _run_forever()). stop()
+        # stamps _stop_requested_generation with _run_generation, and every
+        # stop check compares generations so a value left over from a run that
+        # already exited can't match a later run's (higher) generation.
+        #
+        # _run_active and _stop_lock close the one window that generation
+        # comparison alone cannot: a run retires its generation in its
+        # `finally` a few event-loop iterations BEFORE the loop stops, so there
+        # is a span where _run_generation already holds the NEXT run's value
+        # while loop.is_running() still returns True. A cross-thread stop()
+        # landing there would otherwise stamp the next run's generation and
+        # make it abort on startup. stop() and _run_forever's start/finally
+        # mutate this state only under _stop_lock, and stop() stamps only while
+        # _run_active is True, so a stop can never be recorded for a run other
+        # than the live one it decided to stop.
+        self._run_generation = 0
+        self._run_active = False
+        self._stop_lock = threading.Lock()
+        self._stop_requested_generation: Optional[int] = None
         self._stop_stream_event: Optional[asyncio.Event] = None
         self._subscription_ready: Optional[asyncio.Event] = None
         self._handlers = {channel: {} for channel in _CHANNEL_TYPES.values()}
@@ -240,38 +256,43 @@ class DataStream:
 
     def _mark_stop_requested(self) -> None:
         """Makes a stop visible to any waiter: flips the run flag and
-        ensures exactly one token sits in the queue.
+        records the run generation the stop applies to.
 
-        Only touches a plain attribute and a thread-safe queue.Queue, plus
-        a plain Lock, so this is safe to call from any thread without going
-        through the loop. The lock makes the empty-check-then-insert atomic:
-        without it, two overlapping callers (e.g. a threaded stop() racing a
-        handler's ``await stop_ws()`` on the loop) could both observe an
-        empty queue and each insert a token, leaving an extra one behind
-        for a waiter to consume only one of and leak the other into the
-        next run.
+        Lock-free on purpose: ``stop_ws()`` calls it on the loop thread, where
+        it cannot race ``_run_forever()``'s own generation retirement, and
+        ``stop()`` calls it already holding ``_stop_lock`` (so taking the lock
+        here would deadlock). Callers that run off the loop thread are
+        responsible for serializing against the retirement via ``_stop_lock``.
         """
         self._should_run = False
-        with self._stop_requested_lock:
-            if self._stop_stream_queue.empty():
-                self._stop_stream_queue.put_nowait({"should_stop": True})
+        self._stop_requested_generation = self._run_generation
+
+    def _stop_requested_for(self, run_generation: Optional[int] = None) -> bool:
+        """True if a stop has been requested for the given run generation.
+
+        ``run_generation`` defaults to whatever run is current/next
+        (``self._run_generation``), for callers that check outside of an
+        actual ``_run_forever()`` run (e.g. tests exercising ``_consume()``
+        directly).
+        """
+        if run_generation is None:
+            run_generation = self._run_generation
+        return self._stop_requested_generation == run_generation
 
     async def stop_ws(self) -> None:
-        """Signals websocket connection should close by adding a closing message to the stop_stream_queue"""
+        """Signals websocket connection should close by recording a stop request
+        for the current run generation."""
         self._mark_stop_requested()
-        if self._stop_stream_event is not None:
-            self._stop_stream_event.set()
-        # Event.set() from another thread does not wake this loop.
-        self._wake_subscription_wait()
-        await asyncio.sleep(0)
+        await self._wake_after_stop()
 
     async def _wake_after_stop(self) -> None:
         """Sets the asyncio-only wakeups for a stop already made visible by
         stop() (see _mark_stop_requested).
 
-        Must not touch the queue again: by the time this runs, a waiter
-        may have already drained the token stop() inserted, and
-        re-inserting here would leak an orphaned token into the next run.
+        Does not touch _stop_requested_generation again: _mark_stop_requested()
+        already recorded it, and since that write is an idempotent overwrite
+        (not a one-shot token), there is nothing here that could be lost or
+        duplicated.
         """
         if self._stop_stream_event is not None:
             self._stop_stream_event.set()
@@ -279,8 +300,16 @@ class DataStream:
         self._wake_subscription_wait()
         await asyncio.sleep(0)
 
-    async def _consume(self) -> bool:
+    async def _consume(self, run_generation: Optional[int] = None) -> bool:
         """Distributes data from websocket connection to appropriate callbacks.
+
+        Args:
+            run_generation (Optional[int]): The generation identifying the
+                calling run, as captured by ``_run_forever()``. Used to tell
+                a stop meant for this run apart from a stale one left by a
+                run that has already exited. Defaults to the current/next
+                generation for callers that invoke this outside of an
+                actual run.
 
         Returns:
             bool: True if the loop exited because the connection went stale (no
@@ -291,8 +320,7 @@ class DataStream:
         last_data_time = loop.time()
         self._data_received = False
         while True:
-            if not self._stop_stream_queue.empty():
-                self._stop_stream_queue.get(timeout=1)
+            if self._stop_requested_for(run_generation):
                 await self.close()
                 return False
             else:
@@ -491,8 +519,16 @@ class DataStream:
         except RuntimeError:
             return
 
-    async def _wait_for_market_subscription(self) -> bool:
+    async def _wait_for_market_subscription(
+        self, run_generation: Optional[int] = None
+    ) -> bool:
         """Block until a market-data subscription exists.
+
+        Args:
+            run_generation (Optional[int]): The generation identifying the
+                calling run, as captured by ``_run_forever()``. Defaults to
+                the current/next generation for callers that invoke this
+                outside of an actual run.
 
         Returns False when stop was requested first. The wait is an event,
         not a polling sleep, so an idle stream does not stay runnable.
@@ -500,8 +536,7 @@ class DataStream:
         self._subscription_ready = asyncio.Event()
         while True:
             self._subscription_ready.clear()
-            if not self._stop_stream_queue.empty():
-                self._stop_stream_queue.get(timeout=1)
+            if self._stop_requested_for(run_generation):
                 return False
             if self._has_market_subscription():
                 return True
@@ -511,71 +546,118 @@ class DataStream:
         """Starts event loop for receiving data from websocket connection and handles
         distributing messages
         """
-        self._loop = asyncio.get_running_loop()
-        # do not start the websocket connection until we subscribe to something
-        if not await self._wait_for_market_subscription():
-            return
-        log.info(f"started {self._name} stream")
-        self._should_run = True
-        while not self._stop_stream_queue.empty():
-            self._stop_stream_queue.get_nowait()
-        self._stop_stream_event = asyncio.Event()
-        self._running = False
-        retries = 0
-        while True:
-            try:
-                if not self._should_run:
-                    # A stop during the reconnect backoff wait is observed via
-                    # _stop_stream_event, not drained from the queue. Consume
-                    # it now, while this run is the one exiting, so it cannot
-                    # be mistaken for a stop meant for the next run.
-                    while not self._stop_stream_queue.empty():
-                        self._stop_stream_queue.get_nowait()
-                    # when signaling to stop, this is how we break run_forever
-                    log.info("{} stream stopped".format(self._name))
-                    return
-                if not self._running:
-                    log.info("starting {} websocket connection".format(self._name))
-                    self._data_received = False
-                    await self._start_ws()
-                    await self._send_subscribe_msg()
-                    self._running = True
-                stale = await self._consume()
-                if stale:
+        loop = asyncio.get_running_loop()
+        # Publish self._loop and mark the run live together under _stop_lock --
+        # before anything can block -- so a cross-thread stop() can never
+        # observe the new running loop while _run_active is still False (which
+        # would make it drop the stop), while a stop issued for this run even
+        # before it starts (e.g. immediately after create_task()) is still seen
+        # as targeting it. The matching retirement in `finally` guarantees this
+        # generation can never later be mistaken for a stop meant for whichever
+        # run starts next.
+        with self._stop_lock:
+            self._loop = loop
+            run_generation = self._run_generation
+            self._run_active = True
+        try:
+            # do not start the websocket connection until we subscribe to something
+            if not await self._wait_for_market_subscription(run_generation):
+                return
+            log.info(f"started {self._name} stream")
+            self._should_run = True
+            self._stop_stream_event = asyncio.Event()
+            self._running = False
+            retries = 0
+            while True:
+                try:
+                    if not self._should_run:
+                        # when signaling to stop, this is how we break run_forever
+                        log.info("{} stream stopped".format(self._name))
+                        return
+                    if not self._running:
+                        log.info("starting {} websocket connection".format(self._name))
+                        self._data_received = False
+                        await self._start_ws()
+                        await self._send_subscribe_msg()
+                        self._running = True
+                    stale = await self._consume(run_generation)
+                    if stale:
+                        if self._data_received:
+                            retries = 0
+                        retries += 1
+                        # A reconnect forced by data-staleness hits the same
+                        # single-connection / slow-reap window as an error reconnect,
+                        # so back off here too instead of reconnecting immediately.
+                        # All consecutive reconnect failures share this counter;
+                        # actual market data resets it.
+                        await self._wait_before_reconnect(retries)
+                except websockets.WebSocketException as wse:
+                    await self.close()
+                    self._running = False
                     if self._data_received:
                         retries = 0
                     retries += 1
-                    # A reconnect forced by data-staleness hits the same
-                    # single-connection / slow-reap window as an error reconnect,
-                    # so back off here too instead of reconnecting immediately.
-                    # All consecutive reconnect failures share this counter;
-                    # actual market data resets it.
+                    log.warning(
+                        "data websocket error, restarting connection: " + str(wse)
+                    )
                     await self._wait_before_reconnect(retries)
-            except websockets.WebSocketException as wse:
-                await self.close()
-                self._running = False
-                if self._data_received:
-                    retries = 0
-                retries += 1
-                log.warning("data websocket error, restarting connection: " + str(wse))
-                await self._wait_before_reconnect(retries)
-            except Exception as e:
-                if isinstance(e, ValueError) and "insufficient subscription" in str(e):
-                    await self.close()
+                except (asyncio.TimeoutError, OSError) as e:
+                    if self._running:
+                        # Once the session is up an OSError or timeout comes from
+                        # user code (a handler writing to a file, for example), not
+                        # from the connection, so report it and keep the socket.
+                        log.exception(f"error during websocket communication: {str(e)}")
+                        if self._data_received:
+                            retries = 0
+                    else:
+                        # Handshake timeouts, DNS failures, refused or reset
+                        # connections are transient and retried below. Reporting
+                        # them through the catch-all branch printed a traceback
+                        # (with the chained asyncio.CancelledError of the abandoned
+                        # handshake) on every retry, so treat them like any other
+                        # reconnectable error.
+                        await self.close()
+                        retries += 1
+                        log.warning(
+                            "websocket connection error, restarting connection: "
+                            + str(e)
+                        )
+                        await self._wait_before_reconnect(retries)
+                except Exception as e:
+                    if isinstance(e, ValueError) and "insufficient subscription" in str(
+                        e
+                    ):
+                        await self.close()
+                        log.exception(f"error during websocket communication: {str(e)}")
+                        return
                     log.exception(f"error during websocket communication: {str(e)}")
-                    return
-                log.exception(f"error during websocket communication: {str(e)}")
-                if not self._running:
-                    # Close any half-open socket from a failed connect/auth so
-                    # abandoned sessions do not keep consuming the
-                    # single-connection slot and cause HTTP 429s.
-                    await self.close()
-                    retries += 1
-                    await self._wait_before_reconnect(retries)
-                elif self._data_received:
-                    retries = 0
-            finally:
-                await asyncio.sleep(0)
+                    if not self._running:
+                        # Close any half-open socket from a failed connect/auth so
+                        # abandoned sessions do not keep consuming the
+                        # single-connection slot and cause HTTP 429s.
+                        await self.close()
+                        retries += 1
+                        await self._wait_before_reconnect(retries)
+                    elif self._data_received:
+                        retries = 0
+                finally:
+                    await asyncio.sleep(0)
+        finally:
+            with self._stop_lock:
+                # Mark the run no longer able to observe stops BEFORE
+                # is_running() flips to False (which only happens a few event
+                # loop iterations later) and retire its generation. A
+                # cross-thread stop() that wakes in that window now sees
+                # _run_active False under this same lock and declines to stamp,
+                # instead of recording a stop for the generation the next run()
+                # will claim.
+                self._run_active = False
+                self._run_generation = run_generation + 1
+                # A stop recorded for the run that is ending has done its job
+                # (the stream is stopping), so drop it; left behind it could
+                # match the next run's generation and abort it on startup.
+                if self._stop_requested_generation == run_generation:
+                    self._stop_requested_generation = None
 
     def run(self) -> None:
         """Starts up the websocket connection's event loop"""
@@ -589,31 +671,38 @@ class DataStream:
 
     def stop(self) -> None:
         """Stops the websocket connection."""
-        if not self._loop.is_running():
-            # No active run to signal. Do not touch should_run or the
-            # queue here: run()'s own finally calls stop() after the loop
-            # has already closed, and inserting a token in that case would
-            # leak into, and wrongly abort, the next run().
-            return
-        # Make the stop visible synchronously, from this thread, before
-        # scheduling anything on the loop. A subscribe() immediately
-        # followed by stop() from another thread would otherwise schedule
-        # the subscription-ready wakeup first and the loop wakeup second;
-        # the waiter could then resume and see an empty queue, since
-        # nothing has run on the loop yet to insert the token.
-        self._mark_stop_requested()
+        with self._stop_lock:
+            if (
+                self._loop is None
+                or not self._loop.is_running()
+                or not self._run_active
+            ):
+                # No live run to signal, so do not stamp a stop: _loop is None
+                # before the stream has ever run; is_running() is False once
+                # the loop has closed (run()'s own finally calls stop() then);
+                # and _run_active is False in the window where a run has
+                # already retired its generation but the loop has not yet
+                # stopped. Recording a stop in any of these cases would wrongly
+                # target whichever run starts next.
+                return
+            # Make the stop visible synchronously, under the lock, before
+            # scheduling anything on the loop. A subscribe() immediately
+            # followed by stop() from another thread would otherwise schedule
+            # the subscription-ready wakeup first and the loop wakeup second;
+            # the waiter could then resume and see no stop recorded yet, since
+            # nothing has run on the loop to record it. Holding the lock also
+            # pins _run_generation to this live run, so the stamp can never
+            # land on the generation the next run() will claim.
+            self._mark_stop_requested()
         wakeup = self._wake_after_stop()
         try:
             asyncio.run_coroutine_threadsafe(wakeup, self._loop).result(timeout=5)
         except RuntimeError:
-            # The loop can finish _run_forever (it already saw the stop
-            # token just queued above, e.g. via the periodic check in
-            # _consume()) and close between the is_running() check at the
-            # top of this method and this submission. The stop already
-            # succeeded in that case; there is just nothing left on the
-            # loop to deliver the wakeup to, so the coroutine was never
-            # scheduled and must be closed explicitly to avoid a
-            # "coroutine was never awaited" warning.
+            # The loop can finish _run_forever and close between the lock
+            # release above and this submission, so the coroutine was never
+            # scheduled and must be closed explicitly to avoid a "coroutine was
+            # never awaited" warning. The stamp we recorded targets the run
+            # that just ended; its own `finally` drops it, so nothing leaks.
             wakeup.close()
 
     def _ensure_coroutine(self, handler: Callable) -> None:
@@ -625,5 +714,5 @@ class DataStream:
         Raises:
             ValueError: Raised if the input method is not a coroutine
         """
-        if not asyncio.iscoroutinefunction(handler):
+        if not inspect.iscoroutinefunction(handler):
             raise ValueError("handler must be a coroutine function")

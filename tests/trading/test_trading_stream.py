@@ -60,7 +60,7 @@ async def test_run_forever_unblocks_on_subscribe(trading_stream: TradingStream):
     async def mock_handler(data):
         pass
 
-    async def mock_consume_side_effect():
+    async def mock_consume_side_effect(_run_generation=None):
         await trading_stream.stop_ws()
 
     with (

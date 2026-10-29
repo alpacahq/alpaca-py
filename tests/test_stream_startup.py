@@ -247,18 +247,19 @@ def test_threaded_subscribe_then_stop_never_connects(make_stream, subscribe):
         thread.join(timeout=2)
     assert not thread.is_alive()
     assert started == []
-    # The stop must not leak a second, orphaned token into the queue: one
-    # was already consumed by the waiter, and stop()'s own loop wakeup
-    # must not re-insert one behind it.
-    assert stream._stop_stream_queue.empty()
+    # The stop must not leak into a future run: this run's generation was
+    # retired on exit, so a stop recorded for it can never again match
+    # whichever run starts next. stop()'s own loop wakeup running after the
+    # waiter already consumed the stop must not change that.
+    assert stream._run_generation != stream._stop_requested_generation
 
 
 def test_data_stream_run_can_restart_after_a_completed_run():
-    """run()'s own `finally: self.stop()` must not leave a stop token
-    behind for the next run() to wrongly consume.
+    """run()'s own `finally: self.stop()` must not leave a stop recorded
+    for the next run() to wrongly consume.
 
-    stop() previously inserted a token unconditionally. Once a run ends
-    on its own (subscription acked, handler closes the socket), that
+    stop() previously inserted a queue token unconditionally. Once a run
+    ends on its own (subscription acked, handler closes the socket), that
     finally-triggered stop() ran against a loop that was already closed,
     yet still queued a token. The next run() then found that stale token
     at the very first subscription check and aborted immediately instead
@@ -289,7 +290,65 @@ def test_data_stream_run_can_restart_after_a_completed_run():
     stream._send_subscribe_msg = fake_send_subscribe_msg
 
     stream.run()
-    assert stream._stop_stream_queue.empty()
+    # The first run's own internal stop_ws() must have its generation
+    # retired on exit so it can't be mistaken for a stop meant for the
+    # second run() below.
+    assert stream._run_generation != stream._stop_requested_generation
 
     stream.run()
     assert len(connects) == 2
+
+
+@pytest.mark.parametrize(
+    "make_stream",
+    [
+        lambda: DataStream("endpoint", "key-id", "secret-key"),
+        lambda: TradingStream("key-id", "secret-key"),
+    ],
+    ids=["data", "trading"],
+)
+def test_stop_in_retirement_window_does_not_poison_next_run(make_stream):
+    """A cross-thread stop() landing in the generation-retirement window must
+    not stamp the generation the next run() will claim.
+
+    A run retires its generation in its ``finally`` a few event-loop iterations
+    *before* the loop actually stops, so there is a real window where
+    ``_run_generation`` already holds the next run's value while
+    ``loop.is_running()`` still returns True and ``run_coroutine_threadsafe``
+    still succeeds. Observable state of that window: a live loop,
+    ``_run_active`` False, and ``_run_generation`` pointing at the not-yet-
+    started run. stop() must decline to stamp -- otherwise the next run()
+    aborts on its first subscription check instead of connecting.
+    """
+    stream = make_stream()
+
+    loop = asyncio.new_event_loop()
+    ready = threading.Event()
+
+    def run_loop():
+        asyncio.set_event_loop(loop)
+        loop.call_soon(ready.set)
+        loop.run_forever()
+
+    thread = threading.Thread(target=run_loop, daemon=True)
+    thread.start()
+    try:
+        ready.wait(timeout=2)
+        assert loop.is_running()
+
+        stream._loop = loop
+        # As if the run we meant to stop already retired its generation to 5 in
+        # its finally, while this live loop's is_running() still reports True.
+        stream._run_generation = 5
+        stream._run_active = False
+        stream._stop_requested_generation = None
+
+        stream.stop()
+
+        assert stream._stop_requested_generation is None
+        # The next run (which claims generation 5) must be free to start.
+        assert not stream._stop_requested_for(5)
+    finally:
+        loop.call_soon_threadsafe(loop.stop)
+        thread.join(timeout=2)
+        loop.close()

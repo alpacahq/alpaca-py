@@ -13,6 +13,7 @@ from alpaca.trading.enums import (
 )
 from alpaca.trading.models import Order, TradeUpdate
 from alpaca.trading.requests import (
+    GetOrdersRequest,
     LimitOrderRequest,
     MarketOrderRequest,
     OptionLegRequest,
@@ -476,3 +477,9 @@ def test_order_preserves_either_group_field(field, value, expected):
 
     assert getattr(order, field) == expected
     assert order.model_dump(mode="json")[field] == value
+
+
+def test_get_orders_request_forwards_nested_flag():
+    assert GetOrdersRequest(nested=False).to_request_fields() == {"nested": False}
+    assert GetOrdersRequest(nested=True).to_request_fields() == {"nested": True}
+    assert GetOrdersRequest().to_request_fields() == {}

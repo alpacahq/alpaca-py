@@ -8,6 +8,7 @@ from alpaca import __version__
 from alpaca.common.constants import DEFAULT_RETRY_ATTEMPTS, DEFAULT_RETRY_WAIT_SECONDS
 from alpaca.common.enums import BaseURL
 from alpaca.common.exceptions import APIError
+from alpaca.common.rest import RESTClient
 from alpaca.common.utils import get_default_user_agent
 from alpaca.trading.client import TradingClient
 
@@ -102,3 +103,37 @@ def test_request_raises_after_exhausting_retries(
 
     # One initial attempt plus one retry per configured retry attempt.
     assert reqmock.call_count == DEFAULT_RETRY_ATTEMPTS + 1
+
+
+def test_zero_retries_raise_on_first_rate_limit(reqmock: Mocker, monkeypatch):
+    sleeps = []
+    monkeypatch.setattr("alpaca.common.rest.time.sleep", sleeps.append)
+    client = RESTClient(BaseURL.TRADING_PAPER, "key", "secret", retry_attempts=0)
+    reqmock.get(
+        f"{BaseURL.TRADING_PAPER.value}/v2/clock",
+        status_code=429,
+        json={"message": "rate limit exceeded"},
+    )
+    with pytest.raises(APIError):
+        client.get("/clock")
+    assert reqmock.call_count == 1
+    assert sleeps == []
+
+
+def test_zero_retry_wait_is_respected(reqmock: Mocker, monkeypatch):
+    sleeps = []
+    monkeypatch.setattr("alpaca.common.rest.time.sleep", sleeps.append)
+    client = RESTClient(
+        BaseURL.TRADING_PAPER,
+        "key",
+        "secret",
+        retry_attempts=1,
+        retry_wait_seconds=0,
+    )
+    reqmock.get(
+        f"{BaseURL.TRADING_PAPER.value}/v2/clock",
+        [{"status_code": 429}, {"status_code": 200, "json": {"ok": True}}],
+    )
+    assert client.get("/clock") == {"ok": True}
+    assert reqmock.call_count == 2
+    assert sleeps == [0]

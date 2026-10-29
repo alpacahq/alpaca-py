@@ -519,6 +519,27 @@ class DataStream:
                 retries += 1
                 log.warning("data websocket error, restarting connection: " + str(wse))
                 await self._wait_before_reconnect(retries)
+            except (asyncio.TimeoutError, OSError) as e:
+                if self._running:
+                    # Once the session is up an OSError or timeout comes from
+                    # user code (a handler writing to a file, for example), not
+                    # from the connection, so report it and keep the socket.
+                    log.exception(f"error during websocket communication: {str(e)}")
+                    if self._data_received:
+                        retries = 0
+                else:
+                    # Handshake timeouts, DNS failures, refused or reset
+                    # connections are transient and retried below. Reporting
+                    # them through the catch-all branch printed a traceback
+                    # (with the chained asyncio.CancelledError of the abandoned
+                    # handshake) on every retry, so treat them like any other
+                    # reconnectable error.
+                    await self.close()
+                    retries += 1
+                    log.warning(
+                        "websocket connection error, restarting connection: " + str(e)
+                    )
+                    await self._wait_before_reconnect(retries)
             except Exception as e:
                 if isinstance(e, ValueError) and "insufficient subscription" in str(e):
                     await self.close()

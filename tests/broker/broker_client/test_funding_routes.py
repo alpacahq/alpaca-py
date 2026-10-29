@@ -10,7 +10,6 @@ from alpaca.broker.enums import (
     IdentifierType,
     RecipientBankStatus,
     TransferDirection,
-    TransferTiming,
 )
 from alpaca.broker.models import (
     ACHRelationship,
@@ -273,7 +272,6 @@ def test_create_transfer_for_account(reqmock, client: BrokerClient):
         relationship_id="0f08c6bc-8e9f-463d-a73f-fd047fdb5e94",
         amount="100.0",
         direction=TransferDirection.INCOMING,
-        timing=TransferTiming.IMMEDIATE,
     )
 
     transfer_entity = client.create_transfer_for_account(account_id, transfer_data)

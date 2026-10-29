@@ -503,17 +503,6 @@ class TransferDirection(str, Enum):
     OUTGOING = "OUTGOING"
 
 
-class TransferTiming(str, Enum):
-    """
-    Represents the timing of a transfer.
-
-    Please see https://alpaca.markets/docs/api-references/broker-api/funding/transfers/#creating-a-transfer-entity for
-    more details.
-    """
-
-    IMMEDIATE = "immediate"
-
-
 class FeePaymentMethod(str, Enum):
     """
     Represents who is responsible for paying fees associated with the transfer.

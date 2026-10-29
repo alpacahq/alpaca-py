@@ -50,7 +50,6 @@ from alpaca.broker.enums import (
     TaxIdType,
     TransferType,
     TransferDirection,
-    TransferTiming,
     JournalEntryType,
     JournalStatus,
 )
@@ -400,7 +399,6 @@ def test_valid_ach_transfer_request():
         relationship_id=uuid4(),
         amount="100.0",
         direction=TransferDirection.INCOMING,
-        timing=TransferTiming.IMMEDIATE,
     )
 
 
@@ -409,7 +407,6 @@ def test_valid_bank_transfer_request():
         bank_id=uuid4(),
         amount="100.0",
         direction=TransferDirection.INCOMING,
-        timing=TransferTiming.IMMEDIATE,
     )
 
 
@@ -419,7 +416,6 @@ def test_zero_transfer_amount():
             relationship_id=uuid4(),
             amount="0",
             direction=TransferDirection.INCOMING,
-            timing=TransferTiming.IMMEDIATE,
         )
 
     assert "You must provide an amount > 0." in str(e.value)
@@ -431,7 +427,6 @@ def test_negative_transfer_amount():
             relationship_id=uuid4(),
             amount="-100.0",
             direction=TransferDirection.INCOMING,
-            timing=TransferTiming.IMMEDIATE,
         )
 
     assert "You must provide an amount > 0." in str(e.value)
@@ -443,7 +438,6 @@ def test_ach_transfer_with_wire_transfer_type():
             relationship_id=uuid4(),
             amount="0",
             direction=TransferDirection.INCOMING,
-            timing=TransferTiming.IMMEDIATE,
             transfer_type=TransferType.WIRE,
         )
 
@@ -458,7 +452,6 @@ def test_bank_transfer_with_ach_transfer_type():
             relationship_id=uuid4(),
             amount="0",
             direction=TransferDirection.INCOMING,
-            timing=TransferTiming.IMMEDIATE,
             transfer_type=TransferType.ACH,
         )
 
@@ -850,7 +843,7 @@ def test_create_bank_request_sends_intermediary_fields():
     assert extra["intermediary_bank3_bic"] == "CCCCUS33"
 
 
-def test_ach_transfer_ira_does_not_require_timing():
+def test_ach_transfer_sends_ira_distribution():
     request = CreateACHTransferRequest(
         relationship_id=uuid4(),
         amount="1.0",
@@ -862,10 +855,6 @@ def test_ach_transfer_ira_does_not_require_timing():
             tax_year="2024",
         ),
     )
-
-    timing_field = CreateACHTransferRequest.model_fields["timing"]
-    assert timing_field.annotation is TransferTiming
-    assert timing_field.is_required() is False
 
     fields = request.to_request_fields()
     assert "timing" not in fields

@@ -23,7 +23,6 @@ from alpaca.broker.enums import (
     RunType,
     TradeDocumentType,
     TransferDirection,
-    TransferTiming,
     TransferType,
     UploadDocumentMimeType,
     UploadDocumentSubType,
@@ -672,9 +671,6 @@ class _CreateTransferRequest(NonEmptyRequest):
     Attributes:
         amount (str): Amount of transfer, must be > 0. Any applicable fees will be deducted from this value.
         direction (TransferDirection): Direction of the transfer.
-        timing (TransferTiming): Timing of the transfer. The Broker transfer schema does not define this
-          field. The default is ``None``, which omits it. The annotation stays ``TransferTiming`` so existing
-          type checks keep the same type.
         fee_payment_method (Optional[FeePaymentMethod]): Determines how any applicable fees will be paid. Default value
           is invoice.
         ira (Optional[TransferIRA]): IRA contribution or distribution instructions. The Broker API
@@ -684,7 +680,6 @@ class _CreateTransferRequest(NonEmptyRequest):
 
     amount: str
     direction: TransferDirection
-    timing: TransferTiming = None
     fee_payment_method: Optional[FeePaymentMethod] = None
     ira: Optional[TransferIRA] = None
 

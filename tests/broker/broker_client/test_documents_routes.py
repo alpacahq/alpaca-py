@@ -288,6 +288,7 @@ def test_download_trade_document_for_account_by_id_raises_when_retries_exhausted
                 account_id=account_id, document_id=document_id, file_path=tempname
             )
 
+        assert reqmock.call_count == client._retry + 1
         assert raised.value.status_code == 429
         assert raised.value.code == 429100
         assert not os.path.exists(tempname)

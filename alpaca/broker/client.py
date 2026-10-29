@@ -148,22 +148,22 @@ class BrokerClient(RESTClient):
         self,
         api_key: Optional[str] = None,
         secret_key: Optional[str] = None,
-        oauth_token: Optional[str] = None,
         api_version: str = "v1",
         sandbox: bool = True,
         raw_data: bool = False,
         url_override: Optional[str] = None,
+        oauth_token: Optional[str] = None,
     ):
         """
         Args:
             api_key (Optional[str]): Broker API key - set sandbox to true if using sandbox keys. Defaults to None.
             secret_key (Optional[str]): Broker API secret key - set sandbox to true if using sandbox keys. Defaults to None.
-            oauth_token (Optional[str]): The oauth token if authenticating via OAuth. Defaults to None.
             api_version (str): API version. Defaults to 'v1'.
             sandbox (bool): True if using sandbox mode. Defaults to True.
             raw_data (bool): True if you want raw response instead of wrapped responses. Defaults to False.
                 This has not been implemented yet.
             url_override (Optional[str]): A url to override and use as the base url.
+            oauth_token (Optional[str]): The oauth token if authenticating via OAuth. Defaults to None.
         """
         base_url = (
             url_override

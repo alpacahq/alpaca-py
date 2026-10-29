@@ -37,6 +37,16 @@ def test_basic_auth_still_default(reqmock):
     assert reqmock.last_request.headers["Authorization"] == "Basic " + expected
 
 
+def test_positional_api_version_still_works(reqmock):
+    client = BrokerClient("key-id", "secret-key", "v2", sandbox=True)
+    reqmock.get(f"{BaseURL.BROKER_SANDBOX.value}/v2/clock", text=CLOCK_RESPONSE)
+
+    client.get_clock()
+
+    expected = base64.b64encode(b"key-id:secret-key").decode("utf-8")
+    assert reqmock.last_request.headers["Authorization"] == "Basic " + expected
+
+
 def test_oauth_token_and_keys_are_mutually_exclusive():
     with pytest.raises(ValueError):
         BrokerClient("key-id", "secret-key", oauth_token="test-oauth-token")

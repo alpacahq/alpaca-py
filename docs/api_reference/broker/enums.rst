@@ -123,11 +123,6 @@ TransferDirection
 
 .. autoenum:: alpaca.broker.enums.TransferDirection
 
-TransferTiming
---------------
-
-.. autoenum:: alpaca.broker.enums.TransferTiming
-
 FeePaymentMethod
 ----------------
 

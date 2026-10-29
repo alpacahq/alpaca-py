@@ -10,7 +10,6 @@ from alpaca.broker.enums import (
     IdentifierType,
     RecipientBankStatus,
     TransferDirection,
-    TransferTiming,
 )
 from alpaca.broker.models import (
     ACHRelationship,
@@ -273,7 +272,6 @@ def test_create_transfer_for_account(reqmock, client: BrokerClient):
         relationship_id="0f08c6bc-8e9f-463d-a73f-fd047fdb5e94",
         amount="100.0",
         direction=TransferDirection.INCOMING,
-        timing=TransferTiming.IMMEDIATE,
     )
 
     transfer_entity = client.create_transfer_for_account(account_id, transfer_data)
@@ -424,6 +422,8 @@ def test_get_transfers_for_account_raw_data(reqmock, raw_client: BrokerClient):
     assert len(transfers) == 6
     assert all(isinstance(transfer, dict) for transfer in transfers)
     assert not any(isinstance(transfer, Transfer) for transfer in transfers)
+    # Field values must survive untouched, not just the container type.
+    assert transfers[0]["id"] == "bf438b6d-4ea3-4241-9e1c-a0e55b47f4e0"
 
 
 def test_get_transfers_for_account_full_pagination(reqmock, client: BrokerClient):

@@ -843,7 +843,7 @@ def test_create_bank_request_sends_intermediary_fields():
     assert extra["intermediary_bank3_bic"] == "CCCCUS33"
 
 
-def test_ach_transfer_ira_does_not_require_timing():
+def test_ach_transfer_sends_ira_distribution():
     request = CreateACHTransferRequest(
         relationship_id=uuid4(),
         amount="1.0",

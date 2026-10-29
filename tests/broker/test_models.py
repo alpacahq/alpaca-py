@@ -1,6 +1,6 @@
 import warnings
 from datetime import datetime
-from typing import Optional, get_args, get_type_hints
+from typing import List, Optional, Union, get_args, get_type_hints
 
 import pytest
 from pydantic import TypeAdapter
@@ -605,14 +605,40 @@ def test_account_response_list_street_address_stays_list():
     assert account.trusted_contact.model_dump()["street_address"] == lines
 
 
-def test_trusted_contact_street_address_annotation_stays_optional_str():
-    assert TrustedContact.model_fields["street_address"].annotation == Optional[str]
-    assert (
-        UpdatableTrustedContact.model_fields["street_address"].annotation
-        == Optional[str]
-    )
-    assert get_type_hints(TrustedContact)["street_address"] == Optional[str]
-    assert get_type_hints(UpdatableTrustedContact)["street_address"] == Optional[str]
+def test_trusted_contact_street_address_annotation_covers_str_and_list():
+    expected = Optional[Union[str, List[str]]]
+    assert TrustedContact.model_fields["street_address"].annotation == expected
+    assert UpdatableTrustedContact.model_fields["street_address"].annotation == expected
+    assert get_type_hints(TrustedContact)["street_address"] == expected
+    assert get_type_hints(UpdatableTrustedContact)["street_address"] == expected
+
+
+def test_trusted_contact_street_address_annotation_matches_runtime_value():
+    annotation = get_type_hints(TrustedContact)["street_address"]
+    lines = ["20 N San Mateo Dr", "Apt 1A"]
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", DeprecationWarning)
+        contact = TrustedContact(
+            given_name="Ada",
+            family_name="Lovelace",
+            email_address="ada@example.com",
+            street_address=lines,
+        )
+
+    assert isinstance(contact.street_address, list)
+    assert List[str] in get_args(annotation)
+
+    with pytest.warns(DeprecationWarning, match="street_address"):
+        contact = TrustedContact(
+            given_name="Ada",
+            family_name="Lovelace",
+            email_address="ada@example.com",
+            street_address="20 N San Mateo Dr",
+        )
+
+    assert isinstance(contact.street_address, str)
+    assert str in get_args(annotation)
 
 
 def test_trusted_contact_street_address_schema_uses_stored_list():

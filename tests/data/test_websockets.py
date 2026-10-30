@@ -339,7 +339,7 @@ async def test_run_forever_unblocks_on_subscribe(ws_client: DataStream):
     async def mock_handler(data):
         pass
 
-    async def mock_consume_side_effect(_run_generation=None):
+    async def mock_consume_side_effect(_run=None):
         await ws_client.stop_ws()
 
     with (
@@ -365,7 +365,7 @@ async def test_run_forever_ignores_non_qualifying_subscriptions(ws_client: DataS
     async def mock_handler(data):
         pass
 
-    async def mock_consume_side_effect(_run_generation=None):
+    async def mock_consume_side_effect(_run=None):
         await ws_client.stop_ws()
 
     with (
@@ -430,7 +430,7 @@ def test_run_forever_unblocks_on_subscribe_cross_thread(ws_client: DataStream):
             if (
                 ws_client._loop is not None
                 and ws_client._loop.is_running()
-                and ws_client._subscription_ready is not None
+                and ws_client._run is not None
             ):
                 break
             time.sleep(0.01)
@@ -470,7 +470,7 @@ def test_run_forever_stops_cleanly_cross_thread_when_no_subscriptions(
             if (
                 ws_client._loop is not None
                 and ws_client._loop.is_running()
-                and ws_client._subscription_ready is not None
+                and ws_client._run is not None
             ):
                 break
             time.sleep(0.01)

@@ -74,7 +74,7 @@ def _serialize_trusted_street_address(
 class _TrustedStreetAddressSchema:
     """Accept a string or a list and flag the string alternative as deprecated.
 
-    The field annotation is Optional[Union[str, List[str]]], so the generated
+    The field annotation is Optional[Union[List[str], str]], so the generated
     schema already accepts both shapes. This class keeps the string variant
     marked as deprecated in the published JSON schema.
     """
@@ -96,7 +96,7 @@ class _TrustedStreetAddressSchema:
 # callers read back. Serialization always publishes the Broker API array. The
 # annotation publishes both accepted shapes so it matches the runtime value.
 _TrustedStreetAddress = Annotated[
-    Optional[Union[str, List[str]]],
+    Optional[Union[List[str], str]],
     _TrustedStreetAddressSchema,
     BeforeValidator(_validate_trusted_street_address),
     PlainSerializer(_serialize_trusted_street_address, return_type=Optional[List[str]]),
@@ -288,7 +288,7 @@ class TrustedContact(BaseModel):
         state (Optional[str]): The email address of the user's trusted contact
         postal_code (Optional[str]): The email address of the user's trusted contact
         country (Optional[str]): The email address of the user's trusted contact
-        street_address (Optional[Union[str, List[str]]]): Street address. The Broker API stores an array of strings, and a parsed response keeps that array as a list. A string still works and is stored as a string, but it is deprecated and will be removed in the next release; it is sent as a one-item list.
+        street_address (Optional[Union[List[str], str]]): Street address. The Broker API stores an array of strings, and a parsed response keeps that array as a list. A string still works and is stored as a string, but it is deprecated and will be removed in the next release; it is sent as a one-item list.
     """
 
     given_name: str

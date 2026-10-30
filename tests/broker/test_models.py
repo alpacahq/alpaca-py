@@ -606,7 +606,7 @@ def test_account_response_list_street_address_stays_list():
 
 
 def test_trusted_contact_street_address_annotation_covers_str_and_list():
-    expected = Optional[Union[str, List[str]]]
+    expected = Optional[Union[List[str], str]]
     assert TrustedContact.model_fields["street_address"].annotation == expected
     assert UpdatableTrustedContact.model_fields["street_address"].annotation == expected
     assert get_type_hints(TrustedContact)["street_address"] == expected
@@ -650,14 +650,9 @@ def test_trusted_contact_street_address_schema_uses_stored_list():
         "properties"
     ]["street_address"]
 
-    assert string_schema in validation["anyOf"]
-    assert list_schema in validation["anyOf"]
-    assert null_schema in validation["anyOf"]
+    assert validation["anyOf"] == [list_schema, string_schema, null_schema]
     assert "deprecated" not in validation
-    assert list_schema in serialization["anyOf"]
-    assert null_schema in serialization["anyOf"]
-    assert string_schema not in serialization["anyOf"]
-    assert {"type": "string"} not in serialization["anyOf"]
+    assert serialization["anyOf"] == [list_schema, null_schema]
 
 
 def test_trusted_contact_rejects_non_string_street_address():

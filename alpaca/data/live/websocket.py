@@ -1,10 +1,10 @@
 import asyncio
 import inspect
 import logging
-import queue
+import threading
 from collections import defaultdict
 from enum import Enum
-from typing import Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Coroutine, Dict, List, Optional, Tuple, Union
 
 import msgpack
 import websockets
@@ -12,6 +12,7 @@ from pydantic import BaseModel
 
 from alpaca.common.types import RawData
 from alpaca.common.utils import (
+    RunState,
     get_default_user_agent,
     get_websocket_headers_key,
     reconnect_delay,
@@ -64,6 +65,9 @@ _CHANNEL_TYPES = {
     _MsgType.CANCEL_ERROR: "cancelErrors",
 }
 
+# Channels delivered alongside trades; they are never subscribed on their own.
+_NON_MARKET_DATA_CHANNELS = ("cancelErrors", "corrections")
+
 
 def _is_market_data(msg: Dict) -> bool:
     msg_type = msg.get("T")
@@ -115,12 +119,22 @@ class DataStream:
         self._data_received = False
         self._reconnect_min_backoff = 1.0
         self._reconnect_max_backoff = 30.0
-        self._stop_stream_queue = queue.Queue()
-        self._stop_stream_event: Optional[asyncio.Event] = None
-        self._subscription_ready: Optional[asyncio.Event] = None
+        # The run reserved by the latest _run_forever() call, or None when no
+        # run is reserved or live. Each run owns its stop/wakeup state, so a
+        # stop can never leak into a later run (see RunState).
+        self._run: Optional[RunState] = None
+        # Before the first run is reserved, a stop means "don't start": it is
+        # remembered so a stop() racing the thread that calls run() is not
+        # lost. Once any run has been reserved, a stop with no run means the
+        # stream is already stopped, so it is dropped instead of aborting
+        # whichever run starts next. _run_lock makes that check atomic with a
+        # reservation; it is reentrant so a stop() from a signal handler that
+        # interrupts this thread while it holds the lock can't deadlock.
+        self._run_lock = threading.RLock()
+        self._started_once = False
+        self._stop_before_first_run = False
         self._handlers = {channel: {} for channel in _CHANNEL_TYPES.values()}
         self._name = "data"
-        self._should_run = True
         self._max_frame_size = 32768
 
         self._websocket_params = {
@@ -145,16 +159,10 @@ class DataStream:
             retries, self._reconnect_min_backoff, self._reconnect_max_backoff
         )
 
-    async def _wait_before_reconnect(self, retries: int) -> None:
-        if self._stop_stream_event is None or self._stop_stream_event.is_set():
+    async def _wait_before_reconnect(self, retries: int, run: RunState) -> None:
+        if run.stopping:
             return
-        try:
-            await asyncio.wait_for(
-                self._stop_stream_event.wait(),
-                timeout=self._reconnect_delay(retries),
-            )
-        except asyncio.TimeoutError:
-            pass
+        await run.sleep(self._reconnect_delay(retries))
 
     async def _connect(self) -> None:
         """Attempts to connect to the websocket endpoint.
@@ -231,18 +239,17 @@ class DataStream:
             self._running = False
 
     async def stop_ws(self) -> None:
-        """Signals websocket connection should close by adding a closing message to the stop_stream_queue"""
-        self._should_run = False
-        if self._stop_stream_event is not None:
-            self._stop_stream_event.set()
-        if self._stop_stream_queue.empty():
-            self._stop_stream_queue.put_nowait({"should_stop": True})
-        # Event.set() from another thread does not wake this loop.
-        self._wake_subscription_wait()
+        """Signals the websocket connection should close."""
+        self.stop()
         await asyncio.sleep(0)
 
-    async def _consume(self) -> bool:
+    async def _consume(self, run: Optional[RunState] = None) -> bool:
         """Distributes data from websocket connection to appropriate callbacks.
+
+        Args:
+            run (Optional[RunState]): The calling run, as created by
+                ``_run_forever()``. Defaults to the live run, or to a fresh
+                one for callers that invoke this outside of an actual run.
 
         Returns:
             bool: True if the loop exited because the connection went stale (no
@@ -250,11 +257,12 @@ class DataStream:
             False if it exited because a stop was requested.
         """
         loop = asyncio.get_running_loop()
+        if run is None:
+            run = self._run or RunState(loop)
         last_data_time = loop.time()
         self._data_received = False
         while True:
-            if not self._stop_stream_queue.empty():
-                self._stop_stream_queue.get(timeout=1)
+            if run.stopping:
                 await self.close()
                 return False
             else:
@@ -402,7 +410,7 @@ class DataStream:
     async def _send_subscribe_msg(self) -> None:
         msg = defaultdict(list)
         for k, v in self._handlers.items():
-            if k not in ("cancelErrors", "corrections") and v:
+            if k not in _NON_MARKET_DATA_CHANNELS and v:
                 for s in v.keys():
                     msg[k].append(s)
         msg["action"] = "subscribe"
@@ -436,127 +444,149 @@ class DataStream:
         return any(
             handlers
             for channel, handlers in self._handlers.items()
-            if channel not in ("cancelErrors", "corrections") and handlers
+            if channel not in _NON_MARKET_DATA_CHANNELS
         )
 
     def _wake_subscription_wait(self) -> None:
         """Wake the startup wait from this thread or another one."""
-        event = self._subscription_ready
-        loop = self._loop
-        if event is None or loop is None:
-            return
-        try:
-            if loop.is_running():
-                loop.call_soon_threadsafe(event.set)
-            else:
-                event.set()
-        except RuntimeError:
-            return
+        run = self._run
+        if run is not None:
+            run.wake()
 
-    async def _wait_for_market_subscription(self) -> bool:
+    async def _wait_for_market_subscription(self, run: RunState) -> bool:
         """Block until a market-data subscription exists.
+
+        Args:
+            run (RunState): The calling run, as created by ``_run_forever()``.
 
         Returns False when stop was requested first. The wait is an event,
         not a polling sleep, so an idle stream does not stay runnable.
         """
-        self._subscription_ready = asyncio.Event()
-        while not self._has_market_subscription():
-            if not self._stop_stream_queue.empty():
-                self._stop_stream_queue.get(timeout=1)
+        while True:
+            run.changed.clear()
+            if run.stopping:
                 return False
-            self._subscription_ready.clear()
             if self._has_market_subscription():
                 return True
-            if not self._stop_stream_queue.empty():
-                self._stop_stream_queue.get(timeout=1)
-                return False
-            await self._subscription_ready.wait()
-        return True
+            await run.changed.wait()
 
-    async def _run_forever(self) -> None:
+    def _run_forever(self) -> Coroutine[Any, Any, None]:
         """Starts event loop for receiving data from websocket connection and handles
         distributing messages
+
+        Returns the coroutine to await. Not itself a coroutine function so the
+        run is reserved as soon as this is called: a stop() issued right after
+        ``create_task(stream._run_forever())``, before the task has run its
+        first line, then stops this run instead of being dropped as a stop
+        between runs.
         """
-        self._loop = asyncio.get_running_loop()
-        # do not start the websocket connection until we subscribe to something
-        if not await self._wait_for_market_subscription():
-            return
-        log.info(f"started {self._name} stream")
-        self._should_run = True
-        while not self._stop_stream_queue.empty():
-            self._stop_stream_queue.get_nowait()
-        self._stop_stream_event = asyncio.Event()
-        self._running = False
-        retries = 0
-        while True:
-            try:
-                if not self._should_run:
-                    # when signaling to stop, this is how we break run_forever
-                    log.info("{} stream stopped".format(self._name))
-                    return
-                if not self._running:
-                    log.info("starting {} websocket connection".format(self._name))
-                    self._data_received = False
-                    await self._start_ws()
-                    await self._send_subscribe_msg()
-                    self._running = True
-                stale = await self._consume()
-                if stale:
-                    if self._data_received:
-                        retries = 0
-                    retries += 1
-                    # A reconnect forced by data-staleness hits the same
-                    # single-connection / slow-reap window as an error reconnect,
-                    # so back off here too instead of reconnecting immediately.
-                    # All consecutive reconnect failures share this counter;
-                    # actual market data resets it.
-                    await self._wait_before_reconnect(retries)
-            except websockets.WebSocketException as wse:
-                await self.close()
-                self._running = False
-                if self._data_received:
-                    retries = 0
-                retries += 1
-                log.warning("data websocket error, restarting connection: " + str(wse))
-                await self._wait_before_reconnect(retries)
-            except (asyncio.TimeoutError, OSError) as e:
-                if self._running:
-                    # Once the session is up an OSError or timeout comes from
-                    # user code (a handler writing to a file, for example), not
-                    # from the connection, so report it and keep the socket.
-                    log.exception(f"error during websocket communication: {str(e)}")
-                    if self._data_received:
-                        retries = 0
-                else:
-                    # Handshake timeouts, DNS failures, refused or reset
-                    # connections are transient and retried below. Reporting
-                    # them through the catch-all branch printed a traceback
-                    # (with the chained asyncio.CancelledError of the abandoned
-                    # handshake) on every retry, so treat them like any other
-                    # reconnectable error.
+        return self._drive_run(self._reserve_run())
+
+    def _reserve_run(self) -> RunState:
+        run = RunState()
+        with self._run_lock:
+            # Publish the run before consuming the pre-start flag, so a stop()
+            # that re-enters from a signal handler partway through this block
+            # either sets the flag before it is read or finds the run.
+            self._run = run
+            if self._stop_before_first_run:
+                run.request_stop()
+                self._stop_before_first_run = False
+            self._started_once = True
+        return run
+
+    async def _drive_run(self, run: RunState) -> None:
+        loop = asyncio.get_running_loop()
+        # Binding the loop lets stop() wake this run's waiters; a stop issued
+        # before this point is still seen, as every wait checks stopping first.
+        run.loop = loop
+        self._loop = loop
+        try:
+            # do not start the websocket connection until we subscribe to something
+            if not await self._wait_for_market_subscription(run):
+                return
+            log.info(f"started {self._name} stream")
+            self._running = False
+            retries = 0
+            while True:
+                try:
+                    if run.stopping:
+                        # when signaling to stop, this is how we break run_forever
+                        log.info("{} stream stopped".format(self._name))
+                        return
+                    if not self._running:
+                        log.info("starting {} websocket connection".format(self._name))
+                        self._data_received = False
+                        await self._start_ws()
+                        await self._send_subscribe_msg()
+                        self._running = True
+                    stale = await self._consume(run)
+                    if stale:
+                        if self._data_received:
+                            retries = 0
+                        retries += 1
+                        # A reconnect forced by data-staleness hits the same
+                        # single-connection / slow-reap window as an error reconnect,
+                        # so back off here too instead of reconnecting immediately.
+                        # All consecutive reconnect failures share this counter;
+                        # actual market data resets it.
+                        await self._wait_before_reconnect(retries, run)
+                except websockets.WebSocketException as wse:
                     await self.close()
+                    self._running = False
+                    if self._data_received:
+                        retries = 0
                     retries += 1
                     log.warning(
-                        "websocket connection error, restarting connection: " + str(e)
+                        "data websocket error, restarting connection: " + str(wse)
                     )
-                    await self._wait_before_reconnect(retries)
-            except Exception as e:
-                if isinstance(e, ValueError) and "insufficient subscription" in str(e):
-                    await self.close()
+                    await self._wait_before_reconnect(retries, run)
+                except (asyncio.TimeoutError, OSError) as e:
+                    if self._running:
+                        # Once the session is up an OSError or timeout comes from
+                        # user code (a handler writing to a file, for example), not
+                        # from the connection, so report it and keep the socket.
+                        log.exception(f"error during websocket communication: {str(e)}")
+                        if self._data_received:
+                            retries = 0
+                    else:
+                        # Handshake timeouts, DNS failures, refused or reset
+                        # connections are transient and retried below. Reporting
+                        # them through the catch-all branch printed a traceback
+                        # (with the chained asyncio.CancelledError of the abandoned
+                        # handshake) on every retry, so treat them like any other
+                        # reconnectable error.
+                        await self.close()
+                        retries += 1
+                        log.warning(
+                            "websocket connection error, restarting connection: "
+                            + str(e)
+                        )
+                        await self._wait_before_reconnect(retries, run)
+                except Exception as e:
+                    if isinstance(e, ValueError) and "insufficient subscription" in str(
+                        e
+                    ):
+                        await self.close()
+                        log.exception(f"error during websocket communication: {str(e)}")
+                        return
                     log.exception(f"error during websocket communication: {str(e)}")
-                    return
-                log.exception(f"error during websocket communication: {str(e)}")
-                if not self._running:
-                    # Close any half-open socket from a failed connect/auth so
-                    # abandoned sessions do not keep consuming the
-                    # single-connection slot and cause HTTP 429s.
-                    await self.close()
-                    retries += 1
-                    await self._wait_before_reconnect(retries)
-                elif self._data_received:
-                    retries = 0
-            finally:
-                await asyncio.sleep(0)
+                    if not self._running:
+                        # Close any half-open socket from a failed connect/auth so
+                        # abandoned sessions do not keep consuming the
+                        # single-connection slot and cause HTTP 429s.
+                        await self.close()
+                        retries += 1
+                        await self._wait_before_reconnect(retries, run)
+                    elif self._data_received:
+                        retries = 0
+                finally:
+                    await asyncio.sleep(0)
+        finally:
+            # A stop() that already picked up this run only ever touches this
+            # run's state, so nothing can leak into the next run.
+            if self._run is run:
+                self._run = None
 
     def run(self) -> None:
         """Starts up the websocket connection's event loop"""
@@ -565,15 +595,26 @@ class DataStream:
         except KeyboardInterrupt:
             print("keyboard interrupt, bye")
             pass
-        finally:
-            self.stop()
 
     def stop(self) -> None:
-        """Stops the websocket connection."""
-        if self._loop.is_running():
-            asyncio.run_coroutine_threadsafe(self.stop_ws(), self._loop).result(
-                timeout=5
-            )
+        """Stops the websocket connection.
+
+        Safe to call from any thread, including from a handler running on the
+        stream's own loop: it never blocks. It stops the run from the latest
+        ``_run_forever()`` call even if that run hasn't begun yet. Called before
+        the stream has ever run, it keeps the first run from starting; called
+        between runs, it is a no-op, since the stream is already stopped.
+        """
+        with self._run_lock:
+            run = self._run
+            if run is None:
+                if not self._started_once:
+                    self._stop_before_first_run = True
+                return
+        # The stop is visible as soon as request_stop() returns, so a waiter
+        # woken by an earlier subscribe() already sees it when it resumes.
+        run.request_stop()
+        run.wake()
 
     def _ensure_coroutine(self, handler: Callable) -> None:
         """Checks if a method is an asyncio coroutine method

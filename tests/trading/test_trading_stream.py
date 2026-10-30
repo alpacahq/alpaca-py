@@ -60,7 +60,7 @@ async def test_run_forever_unblocks_on_subscribe(trading_stream: TradingStream):
     async def mock_handler(data):
         pass
 
-    async def mock_consume_side_effect():
+    async def mock_consume_side_effect(_run=None):
         await trading_stream.stop_ws()
 
     with (
@@ -116,7 +116,7 @@ def test_run_forever_unblocks_on_subscribe_cross_thread(trading_stream: TradingS
             if (
                 trading_stream._loop is not None
                 and trading_stream._loop.is_running()
-                and trading_stream._subscription_ready is not None
+                and trading_stream._run is not None
             ):
                 break
             time.sleep(0.01)
@@ -157,7 +157,7 @@ def test_run_forever_stops_cleanly_cross_thread_when_no_subscriptions(
             if (
                 trading_stream._loop is not None
                 and trading_stream._loop.is_running()
-                and trading_stream._subscription_ready is not None
+                and trading_stream._run is not None
             ):
                 break
             time.sleep(0.01)

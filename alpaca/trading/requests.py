@@ -211,7 +211,7 @@ class GetOrdersRequest(NonEmptyRequest):
         after (Optional[datetime]): The response will include only ones submitted after this timestamp.
         until (Optional[datetime]): The response will include only ones submitted until this timestamp.
         direction (Optional[Sort]): The chronological order of response based on the submission time. asc or desc. Defaults to desc.
-        nested (Optional[bool]): If true, the result will roll up multi-leg orders under the legs field of primary order.
+        nested (Optional[bool]): If true, the legs of complex orders (oco, oto, otoco) are rolled up under the legs field of the primary order. Defaults to false.
         side (Optional[OrderSide]): Filters down to orders that have a matching side field set.
         symbols (Optional[List[str]]): List of symbols to filter by.
     """
@@ -230,7 +230,7 @@ class GetOrderByIdRequest(NonEmptyRequest):
     """Contains data for submitting a request to retrieve a single order by its order id.
 
     Attributes:
-        nested (bool): If true, the result will roll up multi-leg orders under the legs field of primary order.
+        nested (bool): If true, the legs of complex orders (oco, oto, otoco) are rolled up under the legs field of the primary order. Defaults to false.
     """
 
     nested: bool

@@ -17,6 +17,7 @@ from alpaca.broker.requests import (
 )
 from alpaca.common.constants import BROKER_DOCUMENT_UPLOAD_LIMIT
 from alpaca.common.enums import BaseURL
+from alpaca.common.exceptions import APIError
 
 
 def test_get_trade_documents_for_account(reqmock, client: BrokerClient):
@@ -263,6 +264,34 @@ def test_download_trade_document_for_account_by_id(reqmock, client: BrokerClient
 
         with open(tempname, mode="r") as file:
             assert file.read() == fake_dl_text
+
+
+def test_download_trade_document_for_account_by_id_raises_when_retries_exhausted(
+    reqmock, client: BrokerClient
+):
+    account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
+    document_id = "2a87c089-ffb6-472b-a4a3-cd9305c8605d"
+    error_body = '{"code":429100,"message":"rate limit exceeded"}'
+
+    reqmock.get(
+        BaseURL.BROKER_SANDBOX.value
+        + f"/v1/accounts/{account_id}/documents/{document_id}/download",
+        status_code=429,
+        text=error_body,
+    )
+
+    with tempfile.TemporaryDirectory() as tempdir:
+        tempname = os.path.join(tempdir, "test.pdf")
+
+        with pytest.raises(APIError) as raised:
+            client.download_trade_document_for_account_by_id(
+                account_id=account_id, document_id=document_id, file_path=tempname
+            )
+
+        assert reqmock.call_count == client._retry + 1
+        assert raised.value.status_code == 429
+        assert raised.value.code == 429100
+        assert not os.path.exists(tempname)
 
 
 def test_download_trade_document_for_account_by_id_validates_uuids(

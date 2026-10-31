@@ -152,6 +152,7 @@ class BrokerClient(RESTClient):
         sandbox: bool = True,
         raw_data: bool = False,
         url_override: Optional[str] = None,
+        oauth_token: Optional[str] = None,
     ):
         """
         Args:
@@ -162,6 +163,7 @@ class BrokerClient(RESTClient):
             raw_data (bool): True if you want raw response instead of wrapped responses. Defaults to False.
                 This has not been implemented yet.
             url_override (Optional[str]): A url to override and use as the base url.
+            oauth_token (Optional[str]): The oauth token if authenticating via OAuth. Defaults to None.
         """
         base_url = (
             url_override
@@ -173,13 +175,18 @@ class BrokerClient(RESTClient):
             base_url=base_url,
             api_key=api_key,
             secret_key=secret_key,
+            oauth_token=oauth_token,
             api_version=api_version,
             sandbox=sandbox,
             raw_data=raw_data,
         )
 
     def _get_auth_headers(self) -> dict:
-        # We override this since we use Basic auth
+        # Broker API accepts either Basic credentials or an OAuth access token,
+        # so only build the Basic header when no token was supplied.
+        if self._oauth_token:
+            return {"Authorization": "Bearer " + self._oauth_token}
+
         auth_string = f"{self._api_key}:{self._secret_key}"
         auth_string_encoded = base64.b64encode(str.encode(auth_string))
 

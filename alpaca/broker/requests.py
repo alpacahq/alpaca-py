@@ -292,7 +292,7 @@ class UpdatableTrustedContact(TrustedContact):
         state (Optional[str]): The email address of the user's trusted contact
         postal_code (Optional[str]): The email address of the user's trusted contact
         country (Optional[str]): The email address of the user's trusted contact
-        street_address (Optional[str]): Street address. The Broker API stores an array of strings. A string still works and is stored as a string, but it is deprecated and will be removed in the next release; it is sent as a one-item list.
+        street_address (Optional[Union[List[str], str]]): Street address. The Broker API stores an array of strings, and a parsed response keeps that array as a list. A string still works and is stored as a string, but it is deprecated and will be removed in the next release; it is sent as a one-item list.
     """
 
     # only need to override these 2 as other fields were already optional

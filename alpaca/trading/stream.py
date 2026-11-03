@@ -55,15 +55,17 @@ class TradingStream:
         # run is reserved or live. Each run owns its stop/wakeup state, so a
         # stop can never leak into a later run (see RunState).
         self._run: Optional[RunState] = None
+        # Makes the stop-versus-reservation check atomic with a reservation;
+        # it is reentrant so a stop() from a signal handler that interrupts
+        # this thread while it holds the lock can't deadlock.
+        self._run_lock = threading.RLock()
+        # Once any run has been reserved, a stop with no run means the stream
+        # is already stopped, so it is dropped instead of aborting whichever
+        # run starts next.
+        self._started_once = False
         # Before the first run is reserved, a stop means "don't start": it is
         # remembered so a stop() racing the thread that calls run() is not
-        # lost. Once any run has been reserved, a stop with no run means the
-        # stream is already stopped, so it is dropped instead of aborting
-        # whichever run starts next. _run_lock makes that check atomic with a
-        # reservation; it is reentrant so a stop() from a signal handler that
-        # interrupts this thread while it holds the lock can't deadlock.
-        self._run_lock = threading.RLock()
-        self._started_once = False
+        # lost.
         self._stop_before_first_run = False
         self._data_received = False
         self._reconnect_min_backoff = 1.0
@@ -301,11 +303,7 @@ class TradingStream:
                             retries = 0
                     else:
                         # Handshake timeouts, DNS failures, refused or reset
-                        # connections are transient and retried below. Reporting
-                        # them through the catch-all branch printed a traceback
-                        # (with the chained asyncio.CancelledError of the abandoned
-                        # handshake) on every retry, so treat them like any other
-                        # reconnectable error.
+                        # connections are transient and retried below.
                         await self.close()
                         retries += 1
                         log.warning(

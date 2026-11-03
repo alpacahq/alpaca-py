@@ -165,12 +165,15 @@ class TimeFrame:
                 # would itself immediately raise. Suggesting amount=1
                 # instead would silently change the interval the caller
                 # asked for, so state the unit's actual constraint rather
-                # than propose a replacement amount.
+                # than propose a replacement amount. Lead with the
+                # constraint so it isn't skimmed as "just use amount=1".
                 hint = (
-                    f"Presets like TimeFrame.{nested_unit_name} are always "
-                    f"amount=1, and amount={amount} is not valid for "
+                    f"amount={amount} is not valid for "
                     f"TimeFrameUnit.{nested_unit_name}. "
-                    f"{TimeFrame._amount_constraint_message(nested_unit)}"
+                    f"{TimeFrame._amount_constraint_message(nested_unit)}. "
+                    f"Presets like TimeFrame.{nested_unit_name} are always "
+                    f"amount=1, which would not match the requested amount "
+                    f"either."
                 )
 
             raise TypeError(

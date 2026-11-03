@@ -144,9 +144,17 @@ def test_timeframe_rejects_invalid_amount_for_unit(amount, unit, constraint):
 
 
 def test_timeframe_rejects_constructed_timeframe_as_unit():
+    """A constructed TimeFrame (not a preset) used as unit still names that
+    unit's preset and TimeFrameUnit, so a hardcoded suggestion can't regress.
+    """
     nested = TimeFrame(amount=5, unit=TimeFrameUnit.Minute)
-    with pytest.raises(TypeError, match=r"TimeFrameUnit\.Minute"):
+    with pytest.raises(TypeError) as exc_info:
         TimeFrame(amount=1, unit=nested)
+
+    message = str(exc_info.value)
+    assert "TimeFrame.Minute" in message
+    assert "TimeFrameUnit.Minute" in message
+    assert "amount=1" in message
 
 
 def test_timeframe_rejects_timeframe_passed_as_amount():

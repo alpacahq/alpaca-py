@@ -114,6 +114,35 @@ def test_timeframe_rejects_nested_preset_with_invalid_other_amount(
     assert constraint in message
 
 
+# Direct construction with a TimeFrameUnit. The nested TypeError tests above
+# only prove the hint branches on _is_amount_valid_for_unit. These rows prove
+# the same helper still raises ValueError on the normal constructor path, so
+# an illegal timeframe cannot be built and sent to the API.
+INVALID_UNIT_AMOUNTS = [
+    (
+        60,
+        TimeFrameUnit.Minute,
+        "Second or Minute units can only be used with amounts between 1-59.",
+    ),
+    (24, TimeFrameUnit.Hour, "Hour units can only be used with amounts 1-23"),
+    (3, TimeFrameUnit.Day, "Day and Week units can only be used with amount 1"),
+    (2, TimeFrameUnit.Week, "Day and Week units can only be used with amount 1"),
+    (
+        4,
+        TimeFrameUnit.Month,
+        "Month units can only be used with amount 1, 2, 3, 6 and 12",
+    ),
+]
+
+
+@pytest.mark.parametrize(("amount", "unit", "constraint"), INVALID_UNIT_AMOUNTS)
+def test_timeframe_rejects_invalid_amount_for_unit(amount, unit, constraint):
+    with pytest.raises(ValueError) as exc_info:
+        TimeFrame(amount=amount, unit=unit)
+
+    assert str(exc_info.value) == constraint
+
+
 def test_timeframe_rejects_constructed_timeframe_as_unit():
     nested = TimeFrame(amount=5, unit=TimeFrameUnit.Minute)
     with pytest.raises(TypeError, match=r"TimeFrameUnit\.Minute"):

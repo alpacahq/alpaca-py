@@ -425,9 +425,11 @@ class RESTClient(ABC):
                     else:
                         counts[k] = len(v)
 
+            # read the token before yielding: callers get the (mutable) response itself
+            page_token = response.get("next_page_token", None)
+
             yield response, entries
 
-            page_token = response.get("next_page_token", None)
             if page_token is None:
                 break
 

@@ -278,6 +278,28 @@ def test_raw_iterator_yields_api_pages(reqmock, raw_stock_client):
     assert len(merged["AAPL"]) == 3
 
 
+def test_raw_iterator_continues_when_caller_mutates_a_page(reqmock, raw_stock_client):
+    _serve_pages(
+        reqmock,
+        "https://data.alpaca.markets/v2/stocks/bars",
+        "bars",
+        [
+            {"AAPL": _items(BAR, 1, 2)},
+            {"AAPL": _items(BAR, 1, 3)},
+            {"AAPL": _items(BAR, 1, 4)},
+        ],
+    )
+    pages = raw_stock_client.get_stock_bars(
+        StockBarsRequest(symbol_or_symbols="AAPL", timeframe=TimeFrame.Day),
+        handle_pagination=PaginationType.ITERATOR,
+    )
+
+    # e.g. a caller checkpointing the token by popping it off each page
+    tokens = [page.pop("next_page_token") for page in pages]
+
+    assert tokens == ["p1", "p2", None]
+
+
 def test_iterator_pages_have_working_df(
     reqmock, stock_client: StockHistoricalDataClient
 ):

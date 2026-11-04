@@ -824,6 +824,11 @@ class BrokerClient(RESTClient):
             # we got here either by error or someone has mis-configured us, so we didn't even try
             raise Exception("Somehow we never made a request for download!")
 
+        if not response.ok:
+            # every attempt returned a retryable error code, so surface the API error instead of
+            # writing the error payload to the document file
+            raise APIError(response.text, HTTPError(response=response))
+
         with open(file_path, "wb") as f:
             # we specify chunk_size none which is okay since we set stream to true above, so chunks will be as we
             # receive them from the api

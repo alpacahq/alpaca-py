@@ -1,7 +1,7 @@
 from enum import Enum
-from typing import Dict, Optional, Union
+from typing import Dict, Iterator, Optional, Union
 
-from alpaca.common.enums import BaseURL
+from alpaca.common.enums import BaseURL, PaginationType
 from alpaca.common.rest import RESTClient
 from alpaca.common.types import RawData
 from alpaca.data.historical.utils import (
@@ -72,29 +72,33 @@ class OptionHistoricalDataClient(RESTClient):
         )
 
     def get_option_bars(
-        self, request_params: OptionBarsRequest
-    ) -> Union[BarSet, RawData]:
+        self,
+        request_params: OptionBarsRequest,
+        handle_pagination: Optional[PaginationType] = None,
+    ) -> Union[BarSet, RawData, Iterator[Union[BarSet, RawData]]]:
         """Returns bar data for an option contract or list of option contracts over a given
         time period and timeframe.
 
         Args:
             request_params (OptionBarsRequest): The request object for retrieving option bar data.
+            handle_pagination (Optional[PaginationType]): How to page through the results. Defaults to
+              ``PaginationType.FULL``, which fetches every page and returns one merged BarSet.
+              ``PaginationType.ITERATOR`` returns a lazy iterator that fetches and yields one page at a time,
+              so large queries don't have to fit in memory. ``PaginationType.NONE`` fetches only one page;
+              pass its ``next_page_token`` as the request's ``page_token`` to continue.
 
         Returns:
-            Union[BarSet, RawData]: The bar data either in raw or wrapped form
+            Union[BarSet, RawData, Iterator[Union[BarSet, RawData]]]: The bar data either in raw or wrapped form, or an
+              iterator of pages for ``PaginationType.ITERATOR`` (raw JSON pages if raw_data is set).
         """
 
-        # paginated get request for market data api
-        raw_bars = self._get_marketdata(
+        return self._get_paginated_marketdata(
             path=f"/options/bars",
             params=request_params.to_request_fields(),
             page_size=10_000,
+            set_type=BarSet,
+            handle_pagination=handle_pagination,
         )
-
-        if self._use_raw_data:
-            return raw_bars
-
-        return BarSet(raw_bars)
 
     def get_option_exchange_codes(self) -> RawData:
         """Returns the mapping between the option exchange codes and the corresponding exchanges names.
@@ -156,26 +160,31 @@ class OptionHistoricalDataClient(RESTClient):
         return parse_obj_as_symbol_dict(Trade, raw_latest_trades)
 
     def get_option_trades(
-        self, request_params: OptionTradesRequest
-    ) -> Union[TradeSet, RawData]:
+        self,
+        request_params: OptionTradesRequest,
+        handle_pagination: Optional[PaginationType] = None,
+    ) -> Union[TradeSet, RawData, Iterator[Union[TradeSet, RawData]]]:
         """The historical option trades API provides trade data for a list of contract symbols between the specified dates up to 7 days ago.
 
         Args:
             request_params (OptionTradesRequest): The request object for retrieving option trade data.
+            handle_pagination (Optional[PaginationType]): How to page through the results. Defaults to
+              ``PaginationType.FULL``, which fetches every page and returns one merged TradeSet.
+              ``PaginationType.ITERATOR`` returns a lazy iterator that fetches and yields one page at a time,
+              so large queries don't have to fit in memory. ``PaginationType.NONE`` fetches only one page;
+              pass its ``next_page_token`` as the request's ``page_token`` to continue.
 
         Returns:
-            Union[TradeSet, RawData]: The trade data either in raw or wrapped form
+            Union[TradeSet, RawData, Iterator[Union[TradeSet, RawData]]]: The trade data either in raw or wrapped form, or an
+              iterator of pages for ``PaginationType.ITERATOR`` (raw JSON pages if raw_data is set).
         """
-        raw_trades = self._get_marketdata(
+        return self._get_paginated_marketdata(
             path=f"/options/trades",
             params=request_params.to_request_fields(),
             page_size=10_000,
+            set_type=TradeSet,
+            handle_pagination=handle_pagination,
         )
-
-        if self._use_raw_data:
-            return raw_trades
-
-        return TradeSet(raw_trades)
 
     def get_option_snapshot(
         self, request_params: OptionSnapshotRequest

@@ -1,5 +1,5 @@
 import itertools
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 import pandas as pd
@@ -44,9 +44,16 @@ class TimeSeriesMixin:
 class BaseDataSet(BaseModel):
     """
     Base class to process data models for trades, bars quotes, and news.
+
+    Attributes:
+        data (Dict[str, List[BaseModel]]): The data keyed by symbol.
+        next_page_token (Optional[str]): Only set on a single page of results, i.e. when the set was returned with
+          ``handle_pagination=PaginationType.NONE`` or yielded by ``PaginationType.ITERATOR``. Pass it as the
+          request's ``page_token`` to fetch the next page. ``None`` when there are no more pages.
     """
 
     data: Dict[str, List[BaseModel]] = {}
+    next_page_token: Optional[str] = None
 
     def __getitem__(self, symbol: str) -> Any:
         """Gives dictionary-like access to multi-symbol data

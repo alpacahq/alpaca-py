@@ -32,8 +32,8 @@ class BaseURL(
 
 class PaginationType(str, Enum):
     """
-    An enum for choosing what type of pagination of results you'd like for BrokerClient functions that support
-    pagination.
+    An enum for choosing what type of pagination of results you'd like for BrokerClient functions and historical
+    market data (bars, quotes, trades) methods that support pagination.
 
     Attributes:
         NONE: Requests that we perform no pagination of results and just return the single response the API gave us.

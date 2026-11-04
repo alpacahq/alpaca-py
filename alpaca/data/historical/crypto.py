@@ -1,6 +1,6 @@
-from typing import Dict, Optional, Union
+from typing import Dict, Iterator, Optional, Union
 
-from alpaca.common.enums import BaseURL
+from alpaca.common.enums import BaseURL, PaginationType
 from alpaca.common.rest import RESTClient
 from alpaca.common.types import Credentials, RawData
 from alpaca.data import Bar, Snapshot
@@ -78,80 +78,95 @@ class CryptoHistoricalDataClient(RESTClient):
         )
 
     def get_crypto_bars(
-        self, request_params: CryptoBarsRequest, feed: CryptoFeed = CryptoFeed.US
-    ) -> Union[BarSet, RawData]:
+        self,
+        request_params: CryptoBarsRequest,
+        feed: CryptoFeed = CryptoFeed.US,
+        handle_pagination: Optional[PaginationType] = None,
+    ) -> Union[BarSet, RawData, Iterator[Union[BarSet, RawData]]]:
         """Gets bar/candle data for a cryptocurrency or list of cryptocurrencies.
 
         Args:
             request_params (CryptoBarsRequest): The parameters for the request.
             feed (CryptoFeed): The data feed for crypto bars.
+            handle_pagination (Optional[PaginationType]): How to page through the results. Defaults to
+              ``PaginationType.FULL``, which fetches every page and returns one merged BarSet.
+              ``PaginationType.ITERATOR`` returns a lazy iterator that fetches and yields one page at a time,
+              so large queries don't have to fit in memory. ``PaginationType.NONE`` fetches only one page;
+              pass its ``next_page_token`` as the request's ``page_token`` to continue.
 
         Returns:
-            Union[BarSet, RawData]: The crypto bar data either in raw or wrapped form
+            Union[BarSet, RawData, Iterator[Union[BarSet, RawData]]]: The crypto bar data either in raw or wrapped form, or an
+              iterator of pages for ``PaginationType.ITERATOR`` (raw JSON pages if raw_data is set).
         """
 
-        # paginated get request for crypto market data api
-        raw_bars = self._get_marketdata(
+        return self._get_paginated_marketdata(
             path=f"/crypto/{feed.value}/bars",
             params=request_params.to_request_fields(),
             page_size=10_000,
+            set_type=BarSet,
+            handle_pagination=handle_pagination,
         )
 
-        if self._use_raw_data:
-            return raw_bars
-
-        return BarSet(raw_bars)
-
     def get_crypto_quotes(
-        self, request_params: CryptoQuoteRequest, feed: CryptoFeed = CryptoFeed.US
-    ) -> Union[QuoteSet, RawData]:
+        self,
+        request_params: CryptoQuoteRequest,
+        feed: CryptoFeed = CryptoFeed.US,
+        handle_pagination: Optional[PaginationType] = None,
+    ) -> Union[QuoteSet, RawData, Iterator[Union[QuoteSet, RawData]]]:
         """Returns the quote data for a cryptocurrency or list of cryptocurrencies.
 
         Args:
             request_params (CryptoQuoteRequest): The parameters for the request.
             feed (CryptoFeed): The data feed for crypto quotes.
+            handle_pagination (Optional[PaginationType]): How to page through the results. Defaults to
+              ``PaginationType.FULL``, which fetches every page and returns one merged QuoteSet.
+              ``PaginationType.ITERATOR`` returns a lazy iterator that fetches and yields one page at a time,
+              so large queries don't have to fit in memory. ``PaginationType.NONE`` fetches only one page;
+              pass its ``next_page_token`` as the request's ``page_token`` to continue.
 
         Returns:
-            Union[QuoteSet, RawData]: The crypto quote data either in raw or wrapped form
+            Union[QuoteSet, RawData, Iterator[Union[QuoteSet, RawData]]]: The crypto quote data either in raw or wrapped form, or an
+              iterator of pages for ``PaginationType.ITERATOR`` (raw JSON pages if raw_data is set).
         """
 
-        # paginated get request for market data api
-        raw_quotes = self._get_marketdata(
+        return self._get_paginated_marketdata(
             path=f"/crypto/{feed.value}/quotes",
             params=request_params.to_request_fields(),
             page_size=10_000,
+            set_type=QuoteSet,
+            handle_pagination=handle_pagination,
         )
 
-        if self._use_raw_data:
-            return raw_quotes
-
-        return QuoteSet(raw_quotes)
-
     def get_crypto_trades(
-        self, request_params: CryptoTradesRequest, feed: CryptoFeed = CryptoFeed.US
-    ) -> Union[TradeSet, RawData]:
+        self,
+        request_params: CryptoTradesRequest,
+        feed: CryptoFeed = CryptoFeed.US,
+        handle_pagination: Optional[PaginationType] = None,
+    ) -> Union[TradeSet, RawData, Iterator[Union[TradeSet, RawData]]]:
         """Returns the price and sales history over a given time period for a cryptocurrency
         or list of cryptocurrencies.
 
         Args:
             request_params (CryptoTradesRequest): The parameters for the request.
             feed (CryptoFeed): The data feed for crypto trades.
+            handle_pagination (Optional[PaginationType]): How to page through the results. Defaults to
+              ``PaginationType.FULL``, which fetches every page and returns one merged TradeSet.
+              ``PaginationType.ITERATOR`` returns a lazy iterator that fetches and yields one page at a time,
+              so large queries don't have to fit in memory. ``PaginationType.NONE`` fetches only one page;
+              pass its ``next_page_token`` as the request's ``page_token`` to continue.
 
         Returns:
-            Union[TradeSet, RawData]: The trade data either in raw or wrapped form
+            Union[TradeSet, RawData, Iterator[Union[TradeSet, RawData]]]: The trade data either in raw or wrapped form, or an
+              iterator of pages for ``PaginationType.ITERATOR`` (raw JSON pages if raw_data is set).
         """
 
-        # paginated get request for market data api
-        raw_trades = self._get_marketdata(
+        return self._get_paginated_marketdata(
             path=f"/crypto/{feed.value}/trades",
             params=request_params.to_request_fields(),
             page_size=10_000,
+            set_type=TradeSet,
+            handle_pagination=handle_pagination,
         )
-
-        if self._use_raw_data:
-            return raw_trades
-
-        return TradeSet(raw_trades)
 
     def get_crypto_latest_trade(
         self, request_params: CryptoLatestTradeRequest, feed: CryptoFeed = CryptoFeed.US

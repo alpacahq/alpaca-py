@@ -56,7 +56,6 @@ class RESTClient(ABC):
             retry_attempts (Optional[int]): The number of times to retry a request that returns a RetryException.
               Set to 0 to disable retries.
             retry_wait_seconds (Optional[int]): The number of seconds to wait between requests before retrying.
-              Set to 0 to retry immediately.
             retry_exception_codes (Optional[List[int]]): The API exception codes to retry a request on.
         """
 
@@ -78,7 +77,7 @@ class RESTClient(ABC):
         if retry_attempts is not None and retry_attempts >= 0:
             self._retry = retry_attempts
 
-        if retry_wait_seconds is not None and retry_wait_seconds >= 0:
+        if retry_wait_seconds and retry_wait_seconds > 0:
             self._retry_wait = retry_wait_seconds
 
         if retry_exception_codes:

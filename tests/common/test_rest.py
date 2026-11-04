@@ -118,22 +118,3 @@ def test_zero_retries_raise_on_first_rate_limit(reqmock: Mocker, monkeypatch):
         client.get("/clock")
     assert reqmock.call_count == 1
     assert sleeps == []
-
-
-def test_zero_retry_wait_is_respected(reqmock: Mocker, monkeypatch):
-    sleeps = []
-    monkeypatch.setattr("alpaca.common.rest.time.sleep", sleeps.append)
-    client = RESTClient(
-        BaseURL.TRADING_PAPER,
-        "key",
-        "secret",
-        retry_attempts=1,
-        retry_wait_seconds=0,
-    )
-    reqmock.get(
-        f"{BaseURL.TRADING_PAPER.value}/v2/clock",
-        [{"status_code": 429}, {"status_code": 200, "json": {"ok": True}}],
-    )
-    assert client.get("/clock") == {"ok": True}
-    assert reqmock.call_count == 2
-    assert sleeps == [0]

@@ -36,7 +36,7 @@ class TimeSeriesMixin:
             df = df.set_index(["symbol", "timestamp"])
 
         # drop null columns
-        df.dropna(axis=1, how="all", inplace=True)
+        df = df.dropna(axis=1, how="all")
 
         return df
 

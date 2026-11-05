@@ -2,7 +2,7 @@ from datetime import date, datetime
 from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
-from pydantic import field_serializer, field_validator, model_validator
+from pydantic import Field, field_serializer, field_validator, model_validator
 
 from alpaca.broker.enums import (
     AccountEntities,
@@ -23,7 +23,6 @@ from alpaca.broker.enums import (
     RunType,
     TradeDocumentType,
     TransferDirection,
-    TransferTiming,
     TransferType,
     UploadDocumentMimeType,
     UploadDocumentSubType,
@@ -672,9 +671,6 @@ class _CreateTransferRequest(NonEmptyRequest):
     Attributes:
         amount (str): Amount of transfer, must be > 0. Any applicable fees will be deducted from this value.
         direction (TransferDirection): Direction of the transfer.
-        timing (TransferTiming): Timing of the transfer. The Broker transfer schema does not define this
-          field. The default is ``None``, which omits it. The annotation stays ``TransferTiming`` so existing
-          type checks keep the same type.
         fee_payment_method (Optional[FeePaymentMethod]): Determines how any applicable fees will be paid. Default value
           is invoice.
         ira (Optional[TransferIRA]): IRA contribution or distribution instructions. The Broker API
@@ -684,7 +680,6 @@ class _CreateTransferRequest(NonEmptyRequest):
 
     amount: str
     direction: TransferDirection
-    timing: TransferTiming = None
     fee_payment_method: Optional[FeePaymentMethod] = None
     ira: Optional[TransferIRA] = None
 
@@ -1098,11 +1093,47 @@ class GetJournalsRequest(NonEmptyRequest):
 
 
 class GetEventsRequest(NonEmptyRequest):
+    """
+    Represents the filters you can apply when subscribing to a Broker API events SSE stream.
+
+    ``since``/``until``, ``since_id``/``until_id``, and ``since_ulid``/``until_ulid`` are mutually
+    exclusive ways of specifying where in the event history to start. Prefer ``since_ulid``/``until_ulid``.
+
+    Attributes:
+        id (Optional[str]): Only return the event with this id.
+        since (Optional[Union[date, str]]): Only return events at or after this date (``YYYY-MM-DD``).
+        until (Optional[Union[date, str]]): Only return events at or before this date (``YYYY-MM-DD``).
+        since_id (Optional[int]): Only return events at or after this id. Deprecated and available only to
+          select broker partners; will be removed in a future release, before the 2027-02-15 sunset.
+          Use since_ulid instead.
+        until_id (Optional[int]): Only return events at or before this id. Deprecated and available only to
+          select broker partners; will be removed in a future release, before the 2027-02-15 sunset.
+          Use until_ulid instead.
+        since_ulid (Optional[str]): Only return events at or after this ULID.
+        until_ulid (Optional[str]): Only return events at or before this ULID.
+    """
+
     id: Optional[str] = None
     since: Optional[Union[date, str]] = None
     until: Optional[Union[date, str]] = None
-    since_id: Optional[int] = None
-    until_id: Optional[int] = None
+    since_id: Optional[int] = Field(
+        default=None,
+        deprecated=(
+            "GetEventsRequest.since_id is deprecated and will be removed in a future release, "
+            "before the 2027-02-15 sunset. It is available only to select broker partners. "
+            "Use since_ulid instead."
+        ),
+    )
+    until_id: Optional[int] = Field(
+        default=None,
+        deprecated=(
+            "GetEventsRequest.until_id is deprecated and will be removed in a future release, "
+            "before the 2027-02-15 sunset. It is available only to select broker partners. "
+            "Use until_ulid instead."
+        ),
+    )
+    since_ulid: Optional[str] = None
+    until_ulid: Optional[str] = None
 
 
 # ############################## Rebalancing ################################# #

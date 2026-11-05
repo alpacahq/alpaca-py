@@ -17,6 +17,7 @@ behavior after the fixes:
 
 import asyncio
 import json
+import logging
 from datetime import datetime, timezone
 from typing import Dict
 
@@ -25,6 +26,7 @@ import pytest
 import websockets
 from msgpack import Timestamp
 
+from alpaca.common.utils import RunState
 from alpaca.data.enums import DataFeed
 from alpaca.data.live.crypto import CryptoDataStream
 from alpaca.data.live.news import NewsDataStream
@@ -125,6 +127,8 @@ async def test_slow_handler_does_not_make_active_stream_stale():
     stream._ws = Socket()
     stream._running = True
 
+    # stop_ws() inside recv() needs a live run to stop.
+    stream._run = RunState(asyncio.get_running_loop())
     stale = await asyncio.wait_for(stream._consume(), timeout=1)
 
     assert stale is False
@@ -193,6 +197,8 @@ async def test_news_without_symbols_is_dispatched_to_wildcard_handler():
     stream._ws = Socket()
     stream._running = True
 
+    # stop_ws() inside recv() needs a live run to stop.
+    stream._run = RunState(asyncio.get_running_loop())
     stale = await asyncio.wait_for(stream._consume(), timeout=1)
 
     assert stale is False
@@ -265,6 +271,8 @@ async def test_parsed_news_without_symbols_reaches_wildcard_handler(
     stream._ws = Socket()
     stream._running = True
 
+    # stop_ws() inside recv() needs a live run to stop.
+    stream._run = RunState(asyncio.get_running_loop())
     stale = await asyncio.wait_for(stream._consume(), timeout=1)
 
     assert stale is False
@@ -303,7 +311,7 @@ async def test_data_stream_run_forever_reconnects_and_resubscribes_after_stale()
         nonlocal subscribes
         subscribes += 1
 
-    async def fake_consume():
+    async def fake_consume(_run=None):
         nonlocal consume_calls
         consume_calls += 1
         if consume_calls == 1:
@@ -404,7 +412,7 @@ async def test_subscribed_but_mute_stream_escalates_backoff():
     async def fake_send_subscribe_msg():
         pass
 
-    async def fake_consume():
+    async def fake_consume(_run=None):
         nonlocal consume_calls
         consume_calls += 1
         # Simulate "subscribe ok, then mute": no market data seen this session.
@@ -419,7 +427,7 @@ async def test_subscribed_but_mute_stream_escalates_backoff():
     def fake_reconnect_delay(retries):
         seen_retries.append(retries)
         if len(seen_retries) >= 5:
-            stream._should_run = False
+            stream._run.request_stop()
         return 0
 
     stream._start_ws = fake_start_ws
@@ -592,7 +600,7 @@ async def test_trading_stream_reconnect_uses_backoff():
         return 0  # no real waiting
 
     def self_stop():
-        stream._should_run = False
+        stream._run.request_stop()
 
     stream._start_ws = fake_start_ws
     stream.close = fake_close
@@ -639,7 +647,7 @@ async def test_failed_start_closes_half_open_socket(stream_type):
         # Abandoned sessions must not keep the single-connection slot.
         assert stream._ws is None
         if len(seen_retries) >= 3:
-            stream._should_run = False
+            stream._run.request_stop()
         return 0
 
     stream._start_ws = fake_start_ws
@@ -675,7 +683,7 @@ async def test_post_connect_disconnects_escalate_backoff(stream_type):
     async def fake_start_ws():
         stream._ws = object()
 
-    async def fake_consume():
+    async def fake_consume(_run=None):
         raise websockets.WebSocketException("connection dropped after authentication")
 
     async def fake_close():
@@ -687,7 +695,7 @@ async def test_post_connect_disconnects_escalate_backoff(stream_type):
     def fake_reconnect_delay(retries):
         seen_retries.append(retries)
         if len(seen_retries) >= 5:
-            stream._should_run = False
+            stream._run.request_stop()
         return 0
 
     stream._start_ws = fake_start_ws
@@ -735,7 +743,7 @@ async def test_trading_listening_ack_does_not_reset_backoff():
     def fake_reconnect_delay(retries):
         seen_retries.append(retries)
         if len(seen_retries) >= 5:
-            stream._should_run = False
+            stream._run.request_stop()
         return 0
 
     stream._start_ws = fake_start_ws
@@ -768,7 +776,7 @@ async def test_healthy_stale_session_resets_transport_backoff():
     async def fake_send_subscribe_msg():
         pass
 
-    async def fake_consume():
+    async def fake_consume(_run=None):
         nonlocal consume_calls
         consume_calls += 1
         if consume_calls == 1:
@@ -786,7 +794,7 @@ async def test_healthy_stale_session_resets_transport_backoff():
     def fake_reconnect_delay(retries):
         seen_retries.append(retries)
         if len(seen_retries) >= 4:
-            stream._should_run = False
+            stream._run.request_stop()
         return 0
 
     stream._start_ws = fake_start_ws
@@ -817,7 +825,7 @@ async def test_healthy_transport_session_resets_stale_backoff():
     async def fake_send_subscribe_msg():
         pass
 
-    async def fake_consume():
+    async def fake_consume(_run=None):
         nonlocal consume_calls
         consume_calls += 1
         if consume_calls in (1, 2, 4):
@@ -836,7 +844,7 @@ async def test_healthy_transport_session_resets_stale_backoff():
     def fake_reconnect_delay(retries):
         seen_retries.append(retries)
         if len(seen_retries) >= 4:
-            stream._should_run = False
+            stream._run.request_stop()
         return 0
 
     stream._start_ws = fake_start_ws
@@ -871,7 +879,7 @@ async def test_stale_and_transport_failures_share_backoff():
     async def fake_send_subscribe_msg():
         pass
 
-    async def fake_consume():
+    async def fake_consume(_run=None):
         stream._data_received = False
         await stream.close()
         return True
@@ -885,7 +893,7 @@ async def test_stale_and_transport_failures_share_backoff():
     def fake_reconnect_delay(retries):
         seen_retries.append(retries)
         if len(seen_retries) >= 4:
-            stream._should_run = False
+            stream._run.request_stop()
         return 0
 
     stream._start_ws = fake_start_ws
@@ -1081,3 +1089,111 @@ def test_restart_after_backoff_stop_connects_once(stream_type):
 
     asyncio.run(stop_during_backoff())
     asyncio.run(restart_successfully())
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("stream_type", [DataStream, TradingStream])
+async def test_connect_timeout_is_retried_without_error_traceback(stream_type, caplog):
+    """A handshake timeout is retried as a warning, not logged as an error.
+
+    ``websockets.connect`` reports its open timeout as ``TimeoutError``. That
+    used to fall through to the catch-all ``except Exception`` branch, which
+    logged a full traceback on every retry, including the chained
+    ``asyncio.CancelledError`` from the abandoned handshake (issue #643).
+    """
+
+    async def handler(_):
+        pass
+
+    if stream_type is DataStream:
+        stream = DataStream("endpoint", "key-id", "secret-key")
+        stream._handlers["trades"]["AAPL"] = handler
+    else:
+        stream = TradingStream("key-id", "secret-key")
+        stream._trade_updates_handler = handler
+
+    attempts = 0
+
+    async def fake_start_ws():
+        nonlocal attempts
+        attempts += 1
+        raise TimeoutError("timed out during opening handshake")
+
+    def fake_reconnect_delay(retries):
+        if retries >= 2:
+            stream._run.request_stop()
+        return 0
+
+    stream._start_ws = fake_start_ws
+    stream._reconnect_delay = fake_reconnect_delay
+
+    with caplog.at_level(logging.INFO):
+        await asyncio.wait_for(stream._run_forever(), timeout=5)
+
+    assert attempts == 2
+    assert [r for r in caplog.records if r.levelno >= logging.ERROR] == []
+    assert any(
+        r.levelno == logging.WARNING and "connection" in r.getMessage()
+        for r in caplog.records
+    )
+
+
+@pytest.mark.asyncio
+async def test_callback_oserror_keeps_healthy_connection(caplog):
+    """An OSError raised by user code must not be retried as a connect error.
+
+    Handlers run unguarded inside ``_consume``, so a callback that fails while
+    writing to a file (``PermissionError``) surfaces here too. That is an
+    application error on a healthy socket, so it is reported and the connection
+    is left alone instead of being torn down and rebuilt.
+    """
+
+    stream = DataStream("endpoint", "key-id", "secret-key")
+
+    async def handler(_):
+        raise PermissionError("callback cannot write its output file")
+
+    stream._handlers["trades"]["AAPL"] = handler
+
+    connects = 0
+    closes = 0
+    consume_calls = 0
+
+    async def fake_start_ws():
+        nonlocal connects
+        connects += 1
+        stream._ws = object()
+
+    async def fake_send_subscribe_msg():
+        pass
+
+    async def fake_consume(_run=None):
+        nonlocal consume_calls
+        consume_calls += 1
+        if consume_calls == 1:
+            # Mirrors _dispatch awaiting a handler that fails on a healthy socket.
+            await stream._handlers["trades"]["AAPL"](None)
+        await stream.stop_ws()
+        return False
+
+    async def fake_close():
+        nonlocal closes
+        closes += 1
+        stream._ws = None
+        stream._running = False
+
+    stream._start_ws = fake_start_ws
+    stream._send_subscribe_msg = fake_send_subscribe_msg
+    stream._consume = fake_consume
+    stream.close = fake_close
+
+    with caplog.at_level(logging.INFO):
+        await asyncio.wait_for(stream._run_forever(), timeout=5)
+
+    assert connects == 1
+    assert closes == 0
+    assert any(
+        r.levelno == logging.ERROR and isinstance(r.exc_info[1], PermissionError)
+        for r in caplog.records
+        if r.exc_info
+    )

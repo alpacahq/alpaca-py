@@ -237,7 +237,7 @@ ACH relationships must use ``CreateACHTransferRequest`` and bank relationships m
 
     from alpaca.broker.client import BrokerClient
     from alpaca.broker.requests import CreateACHTransferRequest
-    from alpaca.broker.enums import TransferDirection, TransferTiming
+    from alpaca.broker.enums import TransferDirection
 
     broker_client = BrokerClient('api-key', 'secret-key')
 
@@ -246,7 +246,6 @@ ACH relationships must use ``CreateACHTransferRequest`` and bank relationships m
     transfer_data = CreateACHTransferRequest(
                         amount=1000,
                         direction=TransferDirection.INCOMING,
-                        timing=TransferTiming.IMMEDIATE,
                         relationship_id="0f08c6bc-8e9f-463d-a73f-fd047fdb5e94"
                     )
     transfer = broker_client.create_transfer_for_account(

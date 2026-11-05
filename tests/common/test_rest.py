@@ -1,10 +1,13 @@
 import re
 import platform
 
+import pytest
 from requests_mock import Mocker
 
 from alpaca import __version__
+from alpaca.common.constants import DEFAULT_RETRY_ATTEMPTS, DEFAULT_RETRY_WAIT_SECONDS
 from alpaca.common.enums import BaseURL
+from alpaca.common.exceptions import APIError
 from alpaca.common.utils import get_default_user_agent
 from alpaca.trading.client import TradingClient
 
@@ -51,7 +54,10 @@ def test_request_retries_rate_limited_response(
     reqmock: Mocker, trading_client: TradingClient, monkeypatch
 ):
     """A 429 (Rate Limit) response is retried by default instead of raised."""
-    monkeypatch.setattr("alpaca.common.rest.time.sleep", lambda seconds: None)
+    sleeps = []
+    monkeypatch.setattr(
+        "alpaca.common.rest.time.sleep", lambda seconds: sleeps.append(seconds)
+    )
     reqmock.get(
         f"{BaseURL.TRADING_PAPER.value}/v2/clock",
         [
@@ -74,3 +80,25 @@ def test_request_retries_rate_limited_response(
 
     assert reqmock.call_count == 2
     assert clock.is_open
+    # Confirms the retry loop actually waits between attempts, not just that
+    # it retries.
+    assert sleeps == [DEFAULT_RETRY_WAIT_SECONDS]
+
+
+def test_request_raises_after_exhausting_retries(
+    reqmock: Mocker, trading_client: TradingClient, monkeypatch
+):
+    """If every attempt is rate limited, the client gives up and raises APIError
+    instead of retrying forever."""
+    monkeypatch.setattr("alpaca.common.rest.time.sleep", lambda seconds: None)
+    reqmock.get(
+        f"{BaseURL.TRADING_PAPER.value}/v2/clock",
+        status_code=429,
+        text='{"message": "rate limit exceeded"}',
+    )
+
+    with pytest.raises(APIError):
+        trading_client.get_clock()
+
+    # One initial attempt plus one retry per configured retry attempt.
+    assert reqmock.call_count == DEFAULT_RETRY_ATTEMPTS + 1

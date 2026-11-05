@@ -1,4 +1,7 @@
+import asyncio
 import random
+import threading
+from dataclasses import dataclass, field
 from typing import Union, Optional
 from uuid import UUID
 from datetime import datetime
@@ -71,6 +74,65 @@ def reconnect_delay(
     capped = min(max_backoff, capped)
     # equal jitter: wait between half and the full computed delay
     return capped / 2 + random.uniform(0, capped / 2)
+
+
+@dataclass
+class RunState:
+    """The stop/wakeup state of a single websocket stream run.
+
+    Each ``_run_forever()`` call creates its own instance, so a stop can only
+    ever reach the run it was issued against: a late stop that picks up a run
+    which is already exiting lands on that run's object, never on the next one.
+    ``loop`` is None while the run is reserved but has not started yet.
+
+    ``stop_requested`` is a ``threading.Event`` so a stop is visible the moment
+    ``request_stop()`` returns, from any thread. ``changed`` only wakes the
+    run's waiters so they re-check their conditions; it carries no state.
+    """
+
+    loop: Optional[asyncio.AbstractEventLoop] = None
+    stop_requested: threading.Event = field(default_factory=threading.Event)
+    changed: asyncio.Event = field(default_factory=asyncio.Event)
+
+    @property
+    def stopping(self) -> bool:
+        return self.stop_requested.is_set()
+
+    def request_stop(self) -> None:
+        self.stop_requested.set()
+
+    def wake(self) -> bool:
+        """Wakes the run's waiters from this thread or another one.
+
+        Fire and forget: never blocks. Returns False if the run's loop has
+        already closed, in which case there is nothing left to wake.
+        """
+        loop = self.loop
+        if loop is None:
+            # Not started: the run checks stopping before it first waits.
+            return False
+        try:
+            loop.call_soon_threadsafe(self.changed.set)
+            return True
+        except RuntimeError:
+            return False
+
+    async def sleep(self, delay: float) -> None:
+        """Sleeps for ``delay`` seconds, returning early once a stop is requested."""
+        loop = asyncio.get_running_loop()
+        deadline = loop.time() + delay
+        while True:
+            # Clear before checking: request_stop() happens before wake(), so
+            # a stop either is already visible here or sets the event after
+            # this clear and ends the wait below.
+            self.changed.clear()
+            remaining = deadline - loop.time()
+            if self.stopping or remaining <= 0:
+                return
+            try:
+                await asyncio.wait_for(self.changed.wait(), remaining)
+            except asyncio.TimeoutError:
+                return
 
 
 def validate_uuid_id_param(

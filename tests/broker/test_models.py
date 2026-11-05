@@ -32,6 +32,7 @@ from alpaca.broker.requests import (
     UpdatableIdentity,
     UpdatableDisclosures,
     GetAccountActivitiesRequest,
+    GetEventsRequest,
     GetJournalsRequest,
     GetTradeDocumentsRequest,
     CreateAccountRequest,
@@ -50,7 +51,6 @@ from alpaca.broker.enums import (
     TaxIdType,
     TransferType,
     TransferDirection,
-    TransferTiming,
     JournalEntryType,
     JournalStatus,
 )
@@ -400,7 +400,6 @@ def test_valid_ach_transfer_request():
         relationship_id=uuid4(),
         amount="100.0",
         direction=TransferDirection.INCOMING,
-        timing=TransferTiming.IMMEDIATE,
     )
 
 
@@ -409,7 +408,6 @@ def test_valid_bank_transfer_request():
         bank_id=uuid4(),
         amount="100.0",
         direction=TransferDirection.INCOMING,
-        timing=TransferTiming.IMMEDIATE,
     )
 
 
@@ -419,7 +417,6 @@ def test_zero_transfer_amount():
             relationship_id=uuid4(),
             amount="0",
             direction=TransferDirection.INCOMING,
-            timing=TransferTiming.IMMEDIATE,
         )
 
     assert "You must provide an amount > 0." in str(e.value)
@@ -431,7 +428,6 @@ def test_negative_transfer_amount():
             relationship_id=uuid4(),
             amount="-100.0",
             direction=TransferDirection.INCOMING,
-            timing=TransferTiming.IMMEDIATE,
         )
 
     assert "You must provide an amount > 0." in str(e.value)
@@ -443,7 +439,6 @@ def test_ach_transfer_with_wire_transfer_type():
             relationship_id=uuid4(),
             amount="0",
             direction=TransferDirection.INCOMING,
-            timing=TransferTiming.IMMEDIATE,
             transfer_type=TransferType.WIRE,
         )
 
@@ -458,7 +453,6 @@ def test_bank_transfer_with_ach_transfer_type():
             relationship_id=uuid4(),
             amount="0",
             direction=TransferDirection.INCOMING,
-            timing=TransferTiming.IMMEDIATE,
             transfer_type=TransferType.ACH,
         )
 
@@ -559,6 +553,32 @@ def test_updatable_trusted_contact_list_street_address_serializes_as_list():
 
     assert contact.street_address == lines
     assert fields == {"trusted_contact": {"street_address": lines}}
+
+
+def test_get_events_request_since_id_and_until_id_warn_on_read():
+    request = GetEventsRequest(since_id=1, until_id=2)
+
+    with pytest.warns(DeprecationWarning, match="since_id"):
+        assert request.since_id == 1
+
+    with pytest.warns(DeprecationWarning, match="until_id"):
+        assert request.until_id == 2
+
+    assert request.to_request_fields() == {"since_id": 1, "until_id": 2}
+
+
+def test_get_events_request_since_ulid_and_until_ulid_do_not_warn():
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", DeprecationWarning)
+        request = GetEventsRequest(
+            since_ulid="01ARZ3NDEKTSV4RRFFQ69G5FAV",
+            until_ulid="01ARZ3NDEKTSV4RRFFQ69G5FAW",
+        )
+
+    assert request.to_request_fields() == {
+        "since_ulid": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "until_ulid": "01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    }
 
 
 def _account_with_trusted_street_address(street_address):
@@ -850,7 +870,7 @@ def test_create_bank_request_sends_intermediary_fields():
     assert extra["intermediary_bank3_bic"] == "CCCCUS33"
 
 
-def test_ach_transfer_ira_does_not_require_timing():
+def test_ach_transfer_sends_ira_distribution():
     request = CreateACHTransferRequest(
         relationship_id=uuid4(),
         amount="1.0",
@@ -862,10 +882,6 @@ def test_ach_transfer_ira_does_not_require_timing():
             tax_year="2024",
         ),
     )
-
-    timing_field = CreateACHTransferRequest.model_fields["timing"]
-    assert timing_field.annotation is TransferTiming
-    assert timing_field.is_required() is False
 
     fields = request.to_request_fields()
     assert "timing" not in fields

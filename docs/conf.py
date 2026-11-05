@@ -10,10 +10,19 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
+import logging
 import os
 import sys
 
 sys.path.insert(0, os.path.abspath("../"))
+
+# enum_tools.autoenum does `from sphinx.ext.autodoc import logger`, but Sphinx 9
+# turned `sphinx.ext.autodoc` into a package that no longer re-exports `logger`.
+# Restore it so the extension can be imported. Remove once enum-tools supports Sphinx 9.
+import sphinx.ext.autodoc as _sphinx_autodoc
+
+if not hasattr(_sphinx_autodoc, "logger"):
+    _sphinx_autodoc.logger = logging.getLogger("sphinx.ext.autodoc")
 
 # import a module here to avoid an error of:
 # NameError: Field "model_fields" conflicts with member {} of protected namespace "model_".
@@ -41,6 +50,12 @@ extensions = [
     "sphinx_copybutton",
     "enum_tools.autoenum",
 ]
+
+# Sphinx 9 reports a bare ``date`` type in docstrings (e.g. ``Optional[date]``) as an
+# ambiguous cross-reference, because many documented classes have a ``date`` attribute.
+# Qualify the type so it resolves unambiguously to ``datetime.date``.
+napoleon_preprocess_types = True
+napoleon_type_aliases = {"date": "datetime.date"}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]

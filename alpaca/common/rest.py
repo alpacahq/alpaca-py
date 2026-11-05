@@ -3,7 +3,17 @@ from collections.abc import Callable
 import time
 import base64
 from abc import ABC
-from typing import Any, Dict, List, Optional, Type, Union, Tuple, Iterator
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    Iterator,
+    List,
+    Optional,
+    Tuple,
+    Type,
+    Union,
+)
 
 from pydantic import BaseModel
 from requests import Session
@@ -21,6 +31,9 @@ from alpaca.common.types import RawData, HTTPResult, Credentials
 from alpaca.common.utils import get_default_user_agent
 from .constants import PageItem
 from .enums import PaginationType, BaseURL
+
+if TYPE_CHECKING:
+    from alpaca.data.models.base import BaseDataSet
 
 
 class RESTClient(ABC):
@@ -368,6 +381,58 @@ class RESTClient(ABC):
 
         return api_key, secret_key, oauth_token
 
+    def _iter_marketdata_pages(
+        self,
+        path: str,
+        params: Dict[str, Any],
+        page_limit: int = 10_000,
+        page_size: Optional[int] = None,
+        no_sub_key: bool = False,
+    ) -> Iterator[Tuple[HTTPResult, RawData]]:
+        """Lazily requests market data one API page at a time.
+
+        Yields a ``(response, entries)`` tuple per page, where ``response`` is the
+        JSON body as returned by the API and ``entries`` is the data extracted from
+        it (keyed by symbol for most endpoints). A ``limit`` in ``params`` is
+        respected across pages, the same way ``_get_marketdata`` respects it.
+        """
+        # Missing page_size indicates that we should not set a limit (e.g. for latest endpoints)
+        actual_limit = min(page_size, page_limit) if page_size else None
+        limit = params.get("limit")
+        # Item counts per key, mirroring how _get_marketdata merges pages:
+        # lists are extended across pages, other values replace earlier ones.
+        counts: Dict[str, int] = {}
+        page_token = params.get("page_token")
+
+        while True:
+            # adjusts the limit parameter value if it is over the page_limit
+            if limit:
+                # actual_limit is the adjusted total number of items to query per request
+                actual_limit = min(int(limit) - sum(counts.values()), page_limit)
+                if actual_limit < 1:
+                    break
+            params["limit"] = actual_limit
+            params["page_token"] = page_token
+
+            response = self.get(path=path, data=params)
+            entries = _get_marketdata_entries(response, no_sub_key)
+
+            # if we've sent a request with a limit, keep count of the items received
+            if actual_limit:
+                for k, v in entries.items():
+                    if isinstance(v, list):
+                        counts[k] = counts.get(k, 0) + len(v)
+                    else:
+                        counts[k] = len(v)
+
+            # read the token before yielding: callers get the (mutable) response itself
+            page_token = response.get("next_page_token", None)
+
+            yield response, entries
+
+            if page_token is None:
+                break
+
     def _get_marketdata(
         self,
         path: str,
@@ -377,38 +442,71 @@ class RESTClient(ABC):
         no_sub_key: bool = False,
     ) -> Dict[str, List[Any]]:
         d = defaultdict(list)
-        # Missing page_size indicates that we should not set a limit (e.g. for latest endpoints)
-        actual_limit = min(page_size, page_limit) if page_size else None
-        limit = params.get("limit")
-        total_items = 0
-        page_token = params.get("page_token")
 
-        while True:
-            # adjusts the limit parameter value if it is over the page_limit
-            if limit:
-                # actual_limit is the adjusted total number of items to query per request
-                actual_limit = min(int(limit) - total_items, page_limit)
-                if actual_limit < 1:
-                    break
-            params["limit"] = actual_limit
-            params["page_token"] = page_token
-
-            response = self.get(path=path, data=params)
-
-            for k, v in _get_marketdata_entries(response, no_sub_key).items():
+        for _, entries in self._iter_marketdata_pages(
+            path=path,
+            params=params,
+            page_limit=page_limit,
+            page_size=page_size,
+            no_sub_key=no_sub_key,
+        ):
+            for k, v in entries.items():
                 if isinstance(v, list):
                     d[k].extend(v)
                 else:
                     d[k] = v
 
-            # if we've sent a request with a limit, increment count
-            if actual_limit:
-                total_items = sum([len(items) for items in d.values()])
-
-            page_token = response.get("next_page_token", None)
-            if page_token is None:
-                break
         return dict(d)
+
+    def _get_paginated_marketdata(
+        self,
+        path: str,
+        params: Dict[str, Any],
+        page_size: int,
+        set_type: Type["BaseDataSet"],
+        handle_pagination: Optional[PaginationType] = None,
+    ) -> Union["BaseDataSet", RawData, Iterator[Union["BaseDataSet", RawData]]]:
+        """Fetches a paginated time series (bars, quotes or trades) according to ``handle_pagination``.
+
+        * ``PaginationType.FULL`` (default): every page is fetched and merged into one set,
+          or one symbol-keyed dict with ``raw_data=True``.
+        * ``PaginationType.ITERATOR``: returns a lazy iterator that requests one API page at
+          a time and yields it as its own set (with ``next_page_token`` set), or as the raw
+          JSON page with ``raw_data=True``.
+        * ``PaginationType.NONE``: requests only the first page and returns it like an
+          ``ITERATOR`` page. Pass its ``next_page_token`` back through the request's
+          ``page_token`` to fetch the following page.
+        """
+        if handle_pagination is None:
+            handle_pagination = PaginationType.FULL
+
+        if handle_pagination == PaginationType.FULL:
+            raw = self._get_marketdata(path=path, params=params, page_size=page_size)
+            if self._use_raw_data:
+                return raw
+            return set_type(raw)
+
+        if handle_pagination not in (PaginationType.ITERATOR, PaginationType.NONE):
+            raise ValueError(f"Invalid pagination type: {handle_pagination}.")
+
+        pages = self._iter_marketdata_pages(
+            path=path, params=params, page_size=page_size
+        )
+
+        def to_page(response: HTTPResult, entries: RawData):
+            if self._use_raw_data:
+                return response
+            page = set_type(entries)
+            page.next_page_token = response.get("next_page_token")
+            return page
+
+        iterator = (to_page(response, entries) for response, entries in pages)
+
+        if handle_pagination == PaginationType.ITERATOR:
+            return iterator
+
+        # PaginationType.NONE: a single page. An empty response still is one page.
+        return next(iterator)
 
 
 def _get_marketdata_entries(response: HTTPResult, no_sub_key: bool) -> RawData:

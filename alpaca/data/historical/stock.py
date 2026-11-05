@@ -1,9 +1,9 @@
 from collections import defaultdict
 from enum import Enum
-from typing import Dict, List, Optional, Union
+from typing import Dict, Iterator, List, Optional, Union
 
 from alpaca.common.constants import DATA_V2_MAX_LIMIT
-from alpaca.common.enums import BaseURL
+from alpaca.common.enums import BaseURL, PaginationType
 from alpaca.common.rest import RESTClient
 from alpaca.common.types import RawData
 from alpaca.data import Bar, Quote, Snapshot, Trade
@@ -73,71 +73,86 @@ class StockHistoricalDataClient(RESTClient):
         )
 
     def get_stock_bars(
-        self, request_params: StockBarsRequest
-    ) -> Union[BarSet, RawData]:
+        self,
+        request_params: StockBarsRequest,
+        handle_pagination: Optional[PaginationType] = None,
+    ) -> Union[BarSet, RawData, Iterator[Union[BarSet, RawData]]]:
         """Returns bar data for an equity or list of equities over a given
         time period and timeframe.
 
         Args:
             request_params (GetStockBarsRequest): The request object for retrieving stock bar data.
+            handle_pagination (Optional[PaginationType]): How to page through the results. Defaults to
+              ``PaginationType.FULL``, which fetches every page and returns one merged BarSet.
+              ``PaginationType.ITERATOR`` returns a lazy iterator that fetches and yields one page at a time,
+              so large queries don't have to fit in memory. ``PaginationType.NONE`` fetches only one page;
+              pass its ``next_page_token`` as the request's ``page_token`` to continue.
 
         Returns:
-            Union[BarSet, RawData]: The bar data either in raw or wrapped form
+            Union[BarSet, RawData, Iterator[Union[BarSet, RawData]]]: The bar data either in raw or wrapped form, or an
+              iterator of pages for ``PaginationType.ITERATOR`` (raw JSON pages if raw_data is set).
         """
-        raw_bars = self._get_marketdata(
+        return self._get_paginated_marketdata(
             path="/stocks/bars",
             params=request_params.to_request_fields(),
             page_size=10_000,
+            set_type=BarSet,
+            handle_pagination=handle_pagination,
         )
 
-        if self._use_raw_data:
-            return raw_bars
-
-        return BarSet(raw_bars)
-
     def get_stock_quotes(
-        self, request_params: StockQuotesRequest
-    ) -> Union[QuoteSet, RawData]:
+        self,
+        request_params: StockQuotesRequest,
+        handle_pagination: Optional[PaginationType] = None,
+    ) -> Union[QuoteSet, RawData, Iterator[Union[QuoteSet, RawData]]]:
         """Returns level 1 quote data over a given time period for a security or list of securities.
 
         Args:
             request_params (GetStockQuotesRequest): The request object for retrieving stock quote data.
+            handle_pagination (Optional[PaginationType]): How to page through the results. Defaults to
+              ``PaginationType.FULL``, which fetches every page and returns one merged QuoteSet.
+              ``PaginationType.ITERATOR`` returns a lazy iterator that fetches and yields one page at a time,
+              so large queries don't have to fit in memory. ``PaginationType.NONE`` fetches only one page;
+              pass its ``next_page_token`` as the request's ``page_token`` to continue.
 
         Returns:
-            Union[QuoteSet, RawData]: The quote data either in raw or wrapped form
+            Union[QuoteSet, RawData, Iterator[Union[QuoteSet, RawData]]]: The quote data either in raw or wrapped form, or an
+              iterator of pages for ``PaginationType.ITERATOR`` (raw JSON pages if raw_data is set).
         """
-        raw_quotes = self._get_marketdata(
+        return self._get_paginated_marketdata(
             path="/stocks/quotes",
             params=request_params.to_request_fields(),
             page_size=10_000,
+            set_type=QuoteSet,
+            handle_pagination=handle_pagination,
         )
 
-        if self._use_raw_data:
-            return raw_quotes
-
-        return QuoteSet(raw_quotes)
-
     def get_stock_trades(
-        self, request_params: StockTradesRequest
-    ) -> Union[TradeSet, RawData]:
+        self,
+        request_params: StockTradesRequest,
+        handle_pagination: Optional[PaginationType] = None,
+    ) -> Union[TradeSet, RawData, Iterator[Union[TradeSet, RawData]]]:
         """Returns the price and sales history over a given time period for a security or list of securities.
 
         Args:
             request_params (GetStockTradesRequest): The request object for retrieving stock trade data.
+            handle_pagination (Optional[PaginationType]): How to page through the results. Defaults to
+              ``PaginationType.FULL``, which fetches every page and returns one merged TradeSet.
+              ``PaginationType.ITERATOR`` returns a lazy iterator that fetches and yields one page at a time,
+              so large queries don't have to fit in memory. ``PaginationType.NONE`` fetches only one page;
+              pass its ``next_page_token`` as the request's ``page_token`` to continue.
 
         Returns:
-            Union[TradeSet, RawData]: The trade data either in raw or wrapped form
+            Union[TradeSet, RawData, Iterator[Union[TradeSet, RawData]]]: The trade data either in raw or wrapped form, or an
+              iterator of pages for ``PaginationType.ITERATOR`` (raw JSON pages if raw_data is set).
         """
-        raw_trades = self._get_marketdata(
+        return self._get_paginated_marketdata(
             path="/stocks/trades",
             params=request_params.to_request_fields(),
             page_size=10_000,
+            set_type=TradeSet,
+            handle_pagination=handle_pagination,
         )
-
-        if self._use_raw_data:
-            return raw_trades
-
-        return TradeSet(raw_trades)
 
     def get_stock_latest_trade(
         self, request_params: StockLatestTradeRequest

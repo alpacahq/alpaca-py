@@ -144,6 +144,50 @@ You can convert the response to a multi-index pandas dataframe using the ``.df``
     # even for a single symbol request - models are agnostic to number of symbols
     bars["BTC/USD"]
 
+Paging Through Large Historical Queries
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+By default the bars, quotes and trades methods fetch every page of the response and return
+one merged ``BarSet``, ``QuoteSet`` or ``TradeSet``. For large queries (for example a day of
+trades or quotes for a liquid symbol) you can pass ``handle_pagination=PaginationType.ITERATOR``
+to get a lazy iterator instead. It requests one API page at a time and yields it as its own set,
+so only one page is held in memory and you can start processing (or writing to disk) right away.
+A ``limit`` on the request still caps the total number of items across pages.
+
+.. code-block:: python
+
+    from alpaca.common.enums import PaginationType
+    from alpaca.data.historical import StockHistoricalDataClient
+    from alpaca.data.requests import StockTradesRequest
+    from datetime import datetime
+
+    client = StockHistoricalDataClient("api-key", "secret-key")
+
+    request_params = StockTradesRequest(
+                            symbol_or_symbols="NVDA",
+                            start=datetime(2024, 6, 3),
+                            end=datetime(2024, 6, 4)
+                     )
+
+    pages = client.get_stock_trades(request_params, handle_pagination=PaginationType.ITERATOR)
+
+    for i, page in enumerate(pages):
+        page.df.to_parquet(f"nvda-trades-{i:05d}.parquet")
+
+Each page carries the ``next_page_token`` that continues after it. ``PaginationType.NONE`` returns
+just one page; to resume, for example after a crash in a long download, pass a saved token back
+through the request's ``page_token``:
+
+.. code-block:: python
+
+    request_params.page_token = saved_token  # None starts from the first page
+    page = client.get_stock_trades(request_params, handle_pagination=PaginationType.NONE)
+
+    process(page)
+    saved_token = page.next_page_token  # None once there are no more pages
+
+With ``raw_data=True`` the iterator yields each page's JSON body as returned by the API.
+
 Real Time Data
 --------------
 

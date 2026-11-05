@@ -29,6 +29,8 @@ class BaseTimeseriesDataRequest(NonEmptyRequest):
         limit (Optional[int]): Upper limit of number of data points to return. Defaults to None.
         currency (Optional[SupportedCurrencies]): The currency the data should be returned in. Default to USD.
         sort: (Optional[Sort]): The chronological order of response based on the timestamp. Defaults to ASC.
+        page_token (Optional[str]): Resume from this page. Use the ``next_page_token`` of a page returned with
+          ``handle_pagination=PaginationType.NONE`` or ``PaginationType.ITERATOR``. Defaults to None (first page).
     """
 
     symbol_or_symbols: Union[str, List[str]]
@@ -37,6 +39,7 @@ class BaseTimeseriesDataRequest(NonEmptyRequest):
     limit: Optional[int] = None
     currency: Optional[SupportedCurrencies] = None  # None = USD
     sort: Optional[Sort] = None  # None = asc
+    page_token: Optional[str] = None
 
     def __init__(self, **data: Any) -> None:
         # convert timezone aware datetime to timezone naive UTC datetime

@@ -1957,6 +1957,40 @@ class TestOverloadContracts:
         assert [path for _, paths in kept for path in paths] == [_BARS_ID]
         assert "kept for existing calls by @overload" in kept[0][0]
 
+    def test_aexpy_return_entry_kept_by_overload_is_dropped(self, cab):
+        old = {"callables": {_BARS_ID: _bars_old()}}
+        new = {"callables": {_BARS_ID: _bars_new(_paged_stubs())}}
+        aexpy_return = {
+            "kind": "ChangeReturnType",
+            "rank": 50,
+            "message": f"Change return type ({_BARS_ID}): {_SET} -> object",
+        }
+        other = {"kind": "RemoveFunction", "rank": 100, "message": "removed"}
+
+        remaining, kept = cab._apply_overload_contracts_to_entries(
+            [aexpy_return, other], old, new
+        )
+
+        assert remaining == [other]
+        assert [path for _, paths in kept for path in paths] == [_BARS_ID]
+        assert cab._summarize_changes(remaining) == (1, 0, 0)
+
+    def test_aexpy_return_entry_without_overload_stays_breaking(self, cab):
+        old = {"callables": {_BARS_ID: _bars_old()}}
+        new = {"callables": {_BARS_ID: _bars_new([])}}
+        aexpy_return = {
+            "kind": "ChangeReturnType",
+            "rank": 50,
+            "message": f"Change return type ({_BARS_ID}): {_SET} -> object",
+        }
+
+        remaining, kept = cab._apply_overload_contracts_to_entries(
+            [aexpy_return], old, new
+        )
+
+        assert remaining == [aexpy_return]
+        assert kept == []
+
     def test_stub_requiring_a_new_parameter_is_skipped(self, cab):
         # Only the iterator stub and the wide fallback remain: a baseline call
         # lands on the fallback, whose return type changed.
@@ -2085,6 +2119,36 @@ class TestOverloadContracts:
 
         assert cab._baseline_overload_return(old_entry, {"overloads": [stub]}) == _SET
 
+    def test_stub_requiring_a_formerly_optional_parameter_does_not_match(self, cab):
+        # Baseline ``f(x=0)``: calls omitting ``x`` cannot match ``f(x)``.
+        old_entry = {"params": {"x": _param()}, "return": _SET}
+        stub = _stub({"x": _param(required=True)}, _SET)
+
+        assert cab._baseline_overload_return(old_entry, {"overloads": [stub]}) is None
+
+    def test_omitted_argument_falls_through_to_the_wider_overload(self, cab):
+        old_id = "pkg.Client.f"
+        old = {"callables": {old_id: {"params": {"x": _param()}, "return": _SET}}}
+        stubs = [
+            _stub({"x": _param(required=True)}, _SET),
+            _stub({"x": _param()}, f"{_SET} | {_PAGES}"),
+        ]
+        new = {
+            "callables": {
+                old_id: {
+                    "params": {"x": _param()},
+                    "return": f"{_SET} | {_PAGES}",
+                    "overloads": stubs,
+                }
+            }
+        }
+        finding = [("f return type changed", [old_id])]
+
+        still_breaking, kept = cab._apply_overload_contracts(finding, old, new)
+
+        assert still_breaking == finding
+        assert kept == []
+
     def test_crypto_style_stubs_with_a_leading_feed_parameter(self, cab):
         crypto_id = (
             "alpaca.data.historical.crypto.CryptoHistoricalDataClient.get_crypto_bars"
@@ -2129,6 +2193,87 @@ class TestOverloadContracts:
             {"callables": {crypto_id: new_entry}},
         )
 
+        assert still_breaking == []
+        assert len(kept) == 1
+
+
+class TestOverloadParameterTypes:
+    """Stubs that only accept some of the old inputs must not hide a break."""
+
+    _ID = "pkg.Client.f"
+
+    @staticmethod
+    def _typed(annotation, required=True):
+        return {
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "required": required,
+            "annotation": annotation,
+        }
+
+    def _run(self, cab, stubs, old_param="bool"):
+        old = {
+            "callables": {
+                self._ID: {"params": {"flag": self._typed(old_param)}, "return": _SET}
+            }
+        }
+        new = {
+            "callables": {
+                self._ID: {
+                    "params": {"flag": self._typed(old_param)},
+                    "return": f"{_SET} | {_PAGES}",
+                    "overloads": stubs,
+                }
+            }
+        }
+        finding = [("f return type changed", [self._ID])]
+        return cab._apply_overload_contracts(finding, old, new), finding
+
+    def test_narrow_first_stub_does_not_hide_wider_fallback(self, cab):
+        stubs = [
+            _stub({"flag": self._typed("Literal[True]")}, _SET),
+            _stub({"flag": self._typed("bool")}, f"{_SET} | {_PAGES}"),
+        ]
+
+        (still_breaking, kept), finding = self._run(cab, stubs)
+
+        assert still_breaking == finding
+        assert kept == []
+
+    def test_narrow_stub_without_covering_fallback_stays_a_break(self, cab):
+        stubs = [_stub({"flag": self._typed("Literal[True]")}, _SET)]
+
+        (still_breaking, kept), finding = self._run(cab, stubs)
+
+        assert still_breaking == finding
+        assert kept == []
+
+    def test_narrow_stubs_all_keeping_the_old_return_are_not_a_break(self, cab):
+        stubs = [
+            _stub({"flag": self._typed("Literal[True]")}, _SET),
+            _stub({"flag": self._typed("bool")}, _SET),
+        ]
+
+        (still_breaking, kept), _ = self._run(cab, stubs)
+
+        assert still_breaking == []
+        assert len(kept) == 1
+
+    def test_stub_with_wider_parameter_type_covers_the_old_input(self, cab):
+        stubs = [_stub({"flag": self._typed("bool | None")}, _SET)]
+
+        (still_breaking, kept), _ = self._run(cab, stubs)
+
+        assert still_breaking == []
+        assert len(kept) == 1
+
+    def test_unannotated_old_parameter_needs_an_unannotated_stub(self, cab):
+        narrow = [_stub({"flag": self._typed("int")}, _SET)]
+        wide = [_stub({"flag": self._typed(None)}, _SET)]
+
+        (still_breaking, _), finding = self._run(cab, narrow, old_param=None)
+        assert still_breaking == finding
+
+        (still_breaking, kept), _ = self._run(cab, wide, old_param=None)
         assert still_breaking == []
         assert len(kept) == 1
 
@@ -2198,7 +2343,12 @@ class TestCallableSnapshotSource:
         assert plain["params"]["a"] == {
             "kind": "POSITIONAL_OR_KEYWORD",
             "required": True,
+            "annotation": "int",
         }
-        assert plain["params"]["b"] == {"kind": "KEYWORD_ONLY", "required": False}
+        assert plain["params"]["b"] == {
+            "kind": "KEYWORD_ONLY",
+            "required": False,
+            "annotation": "str | None",
+        }
         assert callables["overload_fixture.helper"]["return"] == "str"
         assert "overload_fixture.Client._private" not in callables

@@ -1887,8 +1887,11 @@ class TestCompareReturnAnnotations:
         ) == ([], [])
 
 
-def _param(kind="POSITIONAL_OR_KEYWORD", required=False):
-    return {"kind": kind, "required": required}
+def _param(kind="POSITIONAL_OR_KEYWORD", required=False, annotation=None):
+    param = {"kind": kind, "required": required}
+    if annotation is not None:
+        param["annotation"] = annotation
+    return param
 
 
 _SET = "alpaca.data.models.bars.BarSet | dict[str, typing.Any]"
@@ -2125,6 +2128,32 @@ class TestOverloadContracts:
         stub = _stub({"x": _param(required=True)}, _SET)
 
         assert cab._baseline_overload_return(old_entry, {"overloads": [stub]}) is None
+
+    def test_overload_with_disjoint_parameter_type_does_not_widen_the_return(
+        self, cab
+    ):
+        # Baseline ``f(x: int = 0) -> int``. ``f(x: str) -> str`` matches no
+        # baseline input, so it must not add ``str`` to the return.
+        old_entry = {"params": {"x": _param(annotation="int")}, "return": "int"}
+        stubs = [
+            _stub({"x": _param(required=True, annotation="str")}, "str"),
+            _stub({"x": _param(annotation="int")}, "int"),
+        ]
+
+        result = cab._baseline_overload_return(old_entry, {"overloads": stubs})
+
+        assert result == "int"
+
+    def test_overload_with_overlapping_parameter_type_still_counts(self, cab):
+        old_entry = {"params": {"x": _param(annotation="int")}, "return": "int"}
+        stubs = [
+            _stub({"x": _param(required=True, annotation="float")}, "str"),
+            _stub({"x": _param(annotation="int")}, "int"),
+        ]
+
+        result = cab._baseline_overload_return(old_entry, {"overloads": stubs})
+
+        assert set(cab._split_top_level_union(result)) == {"int", "str"}
 
     def test_omitted_argument_falls_through_to_the_wider_overload(self, cab):
         old_id = "pkg.Client.f"

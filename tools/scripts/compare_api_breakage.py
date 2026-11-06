@@ -1596,6 +1596,93 @@ def _param_type_covers(stub_annotation: str | None, old_annotation: str | None) 
     )
 
 
+# Builtin scalar/container heads that no value can belong to two of, except for
+# the pairs in ``_OVERLAPPING_BUILTINS`` (``bool`` is an ``int``; ``int`` is
+# accepted where ``float``/``complex`` is annotated).
+_DISJOINT_BUILTINS = frozenset(
+    {
+        "int",
+        "str",
+        "bytes",
+        "float",
+        "complex",
+        "bool",
+        "None",
+        "list",
+        "dict",
+        "set",
+        "frozenset",
+        "tuple",
+    }
+)
+_OVERLAPPING_BUILTINS = frozenset(
+    frozenset(pair)
+    for pair in (
+        ("bool", "int"),
+        ("bool", "float"),
+        ("bool", "complex"),
+        ("int", "float"),
+        ("int", "complex"),
+        ("float", "complex"),
+    )
+)
+
+
+def _type_head(member: str) -> str:
+    return member.split("[", 1)[0].strip().lower() if member else ""
+
+
+def _members_provably_disjoint(stub_member: str, old_member: str) -> bool:
+    stub_head = _type_head(stub_member)
+    old_head = _type_head(old_member)
+    if stub_head not in _DISJOINT_BUILTINS or old_head not in _DISJOINT_BUILTINS:
+        return False
+    if stub_head == old_head:
+        return False
+    return frozenset((stub_head, old_head)) not in _OVERLAPPING_BUILTINS
+
+
+def _param_types_disjoint(
+    stub_annotation: str | None, old_annotation: str | None
+) -> bool:
+    """True when no baseline value can match the stub parameter's type.
+
+    Conservative: only reports disjointness between builtin scalar/container
+    types (``int`` vs ``str``). Unknown, ``Any``, class or ``Literal`` types are
+    treated as possibly overlapping.
+    """
+    stub_text = _normalize_type_annotation(stub_annotation or "")
+    old_text = _normalize_type_annotation(old_annotation or "")
+    if not stub_text or not old_text:
+        return False
+    if stub_text in _TOP_TYPES or old_text in _TOP_TYPES:
+        return False
+    stub_members = _split_top_level_union(stub_text)
+    old_members = _split_top_level_union(old_text)
+    return all(
+        _members_provably_disjoint(stub_member, old_member)
+        for stub_member in stub_members
+        for old_member in old_members
+    )
+
+
+def _stub_may_match_baseline_inputs(stub_params: dict, old_params: dict) -> bool:
+    """False when some parameter's type cannot match any baseline input.
+
+    Such a stub is never picked for a baseline-shaped call, so its return type
+    must not be added to the union existing callers see.
+    """
+    for name, old in old_params.items():
+        if old.get("kind") in _VARIADIC_KINDS:
+            continue
+        new = stub_params.get(name)
+        if new is None:
+            continue
+        if _param_types_disjoint(new.get("annotation"), old.get("annotation")):
+            return False
+    return True
+
+
 def _stub_covers_baseline_inputs(stub_params: dict, old_params: dict) -> bool:
     """True when every baseline parameter type is accepted by the stub."""
     for name, old in old_params.items():
@@ -1633,6 +1720,10 @@ def _baseline_overload_return(old_entry: dict, new_entry: dict) -> str | None:
         # calls that supply it, so its return counts; it just cannot end the
         # walk because calls omitting that parameter fall through.
         if not _stub_accepts_baseline_call(stub_params, old_params, all_calls=False):
+            continue
+        # A stub whose parameter types match no baseline input is never
+        # selected by an existing call, so its return does not count.
+        if not _stub_may_match_baseline_inputs(stub_params, old_params):
             continue
         stub_return = stub.get("return")
         if not stub_return:

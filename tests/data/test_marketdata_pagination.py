@@ -321,6 +321,36 @@ def test_iterator_pages_have_working_df(
     assert frames[0].index.names == ["symbol", "timestamp"]
 
 
+def test_none_with_negative_limit_returns_empty_page(
+    reqmock, stock_client: StockHistoricalDataClient
+):
+    reqmock.get(
+        "https://data.alpaca.markets/v2/stocks/bars",
+        json={"bars": {"AAPL": _items(BAR, 1, 2)}, "next_page_token": "p1"},
+    )
+
+    page = stock_client.get_stock_bars(
+        StockBarsRequest(symbol_or_symbols="AAPL", timeframe=TimeFrame.Day, limit=-1),
+        handle_pagination=PaginationType.NONE,
+    )
+
+    assert isinstance(page, BarSet)
+    assert page.data == {}
+    assert page.next_page_token is None
+    assert reqmock.call_count == 0
+
+
+def test_merged_set_dump_omits_unset_page_token():
+    bars = BarSet({})
+    assert "next_page_token" not in bars.model_dump()
+
+    bars.next_page_token = "p1"
+    assert bars.model_dump()["next_page_token"] == "p1"
+
+    bars.next_page_token = None
+    assert bars.model_dump()["next_page_token"] is None
+
+
 def test_invalid_pagination_type_raises(stock_client: StockHistoricalDataClient):
     with pytest.raises(ValueError):
         stock_client.get_stock_bars(

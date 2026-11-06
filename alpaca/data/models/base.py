@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional
 import numpy as np
 import pandas as pd
 from pandas import DataFrame
+from pydantic import model_serializer
 
 from alpaca.common.models import ValidateBaseModel as BaseModel
 
@@ -54,6 +55,21 @@ class BaseDataSet(BaseModel):
 
     data: Dict[str, List[BaseModel]] = {}
     next_page_token: Optional[str] = None
+
+    @model_serializer(mode="wrap")
+    def _serialize(self, handler: Any) -> Any:
+        """Omit an unset page token so a merged set serializes as it did before the field existed.
+
+        A token that was assigned, including an explicit ``None`` on the last page, is kept.
+        """
+        dumped = handler(self)
+        if (
+            isinstance(dumped, dict)
+            and "next_page_token" not in self.model_fields_set
+            and dumped.get("next_page_token") is None
+        ):
+            dumped.pop("next_page_token")
+        return dumped
 
     def __getitem__(self, symbol: str) -> Any:
         """Gives dictionary-like access to multi-symbol data

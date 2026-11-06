@@ -91,6 +91,14 @@ def _run_live_enabled(config: pytest.Config) -> bool:
     return bool(config.getoption("--run-live")) or _env_flag("ALPACA_RUN_LIVE")
 
 
+def _production_environment_overrides() -> List[str]:
+    overrides = []
+    for name in ("ALPACA_TRADING_PAPER", "ALPACA_BROKER_SANDBOX"):
+        if name in os.environ and not _env_flag(name):
+            overrides.append(name)
+    return overrides
+
+
 def pytest_collection_modifyitems(
     config: pytest.Config, items: List[pytest.Item]
 ) -> None:
@@ -102,6 +110,24 @@ def pytest_collection_modifyitems(
     skip_mutative = pytest.mark.skip(
         reason="mutative live tests require --allow-mutative"
     )
+
+    has_enabled_mutative_test = (
+        run_live
+        and allow_mutative
+        and any(
+            any(marker.name == "live_mutative" for marker in item.iter_markers())
+            for item in items
+        )
+    )
+    if has_enabled_mutative_test:
+        production_overrides = _production_environment_overrides()
+        if production_overrides:
+            names = ", ".join(production_overrides)
+            raise pytest.UsageError(
+                "Mutative live tests can only run against Trading paper and "
+                "Broker sandbox. Unset or set to true: "
+                f"{names}"
+            )
 
     for item in items:
         markers = {m.name for m in item.iter_markers()}

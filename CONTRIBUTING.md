@@ -1,113 +1,148 @@
-Contributing to Alpaca-Py
-=========================
+# Contributing
 
+Thanks for helping improve Alpaca-py. By participating, you agree to follow our [Code of Conduct](./CODE_OF_CONDUCT.md).
 
-Thank you for taking the time to contribute!
-Alpaca-Py is currently in an early alpha phase, but we are very open to taking contributions!
+## Choose the right channel
 
-## How do I file a bug/Ask a question/Request a feature?
+- **Library / SDK issues:** Bugs, feature requests, or questions specific to this SDK → [GitHub Issues](https://github.com/alpacahq/alpaca-py/issues/new/choose).
+- **Security vulnerabilities:** Do not report them publicly. Follow the private reporting process in our [Security Policy](./SECURITY.md).
+- **Alpaca API bugs:** Bugs in the Alpaca API itself, its OpenAPI specs, or its documentation → [alpacahq/alpaca-api](https://github.com/alpacahq/alpaca-api/issues/new/choose).
+- **Community:** API feature requests, general questions, and dashboard bugs → [Alpaca Community Forum](https://forum.alpaca.markets/) or [Slack](https://alpaca.markets/slack).
+- **Account help:** Questions about your account, funding, or orders → [Support request](https://alpaca.markets/support/request).
+- **Outages:** Service status and incident updates → [Status page](https://status.alpaca.markets/).
 
-We track these here on Github via our [issues](https://github.com/alpacahq/alpaca-py/issues/new/choose), with a template
-for each of these cases that will ask you to fill out some information to better help us solve your issue.
-(Note that not filling out the template or skipping questions is likely to just delay us being able to solve your issue
-and will result in us having to ask you to fill out the missing information or close out your issue for being invalid.)
+Please do not include credentials, account details, request or trace IDs, or other sensitive information in an issue, discussion, pull request, test, or example.
 
-> **NOTE** that we can only solve issues with the SDK. To report a bug in the Alpaca API itself, its OpenAPI specs, or its documentation, open an issue in [alpacahq/alpaca-api](https://github.com/alpacahq/alpaca-api/issues/new/choose) instead. For API feature requests and general questions, use the [Community Forum](https://forum.alpaca.markets/) or [Slack](https://alpaca.markets/slack).
+## Contribution policy
 
-## How do I contribute code?
+### Contributions we welcome
 
-1. Please fork this repo and create a branch for your changes
-2. Please read the README steps on setting up the dev environment so that things like git pre-commit hooks are run on
-   your code. This is to help prevent your PR getting rejected by the lint CI actions when you open your PR.
-3. Code away
-4. Open a PR with your changes!
+Focused contributions are welcome when they improve this SDK, including:
 
-That's the high level flow of it. Note that this repo uses merge commits so don't feel the need to squash your commits
-before your pr.
+- bug fixes and compatibility improvements;
+- support for documented Alpaca API capabilities;
+- focused tests and reliability improvements;
+- documentation and examples; and
+- maintainability improvements that preserve public behavior.
 
-### Dev setup
+### Discuss substantial changes first
 
-This project is managed via poetry so setup should be just running `poetry install`.
+Open an issue before investing in a substantial SDK design, new dependency, broad refactor, or third-party integration. Early discussion helps confirm that the proposal fits the SDK's scope and avoids duplicated or unusable work.
 
-This repo is using [`pre-commit`](https://pre-commit.com/) to setup some checks to happen at commit time to keep the
-repo clean. To set these up after you've run `poetry install` just run `poetry run pre-commit install` to have
-pre-commit setup these hooks
+Bugs in the Alpaca API itself, its OpenAPI specs, or its documentation must be fixed upstream, not patched in this SDK. Report them in [alpacahq/alpaca-api](https://github.com/alpacahq/alpaca-api/issues/new/choose). API feature requests, general questions, and dashboard bugs belong on the [Alpaca Community Forum](https://forum.alpaca.markets/) or [Slack](https://alpaca.markets/slack). Contributions that add support for already documented API capabilities are welcome after the SDK design is agreed with maintainers.
+
+### Out of scope
+
+This repository does not accept:
+
+- trading strategies, algorithm design, or investment advice;
+- bugs in the Alpaca API, its OpenAPI specs, or docs.alpaca.markets;
+- API feature requests, dashboard bugs, or outage reports;
+- questions that aren't about this SDK, including questions about your account, funding, or orders;
+- credentials, private account data, request or trace IDs, or other secrets;
+- referral links or promotional content; or
+- unapproved integrations with third-party products or services.
+
+Contributions that add or promote third-party products or services, including provider-specific clients, API calls, hosted endpoints, referral links, or promotional content, require prior written approval from Alpaca before implementation. Open an issue describing the technical scope; repository maintainers will coordinate the necessary internal review and confirm whether the proposal may proceed. Contributors do not need to identify or contact internal approvers.
+
+Using an ordinary open-source dependency or improving generic interoperability does not by itself make a contribution a provider-specific integration. Maintainers will explain when a proposal falls outside this policy. A pull request that proceeds without the required approval may be closed as out of scope, so open an issue first if you are unsure whether a proposal qualifies.
+
+## License and contribution terms
+
+The project is licensed under the [Apache License 2.0](./LICENSE). Subject to its full terms, the license permits use, reproduction, modification, and distribution of the software. It does not grant permission to use Alpaca trade names, trademarks, service marks, or product names except as described in the license.
+
+Unless you explicitly state otherwise, a contribution intentionally submitted for inclusion in this project is provided under Apache-2.0 without additional terms, as described in Section 5 of the license. This project does not currently require a separate Contributor License Agreement (CLA) or Developer Certificate of Origin (DCO) sign-off.
+
+## Contribution workflow
+
+1. Search existing issues and pull requests.
+2. Open an issue first for work described under [Discuss substantial changes first](#discuss-substantial-changes-first).
+3. Fork the repository and create a focused branch.
+4. Make the change in hand-written source files.
+5. Add focused tests for new or changed behavior and update relevant documentation.
+6. Run the relevant checks listed below.
+7. Open a focused pull request, explain why the change is needed, and respond to review feedback.
+
+Use clear, descriptive commit messages and pull request titles. Conventional Commits are not required, and contributors do not need to squash commits before opening a pull request. Maintainers use GitHub's squash-merge workflow for the final merge.
+
+## Prerequisites
+
+- Python 3.11 or newer, as declared in [`pyproject.toml`](./pyproject.toml).
+- [Poetry](https://python-poetry.org/) for dependency and environment management.
+- `make` for the repository's documented convenience targets.
+
+## Setup and checks
+
+Install the project and its development dependencies, then install the repository's pre-commit hooks:
+
+```bash
+poetry install
+poetry run pre-commit install
+```
+
+Run the standard checks from the repository root:
+
+```bash
+make lint
+make test
+make generate
+```
+
+Format changed SDK and test files with Black before running the lint check:
+
+```bash
+poetry run black alpaca/ tests/
+```
+
+`make generate` validates the Sphinx HTML build and doctests with warnings treated as errors. It does not generate committed SDK source. There is no numeric coverage threshold, but changed behavior must have focused tests.
+
+## Testing and financial safety
+
+- Default repository tests and CI must never place live orders or depend on Alpaca credentials. They must be deterministic and use mocks, fakes, or synthetic fixtures for API behavior.
+- Opt-in live probes under [`tests/live`](./tests/live) require `--run-live` or `ALPACA_RUN_LIVE=1`. Current probes are read-only and default to Trading paper and Broker sandbox.
+- Future mutative live probes must use the `live_mutative` marker, require `--allow-mutative`, and never target Trading live or Broker production.
+- Runnable trading examples must use paper trading by default and require an explicit user choice before targeting live trading.
+- Real credentials, account identifiers, account data, and production payloads must never appear in tests, fixtures, examples, or committed logs and artifacts. Remove request and trace IDs from public or committed material; share private diagnostics only through Alpaca Support channels when needed.
 
 ## Coding Guidelines
 
 ### Formatting
 
-This repo is using [Black](https://github.com/psf/black) as our formatter and style enforcer, if you're unsure if your
-code will fit our style guide simply run
+This repository uses [Black](https://github.com/psf/black) as its formatter and style enforcer:
 
-`poetry run black .`
-
-from the root of the repo and Black will take care of formatting your code correctly for you.
-
-### Conventions
-
-We only have a few conventions we follow.
-
-[//]: # (In the future put commit conventions here if we ever embrace them, ie conventional commits)
-
-#### Models
-
-We use [Pydantic](https://pydantic-docs.helpmanual.io/) for our models and for representing request objects. This lets
-us add both type and custom validations to the models. If your PR needs to add a new model for some reason please make
-sure it extends the `alpaca.common.models.ValidateBaseModel` class and implements a pydantic validator if needed to
-ensure that models are always in a consistent state.
-
-If what you're adding is a model for a request, IE `GetNewThingRequest` then please make sure it instead extends the
-`alpaca.common.models.NonEmptyRequest` class. This class is a helper that extends the ValidateBaseModel to also add a
-method called `to_request_fields` that eases the conversion of fields to safe HTTP request values.
-
-#### Request Methods
-
-Our request methods try to stick to a simple formula.
-
-For example, lets take the Trading api method `remove_symbol_from_watchlist_by_id` and reverse engineer the naming here.
-The url for this request is `DELETE /v2/watchlists/{watchlist_id}/{symbol}`
-
-1. All url parameters shall be full parameters in the resulting method. So for our example we'll have a `watchlist_id`
-   and `symbol` parameters.
-
-2. Any GET/POST/PATCH/PUT parameters that a request can take should be turned into a new class that extends
-   `alpaca.common.models.NonEmptyRequest`. Doing so will not only make the request method easier to write but also
-   ensures that we have validation for the user almost for free from Pydantic. This also helps ensure that the addition
-   of new fields here wont result in a breaking change.
-
-   Our example doesn't have any DELETE parameters but if it did take any we would have a final parameter of a new type
-   named `RemoveSymbolFromWatchlistRequest`.
-
-3. Naming of the request method should be pretty obvious in most cases (`create_order`, `get_clock`, etc). But in
-   certain cases, especially in the Broker module or when a request has multiple url parameters we try to follow a
-   naming convention like the following:
-   `{verb}_{noun}_by_{value}` or `{verb}_{noun1}_(for, from, to, etc)_{noun2}`or `{verb}_{noun1}_for_{noun2}_by_{value}`
-
-   - step 1: is to get the verb we need. In this case its DELETE but for a more semantic name we'll use remove
-   - step 2: what are the nouns we're working on, in this case its Watchlists and Symbols
-   - step 3: The main noun in this case is Watchlist, and we specify which Watchlist we wish to update via its id, so we
-     will add on a `by_id` to the end.
-
-   and thus we end up with `remove_symbol_from_watchlist_by_id`.
-
-> **NOTE**: Currently during the alpha phase of alpaca-py we haven't been strict on the above naming scheme. However,
-> this **_will_** change in the future before we hit 1.0.0
-
-And so the final method looks like:
-
-```python
-def remove_symbol_from_watchlist_by_id(self, watchlist_id: UUID, symbol: str) -> Watchlist:
+```bash
+poetry run black alpaca/ tests/
 ```
 
-#### Deprecations
+Match the surrounding style in files outside Black's configured scope. The repository does not enforce `isort` as a separate check.
 
-Deprecate a method or function with `typing_extensions.deprecated` (PEP 702) rather than a manual `warnings.warn`
-call. The decorator emits the runtime `DeprecationWarning`, attributed to the caller's line. It also lets tools flag
-calls before the code runs: Pylance shows them struck through, mypy reports them with
-`--enable-error-code deprecated`, and pyright reports them when `reportDeprecated` is enabled. Import it under a
-private name so `from alpaca.<module> import *` doesn't re-export it, and add a `.. deprecated:: <version>`
-directive to the docstring so the API reference shows it.
+### Models
+
+We use [Pydantic](https://docs.pydantic.dev/) for response models and request objects. New response models should extend `alpaca.common.models.ValidateBaseModel` and add Pydantic validation when needed so model instances remain in a consistent state.
+
+New request models, such as `GetNewThingRequest`, should extend `alpaca.common.requests.NonEmptyRequest`. It extends `ValidateBaseModel` and provides `to_request_fields`, which omits unset values and converts fields into safe HTTP request values.
+
+### Request methods
+
+Request methods follow a simple formula. For example, the Trading API method `remove_asset_from_watchlist_by_id` calls `DELETE /v2/watchlists/{watchlist_id}/{symbol}`.
+
+1. Every URL parameter becomes a full method parameter. This example has `watchlist_id` and `symbol`.
+2. Non-path request parameters should use a dedicated class that extends `alpaca.common.requests.NonEmptyRequest`. This includes query parameters for GET requests and payload fields for POST, PATCH, PUT, or DELETE requests. The request object centralizes validation and lets future optional fields be added without changing the method signature. If this DELETE endpoint accepted a payload, its final method parameter would use a request type such as `RemoveAssetFromWatchlistRequest`.
+3. Use an obvious method name where possible, such as `create_order` or `get_clock`. For endpoints with multiple URL parameters, especially in the Broker module, use one of these patterns: `{verb}_{noun}_by_{value}`, `{verb}_{noun1}_{preposition}_{noun2}`, or `{verb}_{noun1}_for_{noun2}_by_{value}`.
+
+For the example, use the semantic verb `remove`, identify asset and watchlist as the nouns, then add `by_id` because `watchlist_id` selects the watchlist:
+
+```python
+def remove_asset_from_watchlist_by_id(
+    self, watchlist_id: Union[UUID, str], symbol: str
+) -> Union[Watchlist, RawData]:
+```
+
+Apply these conventions to new methods. Existing public names must go through compatibility review and the documented deprecation process before they are renamed.
+
+### Deprecations
+
+Deprecate a method or function with `typing_extensions.deprecated` (PEP 702) rather than a manual `warnings.warn` call. The decorator emits the runtime `DeprecationWarning`, attributed to the caller's line. It also lets tools flag calls before the code runs: Pylance shows them struck through, mypy reports them with `--enable-error-code deprecated`, and pyright reports them when `reportDeprecated` is enabled. Import it under a private name so `from alpaca.<module> import *` doesn't re-export it, and add a `.. deprecated:: <version>` directive to the docstring so the API reference shows it.
 
 ```python
 from typing_extensions import deprecated as _deprecated
@@ -120,15 +155,11 @@ def old_method(self) -> None:
     """
 ```
 
-`@deprecated` does not apply to enum members. To deprecate one, give the enum `alpaca._deprecating_enum.DeprecatingEnumMeta`
-as its metaclass and pass a `deprecations={member_name: message}` mapping, as `ActivityType` in
-`alpaca/trading/enums.py` does.
+`@deprecated` does not apply to enum members. To deprecate one, give the enum `alpaca._deprecating_enum.DeprecatingEnumMeta` as its metaclass and pass a `deprecations={member_name: message}` mapping, as `ActivityType` in `alpaca/trading/enums.py` does.
 
-To deprecate a model field, use Pydantic's `Field(deprecated="...")` and keep the field's existing type and default.
-Pydantic warns when the field is read and stays silent during parsing and serialization, as `Asset.easy_to_borrow` in
-`alpaca/trading/models.py` does.
+To deprecate a model field, use Pydantic's `Field(deprecated="...")` and keep the field's existing type and default. Pydantic warns when the field is read and stays silent during parsing and serialization, as `Asset.easy_to_borrow` in `alpaca/trading/models.py` does.
 
-### Checking backward compatibility
+## Checking backward compatibility
 
 Before merging changes that touch the public SDK surface, compare this branch against a
 published `alpaca-py` release:
@@ -152,7 +183,7 @@ make check-api-breakage BASELINE_REF=origin/master WORKDIR=/tmp/aexpy-alpaca
 
 The target runs `tools/scripts/compare_api_breakage.py`, which:
 
-1. Builds a wheel from the current tree and obtains the baseline wheel — downloaded
+1. Builds a wheel from the current tree and obtains the baseline wheel, downloaded
    from PyPI (`--against`), or built from a git ref in a throwaway worktree and cached
    under the workdir by commit SHA (`--baseline-ref`)
 2. Runs [AexPy](https://github.com/StardustDL/aexpy) for API-level removals and

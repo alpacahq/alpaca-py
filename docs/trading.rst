@@ -219,7 +219,7 @@ the method will also cancel all open orders, preventing you from entering into a
 
     from alpaca.trading.client import TradingClient
 
-    trading_client = TradingClient('api-key', 'secret-key')
+    trading_client = TradingClient('api-key', 'secret-key', paper=True)
 
     # closes all position AND also cancels all open orders
     trading_client.close_all_positions(cancel_orders=True)

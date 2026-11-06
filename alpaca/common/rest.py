@@ -406,7 +406,7 @@ class RESTClient(ABC):
 
         while True:
             # adjusts the limit parameter value if it is over the page_limit
-            if limit:
+            if limit is not None:
                 # actual_limit is the adjusted total number of items to query per request
                 actual_limit = min(int(limit) - sum(counts.values()), page_limit)
                 if actual_limit < 1:

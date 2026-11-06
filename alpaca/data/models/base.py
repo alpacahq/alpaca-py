@@ -68,7 +68,7 @@ class BaseDataSet(BaseModel):
             and "next_page_token" not in self.model_fields_set
             and dumped.get("next_page_token") is None
         ):
-            dumped.pop("next_page_token")
+            dumped.pop("next_page_token", None)
         return dumped
 
     def __getitem__(self, symbol: str) -> Any:

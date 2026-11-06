@@ -321,22 +321,47 @@ def test_iterator_pages_have_working_df(
     assert frames[0].index.names == ["symbol", "timestamp"]
 
 
-def test_none_with_negative_limit_returns_empty_page(
-    reqmock, stock_client: StockHistoricalDataClient
+@pytest.mark.parametrize("limit", [0, -1])
+@pytest.mark.parametrize(
+    "handle_pagination",
+    [PaginationType.NONE, PaginationType.FULL, PaginationType.ITERATOR],
+)
+def test_non_positive_limit_sends_no_request(
+    reqmock, stock_client: StockHistoricalDataClient, handle_pagination, limit
 ):
     reqmock.get(
         "https://data.alpaca.markets/v2/stocks/bars",
         json={"bars": {"AAPL": _items(BAR, 1, 2)}, "next_page_token": "p1"},
     )
 
-    page = stock_client.get_stock_bars(
-        StockBarsRequest(symbol_or_symbols="AAPL", timeframe=TimeFrame.Day, limit=-1),
+    result = stock_client.get_stock_bars(
+        StockBarsRequest(
+            symbol_or_symbols="AAPL", timeframe=TimeFrame.Day, limit=limit
+        ),
+        handle_pagination=handle_pagination,
+    )
+
+    if handle_pagination == PaginationType.ITERATOR:
+        assert list(result) == []
+    else:
+        assert isinstance(result, BarSet)
+        assert result.data == {}
+        assert result.next_page_token is None
+    assert reqmock.call_count == 0
+
+
+def test_none_with_non_positive_limit_returns_empty_raw_page(reqmock, raw_stock_client):
+    reqmock.get(
+        "https://data.alpaca.markets/v2/stocks/bars",
+        json={"bars": {"AAPL": _items(BAR, 1, 2)}, "next_page_token": "p1"},
+    )
+
+    page = raw_stock_client.get_stock_bars(
+        StockBarsRequest(symbol_or_symbols="AAPL", timeframe=TimeFrame.Day, limit=0),
         handle_pagination=PaginationType.NONE,
     )
 
-    assert isinstance(page, BarSet)
-    assert page.data == {}
-    assert page.next_page_token is None
+    assert page == {}
     assert reqmock.call_count == 0
 
 
@@ -349,6 +374,35 @@ def test_merged_set_dump_omits_unset_page_token():
 
     bars.next_page_token = None
     assert bars.model_dump()["next_page_token"] is None
+
+
+@pytest.mark.parametrize(
+    "dump_options",
+    [
+        {"exclude_none": True},
+        {"exclude_unset": True},
+        {"exclude_defaults": True},
+        {"include": {"data"}},
+        {"exclude": {"next_page_token"}},
+        {"mode": "json", "exclude_none": True},
+    ],
+)
+def test_merged_set_dump_supports_field_filtering_options(dump_options):
+    bars = BarSet({})
+
+    assert "next_page_token" not in bars.model_dump(**dump_options)
+
+    # an assigned token is still serialized unless the caller filters it out
+    bars.next_page_token = "p1"
+    dumped = bars.model_dump(**dump_options)
+    if "include" in dump_options or "exclude" in dump_options:
+        assert "next_page_token" not in dumped
+    else:
+        assert dumped["next_page_token"] == "p1"
+
+
+def test_merged_set_dump_json_with_exclude_none():
+    assert BarSet({}).model_dump_json(exclude_none=True) == '{"data":{}}'
 
 
 def test_invalid_pagination_type_raises(stock_client: StockHistoricalDataClient):

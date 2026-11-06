@@ -186,7 +186,10 @@ The target runs `tools/scripts/compare_api_breakage.py`, which:
    baseline type. This is how a new opt-in argument such as `handle_pagination` can
    widen the implementation's return without changing what existing callers are told.
    The match is exact, up to spelling and union order, so a narrower or different
-   return is still reported. These are listed under `VERBOSE=1`.
+   return is still reported. These are listed under `VERBOSE=1`. Known limitations:
+   the baseline is judged by its implementation signature, not by any `@overload`
+   stubs it already had, changes made only to stubs are not detected, and parameters
+   are matched by name rather than position.
 
 The Makefile target is quiet by default. Useful flags on the script itself:
 

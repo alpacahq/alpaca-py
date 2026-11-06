@@ -1536,15 +1536,22 @@ _WIDENED_KINDS = frozenset(
 )
 
 
-def _stub_accepts_baseline_call(stub_params: dict, old_params: dict) -> bool:
+def _stub_accepts_baseline_call(
+    stub_params: dict, old_params: dict, *, all_calls: bool = True
+) -> bool:
     """True when an overload stub matches a call that was valid on the baseline.
 
     A baseline call can pass any parameter the old signature had, in the way it
     had them, and nothing else. So the stub must keep accepting each of those
     parameters and must not require one the baseline did not require (neither a
     new parameter nor a formerly optional one, since existing calls may omit
-    it). This is the
-    test a type checker applies when it picks the first matching overload.
+    it). This is the test a type checker applies when it picks the first
+    matching overload.
+
+    With ``all_calls=False`` the stub only has to match *some* baseline call:
+    a formerly optional parameter that the stub now requires is tolerated,
+    because calls supplying it still select this stub. Calls omitting it fall
+    through to a later overload.
     """
     takes_any_keyword = any(
         param.get("kind") == "VAR_KEYWORD" for param in stub_params.values()
@@ -1563,7 +1570,7 @@ def _stub_accepts_baseline_call(stub_params: dict, old_params: dict) -> bool:
             return False
         # A call omitting an optional baseline parameter cannot match a stub
         # that now requires it; it falls through to a later overload.
-        if new.get("required") and not old.get("required"):
+        if all_calls and new.get("required") and not old.get("required"):
             return False
     return not any(
         param.get("required") and name not in old_params
@@ -1622,13 +1629,18 @@ def _baseline_overload_return(old_entry: dict, new_entry: dict) -> str | None:
     returns: list[str] = []
     for stub in new_entry.get("overloads") or []:
         stub_params = stub.get("params") or {}
-        if not _stub_accepts_baseline_call(stub_params, old_params):
+        # A stub requiring a formerly optional parameter still catches the
+        # calls that supply it, so its return counts; it just cannot end the
+        # walk because calls omitting that parameter fall through.
+        if not _stub_accepts_baseline_call(stub_params, old_params, all_calls=False):
             continue
         stub_return = stub.get("return")
         if not stub_return:
             return None
         returns.append(stub_return)
-        if _stub_covers_baseline_inputs(stub_params, old_params):
+        if _stub_accepts_baseline_call(
+            stub_params, old_params
+        ) and _stub_covers_baseline_inputs(stub_params, old_params):
             if len(returns) == 1:
                 return returns[0]
             return _union_of([_normalize_type_annotation(r) for r in returns])

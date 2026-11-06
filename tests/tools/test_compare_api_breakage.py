@@ -2149,6 +2149,43 @@ class TestOverloadContracts:
         assert still_breaking == finding
         assert kept == []
 
+    def test_supplied_argument_overload_still_counts_toward_the_return(self, cab):
+        # Baseline ``f(x=0) -> SET``. ``f(1)`` now selects the first stub, so
+        # its changed return must not be hidden by the fallback stub.
+        old_entry = {"params": {"x": _param()}, "return": _SET}
+        stubs = [
+            _stub({"x": _param(required=True)}, _PAGES),
+            _stub({"x": _param()}, _SET),
+        ]
+
+        result = cab._baseline_overload_return(old_entry, {"overloads": stubs})
+
+        assert result is not None
+        assert result != cab._normalize_type_annotation(_SET)
+        assert set(cab._split_top_level_union(result)) == set(
+            cab._split_top_level_union(
+                cab._normalize_type_annotation(f"{_PAGES} | {_SET}")
+            )
+        )
+
+        old_id = "pkg.Client.f"
+        old = {"callables": {old_id: {"params": {"x": _param()}, "return": _SET}}}
+        new = {
+            "callables": {
+                old_id: {
+                    "params": {"x": _param()},
+                    "return": f"{_SET} | {_PAGES}",
+                    "overloads": stubs,
+                }
+            }
+        }
+        finding = [("f return type changed", [old_id])]
+
+        still_breaking, kept = cab._apply_overload_contracts(finding, old, new)
+
+        assert still_breaking == finding
+        assert kept == []
+
     def test_crypto_style_stubs_with_a_leading_feed_parameter(self, cab):
         crypto_id = (
             "alpaca.data.historical.crypto.CryptoHistoricalDataClient.get_crypto_bars"

@@ -2142,6 +2142,20 @@ class TestOverloadContracts:
 
         assert result == "int"
 
+    def test_disjoint_optional_overload_still_counts_for_omitted_argument(self, cab):
+        # Baseline ``f(x: int = 0) -> int``. ``f()`` now selects the first stub,
+        # ``f(x: str = "") -> str``, so its return must not be dropped.
+        old_entry = {"params": {"x": _param(annotation="int")}, "return": "int"}
+        stubs = [
+            _stub({"x": _param(annotation="str")}, "str"),
+            _stub({"x": _param(annotation="int")}, "int"),
+        ]
+
+        result = cab._baseline_overload_return(old_entry, {"overloads": stubs})
+
+        assert result is not None
+        assert set(cab._split_top_level_union(result)) == {"int", "str"}
+
     def test_overload_with_overlapping_parameter_type_still_counts(self, cab):
         old_entry = {"params": {"x": _param(annotation="int")}, "return": "int"}
         stubs = [

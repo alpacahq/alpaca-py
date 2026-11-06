@@ -1667,16 +1667,20 @@ def _param_types_disjoint(
 
 
 def _stub_may_match_baseline_inputs(stub_params: dict, old_params: dict) -> bool:
-    """False when some parameter's type cannot match any baseline input.
+    """False when some argument that must be supplied cannot match the stub.
 
     Such a stub is never picked for a baseline-shaped call, so its return type
-    must not be added to the union existing callers see.
+    must not be added to the union existing callers see. A parameter that both
+    signatures let callers omit does not count: a call without it still matches
+    the stub, so the stub's return stays in play for those calls.
     """
     for name, old in old_params.items():
         if old.get("kind") in _VARIADIC_KINDS:
             continue
         new = stub_params.get(name)
         if new is None:
+            continue
+        if not old.get("required") and not new.get("required"):
             continue
         if _param_types_disjoint(new.get("annotation"), old.get("annotation")):
             return False

@@ -2129,9 +2129,7 @@ class TestOverloadContracts:
 
         assert cab._baseline_overload_return(old_entry, {"overloads": [stub]}) is None
 
-    def test_overload_with_disjoint_parameter_type_does_not_widen_the_return(
-        self, cab
-    ):
+    def test_overload_with_disjoint_parameter_type_does_not_widen_the_return(self, cab):
         # Baseline ``f(x: int = 0) -> int``. ``f(x: str) -> str`` matches no
         # baseline input, so it must not add ``str`` to the return.
         old_entry = {"params": {"x": _param(annotation="int")}, "return": "int"}

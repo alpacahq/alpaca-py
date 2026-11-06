@@ -98,6 +98,13 @@ GetPortfolioHistoryRequest
 .. autoclass:: alpaca.trading.requests.GetPortfolioHistoryRequest
 
 
+GetAccountActivitiesRequest
+---------------------------
+
+.. autoclass:: alpaca.trading.requests.GetAccountActivitiesRequest
+   :noindex:
+
+
 GetCalendarRequest
 ------------------
 

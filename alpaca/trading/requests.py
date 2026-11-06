@@ -1,13 +1,16 @@
 from datetime import date, datetime, timedelta
 from typing import Any, Dict, List, Optional, Union
+from uuid import UUID
 
 import pandas as pd
-from pydantic import model_validator
+from pydantic import field_serializer, model_validator
 
 from alpaca.common.enums import Sort
 from alpaca.common.models import ModelWithID
 from alpaca.common.requests import NonEmptyRequest
 from alpaca.trading.enums import (
+    ActivityCategory,
+    ActivityType,
     AssetClass,
     AssetExchange,
     AssetStatus,
@@ -79,6 +82,64 @@ class GetPortfolioHistoryRequest(NonEmptyRequest):
     date_end: Optional[date] = None
     extended_hours: Optional[bool] = None
     cashflow_types: Optional[str] = None
+
+
+class GetAccountActivitiesRequest(NonEmptyRequest):
+    """
+    Filters for getting the activities of your account.
+
+    Results are paginated. To get the next page, pass the ``id`` of the last activity you
+    received as ``page_token``. With ``Sort.DESC`` (the default) the next page ends before
+    that activity, with ``Sort.ASC`` it starts right after it.
+
+    Please see https://docs.alpaca.markets/reference/getaccountactivities-1 for more information.
+
+    Attributes:
+        activity_types (Optional[List[ActivityType]]): A list of ActivityType's to filter results down to.
+          Cannot be combined with ``category``.
+        category (Optional[ActivityCategory]): ``trade_activity`` or ``non_trade_activity``.
+          Cannot be combined with ``activity_types``.
+        order_id (Optional[UUID]): Restrict results to this order.
+        date (Optional[datetime]): Filter to activities only on this date.
+        until (Optional[datetime]): Filter to activities before this date. Cannot be used if ``date`` is also specified.
+        after (Optional[datetime]): Filter to activities after this date. Cannot be used if ``date`` is also specified.
+        direction (Optional[Sort]): Which direction to sort results in. Defaults to Sort.DESC.
+        page_size (Optional[int]): The maximum number of entries to return in the response. Defaults to 100 and
+          max is 100.
+        page_token (Optional[str]): The ``id`` of the last activity of the previous page.
+    """
+
+    activity_types: Optional[List[ActivityType]] = None
+    category: Optional[ActivityCategory] = None
+    order_id: Optional[UUID] = None
+    date: Optional[datetime] = None
+    until: Optional[datetime] = None
+    after: Optional[datetime] = None
+    direction: Optional[Sort] = None
+    page_size: Optional[int] = None
+    page_token: Optional[str] = None
+
+    @model_validator(mode="before")
+    def root_validator(cls, values: dict) -> dict:
+        """Verify that certain conflicting params aren't set"""
+
+        date_set = values.get("date") is not None
+
+        if date_set and values.get("after") is not None:
+            raise ValueError("Cannot set date and after at the same time")
+
+        if date_set and values.get("until") is not None:
+            raise ValueError("Cannot set date and until at the same time")
+
+        if values.get("category") is not None and values.get("activity_types"):
+            raise ValueError("Cannot set category and activity_types at the same time")
+
+        return values
+
+    @field_serializer("activity_types")
+    def serialize_activity_types(self, activity_types: Optional[List[ActivityType]]):
+        if activity_types:
+            return ",".join([t.value for t in activity_types])
 
 
 class GetCalendarRequest(NonEmptyRequest):

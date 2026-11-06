@@ -13,12 +13,15 @@ from alpaca.common.utils import (
     validate_symbol_or_contract_id,
     validate_uuid_id_param,
 )
+from alpaca.trading.enums import ActivityType
 from alpaca.trading.models import (
     AccountConfiguration,
     Asset,
+    BaseActivity,
     Calendar,
     Clock,
     ClosePositionResponse,
+    NonTradeActivity,
     CorporateActionAnnouncement,
     OptionContract,
     OptionContractsResponse,
@@ -26,12 +29,14 @@ from alpaca.trading.models import (
     PortfolioHistory,
     Position,
     TradeAccount,
+    TradeActivity,
     Watchlist,
 )
 from alpaca.trading.requests import (
     CancelOrderResponse,
     ClosePositionRequest,
     CreateWatchlistRequest,
+    GetAccountActivitiesRequest,
     GetAssetsRequest,
     GetCalendarRequest,
     GetCorporateAnnouncementsRequest,
@@ -511,6 +516,39 @@ class TradingClient(RESTClient):
             return response
 
         return AccountConfiguration(**response)
+
+    def get_account_activities(
+        self, activity_filter: Optional[GetAccountActivitiesRequest] = None
+    ) -> Union[List[BaseActivity], RawData]:
+        """
+        Returns one page of account activities, such as fills, dividends and transfers.
+
+        To get the next page, pass the ``id`` of the last activity as ``page_token``
+        in a new request.
+
+        Args:
+            activity_filter (Optional[alpaca.trading.requests.GetAccountActivitiesRequest]): Filters and
+              pagination options for the activities.
+
+        Returns:
+            List[alpaca.trading.models.BaseActivity]: TradeActivity for fills, NonTradeActivity for
+              everything else.
+        """
+        params = activity_filter.to_request_fields() if activity_filter else {}
+
+        response = self.get("/account/activities", params)
+
+        if self._use_raw_data:
+            return response
+
+        return [
+            (
+                TradeActivity(**activity)
+                if activity.get("activity_type") == ActivityType.FILL
+                else NonTradeActivity(**activity)
+            )
+            for activity in response
+        ]
 
     # ############################## WATCHLIST ################################# #
 

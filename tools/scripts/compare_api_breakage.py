@@ -18,6 +18,10 @@ additionally compares:
   value, is listed under ``--verbose`` and does not fail the check, except
   dropping ``RawData`` (``dict[str, Any]``) or ``List[RawData]``
   (``list[dict[str, Any]]``)
+* ``@overload`` stubs. They are erased at runtime, so AexPy only sees the
+  implementation's return type. The snapshot records them, and a return-type
+  change is not reported when the overload that a call valid on the baseline
+  would match still returns the baseline type (listed under ``--verbose``)
 
 Examples:
   tools/scripts/compare_api_breakage.py
@@ -60,8 +64,10 @@ _PUBLIC_DUMP_SOURCE = """
 import enum
 import importlib
 import importlib.metadata
+import inspect
 import json
 import pkgutil
+import types
 import typing
 
 from pydantic import BaseModel
@@ -96,6 +102,98 @@ def _annotation_repr(annotation):
             return f"{{module}}.{{qual}}"
         return qual
     return repr(annotation)
+
+
+def _callable_annotation_repr(annotation):
+    # Unions are spelled "A | B" whichever way they were written, so Optional[X]
+    # and X | None match on every supported Python version.
+    if annotation is None or annotation is type(None):
+        return "None"
+    origin = typing.get_origin(annotation)
+    args = typing.get_args(annotation)
+    if origin is typing.Union or origin is getattr(types, "UnionType", None):
+        return " | ".join(_callable_annotation_repr(arg) for arg in args)
+    if origin is not None and args:
+        name = getattr(origin, "__name__", None) or getattr(origin, "_name", None)
+        if name is None:
+            name = repr(origin)
+        return f"{{name}}[{{', '.join(_callable_annotation_repr(a) for a in args)}}]"
+    return _annotation_repr(annotation)
+
+
+def _signature_snapshot(func):
+    # Parameter names, kinds and requiredness plus the return annotation. The
+    # annotation is evaluated when possible so string annotations compare equal.
+    try:
+        try:
+            signature = inspect.signature(func, eval_str=True)
+        except Exception:  # noqa: BLE001 - unresolved forward reference
+            signature = inspect.signature(func)
+    except (TypeError, ValueError):
+        return None
+    params = {{}}
+    for name, parameter in signature.parameters.items():
+        if name in ("self", "cls"):
+            continue
+        variadic = parameter.kind in (
+            inspect.Parameter.VAR_POSITIONAL,
+            inspect.Parameter.VAR_KEYWORD,
+        )
+        params[name] = {{
+            "kind": parameter.kind.name,
+            "required": parameter.default is inspect.Parameter.empty and not variadic,
+        }}
+    returns = signature.return_annotation
+    return {{
+        "params": params,
+        "return": (
+            None
+            if returns is inspect.Signature.empty
+            else _callable_annotation_repr(returns)
+        ),
+    }}
+
+
+def _overload_stubs(func):
+    # @overload stubs are discarded when the module runs; typing keeps them in a
+    # registry keyed by the implementation, which is all inspect.signature sees.
+    get_overloads = getattr(typing, "get_overloads", None)
+    if get_overloads is None:
+        return []
+    candidates = [func]
+    try:
+        candidates.append(inspect.unwrap(func))
+    except ValueError:
+        pass
+    for candidate in candidates:
+        stubs = get_overloads(candidate)
+        if stubs:
+            snapshots = [_signature_snapshot(stub) for stub in stubs]
+            return [snapshot for snapshot in snapshots if snapshot is not None]
+    return []
+
+
+def _collect_callable(callables, api_id, func):
+    snapshot = _signature_snapshot(func)
+    if snapshot is None:
+        return
+    stubs = _overload_stubs(func)
+    if stubs:
+        snapshot["overloads"] = stubs
+    callables[api_id] = snapshot
+
+
+def _collect_callables(callables, obj):
+    # Keyed by the defining class, like AexPy function ids, so the same method
+    # re-exported from several modules is recorded once.
+    for attr_name, value in vars(obj).items():
+        if attr_name.startswith("_"):
+            continue
+        if isinstance(value, (staticmethod, classmethod)):
+            value = value.__func__
+        if inspect.isfunction(value):
+            api_id = f"{{obj.__module__}}.{{obj.__qualname__}}.{{attr_name}}"
+            _collect_callable(callables, api_id, value)
 
 
 def _alias_strings(alias):
@@ -148,6 +246,7 @@ def main():
 
     enums = {{}}
     models = {{}}
+    callables = {{}}
     errors = {{}}
     for module_name in sorted(module_names):
         try:
@@ -158,11 +257,15 @@ def main():
         for name, obj in vars(module).items():
             if name.startswith("_"):
                 continue
+            if inspect.isfunction(obj) and obj.__module__.startswith(TOP_MODULE):
+                _collect_callable(callables, f"{{obj.__module__}}.{{obj.__qualname__}}", obj)
+                continue
             if not isinstance(obj, type):
                 continue
             module_attr = getattr(obj, "__module__", "")
             if not module_attr.startswith(TOP_MODULE):
                 continue
+            _collect_callables(callables, obj)
             path = f"{{module_name}}.{{name}}"
             if issubclass(obj, enum.Enum):
                 enums[path] = {{
@@ -186,6 +289,7 @@ def main():
             {{
                 "version": importlib.metadata.version(PACKAGE_NAME),
                 "location": root.__file__,
+                "callables": callables,
                 "enums": enums,
                 "models": models,
                 "errors": errors,
@@ -1415,6 +1519,106 @@ def _compare_return_annotations(
     return _sorted_findings(breaking), _sorted_findings(compatible)
 
 
+_VARIADIC_KINDS = frozenset({"VAR_POSITIONAL", "VAR_KEYWORD"})
+# A parameter may be passed in more ways than before, never fewer.
+_WIDENED_KINDS = frozenset(
+    {
+        ("KEYWORD_ONLY", "POSITIONAL_OR_KEYWORD"),
+        ("POSITIONAL_ONLY", "POSITIONAL_OR_KEYWORD"),
+    }
+)
+
+
+def _stub_accepts_baseline_call(stub_params: dict, old_params: dict) -> bool:
+    """True when an overload stub matches a call that was valid on the baseline.
+
+    A baseline call can pass any parameter the old signature had, in the way it
+    had them, and nothing else. So the stub must keep accepting each of those
+    parameters and must not require one the baseline did not have. This is the
+    test a type checker applies when it picks the first matching overload.
+    """
+    takes_any_keyword = any(
+        param.get("kind") == "VAR_KEYWORD" for param in stub_params.values()
+    )
+    for name, old in old_params.items():
+        old_kind = old.get("kind")
+        if old_kind in _VARIADIC_KINDS:
+            continue
+        new = stub_params.get(name)
+        if new is None:
+            if takes_any_keyword and old_kind == "KEYWORD_ONLY":
+                continue
+            return False
+        new_kind = new.get("kind")
+        if new_kind != old_kind and (old_kind, new_kind) not in _WIDENED_KINDS:
+            return False
+    return not any(
+        param.get("required") and name not in old_params
+        for name, param in stub_params.items()
+    )
+
+
+def _baseline_overload_return(old_entry: dict, new_entry: dict) -> str | None:
+    """Return annotation a baseline-shaped call gets from the new overloads.
+
+    ``None`` when the new callable has no overloads, the stubs are not
+    annotated, or no stub accepts a baseline call.
+    """
+    old_params = old_entry.get("params")
+    if not isinstance(old_params, dict):
+        return None
+    for stub in new_entry.get("overloads") or []:
+        if _stub_accepts_baseline_call(stub.get("params") or {}, old_params):
+            return stub.get("return") or None
+    return None
+
+
+def _apply_overload_contracts(
+    breaking: Findings, old_snapshot: dict, new_snapshot: dict
+) -> tuple[Findings, Findings]:
+    """Split return-type breakings into ``(still breaking, kept by @overload)``.
+
+    ``@overload`` stubs exist only for type checkers; at runtime the module keeps
+    just the implementation, so AexPy and ``returnAnnotation`` only see its
+    (usually wider) return type. The snapshot records the stubs, and the first one
+    a baseline-shaped call would match decides what existing callers are told.
+    When that is the baseline return type, existing call sites type-check as
+    before and the wider implementation annotation is not a break for them.
+
+    This is deliberately conservative: only an identical return type (up to
+    spelling and union order) is accepted. Anything else stays reported.
+    """
+    old_callables = old_snapshot.get("callables") or {}
+    new_callables = new_snapshot.get("callables") or {}
+    still_breaking: dict[str, list[str]] = {}
+    kept: dict[str, list[str]] = {}
+    for message, api_ids in breaking:
+        for api_id in api_ids:
+            old_entry = old_callables.get(api_id)
+            new_entry = new_callables.get(api_id)
+            old_return = (old_entry or {}).get("return")
+            effective = (
+                _baseline_overload_return(old_entry, new_entry)
+                if old_entry and new_entry
+                else None
+            )
+            if (
+                old_return
+                and effective
+                and _normalize_type_annotation(effective)
+                == _normalize_type_annotation(old_return)
+            ):
+                short_name = api_id.rsplit(".", 1)[-1]
+                kept_message = (
+                    f"{short_name} return type kept for existing calls by "
+                    f"@overload: {_normalize_type_annotation(old_return)}"
+                )
+                kept.setdefault(kept_message, []).append(api_id)
+            else:
+                still_breaking.setdefault(message, []).append(api_id)
+    return _sorted_findings(still_breaking), _sorted_findings(kept)
+
+
 def _rank_value(entry: dict) -> int:
     rank = entry.get("rank", 0)
     if isinstance(rank, dict):
@@ -1750,6 +1954,11 @@ def main(argv: list[str] | None = None) -> int:
             already_reported=_reported_return_type_ids(change_entries),
             aexpy_compatible=_aexpy_compatible_return_ids(change_entries),
         )
+        if old_snapshot is not None and new_snapshot is not None:
+            return_breaking, return_overloaded = _apply_overload_contracts(
+                return_breaking, old_snapshot, new_snapshot
+            )
+            return_compatible = sorted(return_compatible + return_overloaded)
         if verbose:
             print("\n=== Return annotations ===", flush=True)
             if return_breaking:

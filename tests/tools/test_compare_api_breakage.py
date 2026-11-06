@@ -1885,3 +1885,320 @@ class TestCompareReturnAnnotations:
             already_reported=cab._reported_return_type_ids(entries),
             aexpy_compatible=cab._aexpy_compatible_return_ids(entries),
         ) == ([], [])
+
+
+def _param(kind="POSITIONAL_OR_KEYWORD", required=False):
+    return {"kind": kind, "required": required}
+
+
+_SET = "alpaca.data.models.bars.BarSet | dict[str, typing.Any]"
+_PAGES = "Iterator[alpaca.data.models.bars.BarSet | dict[str, typing.Any]]"
+_BARS_ID = "alpaca.data.historical.stock.StockHistoricalDataClient.get_stock_bars"
+
+
+def _stub(params, returns):
+    return {"params": params, "return": returns}
+
+
+def _bars_old():
+    return {
+        "params": {"request_params": _param(required=True)},
+        "return": _SET,
+    }
+
+
+def _bars_new(stubs, returns=None):
+    return {
+        "params": {
+            "request_params": _param(required=True),
+            "handle_pagination": _param(),
+        },
+        "return": returns or f"{_SET} | {_PAGES}",
+        "overloads": stubs,
+    }
+
+
+def _paged_stubs():
+    """The three stubs get_stock_bars declares, in declaration order."""
+    return [
+        _stub(
+            {
+                "request_params": _param(required=True),
+                "handle_pagination": _param(required=True),
+            },
+            _PAGES,
+        ),
+        _stub(
+            {"request_params": _param(required=True), "handle_pagination": _param()},
+            _SET,
+        ),
+        _stub(
+            {"request_params": _param(required=True), "handle_pagination": _param()},
+            f"{_SET} | {_PAGES}",
+        ),
+    ]
+
+
+def _breaking_finding():
+    message = f"get_stock_bars return type changed: {_SET} -> {_SET} | {_PAGES}"
+    return [(message, [_BARS_ID])]
+
+
+class TestOverloadContracts:
+    def test_default_call_keeping_old_return_is_not_a_break(self, cab):
+        old = {"callables": {_BARS_ID: _bars_old()}}
+        new = {"callables": {_BARS_ID: _bars_new(_paged_stubs())}}
+
+        still_breaking, kept = cab._apply_overload_contracts(
+            _breaking_finding(), old, new
+        )
+
+        assert still_breaking == []
+        assert [path for _, paths in kept for path in paths] == [_BARS_ID]
+        assert "kept for existing calls by @overload" in kept[0][0]
+
+    def test_stub_requiring_a_new_parameter_is_skipped(self, cab):
+        # Only the iterator stub and the wide fallback remain: a baseline call
+        # lands on the fallback, whose return type changed.
+        stubs = [_paged_stubs()[0], _paged_stubs()[2]]
+        old = {"callables": {_BARS_ID: _bars_old()}}
+        new = {"callables": {_BARS_ID: _bars_new(stubs)}}
+
+        still_breaking, kept = cab._apply_overload_contracts(
+            _breaking_finding(), old, new
+        )
+
+        assert still_breaking == _breaking_finding()
+        assert kept == []
+
+    def test_stub_order_decides_which_return_type_wins(self, cab):
+        stubs = list(reversed(_paged_stubs()))
+        old = {"callables": {_BARS_ID: _bars_old()}}
+        new = {"callables": {_BARS_ID: _bars_new(stubs)}}
+
+        still_breaking, kept = cab._apply_overload_contracts(
+            _breaking_finding(), old, new
+        )
+
+        assert still_breaking == _breaking_finding()
+        assert kept == []
+
+    def test_changed_default_return_stays_a_break(self, cab):
+        stubs = _paged_stubs()
+        stubs[1] = _stub(stubs[1]["params"], "alpaca.data.models.bars.BarSet")
+        old = {"callables": {_BARS_ID: _bars_old()}}
+        new = {"callables": {_BARS_ID: _bars_new(stubs)}}
+
+        still_breaking, kept = cab._apply_overload_contracts(
+            _breaking_finding(), old, new
+        )
+
+        assert still_breaking == _breaking_finding()
+        assert kept == []
+
+    def test_union_order_and_spelling_do_not_matter(self, cab):
+        stubs = _paged_stubs()
+        stubs[1] = _stub(
+            stubs[1]["params"], "dict[str, typing.Any] | alpaca.data.models.bars.BarSet"
+        )
+        old = {"callables": {_BARS_ID: _bars_old()}}
+        new = {"callables": {_BARS_ID: _bars_new(stubs)}}
+
+        still_breaking, kept = cab._apply_overload_contracts(
+            _breaking_finding(), old, new
+        )
+
+        assert still_breaking == []
+        assert len(kept) == 1
+
+    def test_callable_without_overloads_stays_a_break(self, cab):
+        new_entry = _bars_new([])
+        del new_entry["overloads"]
+        old = {"callables": {_BARS_ID: _bars_old()}}
+        new = {"callables": {_BARS_ID: new_entry}}
+
+        still_breaking, kept = cab._apply_overload_contracts(
+            _breaking_finding(), old, new
+        )
+
+        assert still_breaking == _breaking_finding()
+        assert kept == []
+
+    def test_missing_callable_snapshot_stays_a_break(self, cab):
+        still_breaking, kept = cab._apply_overload_contracts(
+            _breaking_finding(), {}, {}
+        )
+
+        assert still_breaking == _breaking_finding()
+        assert kept == []
+
+    def test_only_the_overloaded_ids_of_a_finding_are_dropped(self, cab):
+        other_id = "alpaca.data.historical.stock.StockHistoricalDataClient.get_other"
+        finding = [("shared message", [_BARS_ID, other_id])]
+        old = {"callables": {_BARS_ID: _bars_old(), other_id: _bars_old()}}
+        new = {"callables": {_BARS_ID: _bars_new(_paged_stubs())}}
+
+        still_breaking, kept = cab._apply_overload_contracts(finding, old, new)
+
+        assert still_breaking == [("shared message", [other_id])]
+        assert [path for _, paths in kept for path in paths] == [_BARS_ID]
+
+    def test_stub_dropping_a_baseline_parameter_does_not_match(self, cab):
+        old_entry = {
+            "params": {
+                "request_params": _param(required=True),
+                "feed": _param(),
+            },
+            "return": _SET,
+        }
+        stub = _stub({"request_params": _param(required=True)}, _SET)
+
+        assert cab._baseline_overload_return(old_entry, {"overloads": [stub]}) is None
+
+    def test_keyword_only_stub_does_not_match_a_positional_baseline_call(self, cab):
+        old_entry = {
+            "params": {
+                "request_params": _param(required=True),
+                "feed": _param(),
+            },
+            "return": _SET,
+        }
+        stub = _stub(
+            {
+                "request_params": _param(required=True),
+                "feed": _param("KEYWORD_ONLY"),
+            },
+            _SET,
+        )
+
+        assert cab._baseline_overload_return(old_entry, {"overloads": [stub]}) is None
+
+    def test_baseline_keyword_only_parameter_may_become_positional(self, cab):
+        old_entry = {
+            "params": {
+                "request_params": _param(required=True),
+                "feed": _param("KEYWORD_ONLY"),
+            },
+            "return": _SET,
+        }
+        stub = _stub({"request_params": _param(required=True), "feed": _param()}, _SET)
+
+        assert cab._baseline_overload_return(old_entry, {"overloads": [stub]}) == _SET
+
+    def test_crypto_style_stubs_with_a_leading_feed_parameter(self, cab):
+        crypto_id = (
+            "alpaca.data.historical.crypto.CryptoHistoricalDataClient.get_crypto_bars"
+        )
+        request = _param(required=True)
+        old_entry = {
+            "params": {"request_params": request, "feed": _param()},
+            "return": _SET,
+        }
+        stubs = [
+            _stub(
+                {
+                    "request_params": request,
+                    "feed": _param(required=True),
+                    "handle_pagination": _param(required=True),
+                },
+                _PAGES,
+            ),
+            _stub(
+                {
+                    "request_params": request,
+                    "feed": _param("KEYWORD_ONLY"),
+                    "handle_pagination": _param("KEYWORD_ONLY", required=True),
+                },
+                _PAGES,
+            ),
+            _stub(
+                {
+                    "request_params": request,
+                    "feed": _param(),
+                    "handle_pagination": _param(),
+                },
+                _SET,
+            ),
+        ]
+        new_entry = {"params": {}, "return": f"{_SET} | {_PAGES}", "overloads": stubs}
+        finding = [("get_crypto_bars return type changed", [crypto_id])]
+
+        still_breaking, kept = cab._apply_overload_contracts(
+            finding,
+            {"callables": {crypto_id: old_entry}},
+            {"callables": {crypto_id: new_entry}},
+        )
+
+        assert still_breaking == []
+        assert len(kept) == 1
+
+
+class TestCallableSnapshotSource:
+    """Runs the snapshot source against a throwaway package."""
+
+    @staticmethod
+    def _dump(cab, tmp_path):
+        import subprocess
+        import sys
+        import textwrap
+
+        package = tmp_path / "overload_fixture"
+        package.mkdir()
+        (package / "__init__.py").write_text(textwrap.dedent("""
+                from typing import Iterator, List, Literal, Optional, overload
+
+                class Client:
+                    @overload
+                    def fetch(self, mode: Literal["iter"]) -> Iterator[int]: ...
+
+                    @overload
+                    def fetch(self, mode: Optional[Literal["all"]] = None) -> List[int]: ...
+
+                    def fetch(self, mode=None):
+                        return []
+
+                    def plain(self, a: int, *, b: Optional[str] = None) -> int | None:
+                        return None
+
+                    def _private(self) -> None: ...
+
+                def helper(x: int) -> str:
+                    return ""
+                """))
+        source = cab._PUBLIC_DUMP_SOURCE.format(
+            top_module="overload_fixture", package_name="pytest"
+        )
+        result = subprocess.run(
+            [sys.executable, "-c", source],
+            cwd=tmp_path,
+            env={"PYTHONPATH": str(tmp_path), "PATH": ""},
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        return json.loads(result.stdout)
+
+    def test_records_overload_stubs_in_declaration_order(self, cab, tmp_path):
+        callables = self._dump(cab, tmp_path)["callables"]
+
+        fetch = callables["overload_fixture.Client.fetch"]
+        assert [stub["return"] for stub in fetch["overloads"]] == [
+            "Iterator[int]",
+            "list[int]",
+        ]
+        assert fetch["overloads"][0]["params"]["mode"]["required"] is True
+        assert fetch["overloads"][1]["params"]["mode"]["required"] is False
+
+    def test_records_plain_callables_without_overloads(self, cab, tmp_path):
+        callables = self._dump(cab, tmp_path)["callables"]
+
+        plain = callables["overload_fixture.Client.plain"]
+        assert "overloads" not in plain
+        assert plain["return"] == "int | None"
+        assert plain["params"]["a"] == {
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "required": True,
+        }
+        assert plain["params"]["b"] == {"kind": "KEYWORD_ONLY", "required": False}
+        assert callables["overload_fixture.helper"]["return"] == "str"
+        assert "overload_fixture.Client._private" not in callables

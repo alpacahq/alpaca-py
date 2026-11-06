@@ -179,6 +179,14 @@ The target runs `tools/scripts/compare_api_breakage.py`, which:
    inside a generic such as `Iterator[...]` and when AexPy ranked the change
    compatible, because that means `raw_data=True` stopped being honored. Any other
    change to an existing annotation is breaking.
+5. Reads `@overload` stubs from the snapshot. They are erased at runtime, so the steps
+   above only see the implementation's return annotation. A return-type change is not
+   reported when the first overload that a call valid on the baseline would match
+   (the parameters the old signature had, no new required ones) still returns the
+   baseline type. This is how a new opt-in argument such as `handle_pagination` can
+   widen the implementation's return without changing what existing callers are told.
+   The match is exact, up to spelling and union order, so a narrower or different
+   return is still reported. These are listed under `VERBOSE=1`.
 
 The Makefile target is quiet by default. Useful flags on the script itself:
 

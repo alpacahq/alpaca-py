@@ -29,7 +29,7 @@ Here are some things you can do with Alpaca-py.
 Installation
 ------------
 
-Alpaca-py is supported on Python 3.7+. You can install Alpaca-py using pip. To learn more
+Alpaca-py is supported on Python 3.11+. You can install Alpaca-py using pip. To learn more
 about version histories, visit the `PyPI page <https://pypi.org/project/alpaca-py/>`_.
 
 To install Alpaca-py, run the following pip command in your terminal.
@@ -165,7 +165,8 @@ sandbox keys. Once you have your keys, you can pass them into ``BrokerClient`` t
 Support
 -------
 
-- **Library / SDK issues:** Bugs, feature requests, or questions specific to this Python library → `GitHub Issues <https://github.com/alpacahq/alpaca-py/issues/new/choose>`_.
+- **Library / SDK issues:** Bugs, feature requests, or questions specific to this SDK → `GitHub Issues <https://github.com/alpacahq/alpaca-py/issues/new/choose>`_.
+- **Security vulnerabilities:** Do not report them publicly. Follow Alpaca's `vulnerability-disclosure process <https://alpaca.markets/security>`_.
 - **Alpaca API bugs:** Bugs in the Alpaca API itself, its OpenAPI specs, or its documentation → `alpacahq/alpaca-api <https://github.com/alpacahq/alpaca-api/issues/new/choose>`_.
 - **Community:** API feature requests, general questions, and dashboard bugs → `Alpaca Community Forum <https://forum.alpaca.markets/>`_ or `Slack <https://alpaca.markets/slack>`_.
 - **Account help:** Questions about your account, funding, or orders → `Support request <https://alpaca.markets/support/request>`_.

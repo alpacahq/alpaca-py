@@ -1,44 +1,94 @@
 name: 🚀 Feature request
-description: As a user, I would like to see this new feature implemented into the SDK
-labels: [ kind/feature ]
-assignees:
-  -
+description: Propose an improvement to Alpaca-py
+title: "[Feature]: "
+labels: [enhancement]
+assignees: []
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to request a feature for Alpaca! Please fill the form in English!
+        Propose SDK-specific work here in English. API feature requests, general questions, and dashboard bugs go to the [Community Forum](https://forum.alpaca.markets/) or [Slack](https://alpaca.markets/slack). Bugs in the Alpaca API itself, its OpenAPI specs, or its documentation go to [alpacahq/alpaca-api](https://github.com/alpacahq/alpaca-api/issues/new/choose).
+
+        Read the [contribution policy](https://github.com/alpacahq/alpaca-py/blob/master/CONTRIBUTING.md#contribution-policy) before implementing substantial work or a third-party integration.
+
   - type: checkboxes
+    id: preflight
     attributes:
-      label: Is there an existing issue for this?
-      description: Please search to see if an issue related to this feature request already exists.
+      label: Preflight
       options:
-        - label: I have searched the existing issues
+        - label: I searched existing issues and confirmed this request is specific to the SDK. API feature requests belong on the Community Forum or Slack, not in alpacahq/alpaca-api.
           required: true
-  - type: textarea
+        - label: I understand that substantial work requires maintainer agreement before implementation.
+          required: true
+
+  - type: dropdown
+    id: area
     attributes:
-      label: Is your feature request related to a problem? Please describe.
-      description: A concise description of the problem you are facing or the motivetion behind this feature request.
-      placeholder: |
-        I faced a problem due to which ...
+      label: SDK area
+      options:
+        - Trading REST
+        - Broker REST
+        - Broker events (SSE)
+        - Trading WebSocket stream
+        - Market Data REST
+        - Market Data WebSocket stream
+        - Authentication or configuration
+        - Package, installation, or Python compatibility
+        - Developer experience
+        - Documentation or examples
+        - Other
     validations:
       required: true
+
   - type: textarea
+    id: problem
     attributes:
-      label: Describe the solution you'd like.
-      description: A concise description of the solution for the issue.
+      label: Problem or use case
+      description: Explain the concrete SDK problem and who it affects.
     validations:
-      required: false
+      required: true
+
   - type: textarea
+    id: proposed_solution
     attributes:
-      label: Describe an alternate solution.
-      description: Is there any other app issue to solve the problem?
+      label: Proposed SDK change
+      description: Describe the desired SDK behavior or interface.
     validations:
-      required: false
+      required: true
+
+  - type: input
+    id: api_documentation
+    attributes:
+      label: Relevant Alpaca API documentation
+      description: Link the documented API capability, or enter "Not applicable" for tooling or documentation work.
+      placeholder: https://docs.alpaca.markets/...
+    validations:
+      required: true
+
   - type: textarea
+    id: alternatives
     attributes:
-      label: Anything else? (Additional Context)
-      description: |
-        Links? References? Anything that will give us more context about this!
+      label: Alternatives considered
+      description: Describe workarounds or alternative SDK designs.
+
+  - type: textarea
+    id: third_party
+    attributes:
+      label: Third-party products or services
+      description: Identify any provider, hosted endpoint, client, referral, dependency, or promotional content involved. Enter "None" when not applicable.
     validations:
-      required: false
+      required: true
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional context
+      description: Add examples, prior discussion, or other relevant details.
+
+  - type: checkboxes
+    id: sensitive_data
+    attributes:
+      label: Sensitive-data check
+      options:
+        - label: I removed API keys, credentials, account details, request or trace IDs, and other sensitive information.
+          required: true

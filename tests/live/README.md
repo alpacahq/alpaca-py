@@ -61,8 +61,8 @@ Env vars override values loaded from `.env`.
 ## Safety
 
 - Starter tests are **read-only**.
-- Mutative tests (when added) must use `@pytest.mark.live_mutative` and require `--allow-mutative` in addition to `--run-live`.
-- Mutative tests are rejected when `ALPACA_TRADING_PAPER=false` or `ALPACA_BROKER_SANDBOX=false`; they can run only against Trading paper and Broker sandbox.
+- Mutative tests (when added) must use `@pytest.mark.live_mutative` and require `--allow-mutative` in addition to `--run-live` or `ALPACA_RUN_LIVE=1`.
+- Future mutative probes must use the provided paper/sandbox fixtures and must not construct clients against Trading live or Broker production.
 - Missing credentials with `--run-live` fail fast (`pytest.UsageError`).
 - Live-probe redaction removes credentials and authentication headers, but it does not remove all account data or identifiers from response bodies. Treat console output and artifacts as sensitive local diagnostics: do not commit, upload, or share them publicly. Use private Alpaca Support channels when diagnostics must be shared.
 

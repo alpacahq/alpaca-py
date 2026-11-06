@@ -120,7 +120,7 @@ Match the surrounding style in files outside Black's configured scope. The repos
 
 We use [Pydantic](https://docs.pydantic.dev/) for response models and request objects. New response models should extend `alpaca.common.models.ValidateBaseModel` and add Pydantic validation when needed so model instances remain in a consistent state.
 
-New request models, such as `GetNewThingRequest`, should extend `alpaca.common.requests.NonEmptyRequest`. It extends `ValidateBaseModel` and provides `to_request_fields`, which omits unset values and converts fields into safe HTTP request values.
+New request models, such as `GetNewThingRequest`, should extend `alpaca.common.requests.NonEmptyRequest`. It extends `ValidateBaseModel` and provides `to_request_fields`, which omits `None`, empty dictionaries, and empty strings and converts fields into safe HTTP request values. Non-empty defaults are included even when the caller does not set those fields.
 
 ### Request methods
 
@@ -128,7 +128,7 @@ Request methods follow a simple formula. For example, the Trading API method `re
 
 1. Every URL parameter becomes a full method parameter. This example has `watchlist_id` and `symbol`.
 2. Non-path request parameters should use a dedicated class that extends `alpaca.common.requests.NonEmptyRequest`. This includes query parameters for GET requests and payload fields for POST, PATCH, PUT, or DELETE requests. The request object centralizes validation and lets future optional fields be added without changing the method signature. If this DELETE endpoint accepted a payload, its final method parameter would use a request type such as `RemoveAssetFromWatchlistRequest`.
-3. Use an obvious method name where possible, such as `create_order` or `get_clock`. For endpoints with multiple URL parameters, especially in the Broker module, use one of these patterns: `{verb}_{noun}_by_{value}`, `{verb}_{noun1}_{preposition}_{noun2}`, or `{verb}_{noun1}_for_{noun2}_by_{value}`.
+3. Use an obvious method name where possible, such as `submit_order` or `get_clock`. For endpoints with multiple URL parameters, especially in the Broker module, use one of these patterns: `{verb}_{noun}_by_{value}`, `{verb}_{noun1}_{preposition}_{noun2}`, or `{verb}_{noun1}_for_{noun2}_by_{value}`.
 
 For the example, use the semantic verb `remove`, identify asset and watchlist as the nouns, then add `by_id` because `watchlist_id` selects the watchlist:
 

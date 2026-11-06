@@ -24,6 +24,8 @@ jobs:
         run: poetry install
       - name: run lint checks
         run: poetry run black --check alpaca/ tests/
+      - name: run type checks
+        run: poetry run mypy --warn-unused-ignores tests/type_checks/
       - name: build doc html to lint for errors
         run: ./tools/scripts/generate-docs.sh
 

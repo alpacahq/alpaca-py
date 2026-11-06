@@ -13,6 +13,10 @@ install: ## Install the SDK and its dependencies using poetry
 lint: ## Run the linters
 	poetry run black --check alpaca/ tests/
 
+.PHONY: typecheck
+typecheck: ## Check the return types that type checkers infer for the public client overloads
+	poetry run mypy --warn-unused-ignores tests/type_checks/
+
 .PHONY: generate
 generate: ## Generate the documentation
 	./tools/scripts/generate-docs.sh

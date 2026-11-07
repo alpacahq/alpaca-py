@@ -13,6 +13,7 @@ from alpaca.trading.enums import (
 )
 from alpaca.trading.models import Order, TradeUpdate
 from alpaca.trading.requests import (
+    GetOrderByIdRequest,
     GetOrdersRequest,
     LimitOrderRequest,
     MarketOrderRequest,
@@ -483,3 +484,12 @@ def test_get_orders_request_forwards_nested_flag():
     assert GetOrdersRequest(nested=False).to_request_fields() == {"nested": False}
     assert GetOrdersRequest(nested=True).to_request_fields() == {"nested": True}
     assert GetOrdersRequest().to_request_fields() == {}
+
+
+def test_get_order_by_id_request_requires_nested_flag():
+    from pydantic import ValidationError
+
+    assert GetOrderByIdRequest(nested=False).to_request_fields() == {"nested": False}
+    assert GetOrderByIdRequest(nested=True).to_request_fields() == {"nested": True}
+    with pytest.raises(ValidationError):
+        GetOrderByIdRequest()

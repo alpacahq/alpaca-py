@@ -8,7 +8,7 @@ import msgpack
 import pytest
 from msgpack.ext import Timestamp
 
-from alpaca.common.utils import get_default_user_agent, get_websocket_headers_key
+from alpaca.common.utils import get_default_user_agent
 from alpaca.data.enums import DataFeed, Exchange
 from alpaca.data.live.stock import StockDataStream
 from alpaca.data.live.websocket import DataStream
@@ -182,10 +182,21 @@ def test_cast(ws_client: DataStream, raw_ws_client: DataStream, timestamp: Times
     assert raw_bar["h"] == 178.005
 
 
-def test_get_websocket_headers_key_returns_valid_param():
-    """Verify that get_websocket_headers_key returns an accepted keyword for websockets.connect."""
-    key = get_websocket_headers_key()
-    assert key in ("additional_headers", "extra_headers")
+@pytest.mark.asyncio
+async def test_connect_uses_additional_headers(ws_client: DataStream):
+    """Verify that websockets.connect is always called with additional_headers."""
+    mock_ws = AsyncMock()
+    mock_ws.recv.return_value = msgpack.packb([{"T": "success", "msg": "connected"}])
+
+    with patch(
+        "alpaca.data.live.websocket.websockets.connect",
+        new=AsyncMock(return_value=mock_ws),
+    ) as mock_connect:
+        await ws_client._connect()
+
+    _, kwargs = mock_connect.call_args
+    assert "additional_headers" in kwargs
+    assert "extra_headers" not in kwargs
 
 
 @pytest.mark.asyncio
@@ -201,7 +212,7 @@ async def test_connect_sets_user_agent_header(ws_client: DataStream):
         await ws_client._connect()
 
     _, kwargs = mock_connect.call_args
-    headers = kwargs.get("additional_headers") or kwargs.get("extra_headers")
+    headers = kwargs["additional_headers"]
     assert headers["User-Agent"] == get_default_user_agent()
 
 
@@ -224,7 +235,7 @@ async def test_connect_preserves_user_agent_when_extra_headers_overridden(
         await ws_client._connect()
 
     _, kwargs = mock_connect.call_args
-    headers = kwargs.get("additional_headers") or kwargs.get("extra_headers")
+    headers = kwargs["additional_headers"]
     assert headers["X-Test"] == "1"
     assert headers["User-Agent"] == get_default_user_agent()
     assert "ping_interval" in kwargs

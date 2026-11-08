@@ -97,7 +97,10 @@ class DataStream:
             api_key (str): Alpaca API key.
             secret_key (str): Alpaca API secret key.
             raw_data (bool, optional): Whether to return raw API data or parsed data. Defaults to False.
-            websocket_params (Optional[Dict], optional): Any websocket connection configuration parameters. Defaults to None.
+            websocket_params (Optional[Dict], optional): Any websocket connection configuration parameters
+                passed to ``websockets.connect()`` (e.g. ``additional_headers``, ``ping_interval``,
+                ``ping_timeout``, ``max_queue``, and ``proxy``). Legacy ``extra_headers`` is translated
+                automatically. Defaults to None.
             data_timeout (Optional[float], optional): Maximum number of seconds to wait without
                 receiving market data before treating the connection as stale and forcing a
                 reconnect. This detects "connected-but-mute" sockets that the transport-level
@@ -183,9 +186,8 @@ class DataStream:
             "User-Agent": get_default_user_agent(),
         }
 
-        header_key = get_websocket_headers_key()
         connect_kwargs = {
-            header_key: extra_headers,
+            "additional_headers": extra_headers,
             **params,
         }
 

@@ -19,6 +19,8 @@ from alpaca.broker.models import (
     AccountDisclosures,
     AccountDocument,
     AccountExtended,
+    CashInterest,
+    CashInterestProgram,
     Disclosures,
     MinorIdentity,
     TradeDocument,
@@ -806,6 +808,71 @@ def test_create_account_request_sends_minor_identity():
         minor_identity=minor,
     )
     assert "phone_number" not in without_phone.to_request_fields()["contact"]
+
+
+def test_create_account_request_includes_cash_interest():
+    contact = {
+        "email_address": "cool_alpaca@example.com",
+        "phone_number": "555-666-7788",
+        "street_address": ["20 N San Mateo Dr"],
+        "city": "San Mateo",
+        "state": "CA",
+        "postal_code": "94401",
+    }
+    identity = {
+        "given_name": "John",
+        "family_name": "Doe",
+        "date_of_birth": "1990-01-01",
+        "tax_id": "666-55-4321",
+        "tax_id_type": "USA_SSN",
+        "country_of_citizenship": "USA",
+        "country_of_birth": "USA",
+        "country_of_tax_residence": "USA",
+        "funding_source": ["employment_income"],
+    }
+    disclosures = {
+        "is_control_person": False,
+        "is_affiliated_exchange_or_finra": False,
+        "is_politically_exposed": False,
+        "immediate_family_exposed": False,
+    }
+    agreements = [
+        {
+            "agreement": "customer_agreement",
+            "signed_at": "2020-09-11T18:13:44Z",
+            "ip_address": "185.13.21.99",
+        }
+    ]
+
+    req_with_dict = CreateAccountRequest(
+        contact=contact,
+        identity=identity,
+        disclosures=disclosures,
+        agreements=agreements,
+        cash_interest={"USD": {"apr_tier_name": "gold"}},
+    )
+    fields = req_with_dict.to_request_fields()
+    assert "cash_interest" in fields
+    assert fields["cash_interest"] == {"USD": {"apr_tier_name": "gold"}}
+
+    req_with_model = CreateAccountRequest(
+        contact=contact,
+        identity=identity,
+        disclosures=disclosures,
+        agreements=agreements,
+        cash_interest=CashInterest(USD=CashInterestProgram(apr_tier_name="gold")),
+    )
+    fields_model = req_with_model.to_request_fields()
+    assert "cash_interest" in fields_model
+    assert fields_model["cash_interest"] == {"USD": {"apr_tier_name": "gold"}}
+
+    req_without = CreateAccountRequest(
+        contact=contact,
+        identity=identity,
+        disclosures=disclosures,
+        agreements=agreements,
+    )
+    assert "cash_interest" not in req_without.to_request_fields()
 
 
 def test_ach_relationship_can_include_instant_and_processor_token():

@@ -261,6 +261,7 @@ class Order(ModelWithID):
         hwm (Optional[str]): The highest (lowest) market price seen since the trailing stop order was submitted.
         position_intent  (Optional[PositionIntent]): Represents the desired position strategy.
         ratio_qty (Optional[str]): The proportional quantity of this leg in relation to the overall multi-leg order quantity.
+        fees (Optional[Union[str, float]]): The total fees for the order, if applicable.
     """
 
     client_order_id: str
@@ -301,6 +302,7 @@ class Order(ModelWithID):
     position_intent: Optional[PositionIntent] = None
     ratio_qty: Optional[Union[str, float]] = None
     group_id: Optional[UUID] = None
+    fees: Optional[Union[str, float]] = None
     group_role: Optional[Union[OrderGroupRole, str]] = Field(
         default=None, union_mode="left_to_right"
     )
@@ -319,6 +321,7 @@ class Order(ModelWithID):
             "position_intent",
             "type",
             "order_type",
+            "fees",
         ]:
             if k in data and data[k] == "":
                 data[k] = None

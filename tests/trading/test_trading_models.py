@@ -476,3 +476,19 @@ def test_order_preserves_either_group_field(field, value, expected):
 
     assert getattr(order, field) == expected
     assert order.model_dump(mode="json")[field] == value
+
+
+def test_order_fees_attribute():
+    order = Order(**_order_response())
+    assert order.fees is None
+
+    order_empty = Order(**_order_response(fees=""))
+    assert order_empty.fees is None
+
+    order_str = Order(**_order_response(fees="0.05"))
+    assert order_str.fees == "0.05"
+    assert order_str.model_dump(mode="json")["fees"] == "0.05"
+
+    order_float = Order(**_order_response(fees=0.05))
+    assert order_float.fees == 0.05
+    assert order_float.model_dump(mode="json")["fees"] == 0.05

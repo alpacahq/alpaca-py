@@ -128,6 +128,7 @@ should be. `scenarios/stock_data_pagination.py` is an example (#877).
 | pandas, numpy or pydantic bump in `poetry.lock` | Replay fails and says the environment differs. Run `poetry install`, then `make consumer-refresh`. |
 | Release | `.github/workflows/consumer-baseline.yaml` moves `BASELINE` to it, re-records everything, and opens a PR labeled `sdk-breaking` (a draft if a scenario failed). It can also be started by hand with a version. |
 | Live data or API drift | The nightly live job opens an issue listing the failing scenarios, comments on it while it keeps failing, and closes it once it passes again. |
+| A PR that changes how the SDK talks to the API (HTTP layer, auth, retries, serialization) | Add the `consumer-live` label: the live job runs on the PR's code, and again on each push while the label stays. Branches of this repository only (forks get no secrets); the result is the PR's check, no issue is opened. Runs never overlap the nightly one. |
 
 The PR template and `CONTRIBUTING.md` repeat the first two rows for
 contributors.

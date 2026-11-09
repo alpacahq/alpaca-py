@@ -16,7 +16,12 @@ With ``--strict`` (CI), it exits 1 when such an item is not covered by
 needed. ``--show-all`` also reports how much of the whole surface is
 exercised, new or not.
 
+``--prune-allowlist`` (used by the baseline workflow after moving BASELINE)
+removes exact allowlist entries for items that are no longer new, without
+replaying: once a release includes an item, its exception has to go.
+
   python consumer_checks/check_surface.py [--strict] [--show-all]
+  python consumer_checks/check_surface.py --prune-allowlist
 """
 
 from __future__ import annotations
@@ -57,6 +62,24 @@ def load_allowlist() -> Dict[str, str]:
     return entries
 
 
+def is_exact(pattern: str) -> bool:
+    return not any(char in pattern for char in "*?[")
+
+
+def prune_allowlist(new: Set[str]) -> List[str]:
+    """Drop exact entries that match no new item. Returns the removed ones."""
+    kept, removed = [], []
+    for line in ALLOWLIST.read_text(encoding="utf-8").splitlines(keepends=True):
+        pattern = line.partition("#")[0].strip()
+        if pattern and is_exact(pattern) and pattern not in new:
+            removed.append(pattern)
+            continue
+        kept.append(line)
+    if removed:
+        ALLOWLIST.write_text("".join(kept), encoding="utf-8")
+    return removed
+
+
 def exercised_by_replay() -> Dict:
     import pytest
 
@@ -95,6 +118,12 @@ def main() -> int:
         "and on exact allowlist entries no longer needed.",
     )
     parser.add_argument(
+        "--prune-allowlist",
+        action="store_true",
+        help="Remove exact allowlist entries for items no longer new since "
+        "BASELINE, then exit. No replay.",
+    )
+    parser.add_argument(
         "--show-all",
         action="store_true",
         help="Also report how much of the whole surface is exercised.",
@@ -114,6 +143,15 @@ def main() -> int:
     current = _surface.collect().items
     new = current - set(stored["items"])
     removed = set(stored["items"]) - current
+
+    if args.prune_allowlist:
+        pruned = prune_allowlist(new)
+        print(
+            f"Removed {len(pruned)} {ALLOWLIST.name} entries no longer new since "
+            f"alpaca-py {baseline_version}"
+            + "".join(f"\n  - {pattern}" for pattern in pruned)
+        )
+        return 0
 
     replay = exercised_by_replay()
     if not replay["complete"]:
@@ -163,7 +201,7 @@ def main() -> int:
     stale = sorted(
         pattern
         for pattern in allowlist
-        if not any(char in pattern for char in "*?[")
+        if is_exact(pattern)
         and not any(fnmatch.fnmatchcase(item, pattern) for item in unexercised)
     )
     if stale:

@@ -78,6 +78,8 @@ jobs:
           printf '%s\n' "$VERSION" > consumer_checks/BASELINE
           # The release's public surface: what check_surface.py compares against.
           make consumer-surface-baseline
+          # Exceptions for items the release now includes are no longer needed.
+          poetry run python consumer_checks/check_surface.py --prune-allowlist
           # Keep going on failures: the PR still shows what was recorded, and the
           # failing scenarios are listed in its description.
           set +e
@@ -95,7 +97,8 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git switch -c "$branch"
-          git add -A consumer_checks/BASELINE consumer_checks/surface_baseline.json consumer_checks/recordings
+          git add -A consumer_checks/BASELINE consumer_checks/surface_baseline.json \
+            consumer_checks/surface_allowlist.txt consumer_checks/recordings
           git commit -m "chore(consumer-checks): move baseline to $VERSION"
           git push origin "$branch"
 

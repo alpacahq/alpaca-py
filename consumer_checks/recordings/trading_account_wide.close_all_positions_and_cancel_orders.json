@@ -775,7 +775,7 @@
     "requests": "2.34.2"
   },
   "scenario": "trading_account_wide.close_all_positions_and_cancel_orders",
-  "scenario_sha256": "bfde2be4184db6ec4acef68b9c7ce9047b68e0b9b8dadfaf8ce79cf3f1d1151a",
+  "scenario_sha256": "ef4eb5c38af0a0867677d3079a2285da91ac43421ee5680cb900ef5b002258c0",
   "vars": {
     "buy": "b6ce689254324ffe917ad4fe57031506",
     "pending": "d96cbf1d374f4ea68669dea1bc8ab43a"

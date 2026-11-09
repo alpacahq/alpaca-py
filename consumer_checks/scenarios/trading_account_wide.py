@@ -8,7 +8,7 @@ only by them.
 
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable, List
+from typing import Any, Dict, Iterable, List, Optional, Set
 from uuid import UUID
 
 from alpaca.trading.enums import (
@@ -79,19 +79,27 @@ def _close_quietly(ctx: Context, symbol: str) -> None:
 
 @scenario(covers=["TradingClient.cancel_orders"])
 def cancel_all_open_orders(ctx: Context) -> Dict[str, Any]:
-    orders = [
-        _unfillable_limit_buy(ctx, "AAPL", "aapl"),
-        _unfillable_limit_buy(ctx, "MSFT", "msft"),
-    ]
-    ids = {order.id for order in orders}
-    responses: List[CancelOrderResponse] = []
+    orders: List[Order] = []
+    confirmed: Set[UUID] = set()
     try:
+        orders.append(_unfillable_limit_buy(ctx, "AAPL", "aapl"))
+        orders.append(_unfillable_limit_buy(ctx, "MSFT", "msft"))
         result = ctx.trading.cancel_orders()
         assert isinstance(result, list)
         responses = result
+        confirmed = {
+            response.id
+            for response in responses
+            if isinstance(response, CancelOrderResponse)
+            and 200 <= response.status < 300
+        }
     finally:
-        if not responses:
-            _cancel_quietly(ctx, ids)
+        # Cancel every order this scenario created that the cancel-all did not
+        # confirm: a step failed, or the response reported a failure for it.
+        _cancel_quietly(
+            ctx, [order.id for order in orders if order.id not in confirmed]
+        )
+    ids = {order.id for order in orders}
 
     assert all(isinstance(response, CancelOrderResponse) for response in responses)
     ours = sorted(
@@ -121,27 +129,29 @@ def close_all_positions_and_cancel_orders(ctx: Context) -> Dict[str, Any]:
         )
     )
     assert isinstance(buy, Order)
-    bought = _wait_for_status(ctx, buy.id, OrderStatus.FILLED)
-    if bought.status != OrderStatus.FILLED:
-        _cancel_quietly(ctx, [buy.id])
-        raise AssertionError(f"market buy did not fill: {bought.status}")
-    pending = _unfillable_limit_buy(ctx, "AAPL", "pending")
-
-    closed: List[ClosePositionResponse] = []
+    pending: Optional[Order] = None
+    btc_closed = False
     try:
+        bought = _wait_for_status(ctx, buy.id, OrderStatus.FILLED)
+        if bought.status != OrderStatus.FILLED:
+            raise AssertionError(f"market buy did not fill: {bought.status}")
+        pending = _unfillable_limit_buy(ctx, "AAPL", "pending")
         # cancel_orders=True also cancels the open AAPL order first.
         result = ctx.trading.close_all_positions(cancel_orders=True)
         assert isinstance(result, list)
         closed = result
+        btc = [r for r in closed if r.symbol == CRYPTO_POSITION_SYMBOL]
+        btc_closed = len(btc) == 1 and btc[0].status == 200
     finally:
-        if not closed:
-            # The close-all may have succeeded on the server even if the SDK
-            # then failed to return it.
-            _cancel_quietly(ctx, [pending.id])
+        if not btc_closed:
+            # A step failed, or the close-all reported a failure for BTC: undo
+            # what this scenario created. The buy may have filled after all, and
+            # the close-all may have gone through even if the SDK then failed.
+            _cancel_quietly(ctx, [buy.id] + ([pending.id] if pending else []))
             _close_quietly(ctx, CRYPTO_POSITION_SYMBOL)
 
+    assert pending is not None
     assert all(isinstance(response, ClosePositionResponse) for response in closed)
-    btc = [response for response in closed if response.symbol == CRYPTO_POSITION_SYMBOL]
     assert len(btc) == 1
     assert btc[0].status == 200
     closing = btc[0].body

@@ -591,7 +591,7 @@
     "requests": "2.34.2"
   },
   "scenario": "trading_account_wide.cancel_all_open_orders",
-  "scenario_sha256": "05e6fabf70add114eb27f3a4aecfd2e778b71c860b2c89379814ea87625f2bc6",
+  "scenario_sha256": "8b98eb479ce06c435420cb7a566e7b09e1de00c3fe10027fe763585f03642abc",
   "vars": {
     "aapl": "8021b21b77444666bed2c458bf18fa07",
     "msft": "9fd7a565ab0449b699e87d6b1e8d3dd0"

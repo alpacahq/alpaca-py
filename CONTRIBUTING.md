@@ -248,3 +248,17 @@ make check-api-breakage BASELINE_REF=origin/master WORKDIR=/tmp/aexpy-alpaca
 # merge-base so shared history is excluded and you see just this branch's new breakages
 make check-api-breakage BASELINE_REF=$(git merge-base origin/master HEAD) WORKDIR=/tmp/aexpy-alpaca
 ```
+
+## Pull request checklist
+
+Before requesting review, confirm that:
+
+- the change is focused and follows the contribution policy;
+- any substantial API, dependency, or third-party work was discussed with maintainers before implementation;
+- `make check-api-breakage` was run when the change could affect the public SDK surface;
+- new or changed behavior has focused tests when applicable;
+- default tests are deterministic and credential-free and cannot place live orders, trading examples default to paper trading, and fixtures use synthetic data;
+- documentation and examples are updated when applicable;
+- applicable formatting, test, and documentation checks pass;
+- no credentials, account data, request or trace IDs, or other secrets are included; and
+- any provider-specific integration or promotional contribution has written Alpaca approval confirmed by repository maintainers.

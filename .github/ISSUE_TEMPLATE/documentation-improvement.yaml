@@ -1,0 +1,59 @@
+name: 📖 Documentation improvement
+description: Suggest an improvement to the Alpaca-py documentation
+title: "[Docs]: "
+labels: [documentation]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form for this SDK's README files, Python API reference and docstrings, Sphinx documentation sourced from `docs/`, and examples. Bugs in docs.alpaca.markets go to [alpacahq/alpaca-api](https://github.com/alpacahq/alpaca-api/issues/new/choose).
+
+        Never include API keys, account details, request or trace IDs, or other secrets.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Preflight
+      options:
+        - label: I searched existing issues and confirmed this request concerns documentation maintained by Alpaca-py.
+          required: true
+
+  - type: input
+    id: documentation_location
+    attributes:
+      label: Documentation location
+      description: Link the page or provide the repository path that needs improvement.
+      placeholder: https://alpaca.markets/sdks/python/... or README.md
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Explain what is missing, incorrect, outdated, or unclear.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed_improvement
+    attributes:
+      label: Proposed improvement
+      description: Describe the documentation or example change you would like.
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional context
+      description: Add safe examples, references, or other relevant details.
+
+  - type: checkboxes
+    id: sensitive_data
+    attributes:
+      label: Sensitive-data check
+      options:
+        - label: I removed API keys, credentials, account details, request or trace IDs, and other sensitive information.
+          required: true

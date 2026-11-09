@@ -43,7 +43,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ "3.11", "3.12", "3.13" ] # supported CPython releases
+        python-version: [ "3.11", "3.12", "3.13", "3.14", "3.15" ] # supported CPython releases
         os: [ ubuntu-latest ] #in the future we should add windows here
     runs-on: ${{ matrix.os }}
     steps:
@@ -63,6 +63,31 @@ jobs:
         # Offline: recorded paper API responses, frozen against consumer_checks/BASELINE.
         # Strict: a scenario without a recording fails instead of being skipped.
         run: poetry run pytest consumer_checks --consumer-strict
+
+  # poetry.lock pins pandas 3, but pyproject.toml allows pandas>=1.5.3, so
+  # check the oldest and the latest 2.x releases that users can still install.
+  tests-ci-legacy-pandas:
+    strategy:
+      fail-fast: false
+      matrix:
+        # quoted for the shell: an unquoted "<" would be parsed as a redirect
+        pandas-spec: [ '"pandas==1.5.3" "numpy<2"', '"pandas<3"' ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # install poetry first for cache
+      - name: setup poetry
+        run: pipx install poetry
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+          cache: "poetry"
+      - name: Poetry install
+        run: poetry install
+      - name: install ${{ matrix.pandas-spec }}
+        run: poetry run pip install ${{ matrix.pandas-spec }}
+      - name: run tests
+        run: poetry run pytest
 
   api-breakage:
     # Report only: some breaking changes are intended. Findings go to the job summary

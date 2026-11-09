@@ -482,7 +482,7 @@ def _dump_public_api(
 
     Runs in isolated mode from an empty nested directory so a ``--workdir`` that
     contains the checkout (for example ``WORKDIR=$PWD``) cannot shadow the wheel
-    on Python 3.10, where ``PYTHONSAFEPATH`` is unsupported.
+    regardless of ``PYTHONSAFEPATH`` support in the interpreter.
     """
     source = _PUBLIC_DUMP_SOURCE.format(
         top_module=TOP_MODULE, package_name=PACKAGE_NAME

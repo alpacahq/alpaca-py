@@ -62,7 +62,7 @@ class DeprecatingEnumMeta(EnumMeta):
 
     Pass the messages as the ``deprecations`` class argument. That map has to
     live at module level: a dict assigned in the enum class body becomes a
-    member on Python 3.10.
+    member.
     """
 
     # True while EnumMeta is still building the class. Member lookup during
@@ -73,7 +73,7 @@ class DeprecatingEnumMeta(EnumMeta):
     def __new__(mcs, name, bases, namespace, deprecations=None, **kwargs):
         if deprecations:
             # A function in the class body stays a method. A dict there would
-            # become a member on Python 3.10.
+            # become a member.
             namespace["__get_pydantic_core_schema__"] = classmethod(
                 _pydantic_core_schema
             )

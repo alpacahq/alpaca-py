@@ -1,0 +1,652 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": {
+          "json": {
+            "client_order_id": "d8e2987f24c24ba0b5161f3cf36596c5",
+            "limit_price": 1.0,
+            "qty": 1.0,
+            "side": "buy",
+            "symbol": "AAPL",
+            "time_in_force": "day",
+            "type": "limit"
+          }
+        },
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "content-type": "application/json",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "POST",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/orders"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "asset_class": "us_equity",
+            "asset_id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+            "canceled_at": null,
+            "client_order_id": "d8e2987f24c24ba0b5161f3cf36596c5",
+            "created_at": "2026-11-09T10:13:54.71647328Z",
+            "expired_at": null,
+            "expires_at": "2026-11-09T21:00:00Z",
+            "extended_hours": false,
+            "failed_at": null,
+            "filled_at": null,
+            "filled_avg_price": null,
+            "filled_qty": "0",
+            "hwm": null,
+            "id": "b7aa98dc-73ff-403f-8e85-beae9900ad5a",
+            "legs": null,
+            "limit_price": "1",
+            "notional": null,
+            "order_class": "",
+            "order_type": "limit",
+            "position_intent": "buy_to_open",
+            "qty": "1",
+            "replaced_at": null,
+            "replaced_by": null,
+            "replaces": null,
+            "side": "buy",
+            "source": null,
+            "status": "pending_new",
+            "stop_price": null,
+            "submitted_at": "2026-11-09T10:13:54.71647328Z",
+            "subtag": null,
+            "symbol": "AAPL",
+            "time_in_force": "day",
+            "trail_percent": null,
+            "trail_price": null,
+            "type": "limit",
+            "updated_at": "2026-11-09T10:13:54.717039329Z"
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization, Content-Type, X-Correspondent",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, POST, PATCH",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json; charset=UTF-8",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Origin",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "193",
+          "X-Ratelimit-Reset": "1794219236",
+          "X-Request-Id": "8dade7fabffebdaf71d72c12cdc53322"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/orders/b7aa98dc-73ff-403f-8e85-beae9900ad5a"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "asset_class": "us_equity",
+            "asset_id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+            "canceled_at": null,
+            "client_order_id": "d8e2987f24c24ba0b5161f3cf36596c5",
+            "created_at": "2026-11-09T10:13:54.71647328Z",
+            "expired_at": null,
+            "expires_at": "2026-11-09T21:00:00Z",
+            "extended_hours": false,
+            "failed_at": null,
+            "filled_at": null,
+            "filled_avg_price": null,
+            "filled_qty": "0",
+            "hwm": null,
+            "id": "b7aa98dc-73ff-403f-8e85-beae9900ad5a",
+            "legs": null,
+            "limit_price": "1",
+            "notional": null,
+            "order_class": "",
+            "order_type": "limit",
+            "position_intent": "buy_to_open",
+            "qty": "1",
+            "replaced_at": null,
+            "replaced_by": null,
+            "replaces": null,
+            "side": "buy",
+            "source": null,
+            "status": "new",
+            "stop_price": null,
+            "submitted_at": "2026-11-09T10:13:54.721998879Z",
+            "subtag": null,
+            "symbol": "AAPL",
+            "time_in_force": "day",
+            "trail_percent": null,
+            "trail_price": null,
+            "type": "limit",
+            "updated_at": "2026-11-09T10:13:54.723153009Z"
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization, Content-Type, X-Correspondent",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, POST, PATCH",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json; charset=UTF-8",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Origin",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "196",
+          "X-Ratelimit-Reset": "1794219237",
+          "X-Request-Id": "bc8413297e60bff6404c7a865e50e051"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": {
+          "json": {
+            "client_order_id": "76b54cd5ba6c4fe6bbe3a19baf362373",
+            "limit_price": 1.01
+          }
+        },
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "content-type": "application/json",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "PATCH",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/orders/b7aa98dc-73ff-403f-8e85-beae9900ad5a"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "asset_class": "us_equity",
+            "asset_id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+            "canceled_at": null,
+            "client_order_id": "76b54cd5ba6c4fe6bbe3a19baf362373",
+            "created_at": "2026-11-09T10:13:55.941360692Z",
+            "expired_at": null,
+            "expires_at": "2026-11-09T21:00:00Z",
+            "extended_hours": false,
+            "failed_at": null,
+            "filled_at": null,
+            "filled_avg_price": null,
+            "filled_qty": "0",
+            "hwm": null,
+            "id": "68035fd4-a0dd-4a33-af95-52e135a31823",
+            "legs": null,
+            "limit_price": "1.01",
+            "notional": null,
+            "order_class": "",
+            "order_type": "limit",
+            "position_intent": "buy_to_open",
+            "qty": "1",
+            "replaced_at": null,
+            "replaced_by": null,
+            "replaces": "b7aa98dc-73ff-403f-8e85-beae9900ad5a",
+            "side": "buy",
+            "source": null,
+            "status": "new",
+            "stop_price": null,
+            "submitted_at": "2026-11-09T10:13:55.941360692Z",
+            "subtag": null,
+            "symbol": "AAPL",
+            "time_in_force": "day",
+            "trail_percent": null,
+            "trail_price": null,
+            "type": "limit",
+            "updated_at": "2026-11-09T10:13:55.94203302Z"
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization, Content-Type, X-Correspondent",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, POST, PATCH",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json; charset=UTF-8",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Origin",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "195",
+          "X-Ratelimit-Reset": "1794219237",
+          "X-Request-Id": "373c5199012a2cf27083bdb2a521624b"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "DELETE",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/orders/68035fd4-a0dd-4a33-af95-52e135a31823"
+      },
+      "response": {
+        "body": null,
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization, Content-Type, X-Correspondent",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, POST, PATCH",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json; charset=UTF-8",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Origin",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "194",
+          "X-Ratelimit-Reset": "1794219237",
+          "X-Request-Id": "b204888fb65a3d17206bdb91febd7636"
+        },
+        "reason": "No Content",
+        "status": 204
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/orders/b7aa98dc-73ff-403f-8e85-beae9900ad5a"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "asset_class": "us_equity",
+            "asset_id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+            "canceled_at": null,
+            "client_order_id": "d8e2987f24c24ba0b5161f3cf36596c5",
+            "created_at": "2026-11-09T10:13:54.71647328Z",
+            "expired_at": null,
+            "expires_at": "2026-11-09T21:00:00Z",
+            "extended_hours": false,
+            "failed_at": null,
+            "filled_at": null,
+            "filled_avg_price": null,
+            "filled_qty": "0",
+            "hwm": null,
+            "id": "b7aa98dc-73ff-403f-8e85-beae9900ad5a",
+            "legs": null,
+            "limit_price": "1",
+            "notional": null,
+            "order_class": "",
+            "order_type": "limit",
+            "position_intent": "buy_to_open",
+            "qty": "1",
+            "replaced_at": "2026-11-09T10:13:55.947557555Z",
+            "replaced_by": "68035fd4-a0dd-4a33-af95-52e135a31823",
+            "replaces": null,
+            "side": "buy",
+            "source": null,
+            "status": "replaced",
+            "stop_price": null,
+            "submitted_at": "2026-11-09T10:13:54.721998879Z",
+            "subtag": null,
+            "symbol": "AAPL",
+            "time_in_force": "day",
+            "trail_percent": null,
+            "trail_price": null,
+            "type": "limit",
+            "updated_at": "2026-11-09T10:13:55.949152299Z"
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization, Content-Type, X-Correspondent",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, POST, PATCH",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json; charset=UTF-8",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Origin",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "194",
+          "X-Ratelimit-Reset": "1794219237",
+          "X-Request-Id": "df74d626042c18f85f01b9e5145113d6"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_with": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "2.3.3",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "old_after": {
+      "__type__": "Order",
+      "fields": {
+        "asset_class": {
+          "__type__": "AssetClass",
+          "name": "US_EQUITY",
+          "value": "us_equity"
+        },
+        "asset_id": {
+          "__type__": "UUID",
+          "value": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415"
+        },
+        "canceled_at": null,
+        "client_order_id": "d8e2987f24c24ba0b5161f3cf36596c5",
+        "created_at": {
+          "__type__": "datetime",
+          "value": "2026-11-09T10:13:54.716473+00:00"
+        },
+        "expired_at": null,
+        "expires_at": {
+          "__type__": "datetime",
+          "value": "2026-11-09T21:00:00+00:00"
+        },
+        "extended_hours": false,
+        "failed_at": null,
+        "filled_at": null,
+        "filled_avg_price": null,
+        "filled_qty": "0",
+        "group_id": null,
+        "group_role": null,
+        "hwm": null,
+        "id": {
+          "__type__": "UUID",
+          "value": "b7aa98dc-73ff-403f-8e85-beae9900ad5a"
+        },
+        "legs": null,
+        "limit_price": "1",
+        "notional": null,
+        "order_class": {
+          "__type__": "OrderClass",
+          "name": "SIMPLE",
+          "value": "simple"
+        },
+        "order_type": {
+          "__type__": "OrderType",
+          "name": "LIMIT",
+          "value": "limit"
+        },
+        "position_intent": {
+          "__type__": "PositionIntent",
+          "name": "BUY_TO_OPEN",
+          "value": "buy_to_open"
+        },
+        "qty": "1",
+        "ratio_qty": null,
+        "replaced_at": {
+          "__type__": "datetime",
+          "value": "2026-11-09T10:13:55.947557+00:00"
+        },
+        "replaced_by": {
+          "__type__": "UUID",
+          "value": "68035fd4-a0dd-4a33-af95-52e135a31823"
+        },
+        "replaces": null,
+        "side": {
+          "__type__": "OrderSide",
+          "name": "BUY",
+          "value": "buy"
+        },
+        "status": {
+          "__type__": "OrderStatus",
+          "name": "REPLACED",
+          "value": "replaced"
+        },
+        "stop_price": null,
+        "submitted_at": {
+          "__type__": "datetime",
+          "value": "2026-11-09T10:13:54.721998+00:00"
+        },
+        "symbol": "AAPL",
+        "time_in_force": {
+          "__type__": "TimeInForce",
+          "name": "DAY",
+          "value": "day"
+        },
+        "trail_percent": null,
+        "trail_price": null,
+        "type": {
+          "__type__": "OrderType",
+          "name": "LIMIT",
+          "value": "limit"
+        },
+        "updated_at": {
+          "__type__": "datetime",
+          "value": "2026-11-09T10:13:55.949152+00:00"
+        }
+      }
+    },
+    "original": {
+      "__type__": "Order",
+      "fields": {
+        "asset_class": {
+          "__type__": "AssetClass",
+          "name": "US_EQUITY",
+          "value": "us_equity"
+        },
+        "asset_id": {
+          "__type__": "UUID",
+          "value": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415"
+        },
+        "canceled_at": null,
+        "client_order_id": "d8e2987f24c24ba0b5161f3cf36596c5",
+        "created_at": {
+          "__type__": "datetime",
+          "value": "2026-11-09T10:13:54.716473+00:00"
+        },
+        "expired_at": null,
+        "expires_at": {
+          "__type__": "datetime",
+          "value": "2026-11-09T21:00:00+00:00"
+        },
+        "extended_hours": false,
+        "failed_at": null,
+        "filled_at": null,
+        "filled_avg_price": null,
+        "filled_qty": "0",
+        "group_id": null,
+        "group_role": null,
+        "hwm": null,
+        "id": {
+          "__type__": "UUID",
+          "value": "b7aa98dc-73ff-403f-8e85-beae9900ad5a"
+        },
+        "legs": null,
+        "limit_price": "1",
+        "notional": null,
+        "order_class": {
+          "__type__": "OrderClass",
+          "name": "SIMPLE",
+          "value": "simple"
+        },
+        "order_type": {
+          "__type__": "OrderType",
+          "name": "LIMIT",
+          "value": "limit"
+        },
+        "position_intent": {
+          "__type__": "PositionIntent",
+          "name": "BUY_TO_OPEN",
+          "value": "buy_to_open"
+        },
+        "qty": "1",
+        "ratio_qty": null,
+        "replaced_at": null,
+        "replaced_by": null,
+        "replaces": null,
+        "side": {
+          "__type__": "OrderSide",
+          "name": "BUY",
+          "value": "buy"
+        },
+        "status": {
+          "__type__": "OrderStatus",
+          "name": "PENDING_NEW",
+          "value": "pending_new"
+        },
+        "stop_price": null,
+        "submitted_at": {
+          "__type__": "datetime",
+          "value": "2026-11-09T10:13:54.716473+00:00"
+        },
+        "symbol": "AAPL",
+        "time_in_force": {
+          "__type__": "TimeInForce",
+          "name": "DAY",
+          "value": "day"
+        },
+        "trail_percent": null,
+        "trail_price": null,
+        "type": {
+          "__type__": "OrderType",
+          "name": "LIMIT",
+          "value": "limit"
+        },
+        "updated_at": {
+          "__type__": "datetime",
+          "value": "2026-11-09T10:13:54.717039+00:00"
+        }
+      }
+    },
+    "replacement": {
+      "__type__": "Order",
+      "fields": {
+        "asset_class": {
+          "__type__": "AssetClass",
+          "name": "US_EQUITY",
+          "value": "us_equity"
+        },
+        "asset_id": {
+          "__type__": "UUID",
+          "value": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415"
+        },
+        "canceled_at": null,
+        "client_order_id": "76b54cd5ba6c4fe6bbe3a19baf362373",
+        "created_at": {
+          "__type__": "datetime",
+          "value": "2026-11-09T10:13:55.941360+00:00"
+        },
+        "expired_at": null,
+        "expires_at": {
+          "__type__": "datetime",
+          "value": "2026-11-09T21:00:00+00:00"
+        },
+        "extended_hours": false,
+        "failed_at": null,
+        "filled_at": null,
+        "filled_avg_price": null,
+        "filled_qty": "0",
+        "group_id": null,
+        "group_role": null,
+        "hwm": null,
+        "id": {
+          "__type__": "UUID",
+          "value": "68035fd4-a0dd-4a33-af95-52e135a31823"
+        },
+        "legs": null,
+        "limit_price": "1.01",
+        "notional": null,
+        "order_class": {
+          "__type__": "OrderClass",
+          "name": "SIMPLE",
+          "value": "simple"
+        },
+        "order_type": {
+          "__type__": "OrderType",
+          "name": "LIMIT",
+          "value": "limit"
+        },
+        "position_intent": {
+          "__type__": "PositionIntent",
+          "name": "BUY_TO_OPEN",
+          "value": "buy_to_open"
+        },
+        "qty": "1",
+        "ratio_qty": null,
+        "replaced_at": null,
+        "replaced_by": null,
+        "replaces": {
+          "__type__": "UUID",
+          "value": "b7aa98dc-73ff-403f-8e85-beae9900ad5a"
+        },
+        "side": {
+          "__type__": "OrderSide",
+          "name": "BUY",
+          "value": "buy"
+        },
+        "status": {
+          "__type__": "OrderStatus",
+          "name": "NEW",
+          "value": "new"
+        },
+        "stop_price": null,
+        "submitted_at": {
+          "__type__": "datetime",
+          "value": "2026-11-09T10:13:55.941360+00:00"
+        },
+        "symbol": "AAPL",
+        "time_in_force": {
+          "__type__": "TimeInForce",
+          "name": "DAY",
+          "value": "day"
+        },
+        "trail_percent": null,
+        "trail_price": null,
+        "type": {
+          "__type__": "OrderType",
+          "name": "LIMIT",
+          "value": "limit"
+        },
+        "updated_at": {
+          "__type__": "datetime",
+          "value": "2026-11-09T10:13:55.942033+00:00"
+        }
+      }
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "trading_positions.replace_limit_order_price",
+  "scenario_sha256": "85c92287a028ad57079bf329781f26daf47eb5980623051f3f03eb7d41769a02",
+  "vars": {
+    "original": "d8e2987f24c24ba0b5161f3cf36596c5",
+    "replacement": "76b54cd5ba6c4fe6bbe3a19baf362373"
+  }
+}

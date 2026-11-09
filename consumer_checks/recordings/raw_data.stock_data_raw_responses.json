@@ -1,0 +1,533 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "end",
+            "2024-03-09T00:00:00+00:00"
+          ],
+          [
+            "feed",
+            "iex"
+          ],
+          [
+            "limit",
+            "10000"
+          ],
+          [
+            "start",
+            "2024-03-04T00:00:00+00:00"
+          ],
+          [
+            "symbols",
+            "AAPL,MSFT"
+          ],
+          [
+            "timeframe",
+            "1Day"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v2/stocks/bars"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "bars": {
+              "AAPL": [
+                {
+                  "c": 175.09,
+                  "h": 176.85,
+                  "l": 173.79,
+                  "n": 21331,
+                  "o": 176.3,
+                  "t": "2024-03-04T05:00:00Z",
+                  "v": 1705811,
+                  "vw": 174.759337
+                },
+                {
+                  "c": 170.13,
+                  "h": 172.02,
+                  "l": 169.64,
+                  "n": 14852,
+                  "o": 170.8,
+                  "t": "2024-03-05T05:00:00Z",
+                  "v": 1462313,
+                  "vw": 170.367208
+                },
+                {
+                  "c": 169.11,
+                  "h": 171.21,
+                  "l": 168.71,
+                  "n": 11875,
+                  "o": 171.115,
+                  "t": "2024-03-06T05:00:00Z",
+                  "v": 909179,
+                  "vw": 169.541027
+                },
+                {
+                  "c": 168.97,
+                  "h": 170.685,
+                  "l": 168.5,
+                  "n": 13510,
+                  "o": 169.15,
+                  "t": "2024-03-07T05:00:00Z",
+                  "v": 1216615,
+                  "vw": 169.345488
+                },
+                {
+                  "c": 170.98,
+                  "h": 173.68,
+                  "l": 168.975,
+                  "n": 14317,
+                  "o": 169.03,
+                  "t": "2024-03-08T05:00:00Z",
+                  "v": 1143439,
+                  "vw": 171.734353
+                }
+              ],
+              "MSFT": [
+                {
+                  "c": 414.86,
+                  "h": 417.34,
+                  "l": 412.62,
+                  "n": 5221,
+                  "o": 413.44,
+                  "t": "2024-03-04T05:00:00Z",
+                  "v": 261461,
+                  "vw": 415.331156
+                },
+                {
+                  "c": 402.71,
+                  "h": 414.13,
+                  "l": 400.65,
+                  "n": 8723,
+                  "o": 413.94,
+                  "t": "2024-03-05T05:00:00Z",
+                  "v": 488977,
+                  "vw": 403.791097
+                },
+                {
+                  "c": 402,
+                  "h": 405.13,
+                  "l": 398.525,
+                  "n": 9035,
+                  "o": 402.9,
+                  "t": "2024-03-06T05:00:00Z",
+                  "v": 528887,
+                  "vw": 402.001494
+                },
+                {
+                  "c": 409.02,
+                  "h": 409.77,
+                  "l": 402.39,
+                  "n": 6973,
+                  "o": 406.12,
+                  "t": "2024-03-07T05:00:00Z",
+                  "v": 348075,
+                  "vw": 407.220164
+                },
+                {
+                  "c": 406.23,
+                  "h": 410.385,
+                  "l": 404.455,
+                  "n": 6805,
+                  "o": 407.885,
+                  "t": "2024-03-08T05:00:00Z",
+                  "v": 265488,
+                  "vw": 407.381689
+                }
+              ]
+            },
+            "next_page_token": null
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Accept-Encoding",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "198",
+          "X-Ratelimit-Reset": "1794219222",
+          "X-Request-ID": "6655a950be6e6fc096857d38940083dd"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "feed",
+            "iex"
+          ],
+          [
+            "symbols",
+            "AAPL"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v2/stocks/quotes/latest"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "quotes": {
+              "AAPL": {
+                "ap": 0,
+                "as": 0,
+                "ax": " ",
+                "bp": 328.06,
+                "bs": 40,
+                "bx": "V",
+                "c": [
+                  "R"
+                ],
+                "t": "2026-11-06T21:00:02.015070376Z",
+                "z": "C"
+              }
+            }
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "197",
+          "X-Ratelimit-Reset": "1794219223",
+          "X-Request-ID": "c16db2afacd3c7e8042dc9f696522633"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "feed",
+            "iex"
+          ],
+          [
+            "symbols",
+            "AAPL"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v2/stocks/snapshots"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "AAPL": {
+              "dailyBar": {
+                "c": 342.41,
+                "h": 345.765,
+                "l": 338.59,
+                "n": 27591,
+                "o": 338.59,
+                "t": "2026-11-06T05:00:00Z",
+                "v": 1313258,
+                "vw": 342.947699
+              },
+              "latestQuote": {
+                "ap": 0,
+                "as": 0,
+                "ax": " ",
+                "bp": 328.06,
+                "bs": 40,
+                "bx": "V",
+                "c": [
+                  "R"
+                ],
+                "t": "2026-11-06T21:00:02.015070376Z",
+                "z": "C"
+              },
+              "latestTrade": {
+                "c": [
+                  "@"
+                ],
+                "i": 27590,
+                "p": 342.41,
+                "s": 50,
+                "t": "2026-11-06T20:59:57.566180707Z",
+                "x": "V",
+                "z": "C"
+              },
+              "minuteBar": {
+                "c": 342.41,
+                "h": 342.6,
+                "l": 342.31,
+                "n": 704,
+                "o": 342.37,
+                "t": "2026-11-06T20:59:00Z",
+                "v": 32953,
+                "vw": 342.452145
+              },
+              "prevDailyBar": {
+                "c": 344.6,
+                "h": 355.29,
+                "l": 342.1,
+                "n": 64409,
+                "o": 353.905,
+                "t": "2026-11-05T05:00:00Z",
+                "v": 3422622,
+                "vw": 346.797078
+              }
+            }
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Accept-Encoding",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "196",
+          "X-Ratelimit-Reset": "1794219223",
+          "X-Request-ID": "6f67efcc6a1c8b45b44b38def905d65a"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_with": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "2.3.3",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "bars": {
+      "AAPL": [
+        {
+          "c": 175.09,
+          "h": 176.85,
+          "l": 173.79,
+          "n": 21331,
+          "o": 176.3,
+          "t": "2024-03-04T05:00:00Z",
+          "v": 1705811,
+          "vw": 174.759337
+        },
+        {
+          "c": 170.13,
+          "h": 172.02,
+          "l": 169.64,
+          "n": 14852,
+          "o": 170.8,
+          "t": "2024-03-05T05:00:00Z",
+          "v": 1462313,
+          "vw": 170.367208
+        },
+        {
+          "c": 169.11,
+          "h": 171.21,
+          "l": 168.71,
+          "n": 11875,
+          "o": 171.115,
+          "t": "2024-03-06T05:00:00Z",
+          "v": 909179,
+          "vw": 169.541027
+        },
+        {
+          "c": 168.97,
+          "h": 170.685,
+          "l": 168.5,
+          "n": 13510,
+          "o": 169.15,
+          "t": "2024-03-07T05:00:00Z",
+          "v": 1216615,
+          "vw": 169.345488
+        },
+        {
+          "c": 170.98,
+          "h": 173.68,
+          "l": 168.975,
+          "n": 14317,
+          "o": 169.03,
+          "t": "2024-03-08T05:00:00Z",
+          "v": 1143439,
+          "vw": 171.734353
+        }
+      ],
+      "MSFT": [
+        {
+          "c": 414.86,
+          "h": 417.34,
+          "l": 412.62,
+          "n": 5221,
+          "o": 413.44,
+          "t": "2024-03-04T05:00:00Z",
+          "v": 261461,
+          "vw": 415.331156
+        },
+        {
+          "c": 402.71,
+          "h": 414.13,
+          "l": 400.65,
+          "n": 8723,
+          "o": 413.94,
+          "t": "2024-03-05T05:00:00Z",
+          "v": 488977,
+          "vw": 403.791097
+        },
+        {
+          "c": 402,
+          "h": 405.13,
+          "l": 398.525,
+          "n": 9035,
+          "o": 402.9,
+          "t": "2024-03-06T05:00:00Z",
+          "v": 528887,
+          "vw": 402.001494
+        },
+        {
+          "c": 409.02,
+          "h": 409.77,
+          "l": 402.39,
+          "n": 6973,
+          "o": 406.12,
+          "t": "2024-03-07T05:00:00Z",
+          "v": 348075,
+          "vw": 407.220164
+        },
+        {
+          "c": 406.23,
+          "h": 410.385,
+          "l": 404.455,
+          "n": 6805,
+          "o": 407.885,
+          "t": "2024-03-08T05:00:00Z",
+          "v": 265488,
+          "vw": 407.381689
+        }
+      ]
+    },
+    "quotes": {
+      "AAPL": {
+        "ap": 0,
+        "as": 0,
+        "ax": " ",
+        "bp": 328.06,
+        "bs": 40,
+        "bx": "V",
+        "c": [
+          "R"
+        ],
+        "t": "2026-11-06T21:00:02.015070376Z",
+        "z": "C"
+      }
+    },
+    "snapshots": {
+      "AAPL": {
+        "dailyBar": {
+          "c": 342.41,
+          "h": 345.765,
+          "l": 338.59,
+          "n": 27591,
+          "o": 338.59,
+          "t": "2026-11-06T05:00:00Z",
+          "v": 1313258,
+          "vw": 342.947699
+        },
+        "latestQuote": {
+          "ap": 0,
+          "as": 0,
+          "ax": " ",
+          "bp": 328.06,
+          "bs": 40,
+          "bx": "V",
+          "c": [
+            "R"
+          ],
+          "t": "2026-11-06T21:00:02.015070376Z",
+          "z": "C"
+        },
+        "latestTrade": {
+          "c": [
+            "@"
+          ],
+          "i": 27590,
+          "p": 342.41,
+          "s": 50,
+          "t": "2026-11-06T20:59:57.566180707Z",
+          "x": "V",
+          "z": "C"
+        },
+        "minuteBar": {
+          "c": 342.41,
+          "h": 342.6,
+          "l": 342.31,
+          "n": 704,
+          "o": 342.37,
+          "t": "2026-11-06T20:59:00Z",
+          "v": 32953,
+          "vw": 342.452145
+        },
+        "prevDailyBar": {
+          "c": 344.6,
+          "h": 355.29,
+          "l": 342.1,
+          "n": 64409,
+          "o": 353.905,
+          "t": "2026-11-05T05:00:00Z",
+          "v": 3422622,
+          "vw": 346.797078
+        }
+      }
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "raw_data.stock_data_raw_responses",
+  "scenario_sha256": "a2d699971057c815c9171a9a22b14073fd9c3b6b885774ff740778ca71223b60",
+  "vars": {}
+}

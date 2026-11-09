@@ -1,0 +1,211 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "end",
+            "2024-03-09T00:00:00+00:00"
+          ],
+          [
+            "feed",
+            "iex"
+          ],
+          [
+            "limit",
+            "10000"
+          ],
+          [
+            "start",
+            "2024-03-04T00:00:00+00:00"
+          ],
+          [
+            "symbols",
+            "AAPL"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v2/stocks/trades"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "next_page_token": "page-2",
+            "trades": {
+              "AAPL": [
+                {
+                  "c": [
+                    "@"
+                  ],
+                  "i": 1,
+                  "p": 175.0,
+                  "s": 100,
+                  "t": "2024-03-04T15:00:00Z",
+                  "x": "V",
+                  "z": "C"
+                }
+              ]
+            }
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "end",
+            "2024-03-09T00:00:00+00:00"
+          ],
+          [
+            "feed",
+            "iex"
+          ],
+          [
+            "limit",
+            "10000"
+          ],
+          [
+            "page_token",
+            "page-2"
+          ],
+          [
+            "start",
+            "2024-03-04T00:00:00+00:00"
+          ],
+          [
+            "symbols",
+            "AAPL"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v2/stocks/trades"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "next_page_token": null,
+            "trades": {
+              "AAPL": [
+                {
+                  "c": [
+                    "@"
+                  ],
+                  "i": 1,
+                  "p": 175.0,
+                  "s": 100,
+                  "t": "2024-03-04T15:00:00Z",
+                  "x": "V",
+                  "z": "C"
+                }
+              ]
+            }
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_against": "checkout",
+  "recorded_with": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "first": {
+      "__type__": "TradeSet",
+      "fields": {
+        "data": {
+          "AAPL": [
+            {
+              "__type__": "Trade",
+              "fields": {
+                "conditions": [
+                  "@"
+                ],
+                "exchange": "V",
+                "id": 1,
+                "price": 175.0,
+                "size": 100.0,
+                "symbol": "AAPL",
+                "tape": "C",
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-04T15:00:00+00:00"
+                }
+              }
+            }
+          ]
+        },
+        "next_page_token": "page-2"
+      }
+    },
+    "last": {
+      "__type__": "TradeSet",
+      "fields": {
+        "data": {
+          "AAPL": [
+            {
+              "__type__": "Trade",
+              "fields": {
+                "conditions": [
+                  "@"
+                ],
+                "exchange": "V",
+                "id": 1,
+                "price": 175.0,
+                "size": 100.0,
+                "symbol": "AAPL",
+                "tape": "C",
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-04T15:00:00+00:00"
+                }
+              }
+            }
+          ]
+        },
+        "next_page_token": null
+      }
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "market_data_pagination.stock_trades_one_page_at_a_time",
+  "scenario_sha256": "51aa7e807dadd76e70c002c17c9bb217d949797b8d252002dd6ebb58331ba9e1",
+  "vars": {}
+}

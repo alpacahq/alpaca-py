@@ -1,0 +1,142 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "period",
+            "1W"
+          ],
+          [
+            "timeframe",
+            "1D"
+          ]
+        ],
+        "url": "https://paper-api.alpaca.markets/v2/account/portfolio/history"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "base_value": 102046.87,
+            "base_value_asof": "2026-10-30",
+            "equity": [
+              102046.87,
+              102046.87,
+              102046.87,
+              102046.87,
+              102046.87
+            ],
+            "profit_loss": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "profit_loss_pct": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "timeframe": "1D",
+            "timestamp": [
+              1793667600,
+              1793754000,
+              1793840400,
+              1793926800,
+              1794013200
+            ]
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id,Apca-Api-Secret-Key,Authorization,Content-Type,X-Correspondent",
+          "Access-Control-Allow-Methods": "GET",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Expose-Headers": "Deprecated-Params",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json; charset=utf-8",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "197",
+          "X-Ratelimit-Reset": "1794219229",
+          "X-Request-Id": "03fb098a1865fabc7e1a7d47464a4df9"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_with": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "2.3.3",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "history": {
+      "__type__": "PortfolioHistory",
+      "fields": {
+        "base_value": 102046.87,
+        "base_value_asof": {
+          "__type__": "date",
+          "value": "2026-10-30"
+        },
+        "cashflow": {},
+        "equity": [
+          102046.87,
+          102046.87,
+          102046.87,
+          102046.87,
+          102046.87
+        ],
+        "profit_loss": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "profit_loss_pct": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "timeframe": "1D",
+        "timestamp": [
+          1793667600,
+          1793754000,
+          1793840400,
+          1793926800,
+          1794013200
+        ]
+      }
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "trading_account.portfolio_history_last_week",
+  "scenario_sha256": "b0d6d9c77ffcb614130b7095cdd2485a03fef9f1d8dc5e0fec83e057b86844ab",
+  "vars": {}
+}

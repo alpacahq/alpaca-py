@@ -1,0 +1,11 @@
+# Public client methods allowed to have no recorded consumer scenario.
+#
+# `check_coverage.py --strict` (CI) fails on any other public method without a
+# recorded scenario, and on entries here that are no longer needed (the method
+# is covered now, or no longer exists). Add an entry only on purpose, with the
+# reason; remove it once a scenario for it is recorded.
+#
+# One entry per line: a whole client (`BrokerClient`) or one method
+# (`TradingClient.get_foo`), then an optional `# reason`.
+
+BrokerClient  # needs Broker sandbox keys and its own safety rules; not wired in yet

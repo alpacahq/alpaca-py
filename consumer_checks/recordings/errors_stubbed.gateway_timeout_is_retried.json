@@ -1,0 +1,97 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/clock"
+      },
+      "response": {
+        "body": {
+          "text": "<html><body>504 Gateway Time-out</body></html>"
+        },
+        "headers": {
+          "Content-Type": "text/html"
+        },
+        "reason": "",
+        "status": 504
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/clock"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "is_open": true,
+            "next_close": "2024-03-04T16:00:00-05:00",
+            "next_open": "2024-03-05T09:30:00-05:00",
+            "timestamp": "2024-03-04T10:00:00-05:00"
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_with": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "2.3.3",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "clock": {
+      "__type__": "Clock",
+      "fields": {
+        "is_open": true,
+        "next_close": {
+          "__type__": "datetime",
+          "value": "2024-03-04T16:00:00-05:00"
+        },
+        "next_open": {
+          "__type__": "datetime",
+          "value": "2024-03-05T09:30:00-05:00"
+        },
+        "timestamp": {
+          "__type__": "datetime",
+          "value": "2024-03-04T10:00:00-05:00"
+        }
+      }
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "errors_stubbed.gateway_timeout_is_retried",
+  "scenario_sha256": "c69a1bc48e3b739558ed8a15aa87eba2215bed1209baa71ad99c7ade093260e5",
+  "vars": {}
+}

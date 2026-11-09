@@ -1,0 +1,397 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/clock"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "is_open": false,
+            "next_close": "2026-11-09T16:00:00-05:00",
+            "next_open": "2026-11-09T09:30:00-05:00",
+            "timestamp": "2026-11-09T05:13:42.770052917-05:00"
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Accept-Encoding",
+          "X-Ratelimit-Limit": "1000",
+          "X-Ratelimit-Remaining": "999",
+          "X-Ratelimit-Reset": "1794219222",
+          "X-Request-ID": "31cd782d46eb220612494b9c466bb24f"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/assets/AAPL"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "attributes": [
+              "fractional_eh_enabled",
+              "has_options",
+              "overnight_tradable"
+            ],
+            "borrow_status": "easy_to_borrow",
+            "class": "us_equity",
+            "easy_to_borrow": true,
+            "exchange": "NASDAQ",
+            "fractionable": true,
+            "id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+            "maintenance_margin_requirement": 30,
+            "margin_requirement_long": "30",
+            "margin_requirement_short": "30",
+            "marginable": true,
+            "name": "Apple Inc. Common Stock",
+            "shortable": true,
+            "status": "active",
+            "symbol": "AAPL",
+            "tradable": true
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization, Content-Type, X-Correspondent",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, POST, PATCH",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json; charset=UTF-8",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Origin",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "199",
+          "X-Ratelimit-Reset": "1794219223",
+          "X-Request-Id": "e02a5197b2ced724f2f2fee8f83f170b"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "end",
+            "2024-03-08"
+          ],
+          [
+            "start",
+            "2024-03-04"
+          ]
+        ],
+        "url": "https://paper-api.alpaca.markets/v2/calendar"
+      },
+      "response": {
+        "body": {
+          "json": [
+            {
+              "close": "16:00",
+              "date": "2024-03-04",
+              "open": "09:30",
+              "session_close": "2000",
+              "session_open": "0400",
+              "settlement_date": "2024-03-06"
+            },
+            {
+              "close": "16:00",
+              "date": "2024-03-05",
+              "open": "09:30",
+              "session_close": "2000",
+              "session_open": "0400",
+              "settlement_date": "2024-03-07"
+            },
+            {
+              "close": "16:00",
+              "date": "2024-03-06",
+              "open": "09:30",
+              "session_close": "2000",
+              "session_open": "0400",
+              "settlement_date": "2024-03-08"
+            },
+            {
+              "close": "16:00",
+              "date": "2024-03-07",
+              "open": "09:30",
+              "session_close": "2000",
+              "session_open": "0400",
+              "settlement_date": "2024-03-11"
+            },
+            {
+              "close": "16:00",
+              "date": "2024-03-08",
+              "open": "09:30",
+              "session_close": "2000",
+              "session_open": "0400",
+              "settlement_date": "2024-03-12"
+            }
+          ]
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Accept-Encoding",
+          "X-Ratelimit-Limit": "1000",
+          "X-Ratelimit-Remaining": "999",
+          "X-Ratelimit-Reset": "1794219223",
+          "X-Request-ID": "fdadb95bba38ced497e2871e7e37d280"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/account"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "account_blocked": false,
+            "account_number": "SCRUBBED",
+            "accrued_fees": "0",
+            "admin_configurations": {},
+            "balance_asof": "2026-11-06",
+            "buying_power": "408185.8",
+            "cash": "102046.45",
+            "created_at": "2026-06-09T12:06:41.526106Z",
+            "crypto_status": "ACTIVE",
+            "crypto_tier": 1,
+            "currency": "USD",
+            "effective_buying_power": "408185.8",
+            "equity": "102046.45",
+            "id": "00000000-0000-0000-0000-000000000000",
+            "initial_margin": "0",
+            "intraday_adjustments": "0",
+            "last_equity": "102046.87",
+            "last_maintenance_margin": "0",
+            "long_market_value": "0",
+            "maintenance_margin": "0",
+            "multiplier": "4",
+            "non_marginable_buying_power": "102046.45",
+            "options_approved_level": 3,
+            "options_buying_power": "102046.45",
+            "options_trading_level": 3,
+            "pending_reg_taf_fees": "0",
+            "portfolio_value": "102046.45",
+            "position_market_value": "0",
+            "regt_buying_power": "204092.9",
+            "short_market_value": "0",
+            "shorting_enabled": true,
+            "sma": "102046.87",
+            "status": "ACTIVE",
+            "trade_suspended_by_user": false,
+            "trading_blocked": false,
+            "transfers_blocked": false,
+            "user_configurations": {
+              "fractional_trading": true,
+              "max_margin_multiplier": "4",
+              "trade_confirm_email": "all"
+            }
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization, Content-Type, X-Correspondent",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, POST, PATCH",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json; charset=UTF-8",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Accept-Encoding, Origin",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "198",
+          "X-Ratelimit-Reset": "1794219223",
+          "X-Request-Id": "8daf2c58aa27415031d38b47e809e1c7"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_with": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "2.3.3",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "account": {
+      "account_blocked": false,
+      "account_number": "SCRUBBED",
+      "accrued_fees": "0",
+      "admin_configurations": {},
+      "balance_asof": "2026-11-06",
+      "buying_power": "408185.8",
+      "cash": "102046.45",
+      "created_at": "2026-06-09T12:06:41.526106Z",
+      "crypto_status": "ACTIVE",
+      "crypto_tier": 1,
+      "currency": "USD",
+      "effective_buying_power": "408185.8",
+      "equity": "102046.45",
+      "id": "00000000-0000-0000-0000-000000000000",
+      "initial_margin": "0",
+      "intraday_adjustments": "0",
+      "last_equity": "102046.87",
+      "last_maintenance_margin": "0",
+      "long_market_value": "0",
+      "maintenance_margin": "0",
+      "multiplier": "4",
+      "non_marginable_buying_power": "102046.45",
+      "options_approved_level": 3,
+      "options_buying_power": "102046.45",
+      "options_trading_level": 3,
+      "pending_reg_taf_fees": "0",
+      "portfolio_value": "102046.45",
+      "position_market_value": "0",
+      "regt_buying_power": "204092.9",
+      "short_market_value": "0",
+      "shorting_enabled": true,
+      "sma": "102046.87",
+      "status": "ACTIVE",
+      "trade_suspended_by_user": false,
+      "trading_blocked": false,
+      "transfers_blocked": false,
+      "user_configurations": {
+        "fractional_trading": true,
+        "max_margin_multiplier": "4",
+        "trade_confirm_email": "all"
+      }
+    },
+    "asset": {
+      "attributes": [
+        "fractional_eh_enabled",
+        "has_options",
+        "overnight_tradable"
+      ],
+      "borrow_status": "easy_to_borrow",
+      "class": "us_equity",
+      "easy_to_borrow": true,
+      "exchange": "NASDAQ",
+      "fractionable": true,
+      "id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+      "maintenance_margin_requirement": 30,
+      "margin_requirement_long": "30",
+      "margin_requirement_short": "30",
+      "marginable": true,
+      "name": "Apple Inc. Common Stock",
+      "shortable": true,
+      "status": "active",
+      "symbol": "AAPL",
+      "tradable": true
+    },
+    "clock": {
+      "is_open": false,
+      "next_close": "2026-11-09T16:00:00-05:00",
+      "next_open": "2026-11-09T09:30:00-05:00",
+      "timestamp": "2026-11-09T05:13:42.770052917-05:00"
+    },
+    "days": [
+      {
+        "close": "16:00",
+        "date": "2024-03-04",
+        "open": "09:30",
+        "session_close": "2000",
+        "session_open": "0400",
+        "settlement_date": "2024-03-06"
+      },
+      {
+        "close": "16:00",
+        "date": "2024-03-05",
+        "open": "09:30",
+        "session_close": "2000",
+        "session_open": "0400",
+        "settlement_date": "2024-03-07"
+      },
+      {
+        "close": "16:00",
+        "date": "2024-03-06",
+        "open": "09:30",
+        "session_close": "2000",
+        "session_open": "0400",
+        "settlement_date": "2024-03-08"
+      },
+      {
+        "close": "16:00",
+        "date": "2024-03-07",
+        "open": "09:30",
+        "session_close": "2000",
+        "session_open": "0400",
+        "settlement_date": "2024-03-11"
+      },
+      {
+        "close": "16:00",
+        "date": "2024-03-08",
+        "open": "09:30",
+        "session_close": "2000",
+        "session_open": "0400",
+        "settlement_date": "2024-03-12"
+      }
+    ]
+  },
+  "result_from": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "raw_data.trading_raw_responses",
+  "scenario_sha256": "b50613e76a333025e99d00b1f8ce009a6d3382d2d67524bbf8dea1091733e6d8",
+  "vars": {}
+}

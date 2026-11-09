@@ -1,0 +1,191 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "end",
+            "2024-03-09T00:00:00+00:00"
+          ],
+          [
+            "limit",
+            "10000"
+          ],
+          [
+            "start",
+            "2024-03-04T00:00:00+00:00"
+          ],
+          [
+            "symbols",
+            "BTC/USD"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v1beta3/crypto/us/trades"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "next_page_token": "page-2",
+            "trades": {
+              "BTC/USD": [
+                {
+                  "i": 1,
+                  "p": 63000.0,
+                  "s": 0.0014,
+                  "t": "2024-03-04T15:00:00Z",
+                  "tks": "B"
+                }
+              ]
+            }
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "end",
+            "2024-03-09T00:00:00+00:00"
+          ],
+          [
+            "limit",
+            "10000"
+          ],
+          [
+            "page_token",
+            "page-2"
+          ],
+          [
+            "start",
+            "2024-03-04T00:00:00+00:00"
+          ],
+          [
+            "symbols",
+            "BTC/USD"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v1beta3/crypto/us/trades"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "next_page_token": null,
+            "trades": {
+              "BTC/USD": [
+                {
+                  "i": 1,
+                  "p": 63000.0,
+                  "s": 0.0014,
+                  "t": "2024-03-04T15:00:00Z",
+                  "tks": "B"
+                }
+              ]
+            }
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_against": "checkout",
+  "recorded_with": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "first": {
+      "__type__": "TradeSet",
+      "fields": {
+        "data": {
+          "BTC/USD": [
+            {
+              "__type__": "Trade",
+              "fields": {
+                "conditions": null,
+                "exchange": null,
+                "id": 1,
+                "price": 63000.0,
+                "size": 0.0014,
+                "symbol": "BTC/USD",
+                "tape": null,
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-04T15:00:00+00:00"
+                }
+              }
+            }
+          ]
+        },
+        "next_page_token": "page-2"
+      }
+    },
+    "last": {
+      "__type__": "TradeSet",
+      "fields": {
+        "data": {
+          "BTC/USD": [
+            {
+              "__type__": "Trade",
+              "fields": {
+                "conditions": null,
+                "exchange": null,
+                "id": 1,
+                "price": 63000.0,
+                "size": 0.0014,
+                "symbol": "BTC/USD",
+                "tape": null,
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-04T15:00:00+00:00"
+                }
+              }
+            }
+          ]
+        },
+        "next_page_token": null
+      }
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "market_data_pagination.crypto_trades_one_page_at_a_time",
+  "scenario_sha256": "6686b325d4022c825a705c727195c533e147871812e2b8d8f1463e4fd602af6a",
+  "vars": {}
+}

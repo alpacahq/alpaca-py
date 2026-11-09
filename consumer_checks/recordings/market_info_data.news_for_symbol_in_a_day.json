@@ -1,0 +1,492 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "end",
+            "2024-03-05T00:00:00+00:00"
+          ],
+          [
+            "limit",
+            "3"
+          ],
+          [
+            "start",
+            "2024-03-04T00:00:00+00:00"
+          ],
+          [
+            "symbols",
+            "AAPL"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v1beta1/news"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "news": [
+              {
+                "author": "Chris Katje",
+                "content": "",
+                "created_at": "2024-03-04T22:04:34Z",
+                "headline": "Betting On The Oscars: 'Oppenheimer,' 'Barbie' Success Could Mean Big Payouts For Bettors",
+                "id": 37469239,
+                "images": [
+                  {
+                    "size": "large",
+                    "url": "https://cdn.benzinga.com/files/imagecache/2048x1536xUP/images/story/2024/The-Replica-Of-The-Oscars-Award_1.jpeg"
+                  },
+                  {
+                    "size": "small",
+                    "url": "https://cdn.benzinga.com/files/imagecache/1024x768xUP/images/story/2024/The-Replica-Of-The-Oscars-Award_1.jpeg"
+                  },
+                  {
+                    "size": "thumb",
+                    "url": "https://cdn.benzinga.com/files/imagecache/250x187xUP/images/story/2024/The-Replica-Of-The-Oscars-Award_1.jpeg"
+                  }
+                ],
+                "source": "benzinga",
+                "summary": "Looking at the betting favorites for key award categories for the Academy Awards. Can Barbie and Oppenheimer help bettors profit?",
+                "symbols": [
+                  "AAPL",
+                  "CMCSA",
+                  "DIS",
+                  "DKNG",
+                  "MAT",
+                  "NFLX",
+                  "WBD"
+                ],
+                "updated_at": "2024-03-04T22:04:34Z",
+                "url": "https://www.benzinga.com/general/entertainment/24/03/37469239/betting-on-the-oscars-oppenheimer-barbie-success-could-mean-big-payouts-for-bettors"
+              },
+              {
+                "author": "Piero Cingari",
+                "content": "",
+                "created_at": "2024-03-04T18:36:04Z",
+                "headline": "Stocks Stall, Magnificent 7 Crack As Apple, Tesla And Google Face Headwinds; Bitcoin, Gold Eye Record Highs: What's Driving Markets Monday?",
+                "id": 37464820,
+                "images": [
+                  {
+                    "size": "large",
+                    "url": "https://cdn.benzinga.com/files/imagecache/2048x1536xUP/images/story/2024/Bull-and-bear-stock-market-index_8.jpeg"
+                  },
+                  {
+                    "size": "small",
+                    "url": "https://cdn.benzinga.com/files/imagecache/1024x768xUP/images/story/2024/Bull-and-bear-stock-market-index_8.jpeg"
+                  },
+                  {
+                    "size": "thumb",
+                    "url": "https://cdn.benzinga.com/files/imagecache/250x187xUP/images/story/2024/Bull-and-bear-stock-market-index_8.jpeg"
+                  }
+                ],
+                "source": "benzinga",
+                "summary": "It’s a quiet start to the week on Wall Street, with major stock indices hovering around the flatline as of midday in New York.",
+                "symbols": [
+                  "AAPL",
+                  "BTCUSD",
+                  "DIA",
+                  "GOOGL",
+                  "HPE",
+                  "IWM",
+                  "JBLU",
+                  "M",
+                  "NVDA",
+                  "NYCB",
+                  "QQQ",
+                  "SAVE",
+                  "SPY",
+                  "TSLA",
+                  "XLC",
+                  "XLK",
+                  "XLU"
+                ],
+                "updated_at": "2024-03-04T18:36:06Z",
+                "url": "https://www.benzinga.com/analyst-ratings/analyst-color/24/03/37464820/stocks-stall-magnificent-7-crack-as-apple-tesla-and-google-face-headwinds-bitcoin-g"
+              },
+              {
+                "author": "Anusuya Lahiri",
+                "content": "",
+                "created_at": "2024-03-04T17:27:20Z",
+                "headline": "Frank Slootman Steps Down as Snowflake CEO, Leaves Behind $3.7B Legacy",
+                "id": 37462546,
+                "images": [
+                  {
+                    "size": "large",
+                    "url": "https://cdn.benzinga.com/files/imagecache/2048x1536xUP/images/story/2024/snowflake-shutter_3.jpeg"
+                  },
+                  {
+                    "size": "small",
+                    "url": "https://cdn.benzinga.com/files/imagecache/1024x768xUP/images/story/2024/snowflake-shutter_3.jpeg"
+                  },
+                  {
+                    "size": "thumb",
+                    "url": "https://cdn.benzinga.com/files/imagecache/250x187xUP/images/story/2024/snowflake-shutter_3.jpeg"
+                  }
+                ],
+                "source": "benzinga",
+                "summary": "Slootman departs as Snowflake&#39;s CEO with a net worth of $3.7 billion, surpassing tech giants like Apple&#39;s Tim Cook and Microsoft&#39;s Satya Nadella.",
+                "symbols": [
+                  "AAPL",
+                  "DAT",
+                  "GOOG",
+                  "GOOGL",
+                  "MSFT",
+                  "SNOW",
+                  "SPRX"
+                ],
+                "updated_at": "2024-03-04T17:27:21Z",
+                "url": "https://www.benzinga.com/news/24/03/37462546/frank-slootman-steps-down-as-snowflake-ceo-leaves-behind-3-7b-legacy"
+              }
+            ],
+            "next_page_token": "MTcwOTU3MzI0MTAwMDAwMDAwMHwzNzQ2MjU0Ng=="
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Accept-Encoding",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "199",
+          "X-Ratelimit-Reset": "1794219217",
+          "X-Request-ID": "56d8d51ec3cd47fa667b9ec45a3ff7bf"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_with": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "2.3.3",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "df": {
+      "__type__": "DataFrame",
+      "columns": [
+        "headline",
+        "source",
+        "url",
+        "summary",
+        "created_at",
+        "updated_at",
+        "symbols",
+        "author",
+        "content",
+        "images"
+      ],
+      "dtypes": {
+        "author": "str",
+        "content": "str",
+        "created_at": "datetime64[us, UTC]",
+        "headline": "str",
+        "images": "object",
+        "source": "str",
+        "summary": "str",
+        "symbols": "object",
+        "updated_at": "datetime64[us, UTC]",
+        "url": "str"
+      },
+      "head": [
+        [
+          "37469239",
+          [
+            "Betting On The Oscars: 'Oppenheimer,' 'Barbie' Success Could Mean Big Payouts For Bettors",
+            "benzinga",
+            "https://www.benzinga.com/general/entertainment/24/03/37469239/betting-on-the-oscars-oppenheimer-barbie-success-could-mean-big-payouts-for-bettors",
+            "Looking at the betting favorites for key award categories for the Academy Awards. Can Barbie and Oppenheimer help bettors profit?",
+            "2024-03-04 22:04:34+00:00",
+            "2024-03-04 22:04:34+00:00",
+            "['AAPL', 'CMCSA', 'DIS', 'DKNG', 'MAT', 'NFLX', 'WBD']",
+            "Chris Katje",
+            "",
+            "[{'size': <NewsImageSize.LARGE: 'large'>, 'url': 'https://cdn.benzinga.com/files/imagecache/2048x1536xUP/images/story/2024/The-Replica-Of-The-Oscars-Award_1.jpeg'}, {'size': <NewsImageSize.SMALL: 'small'>, 'url': 'https://cdn.benzinga.com/files/imagecache/1024x768xUP/images/story/2024/The-Replica-Of-The-Oscars-Award_1.jpeg'}, {'size': <NewsImageSize.THUMB: 'thumb'>, 'url': 'https://cdn.benzinga.com/files/imagecache/250x187xUP/images/story/2024/The-Replica-Of-The-Oscars-Award_1.jpeg'}]"
+          ]
+        ],
+        [
+          "37464820",
+          [
+            "Stocks Stall, Magnificent 7 Crack As Apple, Tesla And Google Face Headwinds; Bitcoin, Gold Eye Record Highs: What's Driving Markets Monday?",
+            "benzinga",
+            "https://www.benzinga.com/analyst-ratings/analyst-color/24/03/37464820/stocks-stall-magnificent-7-crack-as-apple-tesla-and-google-face-headwinds-bitcoin-g",
+            "It’s a quiet start to the week on Wall Street, with major stock indices hovering around the flatline as of midday in New York.",
+            "2024-03-04 18:36:04+00:00",
+            "2024-03-04 18:36:06+00:00",
+            "['AAPL', 'BTCUSD', 'DIA', 'GOOGL', 'HPE', 'IWM', 'JBLU', 'M', 'NVDA', 'NYCB', 'QQQ', 'SAVE', 'SPY', 'TSLA', 'XLC', 'XLK', 'XLU']",
+            "Piero Cingari",
+            "",
+            "[{'size': <NewsImageSize.LARGE: 'large'>, 'url': 'https://cdn.benzinga.com/files/imagecache/2048x1536xUP/images/story/2024/Bull-and-bear-stock-market-index_8.jpeg'}, {'size': <NewsImageSize.SMALL: 'small'>, 'url': 'https://cdn.benzinga.com/files/imagecache/1024x768xUP/images/story/2024/Bull-and-bear-stock-market-index_8.jpeg'}, {'size': <NewsImageSize.THUMB: 'thumb'>, 'url': 'https://cdn.benzinga.com/files/imagecache/250x187xUP/images/story/2024/Bull-and-bear-stock-market-index_8.jpeg'}]"
+          ]
+        ],
+        [
+          "37462546",
+          [
+            "Frank Slootman Steps Down as Snowflake CEO, Leaves Behind $3.7B Legacy",
+            "benzinga",
+            "https://www.benzinga.com/news/24/03/37462546/frank-slootman-steps-down-as-snowflake-ceo-leaves-behind-3-7b-legacy",
+            "Slootman departs as Snowflake&#39;s CEO with a net worth of $3.7 billion, surpassing tech giants like Apple&#39;s Tim Cook and Microsoft&#39;s Satya Nadella.",
+            "2024-03-04 17:27:20+00:00",
+            "2024-03-04 17:27:21+00:00",
+            "['AAPL', 'DAT', 'GOOG', 'GOOGL', 'MSFT', 'SNOW', 'SPRX']",
+            "Anusuya Lahiri",
+            "",
+            "[{'size': <NewsImageSize.LARGE: 'large'>, 'url': 'https://cdn.benzinga.com/files/imagecache/2048x1536xUP/images/story/2024/snowflake-shutter_3.jpeg'}, {'size': <NewsImageSize.SMALL: 'small'>, 'url': 'https://cdn.benzinga.com/files/imagecache/1024x768xUP/images/story/2024/snowflake-shutter_3.jpeg'}, {'size': <NewsImageSize.THUMB: 'thumb'>, 'url': 'https://cdn.benzinga.com/files/imagecache/250x187xUP/images/story/2024/snowflake-shutter_3.jpeg'}]"
+          ]
+        ]
+      ],
+      "index": {
+        "dtypes": [
+          "int64"
+        ],
+        "names": [
+          "id"
+        ]
+      },
+      "shape": [
+        3,
+        10
+      ]
+    },
+    "news": {
+      "__type__": "NewsSet",
+      "fields": {
+        "data": {
+          "news": [
+            {
+              "__type__": "News",
+              "fields": {
+                "author": "Chris Katje",
+                "content": "",
+                "created_at": {
+                  "__type__": "datetime",
+                  "value": "2024-03-04T22:04:34+00:00"
+                },
+                "headline": "Betting On The Oscars: 'Oppenheimer,' 'Barbie' Success Could Mean Big Payouts For Bettors",
+                "id": 37469239,
+                "images": [
+                  {
+                    "__type__": "NewsImage",
+                    "fields": {
+                      "size": {
+                        "__type__": "NewsImageSize",
+                        "name": "LARGE",
+                        "value": "large"
+                      },
+                      "url": "https://cdn.benzinga.com/files/imagecache/2048x1536xUP/images/story/2024/The-Replica-Of-The-Oscars-Award_1.jpeg"
+                    }
+                  },
+                  {
+                    "__type__": "NewsImage",
+                    "fields": {
+                      "size": {
+                        "__type__": "NewsImageSize",
+                        "name": "SMALL",
+                        "value": "small"
+                      },
+                      "url": "https://cdn.benzinga.com/files/imagecache/1024x768xUP/images/story/2024/The-Replica-Of-The-Oscars-Award_1.jpeg"
+                    }
+                  },
+                  {
+                    "__type__": "NewsImage",
+                    "fields": {
+                      "size": {
+                        "__type__": "NewsImageSize",
+                        "name": "THUMB",
+                        "value": "thumb"
+                      },
+                      "url": "https://cdn.benzinga.com/files/imagecache/250x187xUP/images/story/2024/The-Replica-Of-The-Oscars-Award_1.jpeg"
+                    }
+                  }
+                ],
+                "source": "benzinga",
+                "summary": "Looking at the betting favorites for key award categories for the Academy Awards. Can Barbie and Oppenheimer help bettors profit?",
+                "symbols": [
+                  "AAPL",
+                  "CMCSA",
+                  "DIS",
+                  "DKNG",
+                  "MAT",
+                  "NFLX",
+                  "WBD"
+                ],
+                "updated_at": {
+                  "__type__": "datetime",
+                  "value": "2024-03-04T22:04:34+00:00"
+                },
+                "url": "https://www.benzinga.com/general/entertainment/24/03/37469239/betting-on-the-oscars-oppenheimer-barbie-success-could-mean-big-payouts-for-bettors"
+              }
+            },
+            {
+              "__type__": "News",
+              "fields": {
+                "author": "Piero Cingari",
+                "content": "",
+                "created_at": {
+                  "__type__": "datetime",
+                  "value": "2024-03-04T18:36:04+00:00"
+                },
+                "headline": "Stocks Stall, Magnificent 7 Crack As Apple, Tesla And Google Face Headwinds; Bitcoin, Gold Eye Record Highs: What's Driving Markets Monday?",
+                "id": 37464820,
+                "images": [
+                  {
+                    "__type__": "NewsImage",
+                    "fields": {
+                      "size": {
+                        "__type__": "NewsImageSize",
+                        "name": "LARGE",
+                        "value": "large"
+                      },
+                      "url": "https://cdn.benzinga.com/files/imagecache/2048x1536xUP/images/story/2024/Bull-and-bear-stock-market-index_8.jpeg"
+                    }
+                  },
+                  {
+                    "__type__": "NewsImage",
+                    "fields": {
+                      "size": {
+                        "__type__": "NewsImageSize",
+                        "name": "SMALL",
+                        "value": "small"
+                      },
+                      "url": "https://cdn.benzinga.com/files/imagecache/1024x768xUP/images/story/2024/Bull-and-bear-stock-market-index_8.jpeg"
+                    }
+                  },
+                  {
+                    "__type__": "NewsImage",
+                    "fields": {
+                      "size": {
+                        "__type__": "NewsImageSize",
+                        "name": "THUMB",
+                        "value": "thumb"
+                      },
+                      "url": "https://cdn.benzinga.com/files/imagecache/250x187xUP/images/story/2024/Bull-and-bear-stock-market-index_8.jpeg"
+                    }
+                  }
+                ],
+                "source": "benzinga",
+                "summary": "It’s a quiet start to the week on Wall Street, with major stock indices hovering around the flatline as of midday in New York.",
+                "symbols": [
+                  "AAPL",
+                  "BTCUSD",
+                  "DIA",
+                  "GOOGL",
+                  "HPE",
+                  "IWM",
+                  "JBLU",
+                  "M",
+                  "NVDA",
+                  "NYCB",
+                  "QQQ",
+                  "SAVE",
+                  "SPY",
+                  "TSLA",
+                  "XLC",
+                  "XLK",
+                  "XLU"
+                ],
+                "updated_at": {
+                  "__type__": "datetime",
+                  "value": "2024-03-04T18:36:06+00:00"
+                },
+                "url": "https://www.benzinga.com/analyst-ratings/analyst-color/24/03/37464820/stocks-stall-magnificent-7-crack-as-apple-tesla-and-google-face-headwinds-bitcoin-g"
+              }
+            },
+            {
+              "__type__": "News",
+              "fields": {
+                "author": "Anusuya Lahiri",
+                "content": "",
+                "created_at": {
+                  "__type__": "datetime",
+                  "value": "2024-03-04T17:27:20+00:00"
+                },
+                "headline": "Frank Slootman Steps Down as Snowflake CEO, Leaves Behind $3.7B Legacy",
+                "id": 37462546,
+                "images": [
+                  {
+                    "__type__": "NewsImage",
+                    "fields": {
+                      "size": {
+                        "__type__": "NewsImageSize",
+                        "name": "LARGE",
+                        "value": "large"
+                      },
+                      "url": "https://cdn.benzinga.com/files/imagecache/2048x1536xUP/images/story/2024/snowflake-shutter_3.jpeg"
+                    }
+                  },
+                  {
+                    "__type__": "NewsImage",
+                    "fields": {
+                      "size": {
+                        "__type__": "NewsImageSize",
+                        "name": "SMALL",
+                        "value": "small"
+                      },
+                      "url": "https://cdn.benzinga.com/files/imagecache/1024x768xUP/images/story/2024/snowflake-shutter_3.jpeg"
+                    }
+                  },
+                  {
+                    "__type__": "NewsImage",
+                    "fields": {
+                      "size": {
+                        "__type__": "NewsImageSize",
+                        "name": "THUMB",
+                        "value": "thumb"
+                      },
+                      "url": "https://cdn.benzinga.com/files/imagecache/250x187xUP/images/story/2024/snowflake-shutter_3.jpeg"
+                    }
+                  }
+                ],
+                "source": "benzinga",
+                "summary": "Slootman departs as Snowflake&#39;s CEO with a net worth of $3.7 billion, surpassing tech giants like Apple&#39;s Tim Cook and Microsoft&#39;s Satya Nadella.",
+                "symbols": [
+                  "AAPL",
+                  "DAT",
+                  "GOOG",
+                  "GOOGL",
+                  "MSFT",
+                  "SNOW",
+                  "SPRX"
+                ],
+                "updated_at": {
+                  "__type__": "datetime",
+                  "value": "2024-03-04T17:27:21+00:00"
+                },
+                "url": "https://www.benzinga.com/news/24/03/37462546/frank-slootman-steps-down-as-snowflake-ceo-leaves-behind-3-7b-legacy"
+              }
+            }
+          ]
+        },
+        "next_page_token": null
+      }
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "market_info_data.news_for_symbol_in_a_day",
+  "scenario_sha256": "d6446ef3362d8e69da02f4c3ac656ccf2e212cbae936fe7221b975b26ad850b8",
+  "vars": {}
+}

@@ -1,0 +1,506 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "limit",
+            "3"
+          ],
+          [
+            "status",
+            "active"
+          ],
+          [
+            "type",
+            "call"
+          ],
+          [
+            "underlying_symbols",
+            "AAPL"
+          ]
+        ],
+        "url": "https://paper-api.alpaca.markets/v2/options/contracts"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "next_page_token": "Mw==",
+            "option_contracts": [
+              {
+                "close_price": "67.97",
+                "close_price_date": "2026-11-06",
+                "expiration_date": "2026-11-09",
+                "id": "23b3490f-b1fe-44b8-89c3-6a9ce92cded1",
+                "multiplier": "100",
+                "name": "AAPL Nov 09 2026 275 Call",
+                "open_interest": null,
+                "open_interest_date": null,
+                "ppind": true,
+                "root_symbol": "AAPL",
+                "size": "100",
+                "status": "active",
+                "strike_price": "275",
+                "style": "american",
+                "symbol": "AAPL261109C00275000",
+                "tradable": true,
+                "type": "call",
+                "underlying_asset_id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+                "underlying_symbol": "AAPL"
+              },
+              {
+                "close_price": "64.18",
+                "close_price_date": "2026-11-06",
+                "expiration_date": "2026-11-09",
+                "id": "645a4f13-3784-466f-96a3-74d2c7bffeb9",
+                "multiplier": "100",
+                "name": "AAPL Nov 09 2026 280 Call",
+                "open_interest": "2",
+                "open_interest_date": "2026-11-05",
+                "ppind": true,
+                "root_symbol": "AAPL",
+                "size": "100",
+                "status": "active",
+                "strike_price": "280",
+                "style": "american",
+                "symbol": "AAPL261109C00280000",
+                "tradable": true,
+                "type": "call",
+                "underlying_asset_id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+                "underlying_symbol": "AAPL"
+              },
+              {
+                "close_price": "58.42",
+                "close_price_date": "2026-11-06",
+                "expiration_date": "2026-11-09",
+                "id": "51954175-2403-4705-9709-c88e5592d1f8",
+                "multiplier": "100",
+                "name": "AAPL Nov 09 2026 285 Call",
+                "open_interest": "36",
+                "open_interest_date": "2026-11-05",
+                "ppind": true,
+                "root_symbol": "AAPL",
+                "size": "100",
+                "status": "active",
+                "strike_price": "285",
+                "style": "american",
+                "symbol": "AAPL261109C00285000",
+                "tradable": true,
+                "type": "call",
+                "underlying_asset_id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+                "underlying_symbol": "AAPL"
+              }
+            ]
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization, Content-Type, X-Correspondent",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, POST, PATCH",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json; charset=UTF-8",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Accept-Encoding, Origin",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "194",
+          "X-Ratelimit-Reset": "1794219239",
+          "X-Request-Id": "73702979eecef80586fb472ad263ba80"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/options/contracts/AAPL261109C00275000"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "close_price": "67.97",
+            "close_price_date": "2026-11-06",
+            "deliverables": [
+              {
+                "allocation_percentage": "100",
+                "amount": "100",
+                "asset_id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+                "delayed_settlement": false,
+                "settlement_method": "CCC",
+                "settlement_type": "T+1",
+                "symbol": "AAPL",
+                "type": "equity"
+              }
+            ],
+            "expiration_date": "2026-11-09",
+            "id": "23b3490f-b1fe-44b8-89c3-6a9ce92cded1",
+            "multiplier": "100",
+            "name": "AAPL Nov 09 2026 275 Call",
+            "open_interest": null,
+            "open_interest_date": null,
+            "ppind": true,
+            "root_symbol": "AAPL",
+            "size": "100",
+            "status": "active",
+            "strike_price": "275",
+            "style": "american",
+            "symbol": "AAPL261109C00275000",
+            "tradable": true,
+            "type": "call",
+            "underlying_asset_id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+            "underlying_symbol": "AAPL"
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization, Content-Type, X-Correspondent",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, POST, PATCH",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json; charset=UTF-8",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Origin",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "193",
+          "X-Ratelimit-Reset": "1794219239",
+          "X-Request-Id": "588bf4d9605c7685686f1b75ed2a7d99"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/options/contracts/23b3490f-b1fe-44b8-89c3-6a9ce92cded1"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "close_price": "67.97",
+            "close_price_date": "2026-11-06",
+            "deliverables": [
+              {
+                "allocation_percentage": "100",
+                "amount": "100",
+                "asset_id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+                "delayed_settlement": false,
+                "settlement_method": "CCC",
+                "settlement_type": "T+1",
+                "symbol": "AAPL",
+                "type": "equity"
+              }
+            ],
+            "expiration_date": "2026-11-09",
+            "id": "23b3490f-b1fe-44b8-89c3-6a9ce92cded1",
+            "multiplier": "100",
+            "name": "AAPL Nov 09 2026 275 Call",
+            "open_interest": null,
+            "open_interest_date": null,
+            "ppind": true,
+            "root_symbol": "AAPL",
+            "size": "100",
+            "status": "active",
+            "strike_price": "275",
+            "style": "american",
+            "symbol": "AAPL261109C00275000",
+            "tradable": true,
+            "type": "call",
+            "underlying_asset_id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+            "underlying_symbol": "AAPL"
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization, Content-Type, X-Correspondent",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, POST, PATCH",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json; charset=UTF-8",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Origin",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "192",
+          "X-Ratelimit-Reset": "1794219240",
+          "X-Request-Id": "b8769a83adc27ee03531a02e7a442a66"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_with": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "2.3.3",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "by_symbol": {
+      "__type__": "OptionContract",
+      "fields": {
+        "close_price": "67.97",
+        "close_price_date": {
+          "__type__": "date",
+          "value": "2026-11-06"
+        },
+        "deliverables": [
+          {
+            "__type__": "OptionDeliverable",
+            "fields": {
+              "allocation_percentage": "100",
+              "amount": "100",
+              "asset_id": {
+                "__type__": "UUID",
+                "value": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415"
+              },
+              "delayed_settlement": false,
+              "settlement_method": {
+                "__type__": "OptionDeliverableSettlementMethod",
+                "name": "CCC",
+                "value": "CCC"
+              },
+              "settlement_type": {
+                "__type__": "OptionDeliverableSettlementType",
+                "name": "T_PLUS_1",
+                "value": "T+1"
+              },
+              "symbol": "AAPL",
+              "type": {
+                "__type__": "OptionDeliverableType",
+                "name": "EQUITY",
+                "value": "equity"
+              }
+            }
+          }
+        ],
+        "expiration_date": {
+          "__type__": "date",
+          "value": "2026-11-09"
+        },
+        "id": "23b3490f-b1fe-44b8-89c3-6a9ce92cded1",
+        "multiplier": "100",
+        "name": "AAPL Nov 09 2026 275 Call",
+        "open_interest": null,
+        "open_interest_date": null,
+        "ppind": true,
+        "root_symbol": "AAPL",
+        "size": "100",
+        "status": {
+          "__type__": "AssetStatus",
+          "name": "ACTIVE",
+          "value": "active"
+        },
+        "strike_price": 275.0,
+        "style": {
+          "__type__": "ExerciseStyle",
+          "name": "AMERICAN",
+          "value": "american"
+        },
+        "symbol": "AAPL261109C00275000",
+        "tradable": true,
+        "type": {
+          "__type__": "ContractType",
+          "name": "CALL",
+          "value": "call"
+        },
+        "underlying_asset_id": {
+          "__type__": "UUID",
+          "value": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415"
+        },
+        "underlying_symbol": "AAPL"
+      }
+    },
+    "response": {
+      "__type__": "OptionContractsResponse",
+      "fields": {
+        "next_page_token": "Mw==",
+        "option_contracts": [
+          {
+            "__type__": "OptionContract",
+            "fields": {
+              "close_price": "67.97",
+              "close_price_date": {
+                "__type__": "date",
+                "value": "2026-11-06"
+              },
+              "deliverables": null,
+              "expiration_date": {
+                "__type__": "date",
+                "value": "2026-11-09"
+              },
+              "id": "23b3490f-b1fe-44b8-89c3-6a9ce92cded1",
+              "multiplier": "100",
+              "name": "AAPL Nov 09 2026 275 Call",
+              "open_interest": null,
+              "open_interest_date": null,
+              "ppind": true,
+              "root_symbol": "AAPL",
+              "size": "100",
+              "status": {
+                "__type__": "AssetStatus",
+                "name": "ACTIVE",
+                "value": "active"
+              },
+              "strike_price": 275.0,
+              "style": {
+                "__type__": "ExerciseStyle",
+                "name": "AMERICAN",
+                "value": "american"
+              },
+              "symbol": "AAPL261109C00275000",
+              "tradable": true,
+              "type": {
+                "__type__": "ContractType",
+                "name": "CALL",
+                "value": "call"
+              },
+              "underlying_asset_id": {
+                "__type__": "UUID",
+                "value": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415"
+              },
+              "underlying_symbol": "AAPL"
+            }
+          },
+          {
+            "__type__": "OptionContract",
+            "fields": {
+              "close_price": "64.18",
+              "close_price_date": {
+                "__type__": "date",
+                "value": "2026-11-06"
+              },
+              "deliverables": null,
+              "expiration_date": {
+                "__type__": "date",
+                "value": "2026-11-09"
+              },
+              "id": "645a4f13-3784-466f-96a3-74d2c7bffeb9",
+              "multiplier": "100",
+              "name": "AAPL Nov 09 2026 280 Call",
+              "open_interest": "2",
+              "open_interest_date": {
+                "__type__": "date",
+                "value": "2026-11-05"
+              },
+              "ppind": true,
+              "root_symbol": "AAPL",
+              "size": "100",
+              "status": {
+                "__type__": "AssetStatus",
+                "name": "ACTIVE",
+                "value": "active"
+              },
+              "strike_price": 280.0,
+              "style": {
+                "__type__": "ExerciseStyle",
+                "name": "AMERICAN",
+                "value": "american"
+              },
+              "symbol": "AAPL261109C00280000",
+              "tradable": true,
+              "type": {
+                "__type__": "ContractType",
+                "name": "CALL",
+                "value": "call"
+              },
+              "underlying_asset_id": {
+                "__type__": "UUID",
+                "value": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415"
+              },
+              "underlying_symbol": "AAPL"
+            }
+          },
+          {
+            "__type__": "OptionContract",
+            "fields": {
+              "close_price": "58.42",
+              "close_price_date": {
+                "__type__": "date",
+                "value": "2026-11-06"
+              },
+              "deliverables": null,
+              "expiration_date": {
+                "__type__": "date",
+                "value": "2026-11-09"
+              },
+              "id": "51954175-2403-4705-9709-c88e5592d1f8",
+              "multiplier": "100",
+              "name": "AAPL Nov 09 2026 285 Call",
+              "open_interest": "36",
+              "open_interest_date": {
+                "__type__": "date",
+                "value": "2026-11-05"
+              },
+              "ppind": true,
+              "root_symbol": "AAPL",
+              "size": "100",
+              "status": {
+                "__type__": "AssetStatus",
+                "name": "ACTIVE",
+                "value": "active"
+              },
+              "strike_price": 285.0,
+              "style": {
+                "__type__": "ExerciseStyle",
+                "name": "AMERICAN",
+                "value": "american"
+              },
+              "symbol": "AAPL261109C00285000",
+              "tradable": true,
+              "type": {
+                "__type__": "ContractType",
+                "name": "CALL",
+                "value": "call"
+              },
+              "underlying_asset_id": {
+                "__type__": "UUID",
+                "value": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415"
+              },
+              "underlying_symbol": "AAPL"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "trading_reference.option_contracts_for_underlying",
+  "scenario_sha256": "34a64a8d2aa707ff81a62757c144bc615b28e1057e7e36044c95da2325433b3c",
+  "vars": {}
+}

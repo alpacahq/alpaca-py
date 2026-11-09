@@ -1,0 +1,82 @@
+name: Consumer checks (live paper API)
+
+# Runs the consumer scenarios against the real paper API with the current SDK.
+# Catches server-side drift and anything the recordings cannot. Separate from
+# PR CI: it needs secrets and live data changes, so a failure here is a signal
+# to investigate, not a merge blocker.
+#
+# Needs repository secrets CONSUMER_TRADING_API_KEY_ID and
+# CONSUMER_TRADING_API_SECRET_KEY for a paper account used only for these
+# checks: some scenarios cancel every open order and close every position on
+# it. See consumer_checks/README.md.
+#
+# A failing run opens an issue (or comments on the open one) listing the
+# failing scenarios, so drift gets triaged; the next passing run closes it.
+on:
+  schedule:
+    - cron: "17 15 * * 1-5" # 15:17 UTC on weekdays, inside US market hours all year
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: consumer-live # one run at a time on the shared paper account
+  cancel-in-progress: false
+
+jobs:
+  consumer-live:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: setup poetry
+        run: pipx install poetry
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: "poetry"
+      - name: Poetry install
+        run: poetry install
+      - name: run scenarios against the paper API
+        shell: bash
+        env:
+          CONSUMER_TRADING_API_KEY_ID: ${{ secrets.CONSUMER_TRADING_API_KEY_ID }}
+          CONSUMER_TRADING_API_SECRET_KEY: ${{ secrets.CONSUMER_TRADING_API_SECRET_KEY }}
+        run: poetry run pytest consumer_checks --consumer-mode=live -rf 2>&1 | tee live.log
+      - name: report the failure in an issue
+        if: failure()
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          TITLE: "Consumer checks: nightly live run failing"
+        run: |
+          {
+            echo "The nightly consumer checks failed against the paper API ([run]($RUN_URL))."
+            echo
+            echo '```'
+            grep '^FAILED' live.log 2>/dev/null || echo "No FAILED lines: see the run log."
+            echo '```'
+            echo
+            echo "Usually live data or the API changed (a contract expired, history moved)"
+            echo "rather than the SDK: replay on PRs still passes. Fix the scenario, then"
+            echo "re-record it: make consumer-record ARGS=\"--consumer-rerecord -k <name>\"."
+          } > body.md
+          open="$(gh issue list --state open --search "in:title \"$TITLE\"" --json number --jq '.[0].number')"
+          if [ -n "$open" ]; then
+            gh issue comment "$open" --body-file body.md
+          else
+            gh issue create --title "$TITLE" --body-file body.md
+          fi
+      - name: close the issue once passing again
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          TITLE: "Consumer checks: nightly live run failing"
+        run: |
+          open="$(gh issue list --state open --search "in:title \"$TITLE\"" --json number --jq '.[0].number')"
+          if [ -n "$open" ]; then
+            gh issue close "$open" --comment "Passing again: $RUN_URL"
+          fi

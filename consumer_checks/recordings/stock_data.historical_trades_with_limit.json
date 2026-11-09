@@ -1,0 +1,264 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "end",
+            "2024-03-09T00:00:00+00:00"
+          ],
+          [
+            "feed",
+            "iex"
+          ],
+          [
+            "limit",
+            "3"
+          ],
+          [
+            "start",
+            "2024-03-04T00:00:00+00:00"
+          ],
+          [
+            "symbols",
+            "AAPL"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v2/stocks/trades"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "next_page_token": "QUFQTHwxNzA5NTU3NDk1OTQzMDE1ODMwfFZ8NA==",
+            "trades": {
+              "AAPL": [
+                {
+                  "c": [
+                    "@",
+                    "T",
+                    "I"
+                  ],
+                  "i": 1,
+                  "p": 176.69,
+                  "s": 50,
+                  "t": "2024-03-04T13:00:10.399108166Z",
+                  "x": "V",
+                  "z": "C"
+                },
+                {
+                  "c": [
+                    "@",
+                    "T",
+                    "I"
+                  ],
+                  "i": 2,
+                  "p": 176.69,
+                  "s": 50,
+                  "t": "2024-03-04T13:00:10.399210814Z",
+                  "x": "V",
+                  "z": "C"
+                },
+                {
+                  "c": [
+                    "@",
+                    "T",
+                    "I"
+                  ],
+                  "i": 3,
+                  "p": 176.73,
+                  "s": 50,
+                  "t": "2024-03-04T13:04:55.942982106Z",
+                  "x": "V",
+                  "z": "C"
+                }
+              ]
+            }
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Accept-Encoding",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "199",
+          "X-Ratelimit-Reset": "1794219224",
+          "X-Request-ID": "222b4e7776bdb79ad46aa0f98ee6edd0"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_with": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "2.3.3",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "df": {
+      "__type__": "DataFrame",
+      "columns": [
+        "exchange",
+        "price",
+        "size",
+        "id",
+        "conditions",
+        "tape"
+      ],
+      "dtypes": {
+        "conditions": "object",
+        "exchange": "str",
+        "id": "int64",
+        "price": "float64",
+        "size": "float64",
+        "tape": "str"
+      },
+      "head": [
+        [
+          "('AAPL', Timestamp('2024-03-04 13:00:10.399108+0000', tz='UTC'))",
+          [
+            "V",
+            "176.69",
+            "50.0",
+            "1",
+            "['@', 'T', 'I']",
+            "C"
+          ]
+        ],
+        [
+          "('AAPL', Timestamp('2024-03-04 13:00:10.399210+0000', tz='UTC'))",
+          [
+            "V",
+            "176.69",
+            "50.0",
+            "2",
+            "['@', 'T', 'I']",
+            "C"
+          ]
+        ],
+        [
+          "('AAPL', Timestamp('2024-03-04 13:04:55.942982+0000', tz='UTC'))",
+          [
+            "V",
+            "176.73",
+            "50.0",
+            "3",
+            "['@', 'T', 'I']",
+            "C"
+          ]
+        ]
+      ],
+      "index": {
+        "dtypes": [
+          "str",
+          "datetime64[us, UTC]"
+        ],
+        "names": [
+          "symbol",
+          "timestamp"
+        ]
+      },
+      "shape": [
+        3,
+        6
+      ]
+    },
+    "trades": {
+      "__type__": "TradeSet",
+      "fields": {
+        "data": {
+          "AAPL": [
+            {
+              "__type__": "Trade",
+              "fields": {
+                "conditions": [
+                  "@",
+                  "T",
+                  "I"
+                ],
+                "exchange": "V",
+                "id": 1,
+                "price": 176.69,
+                "size": 50.0,
+                "symbol": "AAPL",
+                "tape": "C",
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-04T13:00:10.399108+00:00"
+                }
+              }
+            },
+            {
+              "__type__": "Trade",
+              "fields": {
+                "conditions": [
+                  "@",
+                  "T",
+                  "I"
+                ],
+                "exchange": "V",
+                "id": 2,
+                "price": 176.69,
+                "size": 50.0,
+                "symbol": "AAPL",
+                "tape": "C",
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-04T13:00:10.399210+00:00"
+                }
+              }
+            },
+            {
+              "__type__": "Trade",
+              "fields": {
+                "conditions": [
+                  "@",
+                  "T",
+                  "I"
+                ],
+                "exchange": "V",
+                "id": 3,
+                "price": 176.73,
+                "size": 50.0,
+                "symbol": "AAPL",
+                "tape": "C",
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-04T13:04:55.942982+00:00"
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "stock_data.historical_trades_with_limit",
+  "scenario_sha256": "1735d603dcbeec9a5889ae879aaaea8ed333abb29b1c06526e6e1fd43f30c475",
+  "vars": {}
+}

@@ -1,0 +1,259 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "end",
+            "2024-03-08"
+          ],
+          [
+            "start",
+            "2024-03-01"
+          ]
+        ],
+        "url": "https://paper-api.alpaca.markets/v2/calendar"
+      },
+      "response": {
+        "body": {
+          "json": [
+            {
+              "close": "16:00",
+              "date": "2024-03-01",
+              "open": "09:30",
+              "session_close": "2000",
+              "session_open": "0400",
+              "settlement_date": "2024-03-05"
+            },
+            {
+              "close": "16:00",
+              "date": "2024-03-04",
+              "open": "09:30",
+              "session_close": "2000",
+              "session_open": "0400",
+              "settlement_date": "2024-03-06"
+            },
+            {
+              "close": "16:00",
+              "date": "2024-03-05",
+              "open": "09:30",
+              "session_close": "2000",
+              "session_open": "0400",
+              "settlement_date": "2024-03-07"
+            },
+            {
+              "close": "16:00",
+              "date": "2024-03-06",
+              "open": "09:30",
+              "session_close": "2000",
+              "session_open": "0400",
+              "settlement_date": "2024-03-08"
+            },
+            {
+              "close": "16:00",
+              "date": "2024-03-07",
+              "open": "09:30",
+              "session_close": "2000",
+              "session_open": "0400",
+              "settlement_date": "2024-03-11"
+            },
+            {
+              "close": "16:00",
+              "date": "2024-03-08",
+              "open": "09:30",
+              "session_close": "2000",
+              "session_open": "0400",
+              "settlement_date": "2024-03-12"
+            }
+          ]
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Accept-Encoding",
+          "X-Ratelimit-Limit": "1000",
+          "X-Ratelimit-Remaining": "999",
+          "X-Ratelimit-Reset": "1794219227",
+          "X-Request-ID": "6843579638fe2ca9003db67265a7eab2"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_with": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "2.3.3",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "days": [
+      {
+        "__type__": "Calendar",
+        "fields": {
+          "close": {
+            "__type__": "datetime",
+            "value": "2024-03-01T16:00:00"
+          },
+          "date": {
+            "__type__": "date",
+            "value": "2024-03-01"
+          },
+          "open": {
+            "__type__": "datetime",
+            "value": "2024-03-01T09:30:00"
+          },
+          "session_close": "2000",
+          "session_open": "0400",
+          "settlement_date": {
+            "__type__": "date",
+            "value": "2024-03-05"
+          }
+        }
+      },
+      {
+        "__type__": "Calendar",
+        "fields": {
+          "close": {
+            "__type__": "datetime",
+            "value": "2024-03-04T16:00:00"
+          },
+          "date": {
+            "__type__": "date",
+            "value": "2024-03-04"
+          },
+          "open": {
+            "__type__": "datetime",
+            "value": "2024-03-04T09:30:00"
+          },
+          "session_close": "2000",
+          "session_open": "0400",
+          "settlement_date": {
+            "__type__": "date",
+            "value": "2024-03-06"
+          }
+        }
+      },
+      {
+        "__type__": "Calendar",
+        "fields": {
+          "close": {
+            "__type__": "datetime",
+            "value": "2024-03-05T16:00:00"
+          },
+          "date": {
+            "__type__": "date",
+            "value": "2024-03-05"
+          },
+          "open": {
+            "__type__": "datetime",
+            "value": "2024-03-05T09:30:00"
+          },
+          "session_close": "2000",
+          "session_open": "0400",
+          "settlement_date": {
+            "__type__": "date",
+            "value": "2024-03-07"
+          }
+        }
+      },
+      {
+        "__type__": "Calendar",
+        "fields": {
+          "close": {
+            "__type__": "datetime",
+            "value": "2024-03-06T16:00:00"
+          },
+          "date": {
+            "__type__": "date",
+            "value": "2024-03-06"
+          },
+          "open": {
+            "__type__": "datetime",
+            "value": "2024-03-06T09:30:00"
+          },
+          "session_close": "2000",
+          "session_open": "0400",
+          "settlement_date": {
+            "__type__": "date",
+            "value": "2024-03-08"
+          }
+        }
+      },
+      {
+        "__type__": "Calendar",
+        "fields": {
+          "close": {
+            "__type__": "datetime",
+            "value": "2024-03-07T16:00:00"
+          },
+          "date": {
+            "__type__": "date",
+            "value": "2024-03-07"
+          },
+          "open": {
+            "__type__": "datetime",
+            "value": "2024-03-07T09:30:00"
+          },
+          "session_close": "2000",
+          "session_open": "0400",
+          "settlement_date": {
+            "__type__": "date",
+            "value": "2024-03-11"
+          }
+        }
+      },
+      {
+        "__type__": "Calendar",
+        "fields": {
+          "close": {
+            "__type__": "datetime",
+            "value": "2024-03-08T16:00:00"
+          },
+          "date": {
+            "__type__": "date",
+            "value": "2024-03-08"
+          },
+          "open": {
+            "__type__": "datetime",
+            "value": "2024-03-08T09:30:00"
+          },
+          "session_close": "2000",
+          "session_open": "0400",
+          "settlement_date": {
+            "__type__": "date",
+            "value": "2024-03-12"
+          }
+        }
+      }
+    ]
+  },
+  "result_from": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "trading.trading_calendar_for_a_week",
+  "scenario_sha256": "ff51232943255b67a487cde44de2335e73f3fdb1f80c19a3bbc2a5002ccfc837",
+  "vars": {}
+}

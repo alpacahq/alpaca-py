@@ -1,0 +1,107 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "feed",
+            "iex"
+          ],
+          [
+            "symbols",
+            "AAPL"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v2/stocks/quotes/latest"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "quotes": {
+              "AAPL": {
+                "ap": 0,
+                "as": 0,
+                "ax": " ",
+                "bp": 328.06,
+                "bs": 40,
+                "bx": "V",
+                "c": [
+                  "R"
+                ],
+                "t": "2026-11-06T21:00:02.015070376Z",
+                "z": "C"
+              }
+            }
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "199",
+          "X-Ratelimit-Reset": "1794219225",
+          "X-Request-ID": "01b3cdb6e42650ba7e5636a205d65384"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_with": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "2.3.3",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "latest": {
+      "AAPL": {
+        "__type__": "Quote",
+        "fields": {
+          "ask_exchange": " ",
+          "ask_price": 0.0,
+          "ask_size": 0.0,
+          "bid_exchange": "V",
+          "bid_price": 328.06,
+          "bid_size": 40.0,
+          "conditions": [
+            "R"
+          ],
+          "symbol": "AAPL",
+          "tape": "C",
+          "timestamp": {
+            "__type__": "datetime",
+            "value": "2026-11-06T21:00:02.015070+00:00"
+          }
+        }
+      }
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "stock_data.latest_quote_by_symbol",
+  "scenario_sha256": "e6abb511fc2caee78fd5d0c848279bd10a051f3b221cd19f4ff6e080f14d0740",
+  "vars": {}
+}

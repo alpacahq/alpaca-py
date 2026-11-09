@@ -1,0 +1,507 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "end",
+            "2024-03-05T00:00:00+00:00"
+          ],
+          [
+            "limit",
+            "3"
+          ],
+          [
+            "start",
+            "2024-03-04T00:00:00+00:00"
+          ],
+          [
+            "symbols",
+            "AAPL"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v1beta1/news"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "news": [
+              {
+                "author": "Chris Katje",
+                "content": "",
+                "created_at": "2024-03-04T22:04:34Z",
+                "headline": "Betting On The Oscars: 'Oppenheimer,' 'Barbie' Success Could Mean Big Payouts For Bettors",
+                "id": 37469239,
+                "images": [
+                  {
+                    "size": "large",
+                    "url": "https://cdn.benzinga.com/files/imagecache/2048x1536xUP/images/story/2024/The-Replica-Of-The-Oscars-Award_1.jpeg"
+                  },
+                  {
+                    "size": "small",
+                    "url": "https://cdn.benzinga.com/files/imagecache/1024x768xUP/images/story/2024/The-Replica-Of-The-Oscars-Award_1.jpeg"
+                  },
+                  {
+                    "size": "thumb",
+                    "url": "https://cdn.benzinga.com/files/imagecache/250x187xUP/images/story/2024/The-Replica-Of-The-Oscars-Award_1.jpeg"
+                  }
+                ],
+                "source": "benzinga",
+                "summary": "Looking at the betting favorites for key award categories for the Academy Awards. Can Barbie and Oppenheimer help bettors profit?",
+                "symbols": [
+                  "AAPL",
+                  "CMCSA",
+                  "DIS",
+                  "DKNG",
+                  "MAT",
+                  "NFLX",
+                  "WBD"
+                ],
+                "updated_at": "2024-03-04T22:04:34Z",
+                "url": "https://www.benzinga.com/general/entertainment/24/03/37469239/betting-on-the-oscars-oppenheimer-barbie-success-could-mean-big-payouts-for-bettors"
+              },
+              {
+                "author": "Piero Cingari",
+                "content": "",
+                "created_at": "2024-03-04T18:36:04Z",
+                "headline": "Stocks Stall, Magnificent 7 Crack As Apple, Tesla And Google Face Headwinds; Bitcoin, Gold Eye Record Highs: What's Driving Markets Monday?",
+                "id": 37464820,
+                "images": [
+                  {
+                    "size": "large",
+                    "url": "https://cdn.benzinga.com/files/imagecache/2048x1536xUP/images/story/2024/Bull-and-bear-stock-market-index_8.jpeg"
+                  },
+                  {
+                    "size": "small",
+                    "url": "https://cdn.benzinga.com/files/imagecache/1024x768xUP/images/story/2024/Bull-and-bear-stock-market-index_8.jpeg"
+                  },
+                  {
+                    "size": "thumb",
+                    "url": "https://cdn.benzinga.com/files/imagecache/250x187xUP/images/story/2024/Bull-and-bear-stock-market-index_8.jpeg"
+                  }
+                ],
+                "source": "benzinga",
+                "summary": "It’s a quiet start to the week on Wall Street, with major stock indices hovering around the flatline as of midday in New York.",
+                "symbols": [
+                  "AAPL",
+                  "BTCUSD",
+                  "DIA",
+                  "GOOGL",
+                  "HPE",
+                  "IWM",
+                  "JBLU",
+                  "M",
+                  "NVDA",
+                  "NYCB",
+                  "QQQ",
+                  "SAVE",
+                  "SPY",
+                  "TSLA",
+                  "XLC",
+                  "XLK",
+                  "XLU"
+                ],
+                "updated_at": "2024-03-04T18:36:06Z",
+                "url": "https://www.benzinga.com/analyst-ratings/analyst-color/24/03/37464820/stocks-stall-magnificent-7-crack-as-apple-tesla-and-google-face-headwinds-bitcoin-g"
+              },
+              {
+                "author": "Anusuya Lahiri",
+                "content": "",
+                "created_at": "2024-03-04T17:27:20Z",
+                "headline": "Frank Slootman Steps Down as Snowflake CEO, Leaves Behind $3.7B Legacy",
+                "id": 37462546,
+                "images": [
+                  {
+                    "size": "large",
+                    "url": "https://cdn.benzinga.com/files/imagecache/2048x1536xUP/images/story/2024/snowflake-shutter_3.jpeg"
+                  },
+                  {
+                    "size": "small",
+                    "url": "https://cdn.benzinga.com/files/imagecache/1024x768xUP/images/story/2024/snowflake-shutter_3.jpeg"
+                  },
+                  {
+                    "size": "thumb",
+                    "url": "https://cdn.benzinga.com/files/imagecache/250x187xUP/images/story/2024/snowflake-shutter_3.jpeg"
+                  }
+                ],
+                "source": "benzinga",
+                "summary": "Slootman departs as Snowflake&#39;s CEO with a net worth of $3.7 billion, surpassing tech giants like Apple&#39;s Tim Cook and Microsoft&#39;s Satya Nadella.",
+                "symbols": [
+                  "AAPL",
+                  "DAT",
+                  "GOOG",
+                  "GOOGL",
+                  "MSFT",
+                  "SNOW",
+                  "SPRX"
+                ],
+                "updated_at": "2024-03-04T17:27:21Z",
+                "url": "https://www.benzinga.com/news/24/03/37462546/frank-slootman-steps-down-as-snowflake-ceo-leaves-behind-3-7b-legacy"
+              }
+            ],
+            "next_page_token": "MTcwOTU3MzI0MTAwMDAwMDAwMHwzNzQ2MjU0Ng=="
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Accept-Encoding",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "198",
+          "X-Ratelimit-Reset": "1794219221",
+          "X-Request-ID": "184aa04310290250ccdf09b9afb1ff8f"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "by",
+            "volume"
+          ],
+          [
+            "top",
+            "5"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v1beta1/screener/stocks/most-actives"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "last_updated": "2026-11-07T00:59:00.05893082Z",
+            "most_actives": [
+              {
+                "symbol": "RCT",
+                "trade_count": 271890,
+                "volume": 676388127
+              },
+              {
+                "symbol": "SHFS",
+                "trade_count": 199768,
+                "volume": 669867830
+              },
+              {
+                "symbol": "SDA",
+                "trade_count": 618188,
+                "volume": 566221516
+              },
+              {
+                "symbol": "SOXL",
+                "trade_count": 2625339,
+                "volume": 298836037
+              },
+              {
+                "symbol": "VIVK",
+                "trade_count": 576710,
+                "volume": 252090512
+              }
+            ]
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Accept-Encoding",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "198",
+          "X-Ratelimit-Reset": "1794219221",
+          "X-Request-ID": "eb91f0cc618252938eaaa94aab52b645"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "end",
+            "2024-03-31"
+          ],
+          [
+            "limit",
+            "1000"
+          ],
+          [
+            "sort",
+            "asc"
+          ],
+          [
+            "start",
+            "2024-01-01"
+          ],
+          [
+            "symbols",
+            "AAPL"
+          ],
+          [
+            "types",
+            "cash_dividend"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v1/corporate-actions"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "corporate_actions": {
+              "cash_dividends": [
+                {
+                  "cusip": "037833100",
+                  "ex_date": "2024-02-09",
+                  "foreign": false,
+                  "id": "35849a16-e94e-4f9a-b66f-a1333d6289af",
+                  "payable_date": "2024-02-15",
+                  "process_date": "2024-02-15",
+                  "rate": 0.24,
+                  "record_date": "2024-02-12",
+                  "special": false,
+                  "symbol": "AAPL"
+                }
+              ]
+            },
+            "next_page_token": null
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Accept-Encoding",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "198",
+          "X-Ratelimit-Reset": "1794219221",
+          "X-Request-ID": "cd97451edd1b64860128fcb4ddf394b3"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_with": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "2.3.3",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "actions": {
+      "cash_dividends": [
+        {
+          "cusip": "037833100",
+          "ex_date": "2024-02-09",
+          "foreign": false,
+          "id": "35849a16-e94e-4f9a-b66f-a1333d6289af",
+          "payable_date": "2024-02-15",
+          "process_date": "2024-02-15",
+          "rate": 0.24,
+          "record_date": "2024-02-12",
+          "special": false,
+          "symbol": "AAPL"
+        }
+      ]
+    },
+    "actives": {
+      "last_updated": "2026-11-07T00:59:00.05893082Z",
+      "most_actives": [
+        {
+          "symbol": "RCT",
+          "trade_count": 271890,
+          "volume": 676388127
+        },
+        {
+          "symbol": "SHFS",
+          "trade_count": 199768,
+          "volume": 669867830
+        },
+        {
+          "symbol": "SDA",
+          "trade_count": 618188,
+          "volume": 566221516
+        },
+        {
+          "symbol": "SOXL",
+          "trade_count": 2625339,
+          "volume": 298836037
+        },
+        {
+          "symbol": "VIVK",
+          "trade_count": 576710,
+          "volume": 252090512
+        }
+      ]
+    },
+    "news": {
+      "news": [
+        {
+          "author": "Chris Katje",
+          "content": "",
+          "created_at": "2024-03-04T22:04:34Z",
+          "headline": "Betting On The Oscars: 'Oppenheimer,' 'Barbie' Success Could Mean Big Payouts For Bettors",
+          "id": 37469239,
+          "images": [
+            {
+              "size": "large",
+              "url": "https://cdn.benzinga.com/files/imagecache/2048x1536xUP/images/story/2024/The-Replica-Of-The-Oscars-Award_1.jpeg"
+            },
+            {
+              "size": "small",
+              "url": "https://cdn.benzinga.com/files/imagecache/1024x768xUP/images/story/2024/The-Replica-Of-The-Oscars-Award_1.jpeg"
+            },
+            {
+              "size": "thumb",
+              "url": "https://cdn.benzinga.com/files/imagecache/250x187xUP/images/story/2024/The-Replica-Of-The-Oscars-Award_1.jpeg"
+            }
+          ],
+          "source": "benzinga",
+          "summary": "Looking at the betting favorites for key award categories for the Academy Awards. Can Barbie and Oppenheimer help bettors profit?",
+          "symbols": [
+            "AAPL",
+            "CMCSA",
+            "DIS",
+            "DKNG",
+            "MAT",
+            "NFLX",
+            "WBD"
+          ],
+          "updated_at": "2024-03-04T22:04:34Z",
+          "url": "https://www.benzinga.com/general/entertainment/24/03/37469239/betting-on-the-oscars-oppenheimer-barbie-success-could-mean-big-payouts-for-bettors"
+        },
+        {
+          "author": "Piero Cingari",
+          "content": "",
+          "created_at": "2024-03-04T18:36:04Z",
+          "headline": "Stocks Stall, Magnificent 7 Crack As Apple, Tesla And Google Face Headwinds; Bitcoin, Gold Eye Record Highs: What's Driving Markets Monday?",
+          "id": 37464820,
+          "images": [
+            {
+              "size": "large",
+              "url": "https://cdn.benzinga.com/files/imagecache/2048x1536xUP/images/story/2024/Bull-and-bear-stock-market-index_8.jpeg"
+            },
+            {
+              "size": "small",
+              "url": "https://cdn.benzinga.com/files/imagecache/1024x768xUP/images/story/2024/Bull-and-bear-stock-market-index_8.jpeg"
+            },
+            {
+              "size": "thumb",
+              "url": "https://cdn.benzinga.com/files/imagecache/250x187xUP/images/story/2024/Bull-and-bear-stock-market-index_8.jpeg"
+            }
+          ],
+          "source": "benzinga",
+          "summary": "It’s a quiet start to the week on Wall Street, with major stock indices hovering around the flatline as of midday in New York.",
+          "symbols": [
+            "AAPL",
+            "BTCUSD",
+            "DIA",
+            "GOOGL",
+            "HPE",
+            "IWM",
+            "JBLU",
+            "M",
+            "NVDA",
+            "NYCB",
+            "QQQ",
+            "SAVE",
+            "SPY",
+            "TSLA",
+            "XLC",
+            "XLK",
+            "XLU"
+          ],
+          "updated_at": "2024-03-04T18:36:06Z",
+          "url": "https://www.benzinga.com/analyst-ratings/analyst-color/24/03/37464820/stocks-stall-magnificent-7-crack-as-apple-tesla-and-google-face-headwinds-bitcoin-g"
+        },
+        {
+          "author": "Anusuya Lahiri",
+          "content": "",
+          "created_at": "2024-03-04T17:27:20Z",
+          "headline": "Frank Slootman Steps Down as Snowflake CEO, Leaves Behind $3.7B Legacy",
+          "id": 37462546,
+          "images": [
+            {
+              "size": "large",
+              "url": "https://cdn.benzinga.com/files/imagecache/2048x1536xUP/images/story/2024/snowflake-shutter_3.jpeg"
+            },
+            {
+              "size": "small",
+              "url": "https://cdn.benzinga.com/files/imagecache/1024x768xUP/images/story/2024/snowflake-shutter_3.jpeg"
+            },
+            {
+              "size": "thumb",
+              "url": "https://cdn.benzinga.com/files/imagecache/250x187xUP/images/story/2024/snowflake-shutter_3.jpeg"
+            }
+          ],
+          "source": "benzinga",
+          "summary": "Slootman departs as Snowflake&#39;s CEO with a net worth of $3.7 billion, surpassing tech giants like Apple&#39;s Tim Cook and Microsoft&#39;s Satya Nadella.",
+          "symbols": [
+            "AAPL",
+            "DAT",
+            "GOOG",
+            "GOOGL",
+            "MSFT",
+            "SNOW",
+            "SPRX"
+          ],
+          "updated_at": "2024-03-04T17:27:21Z",
+          "url": "https://www.benzinga.com/news/24/03/37462546/frank-slootman-steps-down-as-snowflake-ceo-leaves-behind-3-7b-legacy"
+        }
+      ]
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "raw_data.news_screener_corporate_actions_raw_responses",
+  "scenario_sha256": "db33f1eeebac56a2724a2db34b574ae93d013c483e6134285b1644a3e16046a1",
+  "vars": {}
+}

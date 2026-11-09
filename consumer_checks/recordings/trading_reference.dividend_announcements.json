@@ -1,0 +1,239 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "ca_types",
+            "dividend"
+          ],
+          [
+            "since",
+            "2024-01-01"
+          ],
+          [
+            "symbol",
+            "AAPL"
+          ],
+          [
+            "until",
+            "2024-03-01"
+          ]
+        ],
+        "url": "https://paper-api.alpaca.markets/v2/corporate_actions/announcements"
+      },
+      "response": {
+        "body": {
+          "json": [
+            {
+              "ca_sub_type": "cash",
+              "ca_type": "dividend",
+              "cash": "0.24",
+              "corporate_action_id": "037833100_AA24",
+              "declaration_date": "2024-02-08",
+              "effective_date": "2024-02-12",
+              "ex_date": "2024-02-09",
+              "id": "961ffd54-5245-41b4-a775-cc0cd02be2d0",
+              "initiating_original_cusip": "037833100",
+              "initiating_symbol": "AAPL",
+              "new_rate": "1",
+              "old_rate": "1",
+              "payable_date": "2024-02-15",
+              "record_date": "2024-02-12",
+              "target_original_cusip": "037833100",
+              "target_symbol": "AAPL"
+            }
+          ]
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization, Content-Type, X-Correspondent",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, POST, PATCH",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json; charset=UTF-8",
+          "Deprecation": "@1728916200",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Origin",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "195",
+          "X-Ratelimit-Reset": "1794219238",
+          "X-Request-Id": "4f97d0004ce071ca8e915f248eb6e333"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/corporate_actions/announcements/961ffd54-5245-41b4-a775-cc0cd02be2d0"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "ca_sub_type": "cash",
+            "ca_type": "dividend",
+            "cash": "0.24",
+            "corporate_action_id": "037833100_AA24",
+            "declaration_date": "2024-02-08",
+            "effective_date": "2024-02-12",
+            "ex_date": "2024-02-09",
+            "id": "961ffd54-5245-41b4-a775-cc0cd02be2d0",
+            "initiating_original_cusip": "037833100",
+            "initiating_symbol": "AAPL",
+            "new_rate": "1",
+            "old_rate": "1",
+            "payable_date": "2024-02-15",
+            "record_date": "2024-02-12",
+            "target_original_cusip": "037833100",
+            "target_symbol": "AAPL"
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization, Content-Type, X-Correspondent",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, POST, PATCH",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json; charset=UTF-8",
+          "Deprecation": "@1728916200",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Origin",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "194",
+          "X-Ratelimit-Reset": "1794219238",
+          "X-Request-Id": "f5193b217579fa02d2079b950b863810"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_with": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "2.3.3",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "announcements": [
+      {
+        "__type__": "CorporateActionAnnouncement",
+        "fields": {
+          "ca_sub_type": {
+            "__type__": "CorporateActionSubType",
+            "name": "CASH",
+            "value": "cash"
+          },
+          "ca_type": {
+            "__type__": "CorporateActionType",
+            "name": "DIVIDEND",
+            "value": "dividend"
+          },
+          "cash": 0.24,
+          "corporate_action_id": "037833100_AA24",
+          "declaration_date": {
+            "__type__": "date",
+            "value": "2024-02-08"
+          },
+          "ex_date": {
+            "__type__": "date",
+            "value": "2024-02-09"
+          },
+          "id": {
+            "__type__": "UUID",
+            "value": "961ffd54-5245-41b4-a775-cc0cd02be2d0"
+          },
+          "initiating_original_cusip": "037833100",
+          "initiating_symbol": "AAPL",
+          "new_rate": 1.0,
+          "old_rate": 1.0,
+          "payable_date": {
+            "__type__": "date",
+            "value": "2024-02-15"
+          },
+          "record_date": {
+            "__type__": "date",
+            "value": "2024-02-12"
+          },
+          "target_original_cusip": "037833100",
+          "target_symbol": "AAPL"
+        }
+      }
+    ],
+    "by_id": {
+      "__type__": "CorporateActionAnnouncement",
+      "fields": {
+        "ca_sub_type": {
+          "__type__": "CorporateActionSubType",
+          "name": "CASH",
+          "value": "cash"
+        },
+        "ca_type": {
+          "__type__": "CorporateActionType",
+          "name": "DIVIDEND",
+          "value": "dividend"
+        },
+        "cash": 0.24,
+        "corporate_action_id": "037833100_AA24",
+        "declaration_date": {
+          "__type__": "date",
+          "value": "2024-02-08"
+        },
+        "ex_date": {
+          "__type__": "date",
+          "value": "2024-02-09"
+        },
+        "id": {
+          "__type__": "UUID",
+          "value": "961ffd54-5245-41b4-a775-cc0cd02be2d0"
+        },
+        "initiating_original_cusip": "037833100",
+        "initiating_symbol": "AAPL",
+        "new_rate": 1.0,
+        "old_rate": 1.0,
+        "payable_date": {
+          "__type__": "date",
+          "value": "2024-02-15"
+        },
+        "record_date": {
+          "__type__": "date",
+          "value": "2024-02-12"
+        },
+        "target_original_cusip": "037833100",
+        "target_symbol": "AAPL"
+      }
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "trading_reference.dividend_announcements",
+  "scenario_sha256": "b1f4ec16e4f231a42749a1c1e762bf5b6d072d6e099fd390e3733c60c283ebe2",
+  "vars": {}
+}

@@ -1,0 +1,345 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "symbols",
+            "BTC/USD,ETH/USD"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v1beta3/crypto/us/snapshots"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "snapshots": {
+              "BTC/USD": {
+                "dailyBar": {
+                  "c": 74113.2,
+                  "h": 75505.79,
+                  "l": 73629.551,
+                  "n": 379,
+                  "o": 74751.982,
+                  "t": "2026-11-09T00:00:00Z",
+                  "v": 0.680831639,
+                  "vw": 74261.3320644623
+                },
+                "latestQuote": {
+                  "ap": 74078.35,
+                  "as": 0.001001,
+                  "bp": 74057.17,
+                  "bs": 0.0009949,
+                  "t": "2026-11-09T10:13:34.593885469Z"
+                },
+                "latestTrade": {
+                  "i": 8827103037403251704,
+                  "p": 74100,
+                  "s": 1.35e-05,
+                  "t": "2026-11-09T10:07:35.888907923Z",
+                  "tks": "S"
+                },
+                "minuteBar": {
+                  "c": 74113.2,
+                  "h": 74119.58,
+                  "l": 74081.2885,
+                  "n": 0,
+                  "o": 74081.2885,
+                  "t": "2026-11-09T10:12:00Z",
+                  "v": 0,
+                  "vw": 74100.43425
+                },
+                "prevDailyBar": {
+                  "c": 74756.4805,
+                  "h": 76096.227,
+                  "l": 73530.0885,
+                  "n": 743,
+                  "o": 75743.635,
+                  "t": "2026-11-08T00:00:00Z",
+                  "v": 1.17292144,
+                  "vw": 74923.8315590011
+                }
+              },
+              "ETH/USD": {
+                "dailyBar": {
+                  "c": 2100.6555,
+                  "h": 2157.375,
+                  "l": 2080.29,
+                  "n": 213,
+                  "o": 2124.016,
+                  "t": "2026-11-09T00:00:00Z",
+                  "v": 20.006727717,
+                  "vw": 2126.7090882959
+                },
+                "latestQuote": {
+                  "ap": 2099.222,
+                  "as": 0.03314,
+                  "bp": 2098.58,
+                  "bs": 0.0335766,
+                  "t": "2026-11-09T10:13:31.401356216Z"
+                },
+                "latestTrade": {
+                  "i": 7404706046560583853,
+                  "p": 2109.58,
+                  "s": 0.016598879,
+                  "t": "2026-11-09T09:37:22.434565012Z",
+                  "tks": "S"
+                },
+                "minuteBar": {
+                  "c": 2100.6555,
+                  "h": 2101.1955,
+                  "l": 2099.677,
+                  "n": 0,
+                  "o": 2099.677,
+                  "t": "2026-11-09T10:12:00Z",
+                  "v": 0,
+                  "vw": 2100.43625
+                },
+                "prevDailyBar": {
+                  "c": 2124.9505,
+                  "h": 2242.7335,
+                  "l": 2069.69,
+                  "n": 259,
+                  "o": 2236.226,
+                  "t": "2026-11-08T00:00:00Z",
+                  "v": 12.881947094,
+                  "vw": 2187.3316114752
+                }
+              }
+            }
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Accept-Encoding",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "197",
+          "X-Ratelimit-Reset": "1794219215",
+          "X-Request-ID": "8cb388a934274de16dc2b9804cd6975f"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_with": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "2.3.3",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "snapshots": {
+      "BTC/USD": {
+        "__type__": "Snapshot",
+        "fields": {
+          "daily_bar": {
+            "__type__": "Bar",
+            "fields": {
+              "close": 74113.2,
+              "high": 75505.79,
+              "low": 73629.551,
+              "open": 74751.982,
+              "symbol": "BTC/USD",
+              "timestamp": {
+                "__type__": "datetime",
+                "value": "2026-11-09T00:00:00+00:00"
+              },
+              "trade_count": 379.0,
+              "volume": 0.680831639,
+              "vwap": 74261.3320644623
+            }
+          },
+          "latest_quote": {
+            "__type__": "Quote",
+            "fields": {
+              "ask_exchange": null,
+              "ask_price": 74078.35,
+              "ask_size": 0.001001,
+              "bid_exchange": null,
+              "bid_price": 74057.17,
+              "bid_size": 0.0009949,
+              "conditions": null,
+              "symbol": "BTC/USD",
+              "tape": null,
+              "timestamp": {
+                "__type__": "datetime",
+                "value": "2026-11-09T10:13:34.593885+00:00"
+              }
+            }
+          },
+          "latest_trade": {
+            "__type__": "Trade",
+            "fields": {
+              "conditions": null,
+              "exchange": null,
+              "id": 8827103037403251704,
+              "price": 74100.0,
+              "size": 1.35e-05,
+              "symbol": "BTC/USD",
+              "tape": null,
+              "timestamp": {
+                "__type__": "datetime",
+                "value": "2026-11-09T10:07:35.888907+00:00"
+              }
+            }
+          },
+          "minute_bar": {
+            "__type__": "Bar",
+            "fields": {
+              "close": 74113.2,
+              "high": 74119.58,
+              "low": 74081.2885,
+              "open": 74081.2885,
+              "symbol": "BTC/USD",
+              "timestamp": {
+                "__type__": "datetime",
+                "value": "2026-11-09T10:12:00+00:00"
+              },
+              "trade_count": 0.0,
+              "volume": 0.0,
+              "vwap": 74100.43425
+            }
+          },
+          "previous_daily_bar": {
+            "__type__": "Bar",
+            "fields": {
+              "close": 74756.4805,
+              "high": 76096.227,
+              "low": 73530.0885,
+              "open": 75743.635,
+              "symbol": "BTC/USD",
+              "timestamp": {
+                "__type__": "datetime",
+                "value": "2026-11-08T00:00:00+00:00"
+              },
+              "trade_count": 743.0,
+              "volume": 1.17292144,
+              "vwap": 74923.8315590011
+            }
+          },
+          "symbol": "BTC/USD"
+        }
+      },
+      "ETH/USD": {
+        "__type__": "Snapshot",
+        "fields": {
+          "daily_bar": {
+            "__type__": "Bar",
+            "fields": {
+              "close": 2100.6555,
+              "high": 2157.375,
+              "low": 2080.29,
+              "open": 2124.016,
+              "symbol": "ETH/USD",
+              "timestamp": {
+                "__type__": "datetime",
+                "value": "2026-11-09T00:00:00+00:00"
+              },
+              "trade_count": 213.0,
+              "volume": 20.006727717,
+              "vwap": 2126.7090882959
+            }
+          },
+          "latest_quote": {
+            "__type__": "Quote",
+            "fields": {
+              "ask_exchange": null,
+              "ask_price": 2099.222,
+              "ask_size": 0.03314,
+              "bid_exchange": null,
+              "bid_price": 2098.58,
+              "bid_size": 0.0335766,
+              "conditions": null,
+              "symbol": "ETH/USD",
+              "tape": null,
+              "timestamp": {
+                "__type__": "datetime",
+                "value": "2026-11-09T10:13:31.401356+00:00"
+              }
+            }
+          },
+          "latest_trade": {
+            "__type__": "Trade",
+            "fields": {
+              "conditions": null,
+              "exchange": null,
+              "id": 7404706046560583853,
+              "price": 2109.58,
+              "size": 0.016598879,
+              "symbol": "ETH/USD",
+              "tape": null,
+              "timestamp": {
+                "__type__": "datetime",
+                "value": "2026-11-09T09:37:22.434565+00:00"
+              }
+            }
+          },
+          "minute_bar": {
+            "__type__": "Bar",
+            "fields": {
+              "close": 2100.6555,
+              "high": 2101.1955,
+              "low": 2099.677,
+              "open": 2099.677,
+              "symbol": "ETH/USD",
+              "timestamp": {
+                "__type__": "datetime",
+                "value": "2026-11-09T10:12:00+00:00"
+              },
+              "trade_count": 0.0,
+              "volume": 0.0,
+              "vwap": 2100.43625
+            }
+          },
+          "previous_daily_bar": {
+            "__type__": "Bar",
+            "fields": {
+              "close": 2124.9505,
+              "high": 2242.7335,
+              "low": 2069.69,
+              "open": 2236.226,
+              "symbol": "ETH/USD",
+              "timestamp": {
+                "__type__": "datetime",
+                "value": "2026-11-08T00:00:00+00:00"
+              },
+              "trade_count": 259.0,
+              "volume": 12.881947094,
+              "vwap": 2187.3316114752
+            }
+          },
+          "symbol": "ETH/USD"
+        }
+      }
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "crypto_data.snapshot_by_symbol",
+  "scenario_sha256": "792287ead1d582e2ae1d86b50e37a1bc1093e87bad6cb5140e475b8f2bc4e3ee",
+  "vars": {}
+}

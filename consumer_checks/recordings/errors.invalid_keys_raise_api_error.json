@@ -1,0 +1,64 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/account"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "message": "unauthorized."
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization, Content-Type",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, POST, PATCH",
+          "Access-Control-Allow-Origin": "*",
+          "Content-Type": "application/json",
+          "WWW-Authenticate": "Bearer, Basic realm=\"alpaca.markets\", charset=\"UTF-8\"",
+          "X-Request-ID": "66c01d6ebb8efbc4a59f1edd63abb4e6"
+        },
+        "reason": "Unauthorized",
+        "status": 401
+      }
+    }
+  ],
+  "recorded_with": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "2.3.3",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "code_raises": "KeyError",
+    "error": {
+      "__type__": "APIError",
+      "status_code": 401
+    },
+    "message": "unauthorized.",
+    "text": "{\"message\": \"unauthorized.\"}"
+  },
+  "result_from": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "errors.invalid_keys_raise_api_error",
+  "scenario_sha256": "98a4811e9b586c3b7a8160f738ef34c7d3b4075a4b643c3a825f00dffc3fe427",
+  "vars": {}
+}

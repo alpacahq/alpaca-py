@@ -1,0 +1,150 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "by",
+            "volume"
+          ],
+          [
+            "top",
+            "5"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v1beta1/screener/stocks/most-actives"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "last_updated": "2026-11-07T00:59:00.056816671Z",
+            "most_actives": [
+              {
+                "symbol": "RCT",
+                "trade_count": 271890,
+                "volume": 676388127
+              },
+              {
+                "symbol": "SHFS",
+                "trade_count": 199768,
+                "volume": 669867830
+              },
+              {
+                "symbol": "SDA",
+                "trade_count": 618188,
+                "volume": 566221516
+              },
+              {
+                "symbol": "SOXL",
+                "trade_count": 2625339,
+                "volume": 298836037
+              },
+              {
+                "symbol": "VIVK",
+                "trade_count": 576710,
+                "volume": 252090512
+              }
+            ]
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Accept-Encoding",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "199",
+          "X-Ratelimit-Reset": "1794219217",
+          "X-Request-ID": "b2be6e6ad37a0dd039afa45a2f9ee18f"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_with": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "2.3.3",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "actives": {
+      "__type__": "MostActives",
+      "fields": {
+        "last_updated": {
+          "__type__": "datetime",
+          "value": "2026-11-07T00:59:00.056816+00:00"
+        },
+        "most_actives": [
+          {
+            "__type__": "ActiveStock",
+            "fields": {
+              "symbol": "RCT",
+              "trade_count": 271890.0,
+              "volume": 676388127.0
+            }
+          },
+          {
+            "__type__": "ActiveStock",
+            "fields": {
+              "symbol": "SHFS",
+              "trade_count": 199768.0,
+              "volume": 669867830.0
+            }
+          },
+          {
+            "__type__": "ActiveStock",
+            "fields": {
+              "symbol": "SDA",
+              "trade_count": 618188.0,
+              "volume": 566221516.0
+            }
+          },
+          {
+            "__type__": "ActiveStock",
+            "fields": {
+              "symbol": "SOXL",
+              "trade_count": 2625339.0,
+              "volume": 298836037.0
+            }
+          },
+          {
+            "__type__": "ActiveStock",
+            "fields": {
+              "symbol": "VIVK",
+              "trade_count": 576710.0,
+              "volume": 252090512.0
+            }
+          }
+        ]
+      }
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "market_info_data.most_active_stocks",
+  "scenario_sha256": "de75b23ef2928e7c3e3f7fd9af16fac94eec15b4ffe54debbc412d6c278452cd",
+  "vars": {}
+}

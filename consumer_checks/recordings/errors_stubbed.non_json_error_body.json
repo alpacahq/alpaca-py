@@ -1,0 +1,57 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/clock"
+      },
+      "response": {
+        "body": {
+          "text": "<html><body>502 Bad Gateway</body></html>"
+        },
+        "headers": {
+          "Content-Type": "text/html"
+        },
+        "reason": "",
+        "status": 502
+      }
+    }
+  ],
+  "recorded_with": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "2.3.3",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "code_raises": "JSONDecodeError",
+    "error": {
+      "__type__": "APIError",
+      "status_code": 502
+    },
+    "message_raises": "JSONDecodeError",
+    "text": "<html><body>502 Bad Gateway</body></html>"
+  },
+  "result_from": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "errors_stubbed.non_json_error_body",
+  "scenario_sha256": "fa3909ed065bc053aa4a0acb1ea770c72f1dcdcd7ffd9a3f16b03e1b0ee3572d",
+  "vars": {}
+}

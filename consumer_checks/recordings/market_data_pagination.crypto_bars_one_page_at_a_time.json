@@ -1,0 +1,207 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "end",
+            "2024-03-09T00:00:00+00:00"
+          ],
+          [
+            "limit",
+            "10000"
+          ],
+          [
+            "start",
+            "2024-03-04T00:00:00+00:00"
+          ],
+          [
+            "symbols",
+            "BTC/USD"
+          ],
+          [
+            "timeframe",
+            "1Hour"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v1beta3/crypto/us/bars"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "bars": {
+              "BTC/USD": [
+                {
+                  "c": 2.6,
+                  "h": 2.7,
+                  "l": 2.4,
+                  "n": 3,
+                  "o": 2.5,
+                  "t": "2024-03-04T15:00:00Z",
+                  "v": 10,
+                  "vw": 2.55
+                }
+              ]
+            },
+            "next_page_token": "page-2"
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "end",
+            "2024-03-09T00:00:00+00:00"
+          ],
+          [
+            "limit",
+            "10000"
+          ],
+          [
+            "page_token",
+            "page-2"
+          ],
+          [
+            "start",
+            "2024-03-04T00:00:00+00:00"
+          ],
+          [
+            "symbols",
+            "BTC/USD"
+          ],
+          [
+            "timeframe",
+            "1Hour"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v1beta3/crypto/us/bars"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "bars": {
+              "BTC/USD": [
+                {
+                  "c": 2.6,
+                  "h": 2.7,
+                  "l": 2.4,
+                  "n": 3,
+                  "o": 2.5,
+                  "t": "2024-03-04T15:00:00Z",
+                  "v": 10,
+                  "vw": 2.55
+                }
+              ]
+            },
+            "next_page_token": null
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_against": "checkout",
+  "recorded_with": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "first": {
+      "__type__": "BarSet",
+      "fields": {
+        "data": {
+          "BTC/USD": [
+            {
+              "__type__": "Bar",
+              "fields": {
+                "close": 2.6,
+                "high": 2.7,
+                "low": 2.4,
+                "open": 2.5,
+                "symbol": "BTC/USD",
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-04T15:00:00+00:00"
+                },
+                "trade_count": 3.0,
+                "volume": 10.0,
+                "vwap": 2.55
+              }
+            }
+          ]
+        },
+        "next_page_token": "page-2"
+      }
+    },
+    "last": {
+      "__type__": "BarSet",
+      "fields": {
+        "data": {
+          "BTC/USD": [
+            {
+              "__type__": "Bar",
+              "fields": {
+                "close": 2.6,
+                "high": 2.7,
+                "low": 2.4,
+                "open": 2.5,
+                "symbol": "BTC/USD",
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-04T15:00:00+00:00"
+                },
+                "trade_count": 3.0,
+                "volume": 10.0,
+                "vwap": 2.55
+              }
+            }
+          ]
+        },
+        "next_page_token": null
+      }
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "market_data_pagination.crypto_bars_one_page_at_a_time",
+  "scenario_sha256": "f163f48c5044e7e27085525e193d1f1390a4ad42606d6320894f65aa08478ae9",
+  "vars": {}
+}

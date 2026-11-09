@@ -1,0 +1,242 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "end",
+            "2024-03-09T00:00:00+00:00"
+          ],
+          [
+            "feed",
+            "iex"
+          ],
+          [
+            "limit",
+            "10000"
+          ],
+          [
+            "start",
+            "2024-03-04T00:00:00+00:00"
+          ],
+          [
+            "symbols",
+            "AAPL"
+          ],
+          [
+            "timeframe",
+            "1Day"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v2/stocks/bars"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "bars": {
+              "AAPL": [
+                {
+                  "c": 176.0,
+                  "h": 177.0,
+                  "l": 174.0,
+                  "n": 10,
+                  "o": 175.0,
+                  "t": "2024-03-04T05:00:00Z",
+                  "v": 1000,
+                  "vw": 175.5
+                },
+                {
+                  "c": 177.0,
+                  "h": 178.0,
+                  "l": 175.0,
+                  "n": 10,
+                  "o": 176.0,
+                  "t": "2024-03-05T05:00:00Z",
+                  "v": 1000,
+                  "vw": 176.5
+                }
+              ]
+            },
+            "next_page_token": "page-2"
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "end",
+            "2024-03-09T00:00:00+00:00"
+          ],
+          [
+            "feed",
+            "iex"
+          ],
+          [
+            "limit",
+            "10000"
+          ],
+          [
+            "page_token",
+            "page-2"
+          ],
+          [
+            "start",
+            "2024-03-04T00:00:00+00:00"
+          ],
+          [
+            "symbols",
+            "AAPL"
+          ],
+          [
+            "timeframe",
+            "1Day"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v2/stocks/bars"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "bars": {
+              "AAPL": [
+                {
+                  "c": 178.0,
+                  "h": 179.0,
+                  "l": 176.0,
+                  "n": 10,
+                  "o": 177.0,
+                  "t": "2024-03-06T05:00:00Z",
+                  "v": 1000,
+                  "vw": 177.5
+                }
+              ]
+            },
+            "next_page_token": null
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_against": "checkout",
+  "recorded_with": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "first": {
+      "__type__": "BarSet",
+      "fields": {
+        "data": {
+          "AAPL": [
+            {
+              "__type__": "Bar",
+              "fields": {
+                "close": 176.0,
+                "high": 177.0,
+                "low": 174.0,
+                "open": 175.0,
+                "symbol": "AAPL",
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-04T05:00:00+00:00"
+                },
+                "trade_count": 10.0,
+                "volume": 1000.0,
+                "vwap": 175.5
+              }
+            },
+            {
+              "__type__": "Bar",
+              "fields": {
+                "close": 177.0,
+                "high": 178.0,
+                "low": 175.0,
+                "open": 176.0,
+                "symbol": "AAPL",
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-05T05:00:00+00:00"
+                },
+                "trade_count": 10.0,
+                "volume": 1000.0,
+                "vwap": 176.5
+              }
+            }
+          ]
+        },
+        "next_page_token": "page-2"
+      }
+    },
+    "last": {
+      "__type__": "BarSet",
+      "fields": {
+        "data": {
+          "AAPL": [
+            {
+              "__type__": "Bar",
+              "fields": {
+                "close": 178.0,
+                "high": 179.0,
+                "low": 176.0,
+                "open": 177.0,
+                "symbol": "AAPL",
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-06T05:00:00+00:00"
+                },
+                "trade_count": 10.0,
+                "volume": 1000.0,
+                "vwap": 177.5
+              }
+            }
+          ]
+        },
+        "next_page_token": null
+      }
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "stock_data_pagination.bars_one_page_at_a_time",
+  "scenario_sha256": "acf004fa35b01fd3b4562e096b0ce33d08c6619a7a13d5c3151aafa6f07a0dfe",
+  "vars": {}
+}

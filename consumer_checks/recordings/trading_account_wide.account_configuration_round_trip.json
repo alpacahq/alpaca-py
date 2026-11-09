@@ -1,0 +1,224 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/account/configurations"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "closing_transactions_only": false,
+            "disable_overnight_trading": false,
+            "fractional_trading": true,
+            "max_margin_multiplier": "4",
+            "no_shorting": false,
+            "ptp_no_exception_entry": false,
+            "suspend_trade": false,
+            "trade_confirm_email": "all"
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization, Content-Type, X-Correspondent",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, POST, PATCH",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json; charset=UTF-8",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Origin",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "197",
+          "X-Ratelimit-Reset": "1794219229",
+          "X-Request-Id": "e17d6e5d821cc923491d9a0fcb0e8d1e"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": {
+          "json": {
+            "disable_overnight_trading": false,
+            "dtbp_check": null,
+            "fractional_trading": true,
+            "max_margin_multiplier": "4",
+            "max_options_trading_level": null,
+            "no_shorting": false,
+            "pdt_check": null,
+            "ptp_no_exception_entry": false,
+            "suspend_trade": false,
+            "trade_confirm_email": "none"
+          }
+        },
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "content-type": "application/json",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "PATCH",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/account/configurations"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "closing_transactions_only": false,
+            "disable_overnight_trading": false,
+            "fractional_trading": true,
+            "max_margin_multiplier": "4",
+            "no_shorting": false,
+            "ptp_no_exception_entry": false,
+            "suspend_trade": false,
+            "trade_confirm_email": "none"
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization, Content-Type, X-Correspondent",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, POST, PATCH",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json; charset=UTF-8",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Origin",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "196",
+          "X-Ratelimit-Reset": "1794219230",
+          "X-Request-Id": "bdfcb743b50b62273a2ab3fb6a1adb79"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": {
+          "json": {
+            "disable_overnight_trading": false,
+            "dtbp_check": null,
+            "fractional_trading": true,
+            "max_margin_multiplier": "4",
+            "max_options_trading_level": null,
+            "no_shorting": false,
+            "pdt_check": null,
+            "ptp_no_exception_entry": false,
+            "suspend_trade": false,
+            "trade_confirm_email": "all"
+          }
+        },
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "content-type": "application/json",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "PATCH",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/account/configurations"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "closing_transactions_only": false,
+            "disable_overnight_trading": false,
+            "fractional_trading": true,
+            "max_margin_multiplier": "4",
+            "no_shorting": false,
+            "ptp_no_exception_entry": false,
+            "suspend_trade": false,
+            "trade_confirm_email": "all"
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization, Content-Type, X-Correspondent",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, POST, PATCH",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json; charset=UTF-8",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Origin",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "195",
+          "X-Ratelimit-Reset": "1794219230",
+          "X-Request-Id": "a19c5eeef453a94bb09a0dc2cc946016"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_with": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "2.3.3",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "restored": {
+      "__type__": "AccountConfiguration",
+      "fields": {
+        "disable_overnight_trading": false,
+        "dtbp_check": null,
+        "fractional_trading": true,
+        "max_margin_multiplier": "4",
+        "max_options_trading_level": null,
+        "no_shorting": false,
+        "pdt_check": null,
+        "ptp_no_exception_entry": false,
+        "suspend_trade": false,
+        "trade_confirm_email": {
+          "__type__": "TradeConfirmationEmail",
+          "name": "ALL",
+          "value": "all"
+        }
+      }
+    },
+    "updated": {
+      "__type__": "AccountConfiguration",
+      "fields": {
+        "disable_overnight_trading": false,
+        "dtbp_check": null,
+        "fractional_trading": true,
+        "max_margin_multiplier": "4",
+        "max_options_trading_level": null,
+        "no_shorting": false,
+        "pdt_check": null,
+        "ptp_no_exception_entry": false,
+        "suspend_trade": false,
+        "trade_confirm_email": {
+          "__type__": "TradeConfirmationEmail",
+          "name": "NONE",
+          "value": "none"
+        }
+      }
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "trading_account_wide.account_configuration_round_trip",
+  "scenario_sha256": "e97fea2475b0fcb734671ea48600b3de6e1455f351e6ea27bd8ba725474be12a",
+  "vars": {}
+}

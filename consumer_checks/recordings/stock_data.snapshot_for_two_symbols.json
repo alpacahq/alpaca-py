@@ -1,0 +1,375 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "feed",
+            "iex"
+          ],
+          [
+            "symbols",
+            "AAPL,MSFT"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v2/stocks/snapshots"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "AAPL": {
+              "dailyBar": {
+                "c": 342.41,
+                "h": 345.765,
+                "l": 338.59,
+                "n": 27591,
+                "o": 338.59,
+                "t": "2026-11-06T05:00:00Z",
+                "v": 1313258,
+                "vw": 342.947699
+              },
+              "latestQuote": {
+                "ap": 0,
+                "as": 0,
+                "ax": " ",
+                "bp": 328.06,
+                "bs": 40,
+                "bx": "V",
+                "c": [
+                  "R"
+                ],
+                "t": "2026-11-06T21:00:02.015070376Z",
+                "z": "C"
+              },
+              "latestTrade": {
+                "c": [
+                  "@"
+                ],
+                "i": 27590,
+                "p": 342.41,
+                "s": 50,
+                "t": "2026-11-06T20:59:57.566180707Z",
+                "x": "V",
+                "z": "C"
+              },
+              "minuteBar": {
+                "c": 342.41,
+                "h": 342.6,
+                "l": 342.31,
+                "n": 704,
+                "o": 342.37,
+                "t": "2026-11-06T20:59:00Z",
+                "v": 32953,
+                "vw": 342.452145
+              },
+              "prevDailyBar": {
+                "c": 344.6,
+                "h": 355.29,
+                "l": 342.1,
+                "n": 64409,
+                "o": 353.905,
+                "t": "2026-11-05T05:00:00Z",
+                "v": 3422622,
+                "vw": 346.797078
+              }
+            },
+            "MSFT": {
+              "dailyBar": {
+                "c": 530.58,
+                "h": 538.24,
+                "l": 525.005,
+                "n": 20706,
+                "o": 525.41,
+                "t": "2026-11-06T05:00:00Z",
+                "v": 830880,
+                "vw": 532.890533
+              },
+              "latestQuote": {
+                "ap": 0,
+                "as": 0,
+                "ax": " ",
+                "bp": 508.51,
+                "bs": 40,
+                "bx": "V",
+                "c": [
+                  "R"
+                ],
+                "t": "2026-11-06T21:00:03.242863446Z",
+                "z": "C"
+              },
+              "latestTrade": {
+                "c": [
+                  "@"
+                ],
+                "i": 20701,
+                "p": 530.58,
+                "s": 120,
+                "t": "2026-11-06T20:59:59.251240703Z",
+                "x": "V",
+                "z": "C"
+              },
+              "minuteBar": {
+                "c": 530.58,
+                "h": 531.31,
+                "l": 530.505,
+                "n": 512,
+                "o": 531.13,
+                "t": "2026-11-06T20:59:00Z",
+                "v": 17811,
+                "vw": 530.942667
+              },
+              "prevDailyBar": {
+                "c": 536.29,
+                "h": 557.605,
+                "l": 532.68,
+                "n": 35915,
+                "o": 555.31,
+                "t": "2026-11-05T05:00:00Z",
+                "v": 1726204,
+                "vw": 540.443575
+              }
+            }
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Accept-Encoding",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "199",
+          "X-Ratelimit-Reset": "1794219226",
+          "X-Request-ID": "b067d68c600c309545cb788a743d555f"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_with": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "2.3.3",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "snapshots": {
+      "AAPL": {
+        "__type__": "Snapshot",
+        "fields": {
+          "daily_bar": {
+            "__type__": "Bar",
+            "fields": {
+              "close": 342.41,
+              "high": 345.765,
+              "low": 338.59,
+              "open": 338.59,
+              "symbol": "AAPL",
+              "timestamp": {
+                "__type__": "datetime",
+                "value": "2026-11-06T05:00:00+00:00"
+              },
+              "trade_count": 27591.0,
+              "volume": 1313258.0,
+              "vwap": 342.947699
+            }
+          },
+          "latest_quote": {
+            "__type__": "Quote",
+            "fields": {
+              "ask_exchange": " ",
+              "ask_price": 0.0,
+              "ask_size": 0.0,
+              "bid_exchange": "V",
+              "bid_price": 328.06,
+              "bid_size": 40.0,
+              "conditions": [
+                "R"
+              ],
+              "symbol": "AAPL",
+              "tape": "C",
+              "timestamp": {
+                "__type__": "datetime",
+                "value": "2026-11-06T21:00:02.015070+00:00"
+              }
+            }
+          },
+          "latest_trade": {
+            "__type__": "Trade",
+            "fields": {
+              "conditions": [
+                "@"
+              ],
+              "exchange": "V",
+              "id": 27590,
+              "price": 342.41,
+              "size": 50.0,
+              "symbol": "AAPL",
+              "tape": "C",
+              "timestamp": {
+                "__type__": "datetime",
+                "value": "2026-11-06T20:59:57.566180+00:00"
+              }
+            }
+          },
+          "minute_bar": {
+            "__type__": "Bar",
+            "fields": {
+              "close": 342.41,
+              "high": 342.6,
+              "low": 342.31,
+              "open": 342.37,
+              "symbol": "AAPL",
+              "timestamp": {
+                "__type__": "datetime",
+                "value": "2026-11-06T20:59:00+00:00"
+              },
+              "trade_count": 704.0,
+              "volume": 32953.0,
+              "vwap": 342.452145
+            }
+          },
+          "previous_daily_bar": {
+            "__type__": "Bar",
+            "fields": {
+              "close": 344.6,
+              "high": 355.29,
+              "low": 342.1,
+              "open": 353.905,
+              "symbol": "AAPL",
+              "timestamp": {
+                "__type__": "datetime",
+                "value": "2026-11-05T05:00:00+00:00"
+              },
+              "trade_count": 64409.0,
+              "volume": 3422622.0,
+              "vwap": 346.797078
+            }
+          },
+          "symbol": "AAPL"
+        }
+      },
+      "MSFT": {
+        "__type__": "Snapshot",
+        "fields": {
+          "daily_bar": {
+            "__type__": "Bar",
+            "fields": {
+              "close": 530.58,
+              "high": 538.24,
+              "low": 525.005,
+              "open": 525.41,
+              "symbol": "MSFT",
+              "timestamp": {
+                "__type__": "datetime",
+                "value": "2026-11-06T05:00:00+00:00"
+              },
+              "trade_count": 20706.0,
+              "volume": 830880.0,
+              "vwap": 532.890533
+            }
+          },
+          "latest_quote": {
+            "__type__": "Quote",
+            "fields": {
+              "ask_exchange": " ",
+              "ask_price": 0.0,
+              "ask_size": 0.0,
+              "bid_exchange": "V",
+              "bid_price": 508.51,
+              "bid_size": 40.0,
+              "conditions": [
+                "R"
+              ],
+              "symbol": "MSFT",
+              "tape": "C",
+              "timestamp": {
+                "__type__": "datetime",
+                "value": "2026-11-06T21:00:03.242863+00:00"
+              }
+            }
+          },
+          "latest_trade": {
+            "__type__": "Trade",
+            "fields": {
+              "conditions": [
+                "@"
+              ],
+              "exchange": "V",
+              "id": 20701,
+              "price": 530.58,
+              "size": 120.0,
+              "symbol": "MSFT",
+              "tape": "C",
+              "timestamp": {
+                "__type__": "datetime",
+                "value": "2026-11-06T20:59:59.251240+00:00"
+              }
+            }
+          },
+          "minute_bar": {
+            "__type__": "Bar",
+            "fields": {
+              "close": 530.58,
+              "high": 531.31,
+              "low": 530.505,
+              "open": 531.13,
+              "symbol": "MSFT",
+              "timestamp": {
+                "__type__": "datetime",
+                "value": "2026-11-06T20:59:00+00:00"
+              },
+              "trade_count": 512.0,
+              "volume": 17811.0,
+              "vwap": 530.942667
+            }
+          },
+          "previous_daily_bar": {
+            "__type__": "Bar",
+            "fields": {
+              "close": 536.29,
+              "high": 557.605,
+              "low": 532.68,
+              "open": 555.31,
+              "symbol": "MSFT",
+              "timestamp": {
+                "__type__": "datetime",
+                "value": "2026-11-05T05:00:00+00:00"
+              },
+              "trade_count": 35915.0,
+              "volume": 1726204.0,
+              "vwap": 540.443575
+            }
+          },
+          "symbol": "MSFT"
+        }
+      }
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "stock_data.snapshot_for_two_symbols",
+  "scenario_sha256": "e7ab1a68fe2a1e4a9c5785bef6b214f90ddec02e9fbe254a47f88a6915d81f19",
+  "vars": {}
+}

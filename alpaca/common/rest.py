@@ -505,12 +505,13 @@ class RESTClient(ABC):
         if handle_pagination == PaginationType.ITERATOR:
             return iterator
 
-        # PaginationType.NONE: a single page. An empty response still is one page.
-        # A non-positive limit stops the generator before any request, which would
-        # otherwise surface as a bare StopIteration. Match FULL and return an empty page.
+        # PaginationType.NONE returns the first page. An empty API body is
+        # still yielded, so next() returns that page.
         try:
             return next(iterator)
         except StopIteration:
+            # A non-positive limit yields nothing and sends no request.
+            # Return an empty page instead of letting StopIteration escape.
             if self._use_raw_data:
                 return {}
             return set_type({})

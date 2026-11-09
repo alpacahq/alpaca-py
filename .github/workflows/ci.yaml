@@ -25,7 +25,8 @@ jobs:
       - name: run lint checks
         run: poetry run black --check alpaca/ tests/
       - name: run type checks
-        run: poetry run mypy --warn-unused-ignores tests/type_checks/
+        # Same gate as `make typecheck`. Scope lives in pyproject.toml.
+        run: poetry run mypy tests/type_checks/
       - name: build doc html to lint for errors
         run: ./tools/scripts/generate-docs.sh
 

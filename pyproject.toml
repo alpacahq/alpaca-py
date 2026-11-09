@@ -48,6 +48,18 @@ build-backend = "poetry_dynamic_versioning.backend"
 # Only run SDK tests here; example projects have their own test setups
 testpaths = ["tests"]
 
+[tool.mypy]
+# Shared by `.github/workflows/ci.yaml` and `make typecheck`.
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = "alpaca.*"
+# The fixture imports the SDK for its public signatures. `silent` still loads
+# those signatures and hides implementation errors, such as `get_stock_bars()`
+# promising `BarSet` while returning `_get_paginated_marketdata()`'s wider
+# `BaseDataSet`. A correct fixture then passes.
+follow_imports = "silent"
+
 [tool.poetry-dynamic-versioning]
 enable=true
 

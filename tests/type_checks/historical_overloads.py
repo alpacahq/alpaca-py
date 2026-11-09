@@ -1,12 +1,16 @@
 """Static type-check fixture for the ``handle_pagination`` overloads.
 
-This module is checked by mypy (``make typecheck``), never imported or collected by
-pytest: the functions below are only type-checked, not executed. ``assert_type``
-fails the mypy run when a call resolves to a different return type than expected,
-so a later signature change cannot silently widen the default-call return type.
+This module is checked by mypy (``make typecheck`` and CI), never imported or
+collected by pytest: the functions below are only type-checked, not executed.
+``assert_type`` fails the mypy run when a call resolves to a different return
+type than expected, so a later signature change cannot silently widen the
+default-call return type.
 
-Run with ``--warn-unused-ignores`` so the ``type: ignore`` comments below also fail
-when the call they cover stops being a type error.
+Settings live in ``pyproject.toml``. ``warn_unused_ignores`` makes the
+``type: ignore`` comments below fail once the call they cover type-checks.
+``alpaca.*`` is followed with ``follow_imports = silent``, so these assertions
+still see the public signatures while errors inside the SDK implementation do
+not fail this gate.
 """
 
 from typing import Any, Dict, Iterator, Optional, Union

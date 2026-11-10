@@ -1,4 +1,5 @@
 import base64
+from enum import Enum
 from typing import Any, Callable, Dict, Iterator, List, Optional, Type, Union
 from uuid import UUID
 
@@ -7,7 +8,11 @@ from pydantic import TypeAdapter
 from requests import HTTPError, Response
 from typing_extensions import deprecated as _deprecated
 
-from alpaca.broker.enums import ACHRelationshipStatus, RecipientBankStatus
+from alpaca.broker.enums import (
+    ACHRelationshipStatus,
+    GetRecipientBanksStatusParameter,
+    RecipientBankStatus,
+)
 from alpaca.broker.models import (
     Account,
     AccountExtended,
@@ -55,7 +60,26 @@ from alpaca.broker.requests import (
     UpdatePortfolioRequest,
     UploadDocumentRequest,
 )
+
+# Broker request types added with the generated surface. Methods accept them next to
+# the alpaca.trading.requests types they have always taken.
+from alpaca.broker.requests import ClosePositionRequest as _BrokerClosePositionRequest
+from alpaca.broker.requests import (
+    CreateWatchlistRequest as _BrokerCreateWatchlistRequest,
+)
+from alpaca.broker.requests import GetAssetsRequest as _BrokerGetAssetsRequest
+from alpaca.broker.requests import GetCalendarRequest as _BrokerGetCalendarRequest
+from alpaca.broker.requests import (
+    GetCorporateAnnouncementsRequest as _BrokerGetCorporateAnnouncementsRequest,
+)
+from alpaca.broker.requests import GetOrderByIdRequest as _BrokerGetOrderByIdRequest
+from alpaca.broker.requests import GetOrdersRequest as _BrokerGetOrdersRequest
+from alpaca.broker.requests import (
+    GetPortfolioHistoryRequest as _BrokerGetPortfolioHistoryRequest,
+)
+from alpaca.broker.requests import UpdateOrderRequest as _BrokerUpdateOrderRequest
 from alpaca.common import RawData
+from alpaca.common._deprecation import build_from_response as _build_from_response
 from alpaca.common.constants import (
     ACCOUNT_ACTIVITIES_DEFAULT_PAGE_SIZE,
     BROKER_DOCUMENT_UPLOAD_LIMIT,
@@ -287,7 +311,7 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return Account(**response)
+        return _build_from_response(Account, response)
 
     def get_account_by_id(
         self,
@@ -313,7 +337,7 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return resp
 
-        return AccountExtended(**resp)
+        return _build_from_response(AccountExtended, resp)
 
     def update_account(
         self,
@@ -346,7 +370,7 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return AccountExtended(**response)
+        return _build_from_response(AccountExtended, response)
 
     @_deprecated(
         "delete_account is deprecated and will be removed in a future version. "
@@ -442,7 +466,7 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return result
 
-        return TradeAccount(**result)
+        return _build_from_response(TradeAccount, result)
 
     def upload_documents_to_account(
         self,
@@ -502,7 +526,7 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return resp
 
-        return TradeAccountConfiguration(**resp)
+        return _build_from_response(TradeAccountConfiguration, resp)
 
     def update_trade_configuration_for_account(
         self,
@@ -529,7 +553,7 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return result
 
-        return TradeAccountConfiguration(**result)
+        return _build_from_response(TradeAccountConfiguration, result)
 
     def get_cip_data_for_account_by_id(
         self,
@@ -877,7 +901,7 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return ACHRelationship(**response)
+        return _build_from_response(ACHRelationship, response)
 
     def get_ach_relationships_for_account(
         self,
@@ -951,12 +975,14 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return Bank(**response)
+        return _build_from_response(Bank, response)
 
     def get_banks_for_account(
         self,
         account_id: Union[UUID, str],
-        status: Optional[Union[RecipientBankStatus, str]] = None,
+        status: Optional[
+            Union[RecipientBankStatus, GetRecipientBanksStatusParameter, str]
+        ] = None,
         bank_name: Optional[str] = None,
     ) -> Union[List[Bank], RawData]:
         """
@@ -964,7 +990,7 @@ class BrokerClient(RESTClient):
 
         Args:
             account_id (Union[UUID, str]): The ID of the Account to get the Banks for.
-            status (Optional[Union[RecipientBankStatus, str]]): ``ACTIVE`` or ``INACTIVE``.
+            status (Optional[Union[GetRecipientBanksStatusParameter, str]]): ``ACTIVE`` or ``INACTIVE``.
             bank_name (Optional[str]): Filter to recipient banks with this name.
 
         Returns:
@@ -973,9 +999,7 @@ class BrokerClient(RESTClient):
         account_id = validate_uuid_id_param(account_id)
         params: Dict[str, Any] = {}
         if status is not None:
-            params["status"] = (
-                status.value if isinstance(status, RecipientBankStatus) else status
-            )
+            params["status"] = status.value if isinstance(status, Enum) else status
         if bank_name is not None:
             params["bank_name"] = bank_name
         response = self.get(f"/accounts/{account_id}/recipient_banks", params or None)
@@ -1028,7 +1052,7 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return Transfer(**response)
+        return _build_from_response(Transfer, response)
 
     def get_transfers_for_account(
         self,
@@ -1186,7 +1210,7 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return AllAccountsPositions(**response)
+        return _build_from_response(AllAccountsPositions, response)
 
     def get_open_position_for_account(
         self, account_id: Union[UUID, str], symbol_or_asset_id: Union[UUID, str]
@@ -1210,7 +1234,7 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return Position(**response)
+        return _build_from_response(Position, response)
 
     def close_all_positions_for_account(
         self,
@@ -1244,7 +1268,9 @@ class BrokerClient(RESTClient):
         self,
         account_id: Union[UUID, str],
         symbol_or_asset_id: Union[UUID, str],
-        close_options: Optional[ClosePositionRequest] = None,
+        close_options: Optional[
+            Union[ClosePositionRequest, _BrokerClosePositionRequest]
+        ] = None,
     ) -> Union[Order, RawData]:
         """
         Liquidates the position for an account for a single asset.
@@ -1269,12 +1295,14 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return Order(**response)
+        return _build_from_response(Order, response)
 
     def get_portfolio_history_for_account(
         self,
         account_id: Union[UUID, str],
-        history_filter: Optional[GetPortfolioHistoryRequest] = None,
+        history_filter: Optional[
+            Union[GetPortfolioHistoryRequest, _BrokerGetPortfolioHistoryRequest]
+        ] = None,
     ) -> Union[PortfolioHistory, RawData]:
         """
         Gets the portfolio history statistics for an account.
@@ -1296,7 +1324,7 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return PortfolioHistory(**response)
+        return _build_from_response(PortfolioHistory, response)
 
     # ############################## CLOCK & CALENDAR ################################# #
 
@@ -1314,11 +1342,11 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return Clock(**response)
+        return _build_from_response(Clock, response)
 
     def get_calendar(
         self,
-        filters: Optional[GetCalendarRequest] = None,
+        filters: Optional[Union[GetCalendarRequest, _BrokerGetCalendarRequest]] = None,
     ) -> Union[List[Calendar], RawData]:
         """
         The calendar API serves the full list of market days from 1970 to 2029. It can also be queried by specifying a
@@ -1390,12 +1418,12 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return result
 
-        return Watchlist(**result)
+        return _build_from_response(Watchlist, result)
 
     def create_watchlist_for_account(
         self,
         account_id: Union[UUID, str],
-        watchlist_data: CreateWatchlistRequest,
+        watchlist_data: Union[CreateWatchlistRequest, _BrokerCreateWatchlistRequest],
     ) -> Union[Watchlist, RawData]:
         """
         Creates a new watchlist for a given account.
@@ -1417,7 +1445,7 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return result
 
-        return Watchlist(**result)
+        return _build_from_response(Watchlist, result)
 
     def update_watchlist_for_account_by_id(
         self,
@@ -1425,7 +1453,7 @@ class BrokerClient(RESTClient):
         watchlist_id: Union[UUID, str],
         # Might be worth taking a union of this and Watchlist itself; but then we should make a change like that SDK
         # wide. Probably a good 0.2.x change
-        watchlist_data: UpdateWatchlistRequest,
+        watchlist_data: Union[UpdateWatchlistRequest, _BrokerCreateWatchlistRequest],
     ) -> Union[Watchlist, RawData]:
         """
         Updates a watchlist with new data.
@@ -1449,7 +1477,7 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return result
 
-        return Watchlist(**result)
+        return _build_from_response(Watchlist, result)
 
     def add_asset_to_watchlist_for_account_by_id(
         self,
@@ -1479,7 +1507,7 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return result
 
-        return Watchlist(**result)
+        return _build_from_response(Watchlist, result)
 
     def delete_watchlist_from_account_by_id(
         self,
@@ -1528,7 +1556,7 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return result
 
-        return Watchlist(**result)
+        return _build_from_response(Watchlist, result)
 
     # ############################## JOURNALS ################################# #
 
@@ -1554,7 +1582,7 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return Journal(**response)
+        return _build_from_response(Journal, response)
 
     def create_batch_journal(
         self,
@@ -1644,7 +1672,7 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return Journal(**response)
+        return _build_from_response(Journal, response)
 
     def cancel_journal_by_id(
         self,
@@ -1666,7 +1694,7 @@ class BrokerClient(RESTClient):
     # ############################## Assets ################################# #
 
     def get_all_assets(
-        self, filter: Optional[GetAssetsRequest] = None
+        self, filter: Optional[Union[GetAssetsRequest, _BrokerGetAssetsRequest]] = None
     ) -> Union[List[Asset], RawData]:
         """
         The assets API serves as the master list of assets available for trade and data consumption from Alpaca.
@@ -1709,7 +1737,7 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return Asset(**response)
+        return _build_from_response(Asset, response)
 
     # ############################## ORDERS ################################# #
 
@@ -1735,10 +1763,12 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return Order(**response)
+        return _build_from_response(Order, response)
 
     def get_orders_for_account(
-        self, account_id: Union[UUID, str], filter: Optional[GetOrdersRequest] = None
+        self,
+        account_id: Union[UUID, str],
+        filter: Optional[Union[GetOrdersRequest, _BrokerGetOrdersRequest]] = None,
     ) -> Union[List[Order], RawData]:
         """
         Returns all orders for an account. Orders can be filtered by parameters.
@@ -1771,7 +1801,7 @@ class BrokerClient(RESTClient):
         self,
         account_id: Union[UUID, str],
         order_id: Union[UUID, str],
-        filter: Optional[GetOrderByIdRequest] = None,
+        filter: Optional[Union[GetOrderByIdRequest, _BrokerGetOrderByIdRequest]] = None,
     ) -> Union[Order, RawData]:
         """
         Returns a specific order by its order id.
@@ -1795,7 +1825,7 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return Order(**response)
+        return _build_from_response(Order, response)
 
     def get_order_for_account_by_client_id(
         self, account_id: Union[UUID, str], client_id: str
@@ -1821,13 +1851,15 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return Order(**response)
+        return _build_from_response(Order, response)
 
     def replace_order_for_account_by_id(
         self,
         account_id: Union[UUID, str],
         order_id: Union[UUID, str],
-        order_data: Optional[ReplaceOrderRequest] = None,
+        order_data: Optional[
+            Union[ReplaceOrderRequest, _BrokerUpdateOrderRequest]
+        ] = None,
     ) -> Union[Order, RawData]:
         """
         Updates an order with new parameters.
@@ -1853,7 +1885,7 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return Order(**response)
+        return _build_from_response(Order, response)
 
     def cancel_orders_for_account(
         self, account_id: Union[UUID, str]
@@ -1903,7 +1935,10 @@ class BrokerClient(RESTClient):
         "Please use alpaca.data.historical.corporate_actions.CorporateActionsClient.get_corporate_actions() instead",
     )
     def get_corporate_announcements(
-        self, filter: GetCorporateAnnouncementsRequest
+        self,
+        filter: Union[
+            GetCorporateAnnouncementsRequest, _BrokerGetCorporateAnnouncementsRequest
+        ],
     ) -> Union[List[CorporateActionAnnouncement], RawData]:
         """
         .. deprecated:: 0.45.0
@@ -1961,7 +1996,7 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return CorporateActionAnnouncement(**response)
+        return _build_from_response(CorporateActionAnnouncement, response)
 
     # ############################## EVENTS ################################# #
 
@@ -2161,7 +2196,7 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return Portfolio(**response)
+        return _build_from_response(Portfolio, response)
 
     def get_all_portfolios(
         self,
@@ -2208,7 +2243,7 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return Portfolio(**response)
+        return _build_from_response(Portfolio, response)
 
     def update_portfolio_by_id(
         self,
@@ -2239,7 +2274,7 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return Portfolio(**response)
+        return _build_from_response(Portfolio, response)
 
     def inactivate_portfolio_by_id(self, portfolio_id: Union[UUID, str]) -> None:
         """
@@ -2278,7 +2313,7 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return Subscription(**response)
+        return _build_from_response(Subscription, response)
 
     def get_subscriptions(
         self,
@@ -2392,7 +2427,7 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return Subscription(**response)
+        return _build_from_response(Subscription, response)
 
     def unsubscribe_account(self, subscription_id: Union[UUID, str]) -> None:
         """
@@ -2427,7 +2462,7 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return RebalancingRun(**response)
+        return _build_from_response(RebalancingRun, response)
 
     def get_runs(
         self,
@@ -2535,7 +2570,7 @@ class BrokerClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return RebalancingRun(**response)
+        return _build_from_response(RebalancingRun, response)
 
     def cancel_run_by_id(self, run_id: Union[UUID, str]) -> None:
         """

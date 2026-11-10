@@ -1,0 +1,22 @@
+# OpenAPI Generator settings for the Broker API.
+# Only maintainers run this; see tools/scripts/openapi/generate.py and `make generate-openapi`.
+# Surface-specific assembly settings live under tools/openapi/surfaces/.
+# The input specification and output directory are supplied by the script because both
+# are temporary paths: generation happens in a sandbox and is assembled afterwards.
+generatorName: python
+templateDir: tools/openapi/templates/python
+additionalProperties:
+  packageName: alpaca.broker._generated
+  packageVersion: 0.0.0
+  # alpaca-py keeps its own transport, so only schemas and operation metadata are needed.
+  generateSourceCodeOnly: "true"
+  useOneOfDiscriminatorLookup: "true"
+# Promote inline property enums (type: string + enum: [...]) into named $ref schemas
+# so the Python generator emits real Enum classes instead of StrictStr.
+inlineSchemaOptions:
+  RESOLVE_INLINE_ENUMS: "true"
+globalProperties:
+  apiDocs: "false"
+  apiTests: "false"
+  modelDocs: "false"
+  modelTests: "false"

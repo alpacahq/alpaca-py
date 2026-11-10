@@ -1,0 +1,983 @@
+{
+  "generatedBy": "tools/scripts/openapi/generate.py; DO NOT EDIT.",
+  "operations": [
+    {
+      "httpMethod": "GET",
+      "methodName": "list_accounts",
+      "operationId": "getAllAccounts",
+      "path": "/v1/accounts"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": "create_account",
+      "operationId": "createAccount",
+      "path": "/v1/accounts"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_account_activities",
+      "operationId": "getAccountActivities",
+      "path": "/v1/accounts/activities"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "getAccountActivitiesByType",
+      "path": "/v1/accounts/activities/{activity_type}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "listIRAExcessContributions",
+      "path": "/v1/accounts/ira_excess_contributions"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "requestListOptionsApprovals",
+      "path": "/v1/accounts/options/approvals"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "get-v1-accounts-positions",
+      "path": "/v1/accounts/positions"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_account_by_id",
+      "operationId": "getAccount",
+      "path": "/v1/accounts/{account_id}"
+    },
+    {
+      "httpMethod": "PATCH",
+      "methodName": "update_account",
+      "operationId": "patchAccount",
+      "path": "/v1/accounts/{account_id}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_ach_relationships_for_account",
+      "operationId": "getAccountACHRelationships",
+      "path": "/v1/accounts/{account_id}/ach_relationships"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": "create_ach_relationship_for_account",
+      "operationId": "createACHRelationshipForAccount",
+      "path": "/v1/accounts/{account_id}/ach_relationships"
+    },
+    {
+      "httpMethod": "DELETE",
+      "methodName": "delete_ach_relationship_for_account",
+      "operationId": "deleteACHRelationshipFromAccount",
+      "path": "/v1/accounts/{account_id}/ach_relationships/{ach_relationship_id}"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": "close_account",
+      "operationId": "post-v1-accounts-account_id-actions-close",
+      "path": "/v1/accounts/{account_id}/actions/close"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "get-v1-accounts-account_id-cip",
+      "path": "/v1/accounts/{account_id}/cip"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": null,
+      "operationId": "post-v1-accounts-account_id-cip",
+      "path": "/v1/accounts/{account_id}/cip"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_trade_documents_for_account",
+      "operationId": "getDocsForAccount",
+      "path": "/v1/accounts/{account_id}/documents"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": "upload_documents_to_account",
+      "operationId": "uploadDocToAccount",
+      "path": "/v1/accounts/{account_id}/documents/upload"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "get-v1-accounts-account_id-documents-w8ben-document_id-download",
+      "path": "/v1/accounts/{account_id}/documents/w8ben/{document_id}/download"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "download_trade_document_for_account_by_id",
+      "operationId": "downloadDocFromAccount",
+      "path": "/v1/accounts/{account_id}/documents/{document_id}/download"
+    },
+    {
+      "httpMethod": "PATCH",
+      "methodName": null,
+      "operationId": "patch-v1-accounts-account_id-onfido-sdk",
+      "path": "/v1/accounts/{account_id}/onfido/sdk"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "get-v1-accounts-account_id-onfido-sdk-tokens",
+      "path": "/v1/accounts/{account_id}/onfido/sdk/tokens"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": null,
+      "operationId": "requestOptionsForAccount",
+      "path": "/v1/accounts/{account_id}/options/approval"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "getRecipientBanks",
+      "path": "/v1/accounts/{account_id}/recipient_banks"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": null,
+      "operationId": "createRecipientBank",
+      "path": "/v1/accounts/{account_id}/recipient_banks"
+    },
+    {
+      "httpMethod": "DELETE",
+      "methodName": null,
+      "operationId": "deleteRecipientBank",
+      "path": "/v1/accounts/{account_id}/recipient_banks/{bank_id}"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": null,
+      "operationId": "postTokenizationCallbackMint",
+      "path": "/v1/accounts/{account_id}/tokenization/callback/mint"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": null,
+      "operationId": "postTokenizationRedeem",
+      "path": "/v1/accounts/{account_id}/tokenization/callback/redeem"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": null,
+      "operationId": "postTokenizationMintBroker",
+      "path": "/v1/accounts/{account_id}/tokenization/mint"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "getTokenizationRequestsBroker",
+      "path": "/v1/accounts/{account_id}/tokenization/requests"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "getTokenizationRequestByIDBroker",
+      "path": "/v1/accounts/{account_id}/tokenization/requests/{tokenization_request_id}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "getTokenizationRequestByClientRequestIDBroker",
+      "path": "/v1/accounts/{account_id}/tokenization/requests:by_client_request_id"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "getTokenizationRequestByIssuerRequestIDBroker",
+      "path": "/v1/accounts/{account_id}/tokenization/requests:by_issuer_request_id"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_transfers_for_account",
+      "operationId": "getTransfersForAccount",
+      "path": "/v1/accounts/{account_id}/transfers"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": "create_transfer_for_account",
+      "operationId": "createTransferForAccount",
+      "path": "/v1/accounts/{account_id}/transfers"
+    },
+    {
+      "httpMethod": "DELETE",
+      "methodName": "cancel_transfer_for_account",
+      "operationId": "deleteTransfer",
+      "path": "/v1/accounts/{account_id}/transfers/{transfer_id}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "listCryptoFundingWallets",
+      "path": "/v1/accounts/{account_id}/wallets"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "listCryptoFundingTransfers",
+      "path": "/v1/accounts/{account_id}/wallets/transfers"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": null,
+      "operationId": "createCryptoTransferForAccount",
+      "path": "/v1/accounts/{account_id}/wallets/transfers"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "getCryptoFundingTransfer",
+      "path": "/v1/accounts/{account_id}/wallets/transfers/{transfer_id}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "listWhitelistedAddress",
+      "path": "/v1/accounts/{account_id}/wallets/whitelists"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": null,
+      "operationId": "createWhitelistedAddress",
+      "path": "/v1/accounts/{account_id}/wallets/whitelists"
+    },
+    {
+      "httpMethod": "DELETE",
+      "methodName": null,
+      "operationId": "deleteWhitelistedAddress",
+      "path": "/v1/accounts/{account_id}/wallets/whitelists/{whitelisted_address_id}"
+    },
+    {
+      "httpMethod": "PATCH",
+      "methodName": null,
+      "operationId": "updateWhitelistedAddressTravelRuleInfo",
+      "path": "/v1/accounts/{account_id}/wallets/whitelists/{whitelisted_address_id}/travel-rule-info"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": null,
+      "operationId": "createAgreement",
+      "path": "/v1/agreements"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_all_assets",
+      "operationId": "getAssets",
+      "path": "/v1/assets"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "get-asset-entry-requirements",
+      "path": "/v1/assets/entry-requirements"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "UsCorporates",
+      "path": "/v1/assets/fixed_income/us_corporates"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "UsTreasuries",
+      "path": "/v1/assets/fixed_income/us_treasuries"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_asset",
+      "operationId": "getAssetBySymbolOrId",
+      "path": "/v1/assets/{symbol_or_asset_id}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "LegacyCalendar",
+      "path": "/v1/calendar"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "get-v1-list-apr-tiers",
+      "path": "/v1/cash_interest/apr_tiers"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "LegacyClock",
+      "path": "/v1/clock"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_corporate_announcements",
+      "operationId": "getCorporateAnnouncements",
+      "path": "/v1/corporate_actions/announcements"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_corporate_announcement_by_id",
+      "operationId": "get-GET-v1-corporate_actions-announcements-id",
+      "path": "/v1/corporate_actions/announcements/{id}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "queryCountryInfos",
+      "path": "/v1/country-info"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "subscribeToAccountStatusSSE",
+      "path": "/v1/events/accounts/status"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "subscribeToJournalStatusSSE",
+      "path": "/v1/events/journals/status"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "get-v1-events-nta",
+      "path": "/v1/events/nta"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "subscribeToTransferStatusSSE",
+      "path": "/v1/events/transfers/status"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "get-v1-fpsl-analytics-account-loans",
+      "path": "/v1/fpsl/analytics/{account_id}/loans"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "get-v1-list-fpsl-loans",
+      "path": "/v1/fpsl/loans"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "get-v1-list-fpsl-tiers",
+      "path": "/v1/fpsl/tiers"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "get-v1-instant-funding-list",
+      "path": "/v1/instant_funding"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": null,
+      "operationId": "post-v1-instant-funding",
+      "path": "/v1/instant_funding"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "get-v1-instant-funding-correspondent-limits",
+      "path": "/v1/instant_funding/limits"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "get-v1-instant-funding-account-limits",
+      "path": "/v1/instant_funding/limits/accounts"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "get-v1-instant-funding-reports",
+      "path": "/v1/instant_funding/reports"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "get-v1-instant-funding-settlements",
+      "path": "/v1/instant_funding/settlements"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": null,
+      "operationId": "post-v1-instant-funding-settlements",
+      "path": "/v1/instant_funding/settlements"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "get-v1-instant-funding-settlements-single",
+      "path": "/v1/instant_funding/settlements/{settlement_id}"
+    },
+    {
+      "httpMethod": "DELETE",
+      "methodName": null,
+      "operationId": "delete-v1-instant-funding-single",
+      "path": "/v1/instant_funding/{instant_funding_id}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "get-v1-instant-funding-single",
+      "path": "/v1/instant_funding/{instant_funding_id}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "listIPOOfferings",
+      "path": "/v1/ipos"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "getIPOOffering",
+      "path": "/v1/ipos/{offering_reference}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "get-v1-jit-settlements",
+      "path": "/v1/jit/settlements"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": null,
+      "operationId": "post-v1-jit-settlements",
+      "path": "/v1/jit/settlements"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "get-v1-jit-settlements-single",
+      "path": "/v1/jit/settlements/{settlement_id}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_journals",
+      "operationId": "getAllJournals",
+      "path": "/v1/journals"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": "create_journal",
+      "operationId": "createJournal",
+      "path": "/v1/journals"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": "create_batch_journal",
+      "operationId": "createBatchJournal",
+      "path": "/v1/journals/batch"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": "create_reverse_batch_journal",
+      "operationId": "post-v1-journals-reverse_batch",
+      "path": "/v1/journals/reverse_batch"
+    },
+    {
+      "httpMethod": "DELETE",
+      "methodName": "cancel_journal_by_id",
+      "operationId": "deleteJournalById",
+      "path": "/v1/journals/{journal_id}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_journal_by_id",
+      "operationId": "get-v1-journals-journal_id",
+      "path": "/v1/journals/{journal_id}"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": null,
+      "operationId": "authorizeOAuthToken",
+      "path": "/v1/oauth/authorize"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "getOAuthClient",
+      "path": "/v1/oauth/clients/{client_id}"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": null,
+      "operationId": "issueOAuthToken",
+      "path": "/v1/oauth/token"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "get-options-contracts",
+      "path": "/v1/options/contracts"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "get-option-contract-symbol_or_id",
+      "path": "/v1/options/contracts/{symbol_or_id}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_all_portfolios",
+      "operationId": "get-v1-rebalancing-portfolios",
+      "path": "/v1/rebalancing/portfolios"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": "create_portfolio",
+      "operationId": "post-v1-rebalancing-portfolios",
+      "path": "/v1/rebalancing/portfolios"
+    },
+    {
+      "httpMethod": "DELETE",
+      "methodName": "inactivate_portfolio_by_id",
+      "operationId": "delete-v1-rebalancing-portfolios-portfolio_id",
+      "path": "/v1/rebalancing/portfolios/{portfolio_id}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_portfolio_by_id",
+      "operationId": "get-v1-rebalancing-portfolios-portfolio_id",
+      "path": "/v1/rebalancing/portfolios/{portfolio_id}"
+    },
+    {
+      "httpMethod": "PATCH",
+      "methodName": "update_portfolio_by_id",
+      "operationId": "patch-v1-rebalancing-portfolios-portfolio_id",
+      "path": "/v1/rebalancing/portfolios/{portfolio_id}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_all_runs",
+      "operationId": "get-v1-rebalancing-runs",
+      "path": "/v1/rebalancing/runs"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": "create_manual_run",
+      "operationId": "post-v1-rebalancing-runs",
+      "path": "/v1/rebalancing/runs"
+    },
+    {
+      "httpMethod": "DELETE",
+      "methodName": "cancel_run_by_id",
+      "operationId": "delete-v1-rebalancing-runs-run_id",
+      "path": "/v1/rebalancing/runs/{run_id}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_run_by_id",
+      "operationId": "get-v1-rebalancing-runs-run_id",
+      "path": "/v1/rebalancing/runs/{run_id}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_all_subscriptions",
+      "operationId": "get-v1-rebalancing-subscriptions",
+      "path": "/v1/rebalancing/subscriptions"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": "create_subscription",
+      "operationId": "post-v1-rebalancing-subscriptions",
+      "path": "/v1/rebalancing/subscriptions"
+    },
+    {
+      "httpMethod": "DELETE",
+      "methodName": "unsubscribe_account",
+      "operationId": "delete-v1-rebalancing-subscriptions-subscription_id",
+      "path": "/v1/rebalancing/subscriptions/{subscription_id}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_subscription_by_id",
+      "operationId": "get-v1-rebalancing-subscriptions-subscription_id",
+      "path": "/v1/rebalancing/subscriptions/{subscription_id}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "get-v1-reporting-eod-aggregate_positions",
+      "path": "/v1/reporting/eod/aggregate_positions"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "get-v1-get-eod-cash-interest-report",
+      "path": "/v1/reporting/eod/cash_interest"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "get-v1-reporting-eod-positions",
+      "path": "/v1/reporting/eod/positions"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_trade_account_by_id",
+      "operationId": "getTradingAccount",
+      "path": "/v1/trading/accounts/{account_id}/account"
+    },
+    {
+      "httpMethod": "PATCH",
+      "methodName": "update_trade_configuration_for_account",
+      "operationId": "patch-PATCH-v1-trading-accounts-account_id-account-configurations",
+      "path": "/v1/trading/accounts/{account_id}/account/configurations"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_portfolio_history_for_account",
+      "operationId": "get-v1-trading-accounts-account_id-account-portfolio-history",
+      "path": "/v1/trading/accounts/{account_id}/account/portfolio/history"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "get-v1-account-trading-limits",
+      "path": "/v1/trading/accounts/{account_id}/limits"
+    },
+    {
+      "httpMethod": "DELETE",
+      "methodName": "cancel_orders_for_account",
+      "operationId": "deleteAllOrdersForAccount",
+      "path": "/v1/trading/accounts/{account_id}/orders"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_orders_for_account",
+      "operationId": "getAllOrdersForAccount",
+      "path": "/v1/trading/accounts/{account_id}/orders"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": "submit_order_for_account",
+      "operationId": "createOrderForAccount",
+      "path": "/v1/trading/accounts/{account_id}/orders"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": null,
+      "operationId": "get-v1-trading-accounts-account_id-orders-estimation",
+      "path": "/v1/trading/accounts/{account_id}/orders/estimation"
+    },
+    {
+      "httpMethod": "DELETE",
+      "methodName": "cancel_order_for_account_by_id",
+      "operationId": "deleteOrderForAccount",
+      "path": "/v1/trading/accounts/{account_id}/orders/{order_id}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_order_for_account_by_id",
+      "operationId": "getOrderForAccount",
+      "path": "/v1/trading/accounts/{account_id}/orders/{order_id}"
+    },
+    {
+      "httpMethod": "PATCH",
+      "methodName": "replace_order_for_account_by_id",
+      "operationId": "replaceOrderForAccount",
+      "path": "/v1/trading/accounts/{account_id}/orders/{order_id}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_order_for_account_by_client_id",
+      "operationId": "getOrderByClientOrderIdForAccount",
+      "path": "/v1/trading/accounts/{account_id}/orders:by_client_order_id"
+    },
+    {
+      "httpMethod": "DELETE",
+      "methodName": "close_all_positions_for_account",
+      "operationId": "closeAllPositionsForAccount",
+      "path": "/v1/trading/accounts/{account_id}/positions"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_all_positions_for_account",
+      "operationId": "getPositionsForAccount",
+      "path": "/v1/trading/accounts/{account_id}/positions"
+    },
+    {
+      "httpMethod": "DELETE",
+      "methodName": "close_position_for_account",
+      "operationId": "closePositionForAccountBySymbol",
+      "path": "/v1/trading/accounts/{account_id}/positions/{symbol_or_asset_id}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_open_position_for_account",
+      "operationId": "getPositionsForAccountBySymbol",
+      "path": "/v1/trading/accounts/{account_id}/positions/{symbol_or_asset_id}"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": null,
+      "operationId": "optionDoNotExercise",
+      "path": "/v1/trading/accounts/{account_id}/positions/{symbol_or_contract_id}/do-not-exercise"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": "exercise_options_position_for_account_by_id",
+      "operationId": "optionExercise",
+      "path": "/v1/trading/accounts/{account_id}/positions/{symbol_or_contract_id}/exercise"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_watchlists_for_account",
+      "operationId": "getAllWatchlistsForAccount",
+      "path": "/v1/trading/accounts/{account_id}/watchlists"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": "create_watchlist_for_account",
+      "operationId": "createWatchlistForAccount",
+      "path": "/v1/trading/accounts/{account_id}/watchlists"
+    },
+    {
+      "httpMethod": "DELETE",
+      "methodName": "delete_watchlist_from_account_by_id",
+      "operationId": "deleteWatchlistFromAccountById",
+      "path": "/v1/trading/accounts/{account_id}/watchlists/{watchlist_id}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_watchlist_for_account_by_id",
+      "operationId": "getWatchlistForAccountById",
+      "path": "/v1/trading/accounts/{account_id}/watchlists/{watchlist_id}"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": "add_asset_to_watchlist_for_account_by_id",
+      "operationId": "post-v1-trading-accounts-account_id-watchlists-watchlist_id",
+      "path": "/v1/trading/accounts/{account_id}/watchlists/{watchlist_id}"
+    },
+    {
+      "httpMethod": "PUT",
+      "methodName": "update_watchlist_for_account_by_id",
+      "operationId": "replaceWatchlistForAccountById",
+      "path": "/v1/trading/accounts/{account_id}/watchlists/{watchlist_id}"
+    },
+    {
+      "httpMethod": "DELETE",
+      "methodName": "remove_asset_from_watchlist_for_account_by_id",
+      "operationId": "delete-DELETE-v1-trading-accounts-account_id-watchlists-watchlist_id-symbol",
+      "path": "/v1/trading/accounts/{account_id}/watchlists/{watchlist_id}/{symbol}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "get-v1-transfers-jit-ledgers",
+      "path": "/v1/transfers/jit/ledgers"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "get-v1-transfers-jit-limits",
+      "path": "/v1/transfers/jit/limits"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "get-v1-transfers-jit-reports",
+      "path": "/v1/transfers/jit/reports"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "get-v1-transfers-jit-ledger_id-balances",
+      "path": "/v1/transfers/jit/{ledger_id}/balances"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "getCryptoTransferEstimate",
+      "path": "/v1/wallets/fees/estimate"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "searchVASPs",
+      "path": "/v1/wallets/travel-rule/vasps"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": null,
+      "operationId": "batchCreateFundingWallets",
+      "path": "/v1beta/accounts/funding_wallet"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "getFundingWallet",
+      "path": "/v1beta/accounts/{account_id}/funding_wallet"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": null,
+      "operationId": "createFundingWallet",
+      "path": "/v1beta/accounts/{account_id}/funding_wallet"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "listFundingDetails",
+      "path": "/v1beta/accounts/{account_id}/funding_wallet/funding_details"
+    },
+    {
+      "httpMethod": "DELETE",
+      "methodName": null,
+      "operationId": "deleteFundingWalletRecipientBank",
+      "path": "/v1beta/accounts/{account_id}/funding_wallet/recipient_bank"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "getFundingWalletRecipientBank",
+      "path": "/v1beta/accounts/{account_id}/funding_wallet/recipient_bank"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": null,
+      "operationId": "createFundingWalletRecipientBank",
+      "path": "/v1beta/accounts/{account_id}/funding_wallet/recipient_bank"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "getFundingWalletTransfers",
+      "path": "/v1beta/accounts/{account_id}/funding_wallet/transfers"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "getFundingWalletTransferByID",
+      "path": "/v1beta/accounts/{account_id}/funding_wallet/transfers/{transfer_id}"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": null,
+      "operationId": "createFundingWalletWithdrawal",
+      "path": "/v1beta/accounts/{account_id}/funding_wallet/withdrawal"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": null,
+      "operationId": "demoDepositFunding",
+      "path": "/v1beta/demo/banking/funding"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "listACATSTransfers",
+      "path": "/v1beta1/acats"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "listACATSContraBrokers",
+      "path": "/v1beta1/acats/contrabrokers"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "listACATSTransfersByAccount",
+      "path": "/v1beta1/acats/{account_id}"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": null,
+      "operationId": "requestACATSTransfer",
+      "path": "/v1beta1/acats/{account_id}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "getACATSTransfer",
+      "path": "/v1beta1/acats/{account_id}/{acats_id}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "listACATSAssets",
+      "path": "/v1beta1/acats/{account_id}/{acats_id}/assets"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "get-v1beta1-logos-symbol",
+      "path": "/v1beta1/logos/{symbol}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_calendar",
+      "operationId": "Calendar",
+      "path": "/v2/calendar/{market}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_clock",
+      "operationId": "Clock",
+      "path": "/v2/clock"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "subscribeToAdminActionSSE",
+      "path": "/v2/events/admin-actions"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "subscribeToFundingStatusSSE",
+      "path": "/v2/events/funding/status"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "subscribeToIPOEventsSSE",
+      "path": "/v2/events/ipos"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "subscribeToJournalStatusV2SSE",
+      "path": "/v2/events/journals/status"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "subscribeToSystemEventV2SSE",
+      "path": "/v2/events/system"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "subscribeToTradeV2SSE",
+      "path": "/v2/events/trades"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "getAccountActivityEvent",
+      "path": "/v2beta1/accounts/{account_id}/events/activities/{event_id}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "subscribeToActivitiesSSE",
+      "path": "/v2beta1/events/activities"
+    }
+  ]
+}

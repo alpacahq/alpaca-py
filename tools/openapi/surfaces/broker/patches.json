@@ -1,0 +1,24 @@
+{
+  "specPatches": [
+    {
+      "path": [
+        "components",
+        "schemas",
+        "AcatsInitiateTransferDetails",
+        "oneOf"
+      ],
+      "value": [],
+      "reason": "the branches only assert which of the parent's cash/securities/type combinations are legal, a rule pydantic cannot express; openapi-generator turns them into empty FullTransfer/PartialTransfer/PartialTransferAnyOf* models, and the parent already declares every property"
+    },
+    {
+      "path": [
+        "components",
+        "schemas",
+        "PortfolioWeightRequest",
+        "oneOf"
+      ],
+      "value": [],
+      "reason": "the branches only assert that symbol is required when type is asset; openapi-generator turns them into empty PortfolioWeightRequestOneOf models, and the parent already declares percent/symbol/type"
+    }
+  ]
+}

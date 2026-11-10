@@ -2,6 +2,8 @@ from typing import List
 
 from alpaca.broker.client import BrokerClient
 from alpaca.common.enums import BaseURL
+from alpaca.broker.models import LegacyCalendarDay as BrokerLegacyCalendarDay
+from alpaca.broker.models import LegacyClock as BrokerLegacyClock
 from alpaca.trading.models import Calendar, Clock
 from alpaca.trading.requests import GetCalendarRequest
 
@@ -64,3 +66,50 @@ def test_get_clock(reqmock, client: BrokerClient):
 
     assert reqmock.called_once
     assert isinstance(result, Clock)
+
+
+def test_get_clock_returns_the_broker_legacy_clock_on_request(
+    reqmock, client: BrokerClient
+):
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/clock",
+        text="""
+        {
+          "timestamp": "2022-05-16T16:32:24.14373588-04:00",
+          "is_open": false,
+          "next_open": "2022-05-17T09:30:00-04:00",
+          "next_close": "2022-05-17T16:00:00-04:00"
+        }
+        """,
+    )
+
+    assert type(client.get_clock()) is Clock
+    # The Broker spec documents its own LegacyClock for this route.
+    generated = client.get_clock(generated=True)
+    assert type(generated) is BrokerLegacyClock
+    assert generated.is_open is False
+
+
+def test_get_calendar_returns_the_broker_legacy_calendar_days_on_request(
+    reqmock, client: BrokerClient
+):
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/calendar",
+        text="""
+        [
+          {
+            "date": "2022-05-16",
+            "open": "09:30",
+            "close": "16:00",
+            "session_open": "0400",
+            "session_close": "2000",
+            "settlement_date": "2022-05-17"
+          }
+        ]
+        """,
+    )
+
+    assert [type(day) for day in client.get_calendar()] == [Calendar]
+    # The Broker spec documents its own LegacyCalendarDay for this route.
+    generated = client.get_calendar(generated=True)
+    assert [type(day) for day in generated] == [BrokerLegacyCalendarDay]

@@ -2,7 +2,14 @@ from urllib.parse import parse_qs, urlparse
 
 from alpaca.common.enums import BaseURL
 from alpaca.trading.client import TradingClient
-from alpaca.trading.models import ClockResp, PublicCalendarResp
+from alpaca.trading.models import (
+    Calendar,
+    Clock,
+    ClockResp,
+    LegacyCalendarDay,
+    LegacyClock,
+    PublicCalendarResp,
+)
 from alpaca.trading.requests import GetV3CalendarRequest, GetV3ClockRequest
 
 _PAPER = BaseURL.TRADING_PAPER.value
@@ -92,3 +99,49 @@ def test_get_v3_clock_honors_raw_data_and_url_override(reqmock):
 
     assert clock["clocks"][0]["phase"] == "closed"
     assert urlparse(reqmock.request_history[0].url).path == "/v3/clock"
+
+
+def test_get_clock_returns_the_generated_legacy_clock_on_request(
+    reqmock, trading_client: TradingClient
+):
+    reqmock.get(
+        f"{_PAPER}/v2/clock",
+        text="""
+        {
+          "timestamp": "2022-05-16T16:32:24.14373588-04:00",
+          "is_open": false,
+          "next_open": "2022-05-17T09:30:00-04:00",
+          "next_close": "2022-05-17T16:00:00-04:00"
+        }
+        """,
+    )
+
+    assert type(trading_client.get_clock()) is Clock
+    generated = trading_client.get_clock(generated=True)
+    assert type(generated) is LegacyClock
+    assert generated.is_open is False
+
+
+def test_get_calendar_returns_the_generated_legacy_calendar_days_on_request(
+    reqmock, trading_client: TradingClient
+):
+    reqmock.get(
+        f"{_PAPER}/v2/calendar",
+        text="""
+        [
+          {
+            "date": "2022-05-16",
+            "open": "09:30",
+            "close": "16:00",
+            "session_open": "0400",
+            "session_close": "2000",
+            "settlement_date": "2022-05-17"
+          }
+        ]
+        """,
+    )
+
+    assert [type(day) for day in trading_client.get_calendar()] == [Calendar]
+    generated = trading_client.get_calendar(generated=True)
+    assert [type(day) for day in generated] == [LegacyCalendarDay]
+    assert generated[0].var_date.isoformat() == "2022-05-16"

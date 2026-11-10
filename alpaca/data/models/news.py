@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Dict, List, Optional
 
+from alpaca.common._deprecation import builds_from_response as _builds_from_response
 from alpaca.common._deprecation import (
     deprecate_compatibility_shape as _deprecate_compatibility_shape,
 )
@@ -66,6 +67,7 @@ class NewsSet(BaseDataSet, TimeSeriesMixin):
     data: Dict[str, List[News]] = {}
     next_page_token: Optional[str]
 
+    @_builds_from_response
     def __init__(self, raw_data: RawData) -> None:
         """A collection of News articles.
 

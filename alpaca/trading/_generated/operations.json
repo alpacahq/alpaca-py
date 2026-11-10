@@ -177,7 +177,7 @@
     },
     {
       "httpMethod": "POST",
-      "methodName": null,
+      "methodName": "do_not_exercise_option",
       "operationId": "optionDoNotExercise",
       "path": "/v2/positions/{symbol_or_contract_id}/do-not-exercise"
     },
@@ -189,79 +189,79 @@
     },
     {
       "httpMethod": "POST",
-      "methodName": null,
+      "methodName": "tokenization_mint",
       "operationId": "postTokenizationMint",
       "path": "/v2/tokenization/mint"
     },
     {
       "httpMethod": "GET",
-      "methodName": null,
+      "methodName": "get_tokenization_requests",
       "operationId": "getTokenizationRequests",
       "path": "/v2/tokenization/requests"
     },
     {
       "httpMethod": "GET",
-      "methodName": null,
+      "methodName": "get_tokenization_request",
       "operationId": "getTokenizationRequest",
       "path": "/v2/tokenization/requests/{tokenization_request_id}"
     },
     {
       "httpMethod": "GET",
-      "methodName": null,
+      "methodName": "get_tokenization_request_by_client_request_id",
       "operationId": "getTokenizationRequestByClientRequestID",
       "path": "/v2/tokenization/requests:by_client_request_id"
     },
     {
       "httpMethod": "GET",
-      "methodName": null,
+      "methodName": "list_crypto_funding_wallets",
       "operationId": "listCryptoFundingWallets",
       "path": "/v2/wallets"
     },
     {
       "httpMethod": "GET",
-      "methodName": null,
+      "methodName": "get_wallet_fee_estimate",
       "operationId": "getCryptoTransferEstimate",
       "path": "/v2/wallets/fees/estimate"
     },
     {
       "httpMethod": "GET",
-      "methodName": null,
+      "methodName": "list_crypto_funding_transfers",
       "operationId": "listCryptoFundingTransfers",
       "path": "/v2/wallets/transfers"
     },
     {
       "httpMethod": "GET",
-      "methodName": null,
+      "methodName": "get_crypto_funding_transfer",
       "operationId": "getCryptoFundingTransfer",
       "path": "/v2/wallets/transfers/{transfer_id}"
     },
     {
       "httpMethod": "GET",
-      "methodName": null,
+      "methodName": "search_vasps",
       "operationId": "searchVASPs",
       "path": "/v2/wallets/travel-rule/vasps"
     },
     {
       "httpMethod": "GET",
-      "methodName": null,
+      "methodName": "list_whitelisted_addresses",
       "operationId": "listWhitelistedAddress",
       "path": "/v2/wallets/whitelists"
     },
     {
       "httpMethod": "POST",
-      "methodName": null,
+      "methodName": "create_whitelisted_address",
       "operationId": "createWhitelistedAddress",
       "path": "/v2/wallets/whitelists"
     },
     {
       "httpMethod": "DELETE",
-      "methodName": null,
+      "methodName": "delete_whitelisted_address",
       "operationId": "deleteWhitelistedAddress",
       "path": "/v2/wallets/whitelists/{whitelisted_address_id}"
     },
     {
       "httpMethod": "PATCH",
-      "methodName": null,
+      "methodName": "update_whitelisted_address_travel_rule_info",
       "operationId": "updateWhitelistedAddressTravelRuleInfo",
       "path": "/v2/wallets/whitelists/{whitelisted_address_id}/travel-rule-info"
     },

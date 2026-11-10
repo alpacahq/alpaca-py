@@ -1,15 +1,17 @@
 """Helpers for compatibility types that are deprecated by a generated replacement."""
 
+from contextlib import contextmanager
 from contextvars import ContextVar
 from functools import wraps
-from typing import Annotated, Any, Mapping, TypeVar, Union
+from typing import Annotated, Any, Callable, Iterator, Mapping, TypeVar, Union
 import warnings
 
-from pydantic import Field
+from pydantic import Field, TypeAdapter
 from typing_extensions import deprecated
 
 _T = TypeVar("_T", bound=type)
 _M = TypeVar("_M")
+_F = TypeVar("_F", bound=Callable[..., Any])
 _Legacy = TypeVar("_Legacy")
 _Generated = TypeVar("_Generated")
 
@@ -27,6 +29,36 @@ _BUILDING_FROM_RESPONSE: ContextVar[bool] = ContextVar(
 )
 
 
+@contextmanager
+def building_from_response() -> Iterator[None]:
+    """Mark the enclosed code as the SDK building models from an API response.
+
+    Deprecated models warn when users instantiate them directly. Pydantic also runs
+    a model's own ``__init__`` when it validates the model inside a list or another
+    model, so the SDK builds every response inside this context to stay silent.
+    """
+    token = _BUILDING_FROM_RESPONSE.set(True)
+    try:
+        yield
+    finally:
+        _BUILDING_FROM_RESPONSE.reset(token)
+
+
+def builds_from_response(func: _F) -> _F:
+    """Run ``func`` inside :func:`building_from_response`.
+
+    For constructors that build deprecated models from API data themselves, such as
+    a set that parses each item.
+    """
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        with building_from_response():
+            return func(*args, **kwargs)
+
+    return wrapper  # type: ignore[return-value]
+
+
 def build_from_response(cls: "type[_M]", data: Mapping[str, Any]) -> _M:
     """Build ``cls`` from an API response through its normal ``__init__``.
 
@@ -34,11 +66,18 @@ def build_from_response(cls: "type[_M]", data: Mapping[str, Any]) -> _M:
     helper so returning a shape stays silent, while custom ``__init__`` logic (such
     as Calendar's time parsing) still runs.
     """
-    token = _BUILDING_FROM_RESPONSE.set(True)
-    try:
+    with building_from_response():
         return cls(**data)
-    finally:
-        _BUILDING_FROM_RESPONSE.reset(token)
+
+
+def parse_from_response(type_: Any, data: Any) -> Any:
+    """Validate an API response against ``type_``, such as ``List[Order]``.
+
+    The list-capable sibling of :func:`build_from_response`: deprecated models in the
+    result stay silent, as they do when a client builds a single model.
+    """
+    with building_from_response():
+        return TypeAdapter(type_).validate_python(data)
 
 
 def compatibility_shape_message(name: str) -> str:

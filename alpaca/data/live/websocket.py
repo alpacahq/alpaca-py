@@ -10,6 +10,9 @@ import msgpack
 import websockets
 from pydantic import BaseModel
 
+from alpaca.common._deprecation import (
+    building_from_response as _building_from_response,
+)
 from alpaca.common.types import RawData
 from alpaca.common.utils import (
     RunState,
@@ -325,7 +328,8 @@ class DataStream:
             # defensively here rather than loosening the shared News model,
             # which is also used by the strict historical REST client.
             msg.setdefault("symbols", [])
-            return News(msg)
+            with _building_from_response():
+                return News(msg)
         if "S" not in msg:
             return msg
         if msg_type == _MsgType.TRADE:

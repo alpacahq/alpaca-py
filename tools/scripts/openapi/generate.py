@@ -913,8 +913,19 @@ def _render_module(
                 continue
             statement = f"from {fragment.package}.{target} import {reference}"
             if MODULE_LAYERS.index(target) > MODULE_LAYERS.index(module):
+                if fragment.kind == "union":
+                    # A union alias is evaluated at import time, but a name from a
+                    # module that imports this one is only bound after the body, so
+                    # the assignment would raise NameError and break the package.
+                    raise ValueError(
+                        f"union {fragment.name} in {module} cannot include {reference}, "
+                        f"which is generated into {target}: {target} imports {module}, "
+                        "so the member is not bound when the alias is evaluated "
+                        f"(classify {reference} so it lands in {module} or earlier, "
+                        "or add it to manualSchemas)"
+                    )
                 deferred[reference] = statement
-                if fragment.kind not in {"enum", "union"}:
+                if fragment.kind != "enum":
                     rebuild.add(fragment.name)
             else:
                 statements.add(statement)

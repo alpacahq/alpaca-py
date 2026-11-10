@@ -1,0 +1,5 @@
+{{! Emits a union alias fragment for oneOf/anyOf schemas. }}
+{{! OpenAPI Generator flattens the member properties into one class, so alpaca-py keeps }}
+{{! the alternatives distinct by aliasing the member classes instead. }}
+#!alpaca-fragment {"package": "{{packageName}}", "kind": "union", "name": "{{classname}}", "enumType": "", "references": [{{#oneOf}}"{{{.}}}"{{^-last}}, {{/-last}}{{/oneOf}}{{#anyOf}}"{{{.}}}"{{^-last}}, {{/-last}}{{/anyOf}}], "imports": ["from typing import Union"]}
+Union[{{#oneOf}}{{{.}}}{{^-last}}, {{/-last}}{{/oneOf}}{{#anyOf}}{{{.}}}{{^-last}}, {{/-last}}{{/anyOf}}]

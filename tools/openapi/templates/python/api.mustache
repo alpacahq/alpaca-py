@@ -1,0 +1,8 @@
+{{! Emits the REST operation manifest fragment instead of a generated HTTP client. }}
+{{! alpaca-py keeps TradingClient hand-written, so only routes are generated here and }}
+{{! tools/scripts/openapi/generate.py resolves them back to specification operation ids. }}
+{{! requestTypes and responseTypes let the script classify schemas the manifest lacks. }}
+#!alpaca-fragment {"package": "{{packageName}}", "kind": "operations", "name": "{{classname}}", "enumType": "", "composed": false, "references": [], "imports": []}
+[
+{{#operations}}{{#operation}}{"httpMethod": "{{{httpMethod}}}", "path": "{{{path}}}", "requestTypes": [{{#allParams}}"{{{dataType}}}"{{^-last}}, {{/-last}}{{/allParams}}], "responseTypes": [{{#responses}}"{{{dataType}}}"{{^-last}}, {{/-last}}{{/responses}}]}{{^-last}},{{/-last}}
+{{/operation}}{{/operations}}]

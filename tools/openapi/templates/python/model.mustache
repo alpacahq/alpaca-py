@@ -1,0 +1,12 @@
+{{! Emits an assembly fragment per schema instead of a standalone module. }}
+{{! The class statement is written by tools/scripts/openapi/generate.py because only the }}
+{{! assembler knows which alpaca-py base class and module a schema belongs to. }}
+{{#models}}{{#model}}{{#isEnum}}{{>model_enum}}{{/isEnum}}{{^isEnum}}{{#oneOf}}{{#-first}}{{>model_union}}{{/-first}}{{/oneOf}}{{^oneOf}}{{#anyOf}}{{#-first}}{{>model_union}}{{/-first}}{{/anyOf}}{{^anyOf}}#!alpaca-fragment {"package": "{{packageName}}", "kind": "model", "name": "{{classname}}", "enumType": "", "references": [{{#imports}}"{{{.}}}"{{^-last}}, {{/-last}}{{/imports}}], "imports": [{{#vendorExtensions.x-py-other-imports}}"{{{.}}}"{{^-last}}, {{/-last}}{{/vendorExtensions.x-py-other-imports}}]}
+    """
+    {{#description}}{{{description}}}{{/description}}{{^description}}{{{classname}}}{{/description}}
+    """
+
+{{#vars}}
+    {{{name}}}: {{{vendorExtensions.x-py-typing}}}
+{{/vars}}
+{{/anyOf}}{{/oneOf}}{{/isEnum}}{{/model}}{{/models}}

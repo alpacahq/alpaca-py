@@ -45,6 +45,11 @@ You can find the documentation site here: https://alpaca.markets/sdks/python/get
 
 You can also find the API Reference of Alpaca APIs: https://docs.alpaca.markets/reference
 
+Trading API models, enums, and request classes are generated from Alpaca's official
+OpenAPI specification. End users can ignore that detail; maintainers updating types
+should follow the [OpenAPI code generation](CONTRIBUTING.md#openapi-code-generation)
+section in `CONTRIBUTING.md`.
+
 ## Installation <a name="installation"></a>
 
 Alpaca-py is supported on Python 3.11+. You can install Alpaca-py using pip.

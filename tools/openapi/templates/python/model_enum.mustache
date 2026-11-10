@@ -1,0 +1,10 @@
+#!alpaca-fragment {"package": "{{packageName}}", "kind": "enum", "name": "{{classname}}", "enumType": "{{{vendorExtensions.x-py-enum-type}}}", "references": [], "imports": []}
+    """
+    {{#description}}{{{description}}}{{/description}}{{^description}}{{{classname}}}{{/description}}
+    """
+
+{{#allowableValues}}
+{{#enumVars}}
+    {{{name}}} = {{{value}}}
+{{/enumVars}}
+{{/allowableValues}}

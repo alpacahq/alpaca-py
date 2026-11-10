@@ -20,6 +20,7 @@ from alpaca.common.utils import (
 from alpaca.trading.enums import ActivityType
 from alpaca.trading.models import (
     AccountConfiguration,
+    AccountConfigurations,
     Asset,
     Calendar,
     Clock,
@@ -48,6 +49,7 @@ from alpaca.trading.models import (
     Watchlist,
     WhitelistedAddress,
 )
+from alpaca.trading.models import _account_configuration_patch_payload
 from alpaca.trading.requests import (
     ActivityEventsRequest,
     AddAssetToWatchlistRequest,
@@ -532,17 +534,23 @@ class TradingClient(RESTClient):
         return _build_from_response(AccountConfiguration, response)
 
     def set_account_configurations(
-        self, account_configurations: AccountConfiguration
+        self,
+        account_configurations: Union[AccountConfiguration, AccountConfigurations],
     ) -> Union[AccountConfiguration, RawData]:
         """
         Returns account configuration details. Contains information like shorting, margin multiplier
         trader confirmation emails, and Pattern Day Trading (PDT) checks.
 
+        Args:
+            account_configurations (Union[AccountConfiguration, AccountConfigurations]): The settings to update.
+              With the generated AccountConfigurations, only the fields you set are sent.
+
         Returns:
             alpaca.broker.models.TradeAccountConfiguration: The account configuration details
         """
         response = self.patch(
-            "/account/configurations", data=account_configurations.to_patch_payload()
+            "/account/configurations",
+            data=_account_configuration_patch_payload(account_configurations),
         )
 
         if self._use_raw_data:

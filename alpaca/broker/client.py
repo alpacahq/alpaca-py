@@ -12,6 +12,10 @@ from alpaca.broker.enums import (
     GetRecipientBanksStatusParameter,
     RecipientBankStatus,
 )
+
+# The Broker spec generates its own AccountConfigurations; TradeAccountConfiguration's
+# deprecation names the Trading one. Both are accepted so either type-checks.
+from alpaca.broker.models import AccountConfigurations as _BrokerAccountConfigurations
 from alpaca.broker.models import (
     Account,
     AccountExtended,
@@ -94,6 +98,8 @@ from alpaca.common.utils import (
 )
 from alpaca.trading.enums import ActivityType
 from alpaca.trading.models import AccountConfiguration as TradeAccountConfiguration
+from alpaca.trading.models import AccountConfigurations as _TradingAccountConfigurations
+from alpaca.trading.models import _account_configuration_patch_payload
 from alpaca.trading.models import (
     AllAccountsPositions,
     Asset,
@@ -531,14 +537,20 @@ class BrokerClient(BrokerOperations, RESTClient):
     def update_trade_configuration_for_account(
         self,
         account_id: Union[UUID, str],
-        config: TradeAccountConfiguration,
+        config: Union[
+            TradeAccountConfiguration,
+            _TradingAccountConfigurations,
+            _BrokerAccountConfigurations,
+        ],
     ) -> Union[TradeAccountConfiguration, RawData]:
         """
         Updates an Account with new TradeAccountConfiguration information.
 
         Args:
             account_id (Union[UUID, str]): The id of the Account you wish to update.
-            config (UpdateTradeConfigurationRequest): The Updated Options you wish to set on the Account
+            config (Union[TradeAccountConfiguration, AccountConfigurations]): The Updated Options you wish to set on
+              the Account. The Trading and Broker AccountConfigurations are both accepted; with them, only the fields
+              you set are sent.
 
         Returns:
             TradeAccountConfiguration: The resulting TradeAccountConfiguration with updates.
@@ -547,7 +559,7 @@ class BrokerClient(BrokerOperations, RESTClient):
 
         result = self.patch(
             f"/trading/accounts/{account_id}/account/configurations",
-            config.to_patch_payload(),
+            _account_configuration_patch_payload(config),
         )
 
         if self._use_raw_data:

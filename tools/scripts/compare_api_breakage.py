@@ -1484,8 +1484,13 @@ def _compare_return_annotations(
     new_api: dict,
     already_reported: set[str] | None = None,
     aexpy_compatible: set[str] | None = None,
+    moved: dict[str, str] | None = None,
 ) -> tuple[Findings, Findings]:
     """Return ``(breaking, compatible)`` public return-annotation changes.
+
+    ``moved`` is the verified old -> new defining-path map from
+    ``_moved_targets``. Moved class paths in the old annotation are renamed
+    before comparing, so a compatible model move is not a return-type change.
 
     AexPy only emits ``ChangeReturnType`` when mypy filled ``returnType`` on
     both sides. Unions that include ``dict[str, Any]`` stay null, so the
@@ -1539,6 +1544,8 @@ def _compare_return_annotations(
         if not str(old_annotation).strip():
             continue
         new_annotation = new_entry.get("returnAnnotation") or ""
+        if moved:
+            old_annotation = _rewrite_moved(str(old_annotation), moved)
         old_normalized = _normalize_type_annotation(str(old_annotation))
         new_normalized = _normalize_type_annotation(str(new_annotation))
         if api_id in compatible_resolved:
@@ -2259,6 +2266,11 @@ def main(argv: list[str] | None = None) -> int:
             json.loads(api_new.read_text()),
             already_reported=_reported_return_type_ids(change_entries),
             aexpy_compatible=_aexpy_compatible_return_ids(change_entries),
+            moved=(
+                _moved_targets(old_snapshot, new_snapshot)
+                if old_snapshot is not None and new_snapshot is not None
+                else None
+            ),
         )
         # AexPy's own return findings get the same @overload check; the
         # adjusted entries drive the report and the exit status.

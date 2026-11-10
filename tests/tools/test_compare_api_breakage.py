@@ -2510,6 +2510,59 @@ class TestMovedClasses:
         breaking, _ = cab._compare_models(old, new)
         assert breaking == []
 
+    def test_moved_model_in_field_and_return_is_not_breaking(self, cab):
+        old_target = "alpaca.trading.models.Order"
+        new_target = "alpaca.trading._generated.models.Order"
+        function_id = "alpaca.trading.client.TradingClient.get_order_by_id"
+        bases = ["pydantic.main.BaseModel"]
+        old = {
+            "models": {
+                "alpaca.trading.Order": {
+                    "target": old_target,
+                    "bases": bases,
+                    "fields": {},
+                },
+                "alpaca.trading.Holder": {
+                    "target": "alpaca.trading.models.Holder",
+                    "bases": bases,
+                    "fields": {"order": _field(old_target)},
+                },
+            },
+            "functions": {
+                function_id: _callable(f"Union[{old_target}, dict[str, Any]]")
+            },
+        }
+        new = {
+            "models": {
+                "alpaca.trading.Order": {
+                    "target": new_target,
+                    "bases": bases,
+                    "fields": {},
+                },
+                # The old import path still resolves to the moved class.
+                old_target: {"target": new_target, "bases": bases, "fields": {}},
+                "alpaca.trading.Holder": {
+                    "target": "alpaca.trading.models.Holder",
+                    "bases": bases,
+                    "fields": {"order": _field(new_target)},
+                },
+            },
+            "functions": {
+                function_id: _callable(f"Union[{new_target}, dict[str, Any]]")
+            },
+        }
+
+        model_breaking, _ = cab._compare_models(old, new)
+        assert model_breaking == []
+
+        # Without the verified move map the return annotation looks changed.
+        unmapped, _ = cab._compare_return_annotations(old, new)
+        assert any("return type changed" in msg for msg, _ in unmapped)
+
+        moved = cab._moved_targets(old, new)
+        assert moved == {old_target: new_target}
+        assert cab._compare_return_annotations(old, new, moved=moved) == ([], [])
+
     def _widen(self, cab, target):
         old = {
             "models": {

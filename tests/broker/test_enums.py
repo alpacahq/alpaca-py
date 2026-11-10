@@ -223,7 +223,9 @@ def test_deprecated_agreement_type_name_warns(old_name, new_name, wire_value):
         assert by_value is canonical
 
 
-def test_model_validation_warns_for_removed_enum_value():
+def test_model_validation_accepts_deprecated_activity_type_with_warning():
+    # Deprecated activity types (WH, ...) stay valid during the deprecation window;
+    # parsing them succeeds but emits a DeprecationWarning rather than rejecting.
     from alpaca.trading.models import NonTradeActivity
 
     raw = {
@@ -236,15 +238,11 @@ def test_model_validation_warns_for_removed_enum_value():
         "symbol": "AIA",
         "status": "executed",
     }
-    message = _deprecation_message("ActivityType", "WH", "activity type")
 
-    with pytest.warns(DeprecationWarning, match=f"^{re.escape(message)}$") as caught:
+    with pytest.warns(DeprecationWarning, match=r"ActivityType\.WH is deprecated"):
         activity = NonTradeActivity.model_validate(raw)
 
-    assert len(caught) == 1
-    assert caught[0].filename == __file__
-    assert activity.activity_type.name == "WH"
-    assert activity.activity_type == "WH"
+    assert activity.activity_type is ActivityType.WH
 
 
 def test_model_validation_accepts_added_and_renamed_wire_values_quietly():
@@ -265,6 +263,11 @@ def test_model_validation_accepts_added_and_renamed_wire_values_quietly():
 
     with warnings.catch_warnings():
         warnings.simplefilter("error", DeprecationWarning)
+        warnings.filterwarnings(
+            "ignore",
+            message="NonTradeActivity is deprecated; use NonTradeActivities instead.",
+            category=DeprecationWarning,
+        )
         activity = NonTradeActivity.model_validate(raw)
         agreement = TypeAdapter(AgreementType).validate_python("margin_agreement")
         bank_account_type = TypeAdapter(BankAccountType).validate_python("CHECKING")

@@ -2430,3 +2430,153 @@ class TestCallableSnapshotSource:
         }
         assert callables["overload_fixture.helper"]["return"] == "str"
         assert "overload_fixture.Client._private" not in callables
+
+
+def _field(type_: str) -> dict:
+    return {
+        "type": type_,
+        "required": True,
+        "validation_aliases": [],
+        "serialization_alias": None,
+    }
+
+
+class TestMovedClasses:
+    OLD = "alpaca.trading.enums.OrderType"
+    NEW = "alpaca.trading._generated.enums.OrderType"
+
+    def _enum_snapshots(self, *, new_bases=None, alias_kept=True):
+        members = {"MARKET": "'market'"}
+        old = {
+            "enums": {
+                "alpaca.trading.OrderType": {
+                    "target": self.OLD,
+                    "bases": ["builtins.str", "enum.Enum"],
+                    "members": members,
+                },
+                self.OLD: {
+                    "target": self.OLD,
+                    "bases": ["builtins.str", "enum.Enum"],
+                    "members": members,
+                },
+            }
+        }
+        new_enums = {
+            "alpaca.trading.OrderType": {
+                "target": self.NEW,
+                "bases": new_bases or ["builtins.str", "enum.Enum"],
+                "members": members,
+            }
+        }
+        if alias_kept:
+            new_enums[self.OLD] = dict(new_enums["alpaca.trading.OrderType"])
+        return old, {"enums": new_enums}
+
+    def test_enum_moved_behind_a_public_alias_is_not_breaking(self, cab):
+        old, new = self._enum_snapshots()
+        breaking, _ = cab._compare_enums(old, new)
+        assert breaking == []
+
+    def test_enum_move_with_different_bases_is_breaking(self, cab):
+        old, new = self._enum_snapshots(new_bases=["enum.Enum"])
+        breaking, _ = cab._compare_enums(old, new)
+        assert any("target changed" in msg for msg, _ in breaking)
+
+    def test_enum_move_without_old_path_is_breaking(self, cab):
+        old, new = self._enum_snapshots(alias_kept=False)
+        breaking, _ = cab._compare_enums(old, new)
+        assert any("target changed" in msg for msg, _ in breaking)
+
+    def test_moved_enum_in_model_field_is_not_breaking(self, cab):
+        old_enums, new_enums = self._enum_snapshots()
+        old = {
+            **old_enums,
+            "models": {
+                "alpaca.trading.Order": {
+                    "target": "alpaca.trading.models.Order",
+                    "fields": {"type": _field(f"Optional[{self.OLD}]")},
+                }
+            },
+        }
+        new = {
+            **new_enums,
+            "models": {
+                "alpaca.trading.Order": {
+                    "target": "alpaca.trading.models.Order",
+                    "fields": {"type": _field(f"Optional[{self.NEW}]")},
+                }
+            },
+        }
+        breaking, _ = cab._compare_models(old, new)
+        assert breaking == []
+
+    def _widen(self, cab, target):
+        old = {
+            "models": {
+                "alpaca.trading.M": {
+                    "target": target,
+                    "fields": {"f": _field("alpaca.trading.enums.A")},
+                }
+            }
+        }
+        new = {
+            "models": {
+                "alpaca.trading.M": {
+                    "target": target,
+                    "fields": {
+                        "f": _field(
+                            "Union[alpaca.trading.enums.A, alpaca.trading._generated.enums.B]"
+                        )
+                    },
+                }
+            }
+        }
+        return cab._compare_models(old, new)
+
+    def test_widened_field_is_additive(self, cab):
+        for target in ("alpaca.trading.requests.M", "alpaca.trading.models.M"):
+            breaking, additive = self._widen(cab, target)
+            assert breaking == []
+            assert any("type changed" in msg for msg, _ in additive)
+
+    def test_narrowed_field_is_still_breaking(self, cab):
+        old = {
+            "models": {
+                "alpaca.trading.requests.M": {
+                    "target": "alpaca.trading.requests.M",
+                    "fields": {"f": _field("Union[a.A, a.B]")},
+                }
+            }
+        }
+        new = {
+            "models": {
+                "alpaca.trading.requests.M": {
+                    "target": "alpaca.trading.requests.M",
+                    "fields": {"f": _field("a.A")},
+                }
+            }
+        }
+        breaking, _ = cab._compare_models(old, new)
+        assert any("type changed" in msg for msg, _ in breaking)
+
+
+class TestPrivateAexpyEntries:
+    def _entry(self, api_id: str, rank: int = 30) -> dict:
+        return {
+            "kind": "ChangeParameterType",
+            "rank": rank,
+            "old": {"id": api_id},
+            "new": {"id": api_id},
+        }
+
+    def test_private_function_change_is_not_breaking(self, cab):
+        entry = self._entry("alpaca.trading.requests._helper")
+        assert cab._effective_rank(entry) == 0
+
+    def test_public_function_change_is_breaking(self, cab):
+        entry = self._entry("alpaca.trading.requests.helper")
+        assert cab._effective_rank(entry) == 30
+
+    def test_dunder_method_change_is_still_breaking(self, cab):
+        entry = self._entry("alpaca.broker.client.BrokerClient.__init__")
+        assert cab._effective_rank(entry) == 30

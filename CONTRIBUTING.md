@@ -190,10 +190,16 @@ The target runs `tools/scripts/compare_api_breakage.py`, which:
    signature changes. AexPy ranks a new optional parameter on a method as breaking
    because a subclass override with the old signature would reject it; callers are
    unaffected, so the script counts those as compatible and lists them under
-   `VERBOSE=1`
-3. Snapshots public enum membership (`name -> value`) and public Pydantic model field
-   contracts (type, requiredness, aliases), then reports removals and value/contract
-   changes as breaking
+   `VERBOSE=1`. Findings for a module-private name (`_helper`) are ignored;
+   `__init__` and other dunder methods still count
+3. Snapshots public enum membership (`name -> value`), base classes, and public
+   Pydantic model field contracts (type, requiredness, aliases), then reports
+   removals and value/contract changes as breaking. A class whose defining module
+   changed is not a break when its old import path still resolves to it and its
+   base classes are unchanged; field annotations are compared after that rename.
+   A field type that only gains union members is compatible and listed under
+   `VERBOSE=1`. A field using `union_mode="left_to_right"` stays order-sensitive,
+   so a change there is still breaking.
 4. Compares public callable return annotations when AexPy left the resolved return
    type empty. A resolved change AexPy ranked compatible is checked again only for
    `dict` / `Mapping` / `MutableMapping` keys and for a dropped `RawData` or

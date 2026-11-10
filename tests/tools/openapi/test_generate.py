@@ -666,6 +666,28 @@ def test_declared_names_ignores_deferred_imports_and_rebuilds(tmp_path):
     assert generate.declared_names(module) == {"Order", "OrderLike"}
 
 
+def test_union_with_member_from_a_later_layer_is_rejected():
+    fragments = [
+        _fragment(
+            "OrderLike",
+            kind="union",
+            body="Union[Order, PlaceOrderRequest]",
+            references=("Order", "PlaceOrderRequest"),
+        ),
+        _fragment("Order"),
+    ]
+    modules_by_name = {
+        "OrderLike": "models",
+        "Order": "models",
+        "PlaceOrderRequest": "requests",
+    }
+
+    with pytest.raises(ValueError, match="OrderLike.*PlaceOrderRequest"):
+        generate._render_module(
+            "models", fragments, {"Order": "ValidateBaseModel"}, modules_by_name
+        )
+
+
 def test_dropped_reexports_fail_before_anything_is_published(tmp_path):
     generated = tmp_path / "generated"
     generated.mkdir()

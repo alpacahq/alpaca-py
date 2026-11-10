@@ -128,6 +128,39 @@ To deprecate a model field, use Pydantic's `Field(deprecated="...")` and keep th
 Pydantic warns when the field is read and stays silent during parsing and serialization, as `Asset.easy_to_borrow` in
 `alpaca/trading/models.py` does.
 
+### OpenAPI code generation
+
+Enums, response models and request classes are generated from the OpenAPI specifications pinned under
+`tools/openapi/specs/`. Do not edit the generated modules by hand. Change the specification, the repository-owned
+templates in `tools/openapi/templates/`, or the per-API settings in `tools/openapi/surfaces/<name>/`
+(`manifest.json`, `sdk.json`, `patches.json`) and regenerate.
+
+**Prerequisites:** Poetry, Node.js with `npm`, and a Java runtime. `@openapitools/openapi-generator-cli` is pinned in
+`package.json` and downloads the generator JAR on first run, so the first generation needs network access.
+
+```shell
+# Optional: refresh the pinned specifications from the official sources
+make fetch-openapi
+
+# Regenerate the SDK code (installs the npm and poetry toolchains first)
+make generate-openapi
+```
+
+Generation classifies new schemas that only requests or only responses reach in `manifest.json`, prunes schemas the
+specification dropped, and adds new names to the public re-export blocks, then reports each change for review. It fails
+when a schema is reached by both sides or by no operation, or when a public module re-exports a dropped name; classify
+the schema in `manifest.json` (or list it in `manualSchemas`) and run it again.
+
+**Drift check:** CI-style verification never edits files. It reports generated artifacts that no longer match the pinned
+specifications:
+
+```shell
+make check-openapi
+```
+
+Run it before opening a PR, and commit the regenerated files together with the specification or surface change that
+caused them.
+
 ### Checking backward compatibility
 
 Before merging changes that touch the public SDK surface, compare this branch against a

@@ -26,7 +26,7 @@
   1.  [Broker API Example](#broker-api-example)
   2.  [Trading API Example](#trading-api-example)
   3.  [Market Data API Example](#data-api-example)
-- [Contributing](https://github.com/alpacahq/alpaca-py/blob/master/CONTRIBUTING.md)
+- [Contributing](#contributing)
 - [License](https://github.com/alpacahq/alpaca-py/blob/master/LICENSE)
 - [Support](#support)
 
@@ -190,7 +190,7 @@ from alpaca.trading.client import TradingClient
 from alpaca.trading.requests import MarketOrderRequest
 from alpaca.trading.enums import OrderSide, TimeInForce
 
-trading_client = TradingClient('api-key', 'secret-key')
+trading_client = TradingClient('api-key', 'secret-key', paper=True)
 
 
 # preparing order data
@@ -277,9 +277,14 @@ Explore examples for stocks, options, and crypto using alpaca-py. Notebooks for 
 * [Options](https://github.com/alpacahq/alpaca-py/blob/master/examples/options/README.md)
 * [Multi-Leg Options](https://github.com/alpacahq/alpaca-py/blob/master/examples/options/README.md)
 
+## Contributing <a name="contributing"></a>
+
+Contributions are welcome. See [CONTRIBUTING.md](./CONTRIBUTING.md) for setup, contribution scope, API compatibility requirements, quality checks, and the pull-request workflow. Participation is governed by our [Code of Conduct](./CODE_OF_CONDUCT.md).
+
 ## Support <a name="support"></a>
 
-- **Library / SDK issues:** Bugs, feature requests, or questions specific to this Python library → [GitHub Issues](https://github.com/alpacahq/alpaca-py/issues/new/choose).
+- **Library / SDK issues:** Bugs, feature requests, or questions specific to this SDK → [GitHub Issues](https://github.com/alpacahq/alpaca-py/issues/new/choose).
+- **Security vulnerabilities:** Do not report them publicly. Follow our [Security Policy](./SECURITY.md).
 - **Alpaca API bugs:** Bugs in the Alpaca API itself, its OpenAPI specs, or its documentation → [alpacahq/alpaca-api](https://github.com/alpacahq/alpaca-api/issues/new/choose).
 - **Community:** API feature requests, general questions, and dashboard bugs → [Alpaca Community Forum](https://forum.alpaca.markets/) or [Slack](https://alpaca.markets/slack).
 - **Account help:** Questions about your account, funding, or orders → [Support request](https://alpaca.markets/support/request).

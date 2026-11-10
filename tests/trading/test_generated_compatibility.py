@@ -230,7 +230,8 @@ def test_deprecated_model_warns_when_instantiated():
         models.Calendar(date="2025-01-02", open="09:30", close="16:00")
 
     assert any(
-        warning.category is DeprecationWarning and "CalendarDay" in str(warning.message)
+        warning.category is DeprecationWarning
+        and "LegacyCalendarDay" in str(warning.message)
         for warning in caught
     )
 

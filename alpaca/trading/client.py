@@ -1,5 +1,5 @@
 import json
-from typing import Iterator, List, Optional, Union
+from typing import Iterator, List, Literal, Optional, Union, overload
 from uuid import UUID
 
 import sseclient
@@ -22,9 +22,12 @@ from alpaca.trading.models import (
     AccountConfiguration,
     AccountConfigurations,
     Asset,
+    Assets,
     Calendar,
     Clock,
     ClockResp,
+    LegacyCalendarDay,
+    LegacyClock,
     ClosePositionResponse,
     CorporateActionAnnouncement,
     CryptoTransfer,
@@ -413,18 +416,39 @@ class TradingClient(RESTClient):
 
     # ############################## Assets ################################# #
 
+    @overload
     def get_all_assets(
-        self, filter: Optional[GetAssetsRequest] = None
-    ) -> Union[List[Asset], RawData]:
+        self,
+        filter: Optional[GetAssetsRequest] = None,
+        *,
+        generated: Literal[False] = False,
+    ) -> Union[List[Asset], RawData]: ...
+
+    @overload
+    def get_all_assets(
+        self,
+        filter: Optional[GetAssetsRequest] = None,
+        *,
+        generated: Literal[True],
+    ) -> Union[List[Assets], RawData]: ...
+
+    def get_all_assets(
+        self,
+        filter: Optional[GetAssetsRequest] = None,
+        *,
+        generated: bool = False,
+    ) -> Union[List[Asset], List[Assets], RawData]:
         """
         The assets API serves as the master list of assets available for trade and data consumption from Alpaca.
         Some assets are not tradable with Alpaca. These assets will be marked with the flag tradable=false.
 
         Args:
             filter (Optional[GetAssetsRequest]): The parameters that can be assets can be queried by.
+            generated (bool): Return the OpenAPI-generated Assets instead of the deprecated Asset.
+              Defaults to False.
 
         Returns:
-            List[Asset]: The list of assets.
+            Union[List[Asset], List[Assets]]: The list of assets, as Assets when ``generated`` is True.
         """
         # checking to see if we specified at least one param
         params = filter.to_request_fields() if filter is not None else {}
@@ -434,18 +458,34 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return response
 
+        if generated:
+            return TypeAdapter(List[Assets]).validate_python(response)
         return TypeAdapter(List[Asset]).validate_python(response)
 
-    def get_asset(self, symbol_or_asset_id: Union[UUID, str]) -> Union[Asset, RawData]:
+    @overload
+    def get_asset(
+        self, symbol_or_asset_id: Union[UUID, str], *, generated: Literal[False] = False
+    ) -> Union[Asset, RawData]: ...
+
+    @overload
+    def get_asset(
+        self, symbol_or_asset_id: Union[UUID, str], *, generated: Literal[True]
+    ) -> Union[Assets, RawData]: ...
+
+    def get_asset(
+        self, symbol_or_asset_id: Union[UUID, str], *, generated: bool = False
+    ) -> Union[Asset, Assets, RawData]:
         """
         Returns a specific asset by its symbol or asset id. If the specified asset does not exist
         a 404 error will be thrown.
 
         Args:
             symbol_or_asset_id (Union[UUID, str]): The symbol or asset id for the specified asset
+            generated (bool): Return the OpenAPI-generated Assets instead of the deprecated Asset.
+              Defaults to False.
 
         Returns:
-            Asset: The asset if it exists.
+            Union[Asset, Assets]: The asset if it exists, as Assets when ``generated`` is True.
         """
 
         symbol_or_asset_id = validate_symbol_or_asset_id(symbol_or_asset_id)
@@ -455,17 +495,33 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return response
 
+        if generated:
+            return Assets.model_validate(response)
         return _build_from_response(Asset, response)
 
     # ############################## CLOCK & CALENDAR ################################# #
 
-    def get_clock(self) -> Union[Clock, RawData]:
+    @overload
+    def get_clock(
+        self, *, generated: Literal[False] = False
+    ) -> Union[Clock, RawData]: ...
+
+    @overload
+    def get_clock(self, *, generated: Literal[True]) -> Union[LegacyClock, RawData]: ...
+
+    def get_clock(
+        self, *, generated: bool = False
+    ) -> Union[Clock, LegacyClock, RawData]:
         """
         Gets the current market timestamp, whether or not the market is currently open, as well as the times
         of the next market open and close.
 
+        Args:
+            generated (bool): Return the OpenAPI-generated LegacyClock instead of the deprecated Clock.
+              Defaults to False.
+
         Returns:
-            Clock: The market Clock data
+            Union[Clock, LegacyClock]: The market Clock data, as LegacyClock when ``generated`` is True.
         """
 
         response = self.get("/clock")
@@ -473,12 +529,32 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return response
 
+        if generated:
+            return LegacyClock.model_validate(response)
         return _build_from_response(Clock, response)
+
+    @overload
+    def get_calendar(
+        self,
+        filters: Optional[GetCalendarRequest] = None,
+        *,
+        generated: Literal[False] = False,
+    ) -> Union[List[Calendar], RawData]: ...
+
+    @overload
+    def get_calendar(
+        self,
+        filters: Optional[GetCalendarRequest] = None,
+        *,
+        generated: Literal[True],
+    ) -> Union[List[LegacyCalendarDay], RawData]: ...
 
     def get_calendar(
         self,
         filters: Optional[GetCalendarRequest] = None,
-    ) -> Union[List[Calendar], RawData]:
+        *,
+        generated: bool = False,
+    ) -> Union[List[Calendar], List[LegacyCalendarDay], RawData]:
         """
         The calendar API serves the full list of market days from 1970 to 2029. It can also be queried by specifying a
         start and/or end time to narrow down the results.
@@ -488,9 +564,12 @@ class TradingClient(RESTClient):
 
         Args:
             filters: Any optional filters to limit the returned market days
+            generated (bool): Return the OpenAPI-generated LegacyCalendarDay instead of the deprecated Calendar.
+              Defaults to False.
 
         Returns:
-            List[Calendar]: A list of Calendar objects representing the market days.
+            Union[List[Calendar], List[LegacyCalendarDay]]: The market days, as LegacyCalendarDay when
+              ``generated`` is True.
         """
 
         result = self.get("/calendar", filters.to_request_fields() if filters else {})
@@ -498,6 +577,8 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return result
 
+        if generated:
+            return TypeAdapter(List[LegacyCalendarDay]).validate_python(result)
         return TypeAdapter(List[Calendar]).validate_python(result)
 
     # ############################## ACCOUNT ################################# #

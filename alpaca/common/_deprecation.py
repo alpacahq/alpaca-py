@@ -5,6 +5,8 @@ from functools import wraps
 from typing import Any, Mapping, TypeVar
 import warnings
 
+from typing_extensions import deprecated
+
 _T = TypeVar("_T", bound=type)
 _M = TypeVar("_M")
 
@@ -27,6 +29,36 @@ def build_from_response(cls: "type[_M]", data: Mapping[str, Any]) -> _M:
         return cls(**data)
     finally:
         _BUILDING_FROM_RESPONSE.reset(token)
+
+
+def compatibility_shape_message(name: str) -> str:
+    """Deprecation text for a same-name legacy type awaiting its generated twin.
+
+    Temporary: kept only so later branches in the release stack that still import
+    it keep working. Remove once every caller uses the literal two-decorator form.
+    """
+    return (
+        f"{name} is a temporary compatibility shape and will be replaced "
+        f"by the OpenAPI-generated {name} in a future release."
+    )
+
+
+def deprecate_compatibility_shape(cls: _T) -> _T:
+    """Mark a hand-written public type that shares a name with a generated replacement.
+
+    Temporary: type checkers (PEP 702) do not see the ``deprecated`` applied here.
+    New code should use a literal ``@deprecated(MESSAGE, category=None)`` above
+    ``@warn_on_direct_instantiation(MESSAGE)`` instead. This shim exists only so
+    later branches in the release stack that still import it keep working, and
+    should be removed once those callers are migrated.
+
+    Not for enums: enum lookup never calls ``__init__``, so nothing would warn, and an
+    enum shape deprecates only the members its generated twin lacks.
+    """
+    message = compatibility_shape_message(cls.__name__)
+    return warn_on_direct_instantiation(message)(
+        deprecated(message, category=None)(cls)
+    )
 
 
 def warn_on_direct_instantiation(message: str):

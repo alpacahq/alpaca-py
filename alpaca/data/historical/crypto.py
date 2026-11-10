@@ -1,4 +1,4 @@
-from typing import Dict, Iterator, Optional, Union
+from typing import Dict, Iterator, Literal, Optional, Union, overload
 
 from alpaca.common.enums import BaseURL, PaginationType
 from alpaca.common.rest import RESTClient
@@ -77,6 +77,47 @@ class CryptoHistoricalDataClient(RESTClient):
             use_basic_auth=use_basic_auth,
         )
 
+    # Overloads are matched in order. Omitting handle_pagination, or passing
+    # FULL or NONE, keeps the return type from before pagination. ITERATOR is
+    # the only mode typed as an iterator. feed already has a default, so the
+    # iterator case is two stubs: one positional, and one keyword-only so a
+    # call that omits feed still selects the iterator return. A plain
+    # PaginationType value matches the last overload.
+    @overload
+    def get_crypto_bars(
+        self,
+        request_params: CryptoBarsRequest,
+        feed: CryptoFeed,
+        handle_pagination: Literal[PaginationType.ITERATOR],
+    ) -> Iterator[Union[BarSet, RawData]]: ...
+
+    @overload
+    def get_crypto_bars(
+        self,
+        request_params: CryptoBarsRequest,
+        feed: CryptoFeed = CryptoFeed.US,
+        *,
+        handle_pagination: Literal[PaginationType.ITERATOR],
+    ) -> Iterator[Union[BarSet, RawData]]: ...
+
+    @overload
+    def get_crypto_bars(
+        self,
+        request_params: CryptoBarsRequest,
+        feed: CryptoFeed = CryptoFeed.US,
+        handle_pagination: Union[
+            Literal[PaginationType.FULL, PaginationType.NONE], None
+        ] = None,
+    ) -> Union[BarSet, RawData]: ...
+
+    @overload
+    def get_crypto_bars(
+        self,
+        request_params: CryptoBarsRequest,
+        feed: CryptoFeed = CryptoFeed.US,
+        handle_pagination: Optional[PaginationType] = None,
+    ) -> Union[BarSet, RawData, Iterator[Union[BarSet, RawData]]]: ...
+
     def get_crypto_bars(
         self,
         request_params: CryptoBarsRequest,
@@ -95,8 +136,9 @@ class CryptoHistoricalDataClient(RESTClient):
               pass its ``next_page_token`` as the request's ``page_token`` to continue.
 
         Returns:
-            Union[BarSet, RawData, Iterator[Union[BarSet, RawData]]]: The crypto bar data either in raw or wrapped form, or an
-              iterator of pages for ``PaginationType.ITERATOR`` (raw JSON pages if raw_data is set).
+            Union[BarSet, RawData, Iterator[Union[BarSet, RawData]]]: ``BarSet`` or raw JSON when
+              ``handle_pagination`` is omitted, ``FULL``, or ``NONE``. An iterator of those pages
+              when it is ``ITERATOR``. A value typed only as ``PaginationType`` is the union of both.
         """
 
         return self._get_paginated_marketdata(
@@ -106,6 +148,41 @@ class CryptoHistoricalDataClient(RESTClient):
             set_type=BarSet,
             handle_pagination=handle_pagination,
         )
+
+    @overload
+    def get_crypto_quotes(
+        self,
+        request_params: CryptoQuoteRequest,
+        feed: CryptoFeed,
+        handle_pagination: Literal[PaginationType.ITERATOR],
+    ) -> Iterator[Union[QuoteSet, RawData]]: ...
+
+    @overload
+    def get_crypto_quotes(
+        self,
+        request_params: CryptoQuoteRequest,
+        feed: CryptoFeed = CryptoFeed.US,
+        *,
+        handle_pagination: Literal[PaginationType.ITERATOR],
+    ) -> Iterator[Union[QuoteSet, RawData]]: ...
+
+    @overload
+    def get_crypto_quotes(
+        self,
+        request_params: CryptoQuoteRequest,
+        feed: CryptoFeed = CryptoFeed.US,
+        handle_pagination: Union[
+            Literal[PaginationType.FULL, PaginationType.NONE], None
+        ] = None,
+    ) -> Union[QuoteSet, RawData]: ...
+
+    @overload
+    def get_crypto_quotes(
+        self,
+        request_params: CryptoQuoteRequest,
+        feed: CryptoFeed = CryptoFeed.US,
+        handle_pagination: Optional[PaginationType] = None,
+    ) -> Union[QuoteSet, RawData, Iterator[Union[QuoteSet, RawData]]]: ...
 
     def get_crypto_quotes(
         self,
@@ -125,8 +202,9 @@ class CryptoHistoricalDataClient(RESTClient):
               pass its ``next_page_token`` as the request's ``page_token`` to continue.
 
         Returns:
-            Union[QuoteSet, RawData, Iterator[Union[QuoteSet, RawData]]]: The crypto quote data either in raw or wrapped form, or an
-              iterator of pages for ``PaginationType.ITERATOR`` (raw JSON pages if raw_data is set).
+            Union[QuoteSet, RawData, Iterator[Union[QuoteSet, RawData]]]: ``QuoteSet`` or raw JSON when
+              ``handle_pagination`` is omitted, ``FULL``, or ``NONE``. An iterator of those pages
+              when it is ``ITERATOR``. A value typed only as ``PaginationType`` is the union of both.
         """
 
         return self._get_paginated_marketdata(
@@ -136,6 +214,41 @@ class CryptoHistoricalDataClient(RESTClient):
             set_type=QuoteSet,
             handle_pagination=handle_pagination,
         )
+
+    @overload
+    def get_crypto_trades(
+        self,
+        request_params: CryptoTradesRequest,
+        feed: CryptoFeed,
+        handle_pagination: Literal[PaginationType.ITERATOR],
+    ) -> Iterator[Union[TradeSet, RawData]]: ...
+
+    @overload
+    def get_crypto_trades(
+        self,
+        request_params: CryptoTradesRequest,
+        feed: CryptoFeed = CryptoFeed.US,
+        *,
+        handle_pagination: Literal[PaginationType.ITERATOR],
+    ) -> Iterator[Union[TradeSet, RawData]]: ...
+
+    @overload
+    def get_crypto_trades(
+        self,
+        request_params: CryptoTradesRequest,
+        feed: CryptoFeed = CryptoFeed.US,
+        handle_pagination: Union[
+            Literal[PaginationType.FULL, PaginationType.NONE], None
+        ] = None,
+    ) -> Union[TradeSet, RawData]: ...
+
+    @overload
+    def get_crypto_trades(
+        self,
+        request_params: CryptoTradesRequest,
+        feed: CryptoFeed = CryptoFeed.US,
+        handle_pagination: Optional[PaginationType] = None,
+    ) -> Union[TradeSet, RawData, Iterator[Union[TradeSet, RawData]]]: ...
 
     def get_crypto_trades(
         self,
@@ -156,8 +269,9 @@ class CryptoHistoricalDataClient(RESTClient):
               pass its ``next_page_token`` as the request's ``page_token`` to continue.
 
         Returns:
-            Union[TradeSet, RawData, Iterator[Union[TradeSet, RawData]]]: The trade data either in raw or wrapped form, or an
-              iterator of pages for ``PaginationType.ITERATOR`` (raw JSON pages if raw_data is set).
+            Union[TradeSet, RawData, Iterator[Union[TradeSet, RawData]]]: ``TradeSet`` or raw JSON when
+              ``handle_pagination`` is omitted, ``FULL``, or ``NONE``. An iterator of those pages
+              when it is ``ITERATOR``. A value typed only as ``PaginationType`` is the union of both.
         """
 
         return self._get_paginated_marketdata(

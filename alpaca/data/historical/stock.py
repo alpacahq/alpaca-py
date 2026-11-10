@@ -1,6 +1,6 @@
 from collections import defaultdict
 from enum import Enum
-from typing import Dict, Iterator, List, Optional, Union
+from typing import Dict, Iterator, List, Literal, Optional, Union, overload
 
 from alpaca.common.constants import DATA_V2_MAX_LIMIT
 from alpaca.common.enums import BaseURL, PaginationType
@@ -72,6 +72,33 @@ class StockHistoricalDataClient(RESTClient):
             raw_data=raw_data,
         )
 
+    # Overloads are matched in order. Omitting handle_pagination, or passing
+    # FULL or NONE, keeps the return type from before pagination. ITERATOR is
+    # the only mode typed as an iterator. A plain PaginationType value matches
+    # the last overload, whose return is the union of both.
+    @overload
+    def get_stock_bars(
+        self,
+        request_params: StockBarsRequest,
+        handle_pagination: Literal[PaginationType.ITERATOR],
+    ) -> Iterator[Union[BarSet, RawData]]: ...
+
+    @overload
+    def get_stock_bars(
+        self,
+        request_params: StockBarsRequest,
+        handle_pagination: Union[
+            Literal[PaginationType.FULL, PaginationType.NONE], None
+        ] = None,
+    ) -> Union[BarSet, RawData]: ...
+
+    @overload
+    def get_stock_bars(
+        self,
+        request_params: StockBarsRequest,
+        handle_pagination: Optional[PaginationType] = None,
+    ) -> Union[BarSet, RawData, Iterator[Union[BarSet, RawData]]]: ...
+
     def get_stock_bars(
         self,
         request_params: StockBarsRequest,
@@ -89,8 +116,9 @@ class StockHistoricalDataClient(RESTClient):
               pass its ``next_page_token`` as the request's ``page_token`` to continue.
 
         Returns:
-            Union[BarSet, RawData, Iterator[Union[BarSet, RawData]]]: The bar data either in raw or wrapped form, or an
-              iterator of pages for ``PaginationType.ITERATOR`` (raw JSON pages if raw_data is set).
+            Union[BarSet, RawData, Iterator[Union[BarSet, RawData]]]: ``BarSet`` or raw JSON when
+              ``handle_pagination`` is omitted, ``FULL``, or ``NONE``. An iterator of those pages
+              when it is ``ITERATOR``. A value typed only as ``PaginationType`` is the union of both.
         """
         return self._get_paginated_marketdata(
             path="/stocks/bars",
@@ -99,6 +127,29 @@ class StockHistoricalDataClient(RESTClient):
             set_type=BarSet,
             handle_pagination=handle_pagination,
         )
+
+    @overload
+    def get_stock_quotes(
+        self,
+        request_params: StockQuotesRequest,
+        handle_pagination: Literal[PaginationType.ITERATOR],
+    ) -> Iterator[Union[QuoteSet, RawData]]: ...
+
+    @overload
+    def get_stock_quotes(
+        self,
+        request_params: StockQuotesRequest,
+        handle_pagination: Union[
+            Literal[PaginationType.FULL, PaginationType.NONE], None
+        ] = None,
+    ) -> Union[QuoteSet, RawData]: ...
+
+    @overload
+    def get_stock_quotes(
+        self,
+        request_params: StockQuotesRequest,
+        handle_pagination: Optional[PaginationType] = None,
+    ) -> Union[QuoteSet, RawData, Iterator[Union[QuoteSet, RawData]]]: ...
 
     def get_stock_quotes(
         self,
@@ -116,8 +167,9 @@ class StockHistoricalDataClient(RESTClient):
               pass its ``next_page_token`` as the request's ``page_token`` to continue.
 
         Returns:
-            Union[QuoteSet, RawData, Iterator[Union[QuoteSet, RawData]]]: The quote data either in raw or wrapped form, or an
-              iterator of pages for ``PaginationType.ITERATOR`` (raw JSON pages if raw_data is set).
+            Union[QuoteSet, RawData, Iterator[Union[QuoteSet, RawData]]]: ``QuoteSet`` or raw JSON when
+              ``handle_pagination`` is omitted, ``FULL``, or ``NONE``. An iterator of those pages
+              when it is ``ITERATOR``. A value typed only as ``PaginationType`` is the union of both.
         """
         return self._get_paginated_marketdata(
             path="/stocks/quotes",
@@ -126,6 +178,29 @@ class StockHistoricalDataClient(RESTClient):
             set_type=QuoteSet,
             handle_pagination=handle_pagination,
         )
+
+    @overload
+    def get_stock_trades(
+        self,
+        request_params: StockTradesRequest,
+        handle_pagination: Literal[PaginationType.ITERATOR],
+    ) -> Iterator[Union[TradeSet, RawData]]: ...
+
+    @overload
+    def get_stock_trades(
+        self,
+        request_params: StockTradesRequest,
+        handle_pagination: Union[
+            Literal[PaginationType.FULL, PaginationType.NONE], None
+        ] = None,
+    ) -> Union[TradeSet, RawData]: ...
+
+    @overload
+    def get_stock_trades(
+        self,
+        request_params: StockTradesRequest,
+        handle_pagination: Optional[PaginationType] = None,
+    ) -> Union[TradeSet, RawData, Iterator[Union[TradeSet, RawData]]]: ...
 
     def get_stock_trades(
         self,
@@ -143,8 +218,9 @@ class StockHistoricalDataClient(RESTClient):
               pass its ``next_page_token`` as the request's ``page_token`` to continue.
 
         Returns:
-            Union[TradeSet, RawData, Iterator[Union[TradeSet, RawData]]]: The trade data either in raw or wrapped form, or an
-              iterator of pages for ``PaginationType.ITERATOR`` (raw JSON pages if raw_data is set).
+            Union[TradeSet, RawData, Iterator[Union[TradeSet, RawData]]]: ``TradeSet`` or raw JSON when
+              ``handle_pagination`` is omitted, ``FULL``, or ``NONE``. An iterator of those pages
+              when it is ``ITERATOR``. A value typed only as ``PaginationType`` is the union of both.
         """
         return self._get_paginated_marketdata(
             path="/stocks/trades",

@@ -1,9 +1,13 @@
 from typing import Dict, Optional
 
+from typing_extensions import deprecated as _deprecated
+
 from alpaca.common.models import ValidateBaseModel as BaseModel
 from alpaca.common.types import RawData
 from alpaca.data.mappings import SNAPSHOT_MAPPING
-from alpaca.data.models import Bar, Quote, Trade
+from alpaca.data.models.bars import Bar
+from alpaca.data.models.quotes import Quote
+from alpaca.data.models.trades import Trade
 
 
 class Snapshot(BaseModel):
@@ -60,6 +64,7 @@ class Snapshot(BaseModel):
         super().__init__(symbol=symbol, **mapped_snapshot)
 
 
+@_deprecated("OptionsGreeks is deprecated; use OptionGreeks instead.", category=None)
 class OptionsGreeks(BaseModel):
     """Options Greeks are a set of risk measures that are used in the options market to evaluate the risk and reward of an option.
 
@@ -86,6 +91,9 @@ class OptionsGreeks(BaseModel):
         super().__init__(**raw_data)
 
 
+@_deprecated(
+    "OptionsSnapshot is deprecated; use OptionSnapshot instead.", category=None
+)
 class OptionsSnapshot(BaseModel):
     """An options snapshot contains the latest trade, latest quote, greeks
     and implied volatility data for a given symbol.

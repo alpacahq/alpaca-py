@@ -1,0 +1,257 @@
+{
+  "generatedBy": "tools/scripts/openapi/generate.py; DO NOT EDIT.",
+  "operations": [
+    {
+      "httpMethod": "GET",
+      "methodName": "get_corporate_actions",
+      "operationId": "CorporateActions",
+      "path": "/v1/corporate-actions"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "SubscribeToCorporateActionsEventsSSE",
+      "path": "/v1beta1/events/corporate-actions"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "FixedIncomeLatestPrices",
+      "path": "/v1beta1/fixed_income/latest/prices"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "FixedIncomeLatestQuotes",
+      "path": "/v1beta1/fixed_income/latest/quotes"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "Logos",
+      "path": "/v1beta1/logos/{symbol}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_news",
+      "operationId": "News",
+      "path": "/v1beta1/news"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_option_bars",
+      "operationId": "optionBars",
+      "path": "/v1beta1/options/bars"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "OptionMetaConditions",
+      "path": "/v1beta1/options/meta/conditions/{ticktype}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_option_exchange_codes",
+      "operationId": "OptionMetaExchanges",
+      "path": "/v1beta1/options/meta/exchanges"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_option_latest_quote",
+      "operationId": "OptionLatestQuotes",
+      "path": "/v1beta1/options/quotes/latest"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_option_snapshot",
+      "operationId": "OptionSnapshots",
+      "path": "/v1beta1/options/snapshots"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_option_chain",
+      "operationId": "OptionChain",
+      "path": "/v1beta1/options/snapshots/{underlying_symbol}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_option_trades",
+      "operationId": "OptionTrades",
+      "path": "/v1beta1/options/trades"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_option_latest_trade",
+      "operationId": "OptionLatestTrades",
+      "path": "/v1beta1/options/trades/latest"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_most_actives",
+      "operationId": "MostActives",
+      "path": "/v1beta1/screener/stocks/most-actives"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_market_movers",
+      "operationId": "Movers",
+      "path": "/v1beta1/screener/{market_type}/movers"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_crypto_bars",
+      "operationId": "CryptoBars",
+      "path": "/v1beta3/crypto/{loc}/bars"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_crypto_latest_bar",
+      "operationId": "CryptoLatestBars",
+      "path": "/v1beta3/crypto/{loc}/latest/bars"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_crypto_latest_orderbook",
+      "operationId": "CryptoLatestOrderbooks",
+      "path": "/v1beta3/crypto/{loc}/latest/orderbooks"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_crypto_latest_quote",
+      "operationId": "CryptoLatestQuotes",
+      "path": "/v1beta3/crypto/{loc}/latest/quotes"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_crypto_latest_trade",
+      "operationId": "CryptoLatestTrades",
+      "path": "/v1beta3/crypto/{loc}/latest/trades"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_crypto_quotes",
+      "operationId": "CryptoQuotes",
+      "path": "/v1beta3/crypto/{loc}/quotes"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_crypto_snapshot",
+      "operationId": "CryptoSnapshots",
+      "path": "/v1beta3/crypto/{loc}/snapshots"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_crypto_trades",
+      "operationId": "CryptoTrades",
+      "path": "/v1beta3/crypto/{loc}/trades"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "StockAuctions",
+      "path": "/v2/stocks/auctions"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_stock_bars",
+      "operationId": "StockBars",
+      "path": "/v2/stocks/bars"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_stock_latest_bar",
+      "operationId": "StockLatestBars",
+      "path": "/v2/stocks/bars/latest"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "StockMetaConditions",
+      "path": "/v2/stocks/meta/conditions/{ticktype}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "StockMetaExchanges",
+      "path": "/v2/stocks/meta/exchanges"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_stock_quotes",
+      "operationId": "StockQuotes",
+      "path": "/v2/stocks/quotes"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_stock_latest_quote",
+      "operationId": "StockLatestQuotes",
+      "path": "/v2/stocks/quotes/latest"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_stock_snapshot",
+      "operationId": "StockSnapshots",
+      "path": "/v2/stocks/snapshots"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_stock_trades",
+      "operationId": "StockTrades",
+      "path": "/v2/stocks/trades"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": "get_stock_latest_trade",
+      "operationId": "StockLatestTrades",
+      "path": "/v2/stocks/trades/latest"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "StockAuctionSingle",
+      "path": "/v2/stocks/{symbol}/auctions"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "StockBarSingle",
+      "path": "/v2/stocks/{symbol}/bars"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "StockLatestBarSingle",
+      "path": "/v2/stocks/{symbol}/bars/latest"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "StockQuoteSingle",
+      "path": "/v2/stocks/{symbol}/quotes"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "StockLatestQuoteSingle",
+      "path": "/v2/stocks/{symbol}/quotes/latest"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "StockSnapshotSingle",
+      "path": "/v2/stocks/{symbol}/snapshot"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "StockTradeSingle",
+      "path": "/v2/stocks/{symbol}/trades"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "StockLatestTradeSingle",
+      "path": "/v2/stocks/{symbol}/trades/latest"
+    }
+  ]
+}

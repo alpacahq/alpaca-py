@@ -5,16 +5,21 @@ from pydantic import ConfigDict
 
 from alpaca.common.enums import Sort, SupportedCurrencies
 from alpaca.common.requests import NonEmptyRequest
+from alpaca.data._generated.requests import *  # noqa: F403
 from alpaca.data.enums import (
     Adjustment,
     CorporateActionsType,
     DataFeed,
     MarketType,
     MostActivesBy,
+    MostActivesByParameter,
+    OptionFeed,
     OptionsFeed,
+    StockHistoricalFeed,
+    StockLatestFeed,
 )
 from alpaca.data.timeframe import TimeFrame
-from alpaca.trading.enums import ContractType
+from alpaca.trading.enums import ContractType, OptionContractType
 
 
 class BaseTimeseriesDataRequest(NonEmptyRequest):
@@ -105,7 +110,7 @@ class StockBarsRequest(BaseBarsRequest):
     """
 
     adjustment: Optional[Adjustment] = None
-    feed: Optional[DataFeed] = None
+    feed: Optional[Union[DataFeed, StockHistoricalFeed]] = None
     asof: Optional[str] = None
 
 
@@ -163,7 +168,7 @@ class StockQuotesRequest(BaseTimeseriesDataRequest):
         currency (Optional[SupportedCurrencies]): The currency of all prices in ISO 4217 format. Default is USD.
     """
 
-    feed: Optional[DataFeed] = None
+    feed: Optional[Union[DataFeed, StockHistoricalFeed]] = None
     asof: Optional[str] = None
 
 
@@ -205,7 +210,7 @@ class StockTradesRequest(BaseTimeseriesDataRequest):
         currency (Optional[SupportedCurrencies]): The currency of all prices in ISO 4217 format. Default is USD.
     """
 
-    feed: Optional[DataFeed] = None
+    feed: Optional[Union[DataFeed, StockHistoricalFeed]] = None
     asof: Optional[str] = None
 
 
@@ -258,7 +263,7 @@ class BaseStockLatestDataRequest(NonEmptyRequest):
     """
 
     symbol_or_symbols: Union[str, List[str]]
-    feed: Optional[DataFeed] = None
+    feed: Optional[Union[DataFeed, StockLatestFeed]] = None
     currency: Optional[SupportedCurrencies] = None  # None = USD
 
 
@@ -369,7 +374,7 @@ class BaseOptionLatestDataRequest(NonEmptyRequest):
     """
 
     symbol_or_symbols: Union[str, List[str]]
-    feed: Optional[OptionsFeed] = None
+    feed: Optional[Union[OptionsFeed, OptionFeed]] = None
 
 
 class OptionLatestQuoteRequest(BaseOptionLatestDataRequest):
@@ -414,7 +419,7 @@ class StockSnapshotRequest(NonEmptyRequest):
     """
 
     symbol_or_symbols: Union[str, List[str]]
-    feed: Optional[DataFeed] = None
+    feed: Optional[Union[DataFeed, StockLatestFeed]] = None
     currency: Optional[SupportedCurrencies] = None  # None = USD
 
 
@@ -439,7 +444,7 @@ class OptionSnapshotRequest(NonEmptyRequest):
     """
 
     symbol_or_symbols: Union[str, List[str]]
-    feed: Optional[OptionsFeed] = None
+    feed: Optional[Union[OptionsFeed, OptionFeed]] = None
 
 
 class OptionChainRequest(NonEmptyRequest):
@@ -460,8 +465,8 @@ class OptionChainRequest(NonEmptyRequest):
     """
 
     underlying_symbol: str
-    feed: Optional[OptionsFeed] = None
-    type: Optional[ContractType] = None
+    feed: Optional[Union[OptionsFeed, OptionFeed]] = None
+    type: Optional[Union[ContractType, OptionContractType]] = None
     strike_price_gte: Optional[float] = None
     strike_price_lte: Optional[float] = None
     expiration_date: Optional[Union[date, str]] = None
@@ -508,7 +513,7 @@ class MostActivesRequest(ScreenerRequest):
         top (int): Number of top most active stocks to fetch per day.
     """
 
-    by: MostActivesBy = MostActivesBy.VOLUME.value
+    by: Union[MostActivesBy, MostActivesByParameter] = MostActivesBy.VOLUME.value
 
 
 class MarketMoversRequest(ScreenerRequest):

@@ -1,25 +1,17 @@
 from datetime import datetime
 from typing import Dict, List, Optional
 
+from alpaca.common._deprecation import (
+    deprecate_compatibility_shape as _deprecate_compatibility_shape,
+)
 from alpaca.common.models import ValidateBaseModel as BaseModel
 from alpaca.common.types import RawData
-from alpaca.data import NewsImageSize
+from alpaca.data._generated.models import NewsImage
+from alpaca.data.enums import NewsImageSize  # noqa: F401 — keep historical import path
 from alpaca.data.models.base import BaseDataSet, TimeSeriesMixin
 
 
-class NewsImage(BaseModel):
-    """
-    images (URLs) related to given article
-
-    Attributes:
-        size (NewsImageSize): Possible values for size are thumb, small and large.
-        url (str): url to image from news article.
-    """
-
-    size: NewsImageSize
-    url: str
-
-
+@_deprecate_compatibility_shape
 class News(BaseModel):
     """
     News article object

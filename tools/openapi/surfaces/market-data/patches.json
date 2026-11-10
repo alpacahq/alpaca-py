@@ -1,0 +1,21 @@
+{
+  "specPatches": [
+    {
+      "path": [
+        "components",
+        "parameters",
+        "sort",
+        "schema"
+      ],
+      "value": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/sort"
+          }
+        ],
+        "type": "string"
+      },
+      "reason": "upstream moved type:string from the sibling key into the allOf list, which makes openapi-generator synthesize an empty RatesSortParameter model instead of reusing the Sort enum; the single-branch form resolves to Sort"
+    }
+  ]
+}

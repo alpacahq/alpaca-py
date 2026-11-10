@@ -1,0 +1,32 @@
+{
+  "baseClasses": {},
+  "fieldAliases": {},
+  "operationMethods": {
+    "CorporateActions": "get_corporate_actions",
+    "News": "get_news",
+    "optionBars": "get_option_bars",
+    "OptionMetaExchanges": "get_option_exchange_codes",
+    "OptionLatestQuotes": "get_option_latest_quote",
+    "OptionSnapshots": "get_option_snapshot",
+    "OptionChain": "get_option_chain",
+    "OptionTrades": "get_option_trades",
+    "OptionLatestTrades": "get_option_latest_trade",
+    "MostActives": "get_most_actives",
+    "Movers": "get_market_movers",
+    "CryptoBars": "get_crypto_bars",
+    "CryptoLatestBars": "get_crypto_latest_bar",
+    "CryptoLatestOrderbooks": "get_crypto_latest_orderbook",
+    "CryptoLatestQuotes": "get_crypto_latest_quote",
+    "CryptoLatestTrades": "get_crypto_latest_trade",
+    "CryptoQuotes": "get_crypto_quotes",
+    "CryptoSnapshots": "get_crypto_snapshot",
+    "CryptoTrades": "get_crypto_trades",
+    "StockBars": "get_stock_bars",
+    "StockLatestBars": "get_stock_latest_bar",
+    "StockQuotes": "get_stock_quotes",
+    "StockLatestQuotes": "get_stock_latest_quote",
+    "StockSnapshots": "get_stock_snapshot",
+    "StockTrades": "get_stock_trades",
+    "StockLatestTrades": "get_stock_latest_trade"
+  }
+}

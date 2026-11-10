@@ -1,0 +1,353 @@
+{
+  "generatedBy": "tools/scripts/openapi/generate.py; DO NOT EDIT.",
+  "operations": [
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "listLocates",
+      "path": "/v1/locates"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": null,
+      "operationId": "createLocates",
+      "path": "/v1/locates"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "listLocateQuotes",
+      "path": "/v1/locates/quotes"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "getLocate",
+      "path": "/v1/locates/{locate_id}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "getAccount",
+      "path": "/v2/account"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "getAccountActivities",
+      "path": "/v2/account/activities"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "getAccountActivitiesByActivityType",
+      "path": "/v2/account/activities/{activity_type}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "getAccountConfig",
+      "path": "/v2/account/configurations"
+    },
+    {
+      "httpMethod": "PATCH",
+      "methodName": null,
+      "operationId": "patchAccountConfig",
+      "path": "/v2/account/configurations"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "getAccountPortfolioHistory",
+      "path": "/v2/account/portfolio/history"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "get-v2-assets",
+      "path": "/v2/assets"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "get-v2-assets-symbol_or_asset_id",
+      "path": "/v2/assets/{symbol_or_asset_id}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "LegacyCalendar",
+      "path": "/v2/calendar"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "LegacyClock",
+      "path": "/v2/clock"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "get-v2-corporate_actions-announcements",
+      "path": "/v2/corporate_actions/announcements"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "get-v2-corporate_actions-announcements-id",
+      "path": "/v2/corporate_actions/announcements/{id}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "get-options-contracts",
+      "path": "/v2/options/contracts"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "get-option-contract-symbol_or_id",
+      "path": "/v2/options/contracts/{symbol_or_id}"
+    },
+    {
+      "httpMethod": "DELETE",
+      "methodName": null,
+      "operationId": "deleteAllOrders",
+      "path": "/v2/orders"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "getAllOrders",
+      "path": "/v2/orders"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": null,
+      "operationId": "postOrder",
+      "path": "/v2/orders"
+    },
+    {
+      "httpMethod": "DELETE",
+      "methodName": null,
+      "operationId": "deleteOrderByOrderID",
+      "path": "/v2/orders/{order_id}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "getOrderByOrderID",
+      "path": "/v2/orders/{order_id}"
+    },
+    {
+      "httpMethod": "PATCH",
+      "methodName": null,
+      "operationId": "patchOrderByOrderId",
+      "path": "/v2/orders/{order_id}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "getOrderByClientOrderId",
+      "path": "/v2/orders:by_client_order_id"
+    },
+    {
+      "httpMethod": "DELETE",
+      "methodName": null,
+      "operationId": "deleteAllOpenPositions",
+      "path": "/v2/positions"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "getAllOpenPositions",
+      "path": "/v2/positions"
+    },
+    {
+      "httpMethod": "DELETE",
+      "methodName": null,
+      "operationId": "deleteOpenPosition",
+      "path": "/v2/positions/{symbol_or_asset_id}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "getOpenPosition",
+      "path": "/v2/positions/{symbol_or_asset_id}"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": null,
+      "operationId": "optionDoNotExercise",
+      "path": "/v2/positions/{symbol_or_contract_id}/do-not-exercise"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": null,
+      "operationId": "optionExercise",
+      "path": "/v2/positions/{symbol_or_contract_id}/exercise"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": null,
+      "operationId": "postTokenizationMint",
+      "path": "/v2/tokenization/mint"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "getTokenizationRequests",
+      "path": "/v2/tokenization/requests"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "getTokenizationRequest",
+      "path": "/v2/tokenization/requests/{tokenization_request_id}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "getTokenizationRequestByClientRequestID",
+      "path": "/v2/tokenization/requests:by_client_request_id"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "listCryptoFundingWallets",
+      "path": "/v2/wallets"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "getCryptoTransferEstimate",
+      "path": "/v2/wallets/fees/estimate"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "listCryptoFundingTransfers",
+      "path": "/v2/wallets/transfers"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "getCryptoFundingTransfer",
+      "path": "/v2/wallets/transfers/{transfer_id}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "searchVASPs",
+      "path": "/v2/wallets/travel-rule/vasps"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "listWhitelistedAddress",
+      "path": "/v2/wallets/whitelists"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": null,
+      "operationId": "createWhitelistedAddress",
+      "path": "/v2/wallets/whitelists"
+    },
+    {
+      "httpMethod": "DELETE",
+      "methodName": null,
+      "operationId": "deleteWhitelistedAddress",
+      "path": "/v2/wallets/whitelists/{whitelisted_address_id}"
+    },
+    {
+      "httpMethod": "PATCH",
+      "methodName": null,
+      "operationId": "updateWhitelistedAddressTravelRuleInfo",
+      "path": "/v2/wallets/whitelists/{whitelisted_address_id}/travel-rule-info"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "getWatchlists",
+      "path": "/v2/watchlists"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": null,
+      "operationId": "postWatchlist",
+      "path": "/v2/watchlists"
+    },
+    {
+      "httpMethod": "DELETE",
+      "methodName": null,
+      "operationId": "deleteWatchlistById",
+      "path": "/v2/watchlists/{watchlist_id}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "getWatchlistById",
+      "path": "/v2/watchlists/{watchlist_id}"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": null,
+      "operationId": "addAssetToWatchlist",
+      "path": "/v2/watchlists/{watchlist_id}"
+    },
+    {
+      "httpMethod": "PUT",
+      "methodName": null,
+      "operationId": "updateWatchlistById",
+      "path": "/v2/watchlists/{watchlist_id}"
+    },
+    {
+      "httpMethod": "DELETE",
+      "methodName": null,
+      "operationId": "removeAssetFromWatchlist",
+      "path": "/v2/watchlists/{watchlist_id}/{symbol}"
+    },
+    {
+      "httpMethod": "DELETE",
+      "methodName": null,
+      "operationId": "deleteWatchlistByName",
+      "path": "/v2/watchlists:by_name"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "getWatchlistByName",
+      "path": "/v2/watchlists:by_name"
+    },
+    {
+      "httpMethod": "POST",
+      "methodName": null,
+      "operationId": "addAssetToWatchlistByName",
+      "path": "/v2/watchlists:by_name"
+    },
+    {
+      "httpMethod": "PUT",
+      "methodName": null,
+      "operationId": "updateWatchlistByName",
+      "path": "/v2/watchlists:by_name"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "subscribeToActivitiesSSE",
+      "path": "/v2beta1/events/activities"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "Calendar",
+      "path": "/v3/calendar/{market}"
+    },
+    {
+      "httpMethod": "GET",
+      "methodName": null,
+      "operationId": "Clock",
+      "path": "/v3/clock"
+    }
+  ]
+}

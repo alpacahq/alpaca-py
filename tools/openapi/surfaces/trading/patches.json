@@ -1,0 +1,57 @@
+{
+  "specPatches": [
+    {
+      "path": [
+        "components",
+        "schemas",
+        "Assets",
+        "properties",
+        "borrow_status"
+      ],
+      "value": {
+        "description": "Borrow status for US equity assets. This field is omitted for non-US-equity assets.",
+        "enum": [
+          "easy_to_borrow",
+          "hard_to_borrow"
+        ],
+        "example": "easy_to_borrow",
+        "title": "AssetBorrowStatus",
+        "type": "string"
+      },
+      "reason": "RESOLVE_INLINE_ENUMS names the promoted inline enum after the parent schema (AssetsBorrowStatus); the title keeps the published AssetBorrowStatus class name"
+    },
+    {
+      "path": [
+        "components",
+        "schemas",
+        "OptionDeliverable",
+        "properties",
+        "amount"
+      ],
+      "value": {
+        "description": "The deliverable amount. For cash deliverables, this is the cash amount.\nFor standard contract, this is always 100.\nThis field can be null in case the deliverable settlement is delayed and the amount is yet to be determined.\n",
+        "example": "100",
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "reason": "the description says amount is null while delayed settlement is pending, and the API sends null, but the schema types it as a plain string"
+    },
+    {
+      "op": "add",
+      "path": [
+        "components",
+        "schemas",
+        "Account",
+        "properties",
+        "crypto_tier"
+      ],
+      "value": {
+        "description": "The crypto trading tier assigned to the account. Only present if crypto trading is enabled.",
+        "type": "integer"
+      },
+      "reason": "the API returns crypto_tier (TradeAccount has parsed it since before codegen) but the Account schema omits it"
+    }
+  ]
+}

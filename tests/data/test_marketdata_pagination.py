@@ -1,9 +1,19 @@
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import (
+    Dict,
+    Iterator,
+    List,
+    Literal,
+    Optional,
+    Union,
+    get_overloads,
+    get_type_hints,
+)
 
 import pytest
 
 from alpaca.common.enums import PaginationType
+from alpaca.common.types import RawData
 from alpaca.data.historical import StockHistoricalDataClient
 from alpaca.data.historical.crypto import CryptoHistoricalDataClient
 from alpaca.data.historical.option import OptionHistoricalDataClient
@@ -411,3 +421,41 @@ def test_crypto_and_option_time_series_support_iteration(
     )
     assert len(single[symbol]) == 2
     assert single.next_page_token == "p1"
+
+
+def _unpaged(page):
+    return Union[page, RawData]
+
+
+def _paged(page):
+    return Union[page, RawData, Iterator[Union[page, RawData]]]
+
+
+@pytest.mark.parametrize(
+    ("method", "page", "iterator_stubs"),
+    [
+        (StockHistoricalDataClient.get_stock_bars, BarSet, 1),
+        (StockHistoricalDataClient.get_stock_quotes, QuoteSet, 1),
+        (StockHistoricalDataClient.get_stock_trades, TradeSet, 1),
+        (CryptoHistoricalDataClient.get_crypto_bars, BarSet, 2),
+        (CryptoHistoricalDataClient.get_crypto_quotes, QuoteSet, 2),
+        (CryptoHistoricalDataClient.get_crypto_trades, TradeSet, 2),
+        (OptionHistoricalDataClient.get_option_bars, BarSet, 1),
+        (OptionHistoricalDataClient.get_option_trades, TradeSet, 1),
+    ],
+)
+def test_pagination_overloads_keep_the_previous_return(method, page, iterator_stubs):
+    """A call that omits handle_pagination still sees the pre-pagination return type."""
+    hints = [get_type_hints(stub) for stub in get_overloads(method)]
+    iterator_return = Iterator[Union[page, RawData]]
+    assert [hint["return"] for hint in hints[:iterator_stubs]] == [
+        iterator_return
+    ] * iterator_stubs
+    assert hints[iterator_stubs]["return"] == _unpaged(page)
+    assert hints[-1]["return"] == _paged(page)
+    assert hints[0]["handle_pagination"] == Literal[PaginationType.ITERATOR]
+    assert (
+        hints[iterator_stubs]["handle_pagination"]
+        == Union[Literal[PaginationType.FULL, PaginationType.NONE], None]
+    )
+    assert hints[-1]["handle_pagination"] == Optional[PaginationType]

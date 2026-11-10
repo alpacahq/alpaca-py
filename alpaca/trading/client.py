@@ -1,55 +1,76 @@
 import json
-from typing import List, Optional, Union
+from typing import Iterator, List, Optional, Union
 from uuid import UUID
 
+import sseclient
 from pydantic import TypeAdapter
+from requests.exceptions import HTTPError
 from typing_extensions import deprecated as _deprecated
 
 from alpaca.common import RawData
 from alpaca.common._deprecation import build_from_response as _build_from_response
 from alpaca.common.enums import BaseURL
+from alpaca.common.exceptions import APIError
 from alpaca.common.rest import RESTClient
 from alpaca.common.utils import (
     validate_symbol_or_asset_id,
     validate_symbol_or_contract_id,
     validate_uuid_id_param,
 )
+from alpaca.trading.enums import ActivityType
 from alpaca.trading.models import (
     AccountConfiguration,
     Asset,
     Calendar,
     Clock,
+    ClockResp,
     ClosePositionResponse,
     CorporateActionAnnouncement,
     CryptoTransfer,
     CryptoWallet,
+    GetAccountActivities200ResponseInner,
+    ListLocateQuotesResponse,
+    ListLocatesResponse,
+    Locate,
+    NonTradeActivities,
     OptionContract,
     OptionContractsResponse,
     Order,
     PortfolioHistory,
     Position,
+    PublicCalendarResp,
     SearchVASPsResponse,
     TokenizationMintResponse,
     TokenizationRequest,
     TradeAccount,
+    TradingActivities,
     WalletFeeEstimateResponse,
     Watchlist,
     WhitelistedAddress,
 )
 from alpaca.trading.requests import (
+    ActivityEventsRequest,
+    AddAssetToWatchlistRequest,
     CancelOrderResponse,
     ClosePositionRequest,
+    CreateLocateRequest,
     CreateWatchlistRequest,
     CreateWhitelistedAddressRequest,
+    GetAccountActivitiesByTypeRequest,
+    GetAccountActivitiesRequest,
     GetAssetsRequest,
     GetCalendarRequest,
     GetCorporateAnnouncementsRequest,
     GetCryptoWalletsRequest,
+    GetLocateQuotesRequest,
+    GetLocatesRequest,
     GetOptionContractsRequest,
     GetOrderByIdRequest,
     GetOrdersRequest,
     GetPortfolioHistoryRequest,
     GetTokenizationRequestsRequest,
+    GetV3CalendarRequest,
+    GetV3ClockRequest,
     GetWalletFeeEstimateRequest,
     OrderRequest,
     PatchOrderRequest,
@@ -808,6 +829,154 @@ class TradingClient(RESTClient):
 
         return TypeAdapter(OptionContract).validate_python(response)
 
+    # ############################## LOCATES ################################# #
+
+    def get_locates(
+        self, filter: Optional[GetLocatesRequest] = None
+    ) -> Union[ListLocatesResponse, RawData]:
+        """Returns locates for the account.
+
+        Args:
+            filter (Optional[GetLocatesRequest]): Symbol, status, date, and page filters.
+
+        Returns:
+            Union[ListLocatesResponse, RawData]: The locates page.
+        """
+        response = self.get(
+            "/locates",
+            self._query(filter),
+            api_version="v1",
+        )
+        return self._parse(ListLocatesResponse, response)
+
+    def create_locate(self, locate_data: CreateLocateRequest) -> Union[Locate, RawData]:
+        """Requests a locate for a short sale.
+
+        Args:
+            locate_data (CreateLocateRequest): Symbol, quantity, and optional fee limit.
+
+        Returns:
+            Union[Locate, RawData]: The created locate.
+        """
+        response = self.post(
+            "/locates",
+            locate_data.to_request_fields(),
+            api_version="v1",
+        )
+        return self._parse(Locate, response)
+
+    def get_locate(self, locate_id: Union[UUID, str]) -> Union[Locate, RawData]:
+        """Returns one locate by id.
+
+        Args:
+            locate_id (Union[UUID, str]): Locate id.
+
+        Returns:
+            Union[Locate, RawData]: The locate.
+        """
+        locate_id = validate_uuid_id_param(locate_id, "locate_id")
+        response = self.get(f"/locates/{locate_id}", api_version="v1")
+        return self._parse(Locate, response)
+
+    def get_locate_quotes(
+        self, request: GetLocateQuotesRequest
+    ) -> Union[ListLocateQuotesResponse, RawData]:
+        """Returns locate quotes for the requested symbols.
+
+        Args:
+            request (GetLocateQuotesRequest): Symbols to quote.
+
+        Returns:
+            Union[ListLocateQuotesResponse, RawData]: Quotes and per-symbol errors.
+        """
+        response = self.get(
+            "/locates/quotes",
+            request.to_request_fields(),
+            api_version="v1",
+        )
+        return self._parse(ListLocateQuotesResponse, response)
+
+    # ############################## ACTIVITIES ################################# #
+
+    def get_account_activities(
+        self, filter: Optional[GetAccountActivitiesRequest] = None
+    ) -> Union[List[GetAccountActivities200ResponseInner], RawData]:
+        """Returns one page of account activities.
+
+        Fills are ``TradingActivities``. Every other activity type is
+        ``NonTradeActivities``. Pass the ``id`` of the last activity as
+        ``page_token`` to request the next page.
+
+        Args:
+            filter (Optional[GetAccountActivitiesRequest]): Activity, date, and page filters.
+
+        Returns:
+            Union[List[GetAccountActivities200ResponseInner], RawData]: Trade and non-trade activities.
+        """
+        response = self.get("/account/activities", self._query(filter))
+        return self._parse_account_activities(response)
+
+    def get_account_activities_by_type(
+        self,
+        activity_type: str,
+        filter: Optional[GetAccountActivitiesByTypeRequest] = None,
+    ) -> Union[List[GetAccountActivities200ResponseInner], RawData]:
+        """Returns one page of account activities of one type.
+
+        Fills are ``TradingActivities``. Every other activity type is
+        ``NonTradeActivities``.
+
+        Args:
+            activity_type (str): Activity type path value, such as ``FILL``.
+            filter (Optional[GetAccountActivitiesByTypeRequest]): Date and page filters.
+
+        Returns:
+            Union[List[GetAccountActivities200ResponseInner], RawData]: Activities of that type.
+        """
+        response = self.get(
+            f"/account/activities/{activity_type}",
+            self._query(filter),
+        )
+        return self._parse_account_activities(response)
+
+    def subscribe_to_activities_sse(
+        self, request_params: Optional[ActivityEventsRequest] = None
+    ) -> Iterator:
+        """Subscribes to the account-activities SSE stream.
+
+        The trading client itself is version ``v2``. This stream is ``v2beta1``,
+        so the request URL is ``/v2beta1/events/activities``.
+
+        Args:
+            request_params: Optional ``since``, ``until``, ``since_id``, and ``until_id`` filters.
+
+        Returns:
+            Iterator: Yields event payloads as they arrive.
+        """
+        params = self._query(request_params)
+        url = self._base_url + "/v2beta1/events/activities"
+        response = self._session.get(
+            url=url,
+            params=params,
+            stream=True,
+            headers=self._sse_headers(),
+            # Match RESTClient._request: the endpoint URL is user-configurable,
+            # so refuse redirects rather than leak auth headers across hosts.
+            allow_redirects=False,
+        )
+        try:
+            response.raise_for_status()
+        except HTTPError as http_error:
+            response.close()
+            raise APIError(response.text, http_error)
+
+        client = sseclient.SSEClient(response)
+        try:
+            for event in client.events():
+                yield event.data
+        finally:
+            response.close()
+
     # ############################## OPTIONS ################################# #
 
     def do_not_exercise_option(self, symbol_or_contract_id: Union[UUID, str]) -> None:
@@ -1014,6 +1183,105 @@ class TradingClient(RESTClient):
             request.to_request_fields(),
         )
 
+    # ############################## WATCHLISTS BY NAME ################################# #
+
+    def get_watchlist_by_name(self, name: str) -> Union[Watchlist, RawData]:
+        """Returns a watchlist by its name.
+
+        Args:
+            name (str): Watchlist name.
+
+        Returns:
+            Union[Watchlist, RawData]: The watchlist.
+        """
+        result = self.get("/watchlists:by_name", {"name": name})
+        return self._parse_watchlist(result)
+
+    def delete_watchlist_by_name(self, name: str) -> None:
+        """Deletes a watchlist by its name.
+
+        Args:
+            name (str): Watchlist name.
+        """
+        self.delete("/watchlists:by_name", {"name": name})
+
+    def add_asset_to_watchlist_by_name(
+        self, name: str, watchlist_data: AddAssetToWatchlistRequest
+    ) -> Union[Watchlist, RawData]:
+        """Adds an asset to the watchlist with the given name.
+
+        Args:
+            name (str): Watchlist name.
+            watchlist_data (AddAssetToWatchlistRequest): Symbol to append.
+
+        Returns:
+            Union[Watchlist, RawData]: The updated watchlist.
+        """
+        result = self.post(
+            "/watchlists:by_name",
+            watchlist_data.to_request_fields(),
+            params={"name": name},
+        )
+        return self._parse_watchlist(result)
+
+    def update_watchlist_by_name(
+        self, name: str, watchlist_data: UpdateWatchlistRequest
+    ) -> Union[Watchlist, RawData]:
+        """Replaces the watchlist with the given name.
+
+        Args:
+            name (str): Current watchlist name.
+            watchlist_data (UpdateWatchlistRequest): New name and symbols.
+
+        Returns:
+            Union[Watchlist, RawData]: The updated watchlist.
+        """
+        result = self.put(
+            "/watchlists:by_name",
+            watchlist_data.to_request_fields(),
+            params={"name": name},
+        )
+        return self._parse_watchlist(result)
+
+    # ############################## MULTI-MARKET CLOCK & CALENDAR ################################# #
+
+    def get_v3_clock(
+        self, filters: Optional[GetV3ClockRequest] = None
+    ) -> Union[ClockResp, RawData]:
+        """Returns clocks for one or more markets.
+
+        This is distinct from :meth:`get_clock`, which reads the v2 US-equities clock.
+
+        Args:
+            filters (Optional[GetV3ClockRequest]): Markets and the time to evaluate.
+
+        Returns:
+            Union[ClockResp, RawData]: Clocks for the requested markets.
+        """
+        response = self.get("/clock", self._query(filters), api_version="v3")
+        return self._parse(ClockResp, response)
+
+    def get_v3_calendar(
+        self, market: str, filters: Optional[GetV3CalendarRequest] = None
+    ) -> Union[PublicCalendarResp, RawData]:
+        """Returns the calendar for one market.
+
+        This is distinct from :meth:`get_calendar`, which reads the v2 US-equities calendar.
+
+        Args:
+            market (str): Market acronym, such as ``BMO`` or ``NYSE``.
+            filters (Optional[GetV3CalendarRequest]): Date range and timezone.
+
+        Returns:
+            Union[PublicCalendarResp, RawData]: The market calendar.
+        """
+        response = self.get(
+            f"/calendar/{market}",
+            self._query(filters),
+            api_version="v3",
+        )
+        return self._parse(PublicCalendarResp, response)
+
     def _query(self, request: Optional[object]) -> dict:
         if request is None:
             return {}
@@ -1024,6 +1292,35 @@ class TradingClient(RESTClient):
             return response
         return TypeAdapter(annotation).validate_python(response)
 
+    def _parse_account_activities(
+        self, response: RawData
+    ) -> Union[List[GetAccountActivities200ResponseInner], RawData]:
+        """Classify each activity by ``activity_type`` before validation.
+
+        ``TradingActivities`` and ``NonTradeActivities`` are both all-optional
+        objects, so union validation can treat a sparse fill as a non-trade
+        activity. ``FILL`` is the only trade activity type.
+        """
+        if self._use_raw_data:
+            return response
+        if not isinstance(response, list):
+            raise ValueError("Account activities response was not a list")
+        return [self._parse_account_activity(activity) for activity in response]
+
+    @staticmethod
+    def _parse_account_activity(data: dict) -> GetAccountActivities200ResponseInner:
+        if not isinstance(data, dict) or data.get("activity_type") is None:
+            raise ValueError(
+                "Failed parsing raw activity data, `activity_type` is not present in fields"
+            )
+
+        model = (
+            TradingActivities
+            if ActivityType.is_str_trade_activity(data["activity_type"])
+            else NonTradeActivities
+        )
+        return TypeAdapter(model).validate_python(data)
+
     def _parse_one_or_many(
         self, item_type: object, response: RawData
     ) -> Union[object, List[object], RawData]:
@@ -1032,3 +1329,15 @@ class TradingClient(RESTClient):
         if isinstance(response, list):
             return TypeAdapter(List[item_type]).validate_python(response)
         return TypeAdapter(item_type).validate_python(response)
+
+    def _parse_watchlist(self, response: RawData) -> Union[Watchlist, RawData]:
+        if self._use_raw_data:
+            return response
+        return _build_from_response(Watchlist, response)
+
+    def _sse_headers(self) -> dict:
+        headers = self._get_default_headers()
+        headers["Connection"] = "keep-alive"
+        headers["Cache-Control"] = "no-cache"
+        headers["Accept"] = "text/event-stream"
+        return headers

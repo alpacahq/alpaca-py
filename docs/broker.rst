@@ -88,7 +88,7 @@ Then we can pass those parts into the ``CreateAccountRequest`` model before subm
     from alpaca.broker.requests import CreateAccountRequest
     from alpaca.broker.enums import TaxIdType, FundingSource, AgreementType
 
-    broker_client = BrokerClient('api-key', 'secret-key')
+    broker_client = BrokerClient('api-key', 'secret-key', sandbox=True)
 
     # Contact
     contact_data = Contact(
@@ -208,7 +208,7 @@ In this example we will use routing and account numbers to establish an ACH rela
     from alpaca.broker.requests import CreateACHRelationshipRequest
     from alpaca.broker.enums import BankAccountType
 
-    broker_client = BrokerClient('api-key', 'secret-key')
+    broker_client = BrokerClient('api-key', 'secret-key', sandbox=True)
 
     account_id = "c8f1ef5d-edc0-4f23-9ee4-378f19cb92a4"
 
@@ -239,7 +239,7 @@ ACH relationships must use ``CreateACHTransferRequest`` and bank relationships m
     from alpaca.broker.requests import CreateACHTransferRequest
     from alpaca.broker.enums import TransferDirection
 
-    broker_client = BrokerClient('api-key', 'secret-key')
+    broker_client = BrokerClient('api-key', 'secret-key', sandbox=True)
 
     account_id = "c8f1ef5d-edc0-4f23-9ee4-378f19cb92a4"
 
@@ -273,7 +273,7 @@ between accounts. Security journals move stocks between accounts.
     from alpaca.broker.requests import CreateJournalRequest
     from alpaca.broker.enums import JournalEntryType
 
-    broker_client = BrokerClient('api-key', 'secret-key')
+    broker_client = BrokerClient('api-key', 'secret-key', sandbox=True)
 
     journal_data = CreateJournalRequest(
                         from_account="c8f1ef5d-edc0-4f23-9ee4-378f19cb92a4",
@@ -295,7 +295,7 @@ A batch journal lets you journal from one account into many accounts at the same
     from alpaca.broker.requests import CreateBatchJournalRequest, BatchJournalRequestEntry
     from alpaca.broker.enums import JournalEntryType
 
-    broker_client = BrokerClient('api-key', 'secret-key')
+    broker_client = BrokerClient('api-key', 'secret-key', sandbox=True)
 
     # Receiving accounts
     batch_entries = [
@@ -348,7 +348,7 @@ for a successful order.
     from alpaca.broker.requests import MarketOrderRequest, LimitOrderRequest
     from alpaca.trading.enums import OrderSide, TimeInForce
 
-    broker_client = BrokerClient('api-key', 'secret-key')
+    broker_client = BrokerClient('api-key', 'secret-key', sandbox=True)
 
     # account to make order for
     account_id = "c8f1ef5d-edc0-4f23-9ee4-378f19cb92a4"

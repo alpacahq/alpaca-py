@@ -1,11 +1,17 @@
-blank_issues_enabled: true
+blank_issues_enabled: false
 contact_links:
-  - name: Alpaca API, OpenAPI spec, or docs bug
+  - name: Alpaca API issue tracker
     url: https://github.com/alpacahq/alpaca-api/issues/new/choose
-    about: Bugs in the Alpaca API itself, its OpenAPI specs, or docs.alpaca.markets.
-  - name: Community Forum
+    about: Report bugs in the Alpaca API, its OpenAPI specifications, or docs.alpaca.markets.
+  - name: Alpaca Support
+    url: https://alpaca.markets/support
+    about: Find help articles or contact Alpaca Support about account-specific questions.
+  - name: Report a security vulnerability
+    url: https://alpaca.markets/security
+    about: Follow Alpaca's private vulnerability-disclosure process.
+  - name: Alpaca Community Forum
     url: https://forum.alpaca.markets/
-    about: API feature requests, general questions, and dashboard bugs.
-  - name: Community Slack
+    about: Request API features and discuss general Alpaca API and platform questions.
+  - name: Alpaca community on Slack
     url: https://alpaca.markets/slack
-    about: API feature requests, general questions, and dashboard bugs.
+    about: Request API features and chat with developers and the Alpaca community.

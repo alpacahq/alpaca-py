@@ -1,33 +1,54 @@
-name: ❓ Questions About the SDK ❓
-description: I have a question about the SDK I can't find an answer to in the documentation or README.
+name: ❓ Question about the SDK
+description: Ask about Alpaca-py after checking the documentation
 title: "[Question]: "
-labels: [ kind/question ]
-assignees:
-  -
+labels: [question]
+assignees: []
 body:
   - type: markdown
     attributes:
       value: |
-        Please fill the form in English!
+        Ask SDK-specific questions here in English. General API questions go to the [Community Forum](https://forum.alpaca.markets/) or [Slack](https://alpaca.markets/slack), and API bugs go to [alpacahq/alpaca-api](https://github.com/alpacahq/alpaca-api/issues/new/choose). Questions about your account, funding, or orders go to a [support request](https://alpaca.markets/support/request).
+
+        Never include API keys, account details, request or trace IDs, or other secrets.
+
   - type: checkboxes
+    id: preflight
     attributes:
-      label: Question form pre-submit checklist.
-      description: |
-        Please verify that all these checkboxes are true before opening an issue.
-        If your issue is determined to violate one of the below questions it will be closed for being invalid.
+      label: Preflight
       options:
-        - label: I have searched the existing issues to ensure there isn't already an issue about this question.
+        - label: I searched the documentation and existing issues.
           required: true
-        - label: My question has to do with the Python SDK and isn't a general question about the API. (General API questions go to the [Community Forum](https://forum.alpaca.markets/) or [Slack](https://alpaca.markets/slack), and API bugs go to [alpacahq/alpaca-api](https://github.com/alpacahq/alpaca-api/issues/new/choose).)
+        - label: My question has to do with this SDK and isn't a general question about the API. General API questions go to the Community Forum or Slack, and API bugs go to alpacahq/alpaca-api.
           required: true
-        - label: My question isn't about how to do a specific algorithm or asking for trade advice (answers to these are outside the scope of this repo).
+        - label: My question is not asking for a trading strategy, algorithm design, or investment advice.
           required: true
+
+  - type: input
+    id: sdk_version
+    attributes:
+      label: SDK version
+      description: Provide the installed alpaca-py version when the question concerns observed behavior.
+      placeholder: alpaca-py 0.x.y, or Not applicable
+
+  - type: input
+    id: environment
+    attributes:
+      label: Python and environment context
+      description: Include the Python version, OS, architecture, and affected module when relevant.
+      placeholder: Python 3.13.7 on macOS arm64 using alpaca.trading, or Not applicable
+
   - type: textarea
+    id: question
     attributes:
       label: Question
-      description: Please describe your question here
-      placeholder: |
-        I couldn't find an example or documentation on X. How do I do X ?
-        ```...```
+      description: Explain what you are trying to accomplish and what you already tried.
     validations:
       required: true
+
+  - type: checkboxes
+    id: sensitive_data
+    attributes:
+      label: Sensitive-data check
+      options:
+        - label: I removed API keys, credentials, account details, and other secrets.
+          required: true

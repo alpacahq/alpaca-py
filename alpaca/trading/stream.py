@@ -9,6 +9,7 @@ import websockets
 from pydantic import BaseModel
 
 from alpaca.common import RawData
+from alpaca.common._deprecation import build_from_response as _build_from_response
 from alpaca.common.enums import BaseURL
 from alpaca.common.utils import (
     RunState,
@@ -156,7 +157,7 @@ class TradingStream:
         """
         result = msg
         if not self._raw_data:
-            result = TradeUpdate(**msg.get("data"))
+            result = _build_from_response(TradeUpdate, msg.get("data"))
         return result
 
     async def _subscribe_trade_updates(self) -> None:

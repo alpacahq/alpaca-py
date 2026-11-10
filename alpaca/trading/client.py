@@ -9,6 +9,7 @@ from typing_extensions import deprecated as _deprecated
 
 from alpaca.common import RawData
 from alpaca.common._deprecation import build_from_response as _build_from_response
+from alpaca.common._deprecation import parse_from_response as _parse_from_response
 from alpaca.common.enums import BaseURL
 from alpaca.common.exceptions import APIError
 from alpaca.common.rest import RESTClient
@@ -169,7 +170,7 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return TypeAdapter(List[Order]).validate_python(response)
+        return _parse_from_response(List[Order], response)
 
     def get_order_by_id(
         self, order_id: Union[UUID, str], filter: Optional[GetOrderByIdRequest] = None
@@ -255,7 +256,7 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return TypeAdapter(List[CancelOrderResponse]).validate_python(response)
+        return _parse_from_response(List[CancelOrderResponse], response)
 
     def cancel_order_by_id(self, order_id: Union[UUID, str]) -> None:
         """
@@ -289,7 +290,7 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return TypeAdapter(List[Position]).validate_python(response)
+        return _parse_from_response(List[Position], response)
 
     def get_open_position(
         self, symbol_or_asset_id: Union[UUID, str]
@@ -334,7 +335,7 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return TypeAdapter(List[ClosePositionResponse]).validate_python(response)
+        return _parse_from_response(List[ClosePositionResponse], response)
 
     def close_position(
         self,
@@ -460,7 +461,7 @@ class TradingClient(RESTClient):
 
         if generated:
             return TypeAdapter(List[Assets]).validate_python(response)
-        return TypeAdapter(List[Asset]).validate_python(response)
+        return _parse_from_response(List[Asset], response)
 
     @overload
     def get_asset(
@@ -579,7 +580,7 @@ class TradingClient(RESTClient):
 
         if generated:
             return TypeAdapter(List[LegacyCalendarDay]).validate_python(result)
-        return TypeAdapter(List[Calendar]).validate_python(result)
+        return _parse_from_response(List[Calendar], result)
 
     # ############################## ACCOUNT ################################# #
 
@@ -656,7 +657,7 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return result
 
-        return TypeAdapter(List[Watchlist]).validate_python(result)
+        return _parse_from_response(List[Watchlist], result)
 
     def get_watchlist_by_id(
         self,
@@ -831,7 +832,7 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return TypeAdapter(List[CorporateActionAnnouncement]).validate_python(response)
+        return _parse_from_response(List[CorporateActionAnnouncement], response)
 
     @_deprecated(
         "get_corporate_announcement_by_id is deprecated and will be removed in a future version. "
@@ -894,7 +895,7 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return TypeAdapter(OptionContractsResponse).validate_python(response)
+        return _parse_from_response(OptionContractsResponse, response)
 
     def get_option_contract(
         self, symbol_or_id: Union[UUID, str]
@@ -916,7 +917,7 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return TypeAdapter(OptionContract).validate_python(response)
+        return _parse_from_response(OptionContract, response)
 
     # ############################## LOCATES ################################# #
 

@@ -1,5 +1,6 @@
 from typing import Optional, Union
 
+from alpaca.common._deprecation import build_from_response as _build_from_response
 from alpaca.common.enums import BaseURL
 from alpaca.common.rest import RESTClient
 from alpaca.common.types import RawData
@@ -57,7 +58,7 @@ class ScreenerClient(RESTClient):
         )
         if self._use_raw_data:
             return response
-        return MostActives(**response)
+        return _build_from_response(MostActives, response)
 
     def get_market_movers(
         self, request_params: MarketMoversRequest
@@ -69,4 +70,4 @@ class ScreenerClient(RESTClient):
         )
         if self._use_raw_data:
             return response
-        return Movers(**response)
+        return _build_from_response(Movers, response)

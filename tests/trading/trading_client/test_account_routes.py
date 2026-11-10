@@ -1,7 +1,11 @@
 import json
 import pytest
 from alpaca.common.enums import BaseURL
-from alpaca.trading.models import TradeAccount, AccountConfiguration
+from alpaca.trading.models import (
+    AccountConfiguration,
+    AccountConfigurations,
+    TradeAccount,
+)
 from alpaca.trading.client import TradingClient
 from requests_mock import Mocker
 
@@ -209,3 +213,36 @@ def test_set_account_configurations_disable_overnight_trading_request_body(
         AccountConfiguration(**base, disable_overnight_trading=False)
     )
     assert reqmock.request_history[2].json()["disable_overnight_trading"] is False
+
+
+def test_set_account_configurations_accepts_the_generated_configurations(
+    reqmock: Mocker, trading_client: TradingClient
+):
+    """With the generated AccountConfigurations only the fields set are sent, so a
+    PATCH does not reset the settings that were left out."""
+    reqmock.patch(
+        f"{BaseURL.TRADING_PAPER.value}/v2/account/configurations",
+        text="""
+        {
+          "dtbp_check": "entry",
+          "no_shorting": true,
+          "suspend_trade": false,
+          "fractional_trading": true,
+          "max_margin_multiplier": "4",
+          "pdt_check": "entry",
+          "trade_confirm_email": "none",
+          "ptp_no_exception_entry": false
+        }
+        """,
+    )
+
+    result = trading_client.set_account_configurations(
+        AccountConfigurations(no_shorting=True, trade_confirm_email="none")
+    )
+
+    assert reqmock.request_history[0].json() == {
+        "no_shorting": True,
+        "trade_confirm_email": "none",
+    }
+    assert isinstance(result, AccountConfiguration)
+    assert result.no_shorting is True

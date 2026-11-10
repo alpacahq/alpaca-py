@@ -2,13 +2,23 @@
 
 from contextvars import ContextVar
 from functools import wraps
-from typing import Any, Mapping, TypeVar
+from typing import Annotated, Any, Mapping, TypeVar, Union
 import warnings
 
+from pydantic import Field
 from typing_extensions import deprecated
 
 _T = TypeVar("_T", bound=type)
 _M = TypeVar("_M")
+_Legacy = TypeVar("_Legacy")
+_Generated = TypeVar("_Generated")
+
+# The type of a field that nests a deprecated class: ``LegacyFirst[Old, Replacement]``
+# also accepts the generated replacement. Validation tries the deprecated class
+# first, so API payloads keep parsing into it even if a regenerated replacement gains
+# fields; instances of either class are kept as they are, and payloads only the
+# replacement accepts fall back to it.
+LegacyFirst = Annotated[Union[_Legacy, _Generated], Field(union_mode="left_to_right")]
 
 # Set while an SDK client builds a model from an API response. The caller cannot
 # choose the returned type, so the direct-instantiation warning is not actionable.

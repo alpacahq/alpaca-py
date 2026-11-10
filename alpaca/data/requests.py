@@ -1,7 +1,7 @@
 from datetime import date, datetime, timezone
 from typing import Any, List, Optional, Union
 
-from pydantic import ConfigDict
+from pydantic import ConfigDict, Field
 
 from alpaca.common.enums import Sort, SupportedCurrencies
 from alpaca.common.requests import NonEmptyRequest
@@ -20,6 +20,14 @@ from alpaca.data.enums import (
 )
 from alpaca.data.timeframe import TimeFrame
 from alpaca.trading.enums import ContractType, OptionContractType
+
+
+def _drop_timezone(data: dict, *names: str) -> None:
+    """Store timezone-aware datetimes as naive UTC, matching the other data requests."""
+    for name in names:
+        value = data.get(name)
+        if isinstance(value, datetime) and value.tzinfo is not None:
+            data[name] = value.astimezone(timezone.utc).replace(tzinfo=None)
 
 
 class BaseTimeseriesDataRequest(NonEmptyRequest):
@@ -114,6 +122,57 @@ class StockBarsRequest(BaseBarsRequest):
     asof: Optional[str] = None
 
 
+class BaseSingleSymbolTimeseriesRequest(NonEmptyRequest):
+    """
+    Time-series query for a single-symbol stock route.
+
+    ``symbol`` is a path parameter. It is not sent as ``symbols``.
+
+    Attributes:
+        symbol (str): The ticker identifier used in the request path.
+        start (Optional[datetime]): The beginning of the time interval. Timezone naive inputs assumed to be in UTC.
+        end (Optional[datetime]): The end of the time interval. Timezone naive inputs assumed to be in UTC.
+        limit (Optional[int]): Maximum number of data points in the response page.
+        currency (Optional[SupportedCurrencies]): The currency of all prices in ISO 4217 format. Default is USD.
+        sort (Optional[Sort]): The chronological order of the response. Defaults to ASC.
+        page_token (Optional[str]): Token returned as ``next_page_token`` on the previous page.
+        asof (Optional[str]): The asof date of the queried symbol in YYYY-MM-DD format.
+        feed (Optional[DataFeed]): The stock data feed to retrieve from.
+    """
+
+    symbol: str = Field(exclude=True)
+    start: Optional[datetime] = None
+    end: Optional[datetime] = None
+    limit: Optional[int] = None
+    currency: Optional[SupportedCurrencies] = None
+    sort: Optional[Sort] = None
+    page_token: Optional[str] = None
+    asof: Optional[str] = None
+    feed: Optional[Union[DataFeed, StockHistoricalFeed]] = None
+
+    def __init__(self, **data: Any) -> None:
+        _drop_timezone(data, "start", "end")
+        super().__init__(**data)
+
+
+class StockBarsForSymbolRequest(BaseSingleSymbolTimeseriesRequest):
+    """
+    Bar query for ``/stocks/{symbol}/bars``.
+
+    See BaseSingleSymbolTimeseriesRequest for the shared parameters.
+
+    Attributes:
+        symbol (str): The ticker identifier used in the request path.
+        timeframe (TimeFrame): The period over which the bars should be aggregated.
+        adjustment (Optional[Adjustment]): The type of corporate action data normalization.
+    """
+
+    timeframe: TimeFrame
+    adjustment: Optional[Adjustment] = None
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+
 class CryptoBarsRequest(BaseBarsRequest):
     """
     The request model for retrieving bar data for cryptocurrencies.
@@ -172,6 +231,14 @@ class StockQuotesRequest(BaseTimeseriesDataRequest):
     asof: Optional[str] = None
 
 
+class StockQuotesForSymbolRequest(BaseSingleSymbolTimeseriesRequest):
+    """
+    Quote query for ``/stocks/{symbol}/quotes``.
+
+    See BaseSingleSymbolTimeseriesRequest for available parameters.
+    """
+
+
 class CryptoQuoteRequest(BaseTimeseriesDataRequest):
     """
     This request class is used to submit a request for crypto quote data.
@@ -212,6 +279,14 @@ class StockTradesRequest(BaseTimeseriesDataRequest):
 
     feed: Optional[Union[DataFeed, StockHistoricalFeed]] = None
     asof: Optional[str] = None
+
+
+class StockTradesForSymbolRequest(BaseSingleSymbolTimeseriesRequest):
+    """
+    Trade query for ``/stocks/{symbol}/trades``.
+
+    See BaseSingleSymbolTimeseriesRequest for available parameters.
+    """
 
 
 class CryptoTradesRequest(BaseTimeseriesDataRequest):
@@ -282,6 +357,31 @@ class StockLatestTradeRequest(BaseStockLatestDataRequest):
     pass
 
 
+class BaseSingleSymbolLatestRequest(NonEmptyRequest):
+    """
+    Latest-data query for a single-symbol stock route.
+
+    ``symbol`` is a path parameter. It is not sent as ``symbols``.
+
+    Attributes:
+        symbol (str): The ticker identifier used in the request path.
+        feed (Optional[DataFeed]): The stock data feed to retrieve from.
+        currency (Optional[SupportedCurrencies]): The currency the data should be returned in. Default to USD.
+    """
+
+    symbol: str = Field(exclude=True)
+    feed: Optional[Union[DataFeed, StockLatestFeed]] = None
+    currency: Optional[SupportedCurrencies] = None
+
+
+class StockLatestTradeForSymbolRequest(BaseSingleSymbolLatestRequest):
+    """
+    Latest trade query for ``/stocks/{symbol}/trades/latest``.
+
+    See BaseSingleSymbolLatestRequest for available parameters.
+    """
+
+
 class StockLatestQuoteRequest(BaseStockLatestDataRequest):
     """
     This request class is used to submit a request for the latest stock quote data.
@@ -297,6 +397,14 @@ class StockLatestQuoteRequest(BaseStockLatestDataRequest):
     pass
 
 
+class StockLatestQuoteForSymbolRequest(BaseSingleSymbolLatestRequest):
+    """
+    Latest quote query for ``/stocks/{symbol}/quotes/latest``.
+
+    See BaseSingleSymbolLatestRequest for available parameters.
+    """
+
+
 class StockLatestBarRequest(BaseStockLatestDataRequest):
     """
     This request class is used to submit a request for the latest stock bar data.
@@ -310,6 +418,14 @@ class StockLatestBarRequest(BaseStockLatestDataRequest):
     """
 
     pass
+
+
+class StockLatestBarForSymbolRequest(BaseSingleSymbolLatestRequest):
+    """
+    Latest bar query for ``/stocks/{symbol}/bars/latest``.
+
+    See BaseSingleSymbolLatestRequest for available parameters.
+    """
 
 
 class BaseCryptoLatestDataRequest(NonEmptyRequest):
@@ -421,6 +537,40 @@ class StockSnapshotRequest(NonEmptyRequest):
     symbol_or_symbols: Union[str, List[str]]
     feed: Optional[Union[DataFeed, StockLatestFeed]] = None
     currency: Optional[SupportedCurrencies] = None  # None = USD
+
+
+class StockSnapshotForSymbolRequest(BaseSingleSymbolLatestRequest):
+    """
+    Snapshot query for ``/stocks/{symbol}/snapshot``.
+
+    See BaseSingleSymbolLatestRequest for available parameters.
+    """
+
+
+class StockAuctionsRequest(BaseTimeseriesDataRequest):
+    """
+    Multi-symbol auction query for ``/stocks/auctions``.
+
+    ``symbol_or_symbols`` is sent as the ``symbols`` query parameter.
+    See BaseTimeseriesDataRequest for the shared parameters.
+
+    Attributes:
+        page_token (Optional[str]): Token returned as ``next_page_token`` on the previous page.
+        asof (Optional[str]): The asof date of the queried symbols in YYYY-MM-DD format.
+        feed (Optional[DataFeed]): The stock data feed to retrieve from. Only ``sip`` is valid for auctions.
+    """
+
+    page_token: Optional[str] = None
+    asof: Optional[str] = None
+    feed: Optional[Union[DataFeed, StockHistoricalFeed]] = None
+
+
+class StockAuctionsForSymbolRequest(BaseSingleSymbolTimeseriesRequest):
+    """
+    Auction query for ``/stocks/{symbol}/auctions``.
+
+    See BaseSingleSymbolTimeseriesRequest for available parameters.
+    """
 
 
 class CryptoSnapshotRequest(NonEmptyRequest):

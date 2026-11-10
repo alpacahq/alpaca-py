@@ -147,7 +147,7 @@
     },
     {
       "httpMethod": "GET",
-      "methodName": null,
+      "methodName": "get_stock_auctions",
       "operationId": "StockAuctions",
       "path": "/v2/stocks/auctions"
     },
@@ -165,13 +165,13 @@
     },
     {
       "httpMethod": "GET",
-      "methodName": null,
+      "methodName": "get_stock_condition_codes",
       "operationId": "StockMetaConditions",
       "path": "/v2/stocks/meta/conditions/{ticktype}"
     },
     {
       "httpMethod": "GET",
-      "methodName": null,
+      "methodName": "get_stock_exchange_codes",
       "operationId": "StockMetaExchanges",
       "path": "/v2/stocks/meta/exchanges"
     },
@@ -207,49 +207,49 @@
     },
     {
       "httpMethod": "GET",
-      "methodName": null,
+      "methodName": "get_stock_auctions_for_symbol",
       "operationId": "StockAuctionSingle",
       "path": "/v2/stocks/{symbol}/auctions"
     },
     {
       "httpMethod": "GET",
-      "methodName": null,
+      "methodName": "get_stock_bars_for_symbol",
       "operationId": "StockBarSingle",
       "path": "/v2/stocks/{symbol}/bars"
     },
     {
       "httpMethod": "GET",
-      "methodName": null,
+      "methodName": "get_stock_latest_bar_for_symbol",
       "operationId": "StockLatestBarSingle",
       "path": "/v2/stocks/{symbol}/bars/latest"
     },
     {
       "httpMethod": "GET",
-      "methodName": null,
+      "methodName": "get_stock_quotes_for_symbol",
       "operationId": "StockQuoteSingle",
       "path": "/v2/stocks/{symbol}/quotes"
     },
     {
       "httpMethod": "GET",
-      "methodName": null,
+      "methodName": "get_stock_latest_quote_for_symbol",
       "operationId": "StockLatestQuoteSingle",
       "path": "/v2/stocks/{symbol}/quotes/latest"
     },
     {
       "httpMethod": "GET",
-      "methodName": null,
+      "methodName": "get_stock_snapshot_for_symbol",
       "operationId": "StockSnapshotSingle",
       "path": "/v2/stocks/{symbol}/snapshot"
     },
     {
       "httpMethod": "GET",
-      "methodName": null,
+      "methodName": "get_stock_trades_for_symbol",
       "operationId": "StockTradeSingle",
       "path": "/v2/stocks/{symbol}/trades"
     },
     {
       "httpMethod": "GET",
-      "methodName": null,
+      "methodName": "get_stock_latest_trade_for_symbol",
       "operationId": "StockLatestTradeSingle",
       "path": "/v2/stocks/{symbol}/trades/latest"
     }

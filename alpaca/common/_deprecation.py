@@ -5,8 +5,6 @@ from functools import wraps
 from typing import Any, Mapping, TypeVar
 import warnings
 
-from typing_extensions import deprecated
-
 _T = TypeVar("_T", bound=type)
 _M = TypeVar("_M")
 
@@ -31,35 +29,23 @@ def build_from_response(cls: "type[_M]", data: Mapping[str, Any]) -> _M:
         _BUILDING_FROM_RESPONSE.reset(token)
 
 
-def compatibility_shape_message(name: str) -> str:
-    """Deprecation text for a same-name legacy type awaiting its generated twin."""
-    return (
-        f"{name} is a temporary compatibility shape and will be replaced "
-        f"by the OpenAPI-generated {name} in a future release."
-    )
-
-
-def deprecate_compatibility_shape(cls: _T) -> _T:
-    """Mark a hand-written public type that shares a name with a generated replacement.
-
-    These keep the pre-codegen field/types for one release window, then flip to the
-    generated class under the same public name.
-
-    Not for enums: enum lookup never calls ``__init__``, so nothing would warn, and an
-    enum shape deprecates only the members its generated twin lacks.
-    """
-    message = compatibility_shape_message(cls.__name__)
-    return warn_on_direct_instantiation(message)(
-        deprecated(message, category=None)(cls)
-    )
-
-
 def warn_on_direct_instantiation(message: str):
     """Warn when the decorated compatibility class itself is instantiated.
 
     Unlike ``typing_extensions.deprecated``, this does not warn when a subclass is
     declared. That distinction matters for compatibility bases such as OrderRequest,
     which still have public subclasses during the deprecation window.
+
+    This only provides the runtime warning. Type checkers (PEP 702) do not execute
+    decorator helpers, so apply a literal ``@deprecated(message, category=None)``
+    directly on each public class as well, with the same message::
+
+        @deprecated(MESSAGE, category=None)
+        @warn_on_direct_instantiation(MESSAGE)
+        class CreateWatchlistRequest: ...
+
+    Not for enums: enum lookup never calls ``__init__``, so nothing would warn, and an
+    enum shape deprecates only the members its generated twin lacks.
     """
 
     def decorate(cls: _T) -> _T:

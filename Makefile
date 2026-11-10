@@ -23,6 +23,26 @@ fetch-openapi: ## Fetch official Alpaca OpenAPI specifications
 	poetry run python tools/scripts/openapi/fetch_specs.py market-data
 	poetry run python tools/scripts/openapi/fetch_specs.py broker
 
+# Both OpenAPI goals install their toolchain because the generated code must be
+# formatted by the pinned versions; otherwise `make check-openapi` reports drift.
+# --ignore-scripts: the generator wrapper's only install script prints a donation
+# message, and the generator JAR is downloaded on first run instead.
+.PHONY: generate-openapi
+generate-openapi: ## Generate SDK code from pinned OpenAPI specifications
+	npm ci --ignore-scripts
+	poetry install
+	poetry run python tools/scripts/openapi/generate.py trading
+	poetry run python tools/scripts/openapi/generate.py market-data
+	poetry run python tools/scripts/openapi/generate.py broker
+
+.PHONY: check-openapi
+check-openapi: ## Verify generated OpenAPI artifacts are current
+	npm ci --ignore-scripts
+	poetry install
+	poetry run python tools/scripts/openapi/check_generated.py trading
+	poetry run python tools/scripts/openapi/check_generated.py market-data
+	poetry run python tools/scripts/openapi/check_generated.py broker
+
 # Compare the current tree's public API against a published PyPI release, or
 # against a git ref (e.g. origin/master) with BASELINE_REF.
 # Optional: AGAINST=0.43.5 BASELINE_REF=origin/master WORKDIR=/tmp/aexpy-alpaca

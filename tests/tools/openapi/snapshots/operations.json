@@ -1,0 +1,11 @@
+{
+  "generatedBy": "tools/scripts/openapi/generate.py; DO NOT EDIT.",
+  "operations": [
+    {
+      "httpMethod": "GET",
+      "methodName": "get_orders",
+      "operationId": "getAllOrders",
+      "path": "/v2/orders"
+    }
+  ]
+}

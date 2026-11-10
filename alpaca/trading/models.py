@@ -5,11 +5,21 @@ from uuid import UUID
 from pydantic import Field, model_validator
 from typing_extensions import deprecated as _deprecated
 
+from alpaca.common._deprecation import LegacyFirst as _LegacyFirst
 from alpaca.common._deprecation import (
     warn_on_direct_instantiation as _warn_on_direct_instantiation,
 )
 from alpaca.common.models import ModelWithID
 from alpaca.common.models import ValidateBaseModel as BaseModel
+from alpaca.trading._generated.models import OptionContract as _GeneratedOptionContract
+from alpaca.trading._generated.models import (
+    OptionDeliverable as _GeneratedOptionDeliverable,
+)
+from alpaca.trading._generated.models import Order as _GeneratedOrder
+from alpaca.trading._generated.models import Position as _GeneratedPosition
+from alpaca.trading._generated.models import (
+    USDPositionValues as _GeneratedUSDPositionValues,
+)
 from alpaca.trading._generated.models import (
     AcatcActivityV2,
     AcatsActivityV2,
@@ -352,7 +362,7 @@ class Position(BaseModel):
     swap_rate: Optional[str] = None
     avg_entry_swap_rate: Optional[str] = None
     prev_swap_rate: Optional[str] = None
-    usd: Optional[USDPositionValues] = None
+    usd: Optional[_LegacyFirst[USDPositionValues, _GeneratedUSDPositionValues]] = None
     qty_available: Optional[str] = None
 
 
@@ -366,7 +376,7 @@ class AllAccountsPositions(BaseModel):
     """
 
     as_of: datetime
-    positions: Dict[str, List[Position]]
+    positions: Dict[str, List[_LegacyFirst[Position, _GeneratedPosition]]]
 
 
 @_deprecated(
@@ -461,7 +471,7 @@ class Order(ModelWithID):
     stop_price: Optional[Union[str, float]] = None
     status: OrderStatus
     extended_hours: bool
-    legs: Optional[List["Order"]] = None
+    legs: Optional[List[_LegacyFirst["Order", _GeneratedOrder]]] = None
     trail_percent: Optional[str] = None
     trail_price: Optional[str] = None
     hwm: Optional[str] = None
@@ -538,7 +548,7 @@ class ClosePositionResponse(BaseModel):
     order_id: Optional[UUID] = None
     status: Optional[int] = None
     symbol: Optional[str] = None
-    body: Union[FailedClosePositionDetails, Order]
+    body: Union[FailedClosePositionDetails, _LegacyFirst[Order, _GeneratedOrder]]
 
 
 @_deprecated(
@@ -608,7 +618,7 @@ class Watchlist(ModelWithID):
     name: str
     created_at: datetime
     updated_at: datetime
-    assets: Optional[List[Asset]] = None
+    assets: Optional[List[_LegacyFirst[Asset, Assets]]] = None
 
 
 @_deprecated(
@@ -1002,6 +1012,18 @@ class AccountConfiguration(BaseModel):
         return payload
 
 
+def _account_configuration_patch_payload(configuration: BaseModel) -> Dict[str, Any]:
+    """Serialize an account configuration for a configurations PATCH.
+
+    AccountConfiguration keeps its own rules (``to_patch_payload``). The generated
+    AccountConfigurations classes send only the fields the caller set, so a PATCH does
+    not reset the settings that were left out.
+    """
+    if isinstance(configuration, AccountConfiguration):
+        return configuration.to_patch_payload()
+    return configuration.model_dump(mode="json", exclude_unset=True)
+
+
 @_deprecated(
     "CorporateActionAnnouncement is deprecated and will be removed in a future "
     "version. Please use `CorporateAnnouncement` instead.",
@@ -1063,7 +1085,7 @@ class TradeUpdate(BaseModel):
 
     event: Union[TradeEvent, str]
     execution_id: Optional[UUID] = None
-    order: Order
+    order: _LegacyFirst[Order, _GeneratedOrder]
     timestamp: datetime
     position_qty: Optional[float] = None
     price: Optional[float] = None
@@ -1164,7 +1186,9 @@ class OptionContract(BaseModel):
     strike_price: float
     multiplier: Optional[str] = None
     size: str
-    deliverables: Optional[List[OptionDeliverable]] = None
+    deliverables: Optional[
+        List[_LegacyFirst[OptionDeliverable, _GeneratedOptionDeliverable]]
+    ] = None
     open_interest: Optional[str] = None
     open_interest_date: Optional[date] = None
     close_price: Optional[str] = None
@@ -1192,5 +1216,7 @@ class OptionContractsResponse(BaseModel):
         next_page_token (Optional[str]): Pagination token for next page.
     """
 
-    option_contracts: Optional[List[OptionContract]] = None
+    option_contracts: Optional[
+        List[_LegacyFirst[OptionContract, _GeneratedOptionContract]]
+    ] = None
     next_page_token: Optional[str] = None

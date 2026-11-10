@@ -26,7 +26,9 @@ async def test_connect_sets_user_agent_header(trading_stream: TradingStream):
         await trading_stream._connect()
 
     _, kwargs = mock_connect.call_args
-    headers = kwargs.get("additional_headers") or kwargs.get("extra_headers")
+    assert "additional_headers" in kwargs
+    assert "extra_headers" not in kwargs
+    headers = kwargs["additional_headers"]
     assert headers["User-Agent"] == get_default_user_agent()
 
 
@@ -50,7 +52,7 @@ async def test_connect_preserves_user_agent_when_extra_headers_overridden():
         await stream._connect()
 
     _, kwargs = mock_connect.call_args
-    headers = kwargs.get("additional_headers") or kwargs.get("extra_headers")
+    headers = kwargs["additional_headers"]
     assert headers["X-Test"] == "1"
     assert headers["User-Agent"] == get_default_user_agent()
 

@@ -1,13 +1,14 @@
 import warnings
 
 import pytest
+from typing_extensions import deprecated
 
 from alpaca.common._deprecation import (
     build_from_response,
-    compatibility_shape_message,
-    deprecate_compatibility_shape,
     warn_on_direct_instantiation,
 )
+
+SHAPE_MESSAGE = "Shape is a temporary compatibility shape."
 
 
 @warn_on_direct_instantiation("Legacy is deprecated; use Replacement instead.")
@@ -20,7 +21,8 @@ class LegacySubclass(Legacy):
     pass
 
 
-@deprecate_compatibility_shape
+@deprecated(SHAPE_MESSAGE, category=None)
+@warn_on_direct_instantiation(SHAPE_MESSAGE)
 class Shape:
     def __init__(self, value: int = 0) -> None:
         self.value = value
@@ -55,10 +57,8 @@ def test_compatibility_shape_warns_with_shape_message():
     with pytest.warns(DeprecationWarning) as record:
         Shape(1)
 
-    assert [str(warning.message) for warning in record] == [
-        compatibility_shape_message("Shape")
-    ]
+    assert [str(warning.message) for warning in record] == [SHAPE_MESSAGE]
 
 
 def test_compatibility_shape_is_flagged_for_type_checkers():
-    assert Shape.__deprecated__ == compatibility_shape_message("Shape")
+    assert Shape.__deprecated__ == SHAPE_MESSAGE

@@ -17,9 +17,11 @@ lint: ## Run the linters
 generate: ## Generate the documentation
 	./tools/scripts/generate-docs.sh
 
-.PHONY: test
-test: ## Run the unit tests
-	poetry run pytest
+.PHONY: fetch-openapi
+fetch-openapi: ## Fetch official Alpaca OpenAPI specifications
+	poetry run python tools/scripts/openapi/fetch_specs.py trading
+	poetry run python tools/scripts/openapi/fetch_specs.py market-data
+	poetry run python tools/scripts/openapi/fetch_specs.py broker
 
 # Compare the current tree's public API against a published PyPI release, or
 # against a git ref (e.g. origin/master) with BASELINE_REF.
@@ -32,3 +34,7 @@ check-api-breakage: ## Compare public API vs a release (AGAINST=version) or ref 
 		$(if $(WORKDIR),--workdir $(WORKDIR) --keep-workdir) \
 		$(if $(VERBOSE),--verbose) \
 		--fail-on-breaking
+
+.PHONY: test
+test: ## Run the unit tests
+	poetry run pytest

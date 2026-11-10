@@ -1,1 +1,6 @@
 * text=auto
+
+# Collapsed in GitHub diffs and excluded from language stats; regenerate instead of editing.
+alpaca/*/_generated/** linguist-generated=true
+tools/openapi/specs/*.json linguist-generated=true
+package-lock.json linguist-generated=true

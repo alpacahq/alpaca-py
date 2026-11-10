@@ -163,12 +163,12 @@ from alpaca.trading.enums import (
 
 @_deprecated(
     "Asset is deprecated and will be removed in a future version. Please use `Assets` "
-    "instead.",
+    "instead: pass generated=True to the client methods that return Asset.",
     category=None,
 )
 @_warn_on_direct_instantiation(
     "Asset is deprecated and will be removed in a future version. Please use `Assets` "
-    "instead."
+    "instead: pass generated=True to the client methods that return Asset."
 )
 class Asset(ModelWithID):
     """
@@ -178,7 +178,9 @@ class Asset(ModelWithID):
     For more info, visit https://alpaca.markets/docs/api-references/trading-api/assets/
 
     .. deprecated:: 0.45.0
-        Please use `Assets` instead.
+        Please use `Assets` instead. ``TradingClient.get_asset`` and ``get_all_assets``
+        return it with ``generated=True``; ``BrokerClient`` returns the Broker API's
+        ``alpaca.broker.models.Asset``.
 
     Attributes:
         id (UUID): Unique id of asset
@@ -623,19 +625,23 @@ class Watchlist(ModelWithID):
 
 @_deprecated(
     "Clock is deprecated and will be removed in a future version. Please use "
-    "`LegacyClock` instead.",
+    "`LegacyClock` instead: pass generated=True to the client methods that return "
+    "Clock.",
     category=None,
 )
 @_warn_on_direct_instantiation(
     "Clock is deprecated and will be removed in a future version. Please use "
-    "`LegacyClock` instead."
+    "`LegacyClock` instead: pass generated=True to the client methods that return "
+    "Clock."
 )
 class Clock(BaseModel):
     """
     The market clock for US equity markets. Timestamps are in eastern time.
 
     .. deprecated:: 0.45.0
-        Please use `LegacyClock` instead.
+        Please use `LegacyClock` instead. ``TradingClient.get_clock`` returns it with
+        ``generated=True``; ``BrokerClient.get_clock`` returns the Broker API's
+        ``alpaca.broker.models.LegacyClock``.
 
     Attributes:
         timestamp (datetime): The current timestamp.
@@ -652,19 +658,24 @@ class Clock(BaseModel):
 
 @_deprecated(
     "Calendar is deprecated and will be removed in a future version. Please use "
-    "`CalendarDay` instead.",
+    "`LegacyCalendarDay` instead: pass generated=True to the client methods that "
+    "return Calendar.",
     category=None,
 )
 @_warn_on_direct_instantiation(
     "Calendar is deprecated and will be removed in a future version. Please use "
-    "`CalendarDay` instead."
+    "`LegacyCalendarDay` instead: pass generated=True to the client methods that "
+    "return Calendar."
 )
 class Calendar(BaseModel):
     """
     The market calendar for equity markets. Describes the market open and close time on a given day.
 
     .. deprecated:: 0.45.0
-        Please use `CalendarDay` instead.
+        Please use `LegacyCalendarDay` instead. ``TradingClient.get_calendar`` returns
+        it with ``generated=True``; ``BrokerClient.get_calendar`` returns the Broker
+        API's ``alpaca.broker.models.LegacyCalendarDay``. ``CalendarDay`` is the v3
+        per-market calendar, returned by ``get_v3_calendar``.
 
     Attributes:
         date (date): The trading date.

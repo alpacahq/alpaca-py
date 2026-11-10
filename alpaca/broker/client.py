@@ -1,6 +1,17 @@
 import base64
 from enum import Enum
-from typing import Any, Callable, Dict, Iterator, List, Optional, Type, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterator,
+    List,
+    Literal,
+    Optional,
+    Type,
+    Union,
+    overload,
+)
 from uuid import UUID
 
 from pydantic import TypeAdapter
@@ -16,6 +27,9 @@ from alpaca.broker.enums import (
 # The Broker spec generates its own AccountConfigurations; TradeAccountConfiguration's
 # deprecation names the Trading one. Both are accepted so either type-checks.
 from alpaca.broker.models import AccountConfigurations as _BrokerAccountConfigurations
+from alpaca.broker.models import Asset as _BrokerAsset
+from alpaca.broker.models import LegacyCalendarDay as _BrokerLegacyCalendarDay
+from alpaca.broker.models import LegacyClock as _BrokerLegacyClock
 from alpaca.broker.models import (
     Account,
     AccountExtended,
@@ -1314,13 +1328,29 @@ class BrokerClient(BrokerOperations, RESTClient):
 
     # ############################## CLOCK & CALENDAR ################################# #
 
-    def get_clock(self) -> Union[Clock, RawData]:
+    @overload
+    def get_clock(
+        self, *, generated: Literal[False] = False
+    ) -> Union[Clock, RawData]: ...
+
+    @overload
+    def get_clock(
+        self, *, generated: Literal[True]
+    ) -> Union[_BrokerLegacyClock, RawData]: ...
+
+    def get_clock(
+        self, *, generated: bool = False
+    ) -> Union[Clock, _BrokerLegacyClock, RawData]:
         """
         Gets the current market timestamp, whether or not the market is currently open, as well as the times
         of the next market open and close.
 
         This method reads the legacy ``GET /v1/clock`` route. Multi-market clocks are
         available from :meth:`get_v2_clock`.
+
+        Args:
+            generated (bool): Return the Broker API's OpenAPI-generated ``alpaca.broker.models.LegacyClock``
+              instead of the deprecated ``alpaca.trading.models.Clock``. Defaults to False.
 
         Returns:
             Clock: The market Clock data
@@ -1331,12 +1361,32 @@ class BrokerClient(BrokerOperations, RESTClient):
         if self._use_raw_data:
             return response
 
+        if generated:
+            return _BrokerLegacyClock.model_validate(response)
         return _build_from_response(Clock, response)
+
+    @overload
+    def get_calendar(
+        self,
+        filters: Optional[Union[GetCalendarRequest, _BrokerGetCalendarRequest]] = None,
+        *,
+        generated: Literal[False] = False,
+    ) -> Union[List[Calendar], RawData]: ...
+
+    @overload
+    def get_calendar(
+        self,
+        filters: Optional[Union[GetCalendarRequest, _BrokerGetCalendarRequest]] = None,
+        *,
+        generated: Literal[True],
+    ) -> Union[List[_BrokerLegacyCalendarDay], RawData]: ...
 
     def get_calendar(
         self,
         filters: Optional[Union[GetCalendarRequest, _BrokerGetCalendarRequest]] = None,
-    ) -> Union[List[Calendar], RawData]:
+        *,
+        generated: bool = False,
+    ) -> Union[List[Calendar], List[_BrokerLegacyCalendarDay], RawData]:
         """
         The calendar API serves the full list of market days from 1970 to 2029. It can also be queried by specifying a
         start and/or end time to narrow down the results.
@@ -1349,6 +1399,8 @@ class BrokerClient(BrokerOperations, RESTClient):
 
         Args:
             filters: Any optional filters to limit the returned market days
+            generated (bool): Return the Broker API's OpenAPI-generated ``alpaca.broker.models.LegacyCalendarDay``
+              instead of the deprecated ``alpaca.trading.models.Calendar``. Defaults to False.
 
         Returns:
             List[Calendar]: A list of Calendar objects representing the market days.
@@ -1361,6 +1413,8 @@ class BrokerClient(BrokerOperations, RESTClient):
         if self._use_raw_data:
             return result
 
+        if generated:
+            return TypeAdapter(List[_BrokerLegacyCalendarDay]).validate_python(result)
         return TypeAdapter(List[Calendar]).validate_python(result)
 
     # ############################## WATCHLISTS ################################# #
@@ -1685,15 +1739,36 @@ class BrokerClient(BrokerOperations, RESTClient):
 
     # ############################## Assets ################################# #
 
+    @overload
     def get_all_assets(
-        self, filter: Optional[Union[GetAssetsRequest, _BrokerGetAssetsRequest]] = None
-    ) -> Union[List[Asset], RawData]:
+        self,
+        filter: Optional[Union[GetAssetsRequest, _BrokerGetAssetsRequest]] = None,
+        *,
+        generated: Literal[False] = False,
+    ) -> Union[List[Asset], RawData]: ...
+
+    @overload
+    def get_all_assets(
+        self,
+        filter: Optional[Union[GetAssetsRequest, _BrokerGetAssetsRequest]] = None,
+        *,
+        generated: Literal[True],
+    ) -> Union[List[_BrokerAsset], RawData]: ...
+
+    def get_all_assets(
+        self,
+        filter: Optional[Union[GetAssetsRequest, _BrokerGetAssetsRequest]] = None,
+        *,
+        generated: bool = False,
+    ) -> Union[List[Asset], List[_BrokerAsset], RawData]:
         """
         The assets API serves as the master list of assets available for trade and data consumption from Alpaca.
         Some assets are not tradable with Alpaca. These assets will be marked with the flag tradable=false.
 
         Args:
             filter (Optional[GetAssetsRequest]): The parameters that can be assets can be queried by.
+            generated (bool): Return the Broker API's OpenAPI-generated ``alpaca.broker.models.Asset`` instead of
+              the deprecated ``alpaca.trading.models.Asset``. Defaults to False.
 
         Returns:
             List[Asset]: The list of assets.
@@ -1706,17 +1781,33 @@ class BrokerClient(BrokerOperations, RESTClient):
         if self._use_raw_data:
             return response
 
+        if generated:
+            return TypeAdapter(List[_BrokerAsset]).validate_python(response)
         return TypeAdapter(
             List[Asset],
         ).validate_python(response)
 
-    def get_asset(self, symbol_or_asset_id: Union[UUID, str]) -> Union[Asset, RawData]:
+    @overload
+    def get_asset(
+        self, symbol_or_asset_id: Union[UUID, str], *, generated: Literal[False] = False
+    ) -> Union[Asset, RawData]: ...
+
+    @overload
+    def get_asset(
+        self, symbol_or_asset_id: Union[UUID, str], *, generated: Literal[True]
+    ) -> Union[_BrokerAsset, RawData]: ...
+
+    def get_asset(
+        self, symbol_or_asset_id: Union[UUID, str], *, generated: bool = False
+    ) -> Union[Asset, _BrokerAsset, RawData]:
         """
         Returns a specific asset by its symbol or asset id. If the specified asset does not exist
         a 404 error will be thrown.
 
         Args:
             symbol_or_asset_id (Union[UUID, str]): The symbol or asset id for the specified asset
+            generated (bool): Return the Broker API's OpenAPI-generated ``alpaca.broker.models.Asset`` instead of
+              the deprecated ``alpaca.trading.models.Asset``. Defaults to False.
 
         Returns:
             Asset: The asset if it exists.
@@ -1729,6 +1820,8 @@ class BrokerClient(BrokerOperations, RESTClient):
         if self._use_raw_data:
             return response
 
+        if generated:
+            return _BrokerAsset.model_validate(response)
         return _build_from_response(Asset, response)
 
     # ############################## ORDERS ################################# #

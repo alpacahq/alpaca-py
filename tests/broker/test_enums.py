@@ -276,7 +276,7 @@ def test_model_validation_accepts_added_and_renamed_wire_values_quietly():
         warnings.simplefilter("error", DeprecationWarning)
         warnings.filterwarnings(
             "ignore",
-            message="NonTradeActivity is deprecated; use NonTradeActivities instead.",
+            message="NonTradeActivity is deprecated and will be removed in a future version.",
             category=DeprecationWarning,
         )
         activity = NonTradeActivity.model_validate(raw)

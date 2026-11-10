@@ -1,5 +1,14 @@
 from datetime import datetime
-from typing import Dict, Iterator, List, Literal, Optional, Union, get_overloads, get_type_hints
+from typing import (
+    Dict,
+    Iterator,
+    List,
+    Literal,
+    Optional,
+    Union,
+    get_overloads,
+    get_type_hints,
+)
 
 import pytest
 
@@ -445,7 +454,8 @@ def test_pagination_overloads_keep_the_previous_return(method, page, iterator_st
     assert hints[iterator_stubs]["return"] == _unpaged(page)
     assert hints[-1]["return"] == _paged(page)
     assert hints[0]["handle_pagination"] == Literal[PaginationType.ITERATOR]
-    assert hints[iterator_stubs]["handle_pagination"] == Union[
-        Literal[PaginationType.FULL, PaginationType.NONE], None
-    ]
+    assert (
+        hints[iterator_stubs]["handle_pagination"]
+        == Union[Literal[PaginationType.FULL, PaginationType.NONE], None]
+    )
     assert hints[-1]["handle_pagination"] == Optional[PaginationType]

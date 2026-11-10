@@ -134,7 +134,7 @@ first so strings keep parsing into the old enum, so code that follows the messag
 Pass `category=None` instead, so only type checkers and IDEs flag the enum, when a runtime warning would misfire: when
 the enum also deprecates members through `DeprecatingEnumMeta` (every member would warn), or when a model field falls
 back to the new enum for values the old one lacks (Pydantic calls the old enum class to look them up, so parsing would
-warn). `AssetExchange` is an example.
+warn). `AssetExchange`, `BankAccountType` and `TradeDocumentType` are examples.
 
 An enum that keeps its public name when its generated twin replaces it, such as `OrderStatus` in
 `alpaca/trading/enums.py`, gives users no other name to migrate to. Deprecate the members the twin lacks at runtime, and

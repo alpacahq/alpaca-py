@@ -602,6 +602,11 @@ def test_account_response_string_street_address_does_not_warn():
     payload = _account_with_trusted_street_address("20 N San Mateo Dr")
     with warnings.catch_warnings():
         warnings.simplefilter("error", DeprecationWarning)
+        warnings.filterwarnings(
+            "ignore",
+            message="Account is a temporary compatibility shape",
+            category=DeprecationWarning,
+        )
         account = Account(**payload)
         accounts = TypeAdapter(list[Account]).validate_python([payload])
 
@@ -617,6 +622,11 @@ def test_account_response_list_street_address_stays_list():
     payload = _account_with_trusted_street_address(lines)
     with warnings.catch_warnings():
         warnings.simplefilter("error", DeprecationWarning)
+        warnings.filterwarnings(
+            "ignore",
+            message="Account is a temporary compatibility shape",
+            category=DeprecationWarning,
+        )
         account = Account(**payload)
         accounts = TypeAdapter(list[Account]).validate_python([payload])
 

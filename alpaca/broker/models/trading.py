@@ -1,9 +1,13 @@
 from typing import Optional
 
+from alpaca.common._deprecation import (
+    deprecate_compatibility_shape as _deprecate_compatibility_shape,
+)
 from alpaca.common.models import ValidateBaseModel as BaseModel
 from alpaca.trading.models import Order as BaseOrder
 
 
+@_deprecate_compatibility_shape
 class Order(BaseOrder):
     """
     See base alpaca.trading.models.Order model for full list of base attributes.

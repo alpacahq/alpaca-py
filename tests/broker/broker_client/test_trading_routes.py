@@ -673,3 +673,36 @@ def test_cancel_orders_for_account(reqmock, client: BrokerClient):
     assert res[1].body is not None
     assert res[1].body["code"] == 40410000
     assert res[1].body["message"] == "order not found"
+
+
+def test_get_portfolio_history_accepts_broker_request(reqmock, client: BrokerClient):
+    # BrokerClient also accepts the alpaca.broker.requests twin of the trading request.
+    from alpaca.broker.requests import (
+        GetPortfolioHistoryRequest as BrokerGetPortfolioHistoryRequest,
+    )
+
+    account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
+
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/trading/accounts/{account_id}/account/portfolio/history",
+        text="""
+        {
+          "timestamp": [1580826600000],
+          "equity": [27423.73],
+          "profit_loss": [11.8],
+          "profit_loss_pct": [0.000430469507254688],
+          "base_value": 27411.93,
+          "timeframe": "15Min"
+        }
+        """,
+    )
+
+    portfolio_history = client.get_portfolio_history_for_account(
+        account_id, BrokerGetPortfolioHistoryRequest(period="1M", extended_hours=True)
+    )
+
+    assert reqmock.request_history[0].qs == {
+        "period": ["1m"],
+        "extended_hours": ["true"],
+    }
+    assert isinstance(portfolio_history, PortfolioHistory)

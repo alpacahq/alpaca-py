@@ -3,10 +3,14 @@ from typing import Optional
 from uuid import UUID
 
 from alpaca.broker.enums import JournalEntryType, JournalStatus
+from alpaca.common._deprecation import (
+    deprecate_compatibility_shape as _deprecate_compatibility_shape,
+)
 from alpaca.common.models import ModelWithID
 from alpaca.common.enums import SupportedCurrencies
 
 
+@_deprecate_compatibility_shape
 class Journal(ModelWithID):
     """
     Represents a transfer of cash or securities from one account to another.
@@ -60,6 +64,7 @@ class Journal(ModelWithID):
     currency: Optional[SupportedCurrencies] = None
 
 
+@_deprecate_compatibility_shape
 class BatchJournalResponse(Journal):
     """
     Represents a journal response from a batch journal request.

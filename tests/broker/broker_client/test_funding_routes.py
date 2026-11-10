@@ -7,6 +7,7 @@ import pytest
 from alpaca.broker.client import BrokerClient
 from alpaca.broker.enums import (
     ACHRelationshipStatus,
+    GetRecipientBanksStatusParameter,
     IdentifierType,
     RecipientBankStatus,
     TransferDirection,
@@ -228,6 +229,23 @@ def test_get_banks_for_account_sends_status_and_name(reqmock, client: BrokerClie
 
     query = parse_qs(urlparse(reqmock.request_history[0].url).query)
     assert query == {"status": ["ACTIVE"], "bank_name": ["First Bank"]}
+
+
+def test_get_banks_for_account_accepts_the_generated_status(
+    reqmock, client: BrokerClient
+):
+    account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/accounts/{account_id}/recipient_banks",
+        text="[]",
+    )
+
+    client.get_banks_for_account(
+        account_id, status=GetRecipientBanksStatusParameter.INACTIVE
+    )
+
+    query = parse_qs(urlparse(reqmock.request_history[0].url).query)
+    assert query == {"status": ["INACTIVE"]}
 
 
 def test_delete_bank_for_account(reqmock, client: BrokerClient):

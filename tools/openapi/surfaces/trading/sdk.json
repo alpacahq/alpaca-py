@@ -1,0 +1,19 @@
+{
+  "baseClasses": {
+    "Account": "ModelWithID",
+    "CanceledOrderResponse": "ModelWithID",
+    "CryptoTransfer": "ModelWithID",
+    "CryptoWallet": "ModelWithID",
+    "Locate": "ModelWithID",
+    "Order": "ModelWithID",
+    "TokenizationMintResponse": "ModelWithID",
+    "TokenizationRequest": "ModelWithID",
+    "Watchlist": "ModelWithID",
+    "WhitelistedAddress": "ModelWithID"
+  },
+  "fieldAliases": {
+    "Assets": {
+      "class": "asset_class"
+    }
+  }
+}

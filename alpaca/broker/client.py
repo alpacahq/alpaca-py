@@ -3,7 +3,6 @@ from enum import Enum
 from typing import Any, Callable, Dict, Iterator, List, Optional, Type, Union
 from uuid import UUID
 
-import sseclient
 from pydantic import TypeAdapter
 from requests import HTTPError, Response
 from typing_extensions import deprecated as _deprecated
@@ -32,6 +31,11 @@ from alpaca.broker.models import (
     TradeDocument,
     Transfer,
 )
+from alpaca.broker.operations import BrokerOperations
+
+# Broker request types added with the generated surface. Methods accept them next to
+# the alpaca.trading.requests types they have always taken.
+from alpaca.broker.requests import ClosePositionRequest as _BrokerClosePositionRequest
 from alpaca.broker.requests import (
     CreateAccountRequest,
     CreateACHRelationshipRequest,
@@ -46,9 +50,23 @@ from alpaca.broker.requests import (
     CreateReverseBatchJournalRequest,
     CreateRunRequest,
     CreateSubscriptionRequest,
-    GetAccountActivitiesRequest,
-    GetEventsRequest,
-    GetJournalsRequest,
+)
+from alpaca.broker.requests import (
+    CreateWatchlistRequest as _BrokerCreateWatchlistRequest,
+)
+from alpaca.broker.requests import GetAccountActivitiesRequest
+from alpaca.broker.requests import GetAssetsRequest as _BrokerGetAssetsRequest
+from alpaca.broker.requests import GetCalendarRequest as _BrokerGetCalendarRequest
+from alpaca.broker.requests import (
+    GetCorporateAnnouncementsRequest as _BrokerGetCorporateAnnouncementsRequest,
+)
+from alpaca.broker.requests import GetEventsRequest, GetJournalsRequest
+from alpaca.broker.requests import GetOrderByIdRequest as _BrokerGetOrderByIdRequest
+from alpaca.broker.requests import GetOrdersRequest as _BrokerGetOrdersRequest
+from alpaca.broker.requests import (
+    GetPortfolioHistoryRequest as _BrokerGetPortfolioHistoryRequest,
+)
+from alpaca.broker.requests import (
     GetPortfoliosRequest,
     GetRunsRequest,
     GetSubscriptionsRequest,
@@ -57,27 +75,9 @@ from alpaca.broker.requests import (
     ListAccountsRequest,
     OrderRequest,
     UpdateAccountRequest,
-    UpdatePortfolioRequest,
-    UploadDocumentRequest,
-)
-
-# Broker request types added with the generated surface. Methods accept them next to
-# the alpaca.trading.requests types they have always taken.
-from alpaca.broker.requests import ClosePositionRequest as _BrokerClosePositionRequest
-from alpaca.broker.requests import (
-    CreateWatchlistRequest as _BrokerCreateWatchlistRequest,
-)
-from alpaca.broker.requests import GetAssetsRequest as _BrokerGetAssetsRequest
-from alpaca.broker.requests import GetCalendarRequest as _BrokerGetCalendarRequest
-from alpaca.broker.requests import (
-    GetCorporateAnnouncementsRequest as _BrokerGetCorporateAnnouncementsRequest,
-)
-from alpaca.broker.requests import GetOrderByIdRequest as _BrokerGetOrderByIdRequest
-from alpaca.broker.requests import GetOrdersRequest as _BrokerGetOrdersRequest
-from alpaca.broker.requests import (
-    GetPortfolioHistoryRequest as _BrokerGetPortfolioHistoryRequest,
 )
 from alpaca.broker.requests import UpdateOrderRequest as _BrokerUpdateOrderRequest
+from alpaca.broker.requests import UpdatePortfolioRequest, UploadDocumentRequest
 from alpaca.common import RawData
 from alpaca.common._deprecation import build_from_response as _build_from_response
 from alpaca.common.constants import (
@@ -148,7 +148,7 @@ from .requests import (
 )
 
 
-class BrokerClient(RESTClient):
+class BrokerClient(BrokerOperations, RESTClient):
     """
     Client for accessing Broker API services
 
@@ -554,32 +554,6 @@ class BrokerClient(RESTClient):
             return result
 
         return _build_from_response(TradeAccountConfiguration, result)
-
-    def get_cip_data_for_account_by_id(
-        self,
-        account_id: Union[UUID, str],
-    ) -> None:
-        """
-        Get CIP Info for an account.
-
-        Args:
-            account_id (Union[UUID, str]): The Account id you wish to retrieve CIPInfo for
-
-        Returns:
-            CIPInfo: The CIP info for the Account
-        """
-        account_id = validate_uuid_id_param(account_id)
-        # TODO: can't verify the CIP routes in sandbox they always return 404.
-        #  Need to ask broker team how we'll even test this
-        pass
-
-    def upload_cip_data_for_account_by_id(
-        self,
-        account_id: Union[UUID, str],
-    ):
-        # TODO: can't verify the CIP routes in sandbox they always return 404.
-        #  Need to ask broker team how we'll even test this
-        pass
 
     # ############################## ACCOUNT ACTIVITIES ################################# #
 
@@ -1333,6 +1307,9 @@ class BrokerClient(RESTClient):
         Gets the current market timestamp, whether or not the market is currently open, as well as the times
         of the next market open and close.
 
+        This method reads the legacy ``GET /v1/clock`` route. Multi-market clocks are
+        available from :meth:`get_v2_clock`.
+
         Returns:
             Clock: The market Clock data
         """
@@ -1354,6 +1331,9 @@ class BrokerClient(RESTClient):
 
         In addition to the dates, the response also contains the specific open and close times for the market days,
         taking into account early closures.
+
+        This method reads the legacy ``GET /v1/calendar`` route. Per-market calendars are
+        available from :meth:`get_v2_calendar`.
 
         Args:
             filters: Any optional filters to limit the returned market days
@@ -2012,25 +1992,7 @@ class BrokerClient(RESTClient):
         Returns:
             Iterator: Yields events as they arrive
         """
-
-        params = {}
-
-        if filter:
-            params = filter.to_request_fields()
-
-        url = self._base_url + "/" + self._api_version + "/events/accounts/status"
-
-        response = self._session.get(
-            url=url,
-            params=params,
-            stream=True,
-            headers=self._get_sse_headers(),
-        )
-
-        client = sseclient.SSEClient(response)
-
-        for event in client.events():
-            yield event.data
+        return self._iter_server_events("/events/accounts/status", filter)
 
     def get_trade_events(self, filter: Optional[GetEventsRequest] = None) -> Iterator:
         """
@@ -2042,24 +2004,7 @@ class BrokerClient(RESTClient):
         Returns:
             Iterator: Yields events as they arrive
         """
-        params = {}
-
-        if filter:
-            params = filter.to_request_fields()
-
-        url = self._base_url + "/" + self._api_version + "/events/trades"
-
-        response = self._session.get(
-            url=url,
-            params=params,
-            stream=True,
-            headers=self._get_sse_headers(),
-        )
-
-        client = sseclient.SSEClient(response)
-
-        for event in client.events():
-            yield event.data
+        return self._iter_server_events("/events/trades", filter)
 
     def get_journal_events(self, filter: Optional[GetEventsRequest] = None) -> Iterator:
         """
@@ -2071,24 +2016,7 @@ class BrokerClient(RESTClient):
         Returns:
             Iterator: Yields events as they arrive
         """
-        params = {}
-
-        if filter:
-            params = filter.to_request_fields()
-
-        url = self._base_url + "/" + self._api_version + "/events/journals/status"
-
-        response = self._session.get(
-            url=url,
-            params=params,
-            stream=True,
-            headers=self._get_sse_headers(),
-        )
-
-        client = sseclient.SSEClient(response)
-
-        for event in client.events():
-            yield event.data
+        return self._iter_server_events("/events/journals/status", filter)
 
     @_deprecated(
         "get_transfer_events is deprecated and will be removed in a future version. "
@@ -2112,24 +2040,7 @@ class BrokerClient(RESTClient):
         Returns:
             Iterator: Yields events as they arrive
         """
-        params = {}
-
-        if filter:
-            params = filter.to_request_fields()
-
-        url = self._base_url + "/" + self._api_version + "/events/transfers/status"
-
-        response = self._session.get(
-            url=url,
-            params=params,
-            stream=True,
-            headers=self._get_sse_headers(),
-        )
-
-        client = sseclient.SSEClient(response)
-
-        for event in client.events():
-            yield event.data
+        return self._iter_server_events("/events/transfers/status", filter)
 
     def get_non_trading_activity_events(
         self, filter: Optional[GetEventsRequest] = None
@@ -2143,34 +2054,10 @@ class BrokerClient(RESTClient):
         Returns:
             Iterator: Yields events as they arrive
         """
-        params = {}
-
-        if filter:
-            params = filter.to_request_fields()
-
-        url = self._base_url + "/" + self._api_version + "/events/nta"
-
-        response = self._session.get(
-            url=url,
-            params=params,
-            stream=True,
-            headers=self._get_sse_headers(),
-        )
-
-        client = sseclient.SSEClient(response)
-
-        for event in client.events():
-            yield event.data
+        return self._iter_server_events("/events/nta", filter)
 
     def _get_sse_headers(self) -> dict:
-        headers = self._get_default_headers()
-
-        headers["Connection"] = "keep-alive"
-        headers["Cache-Control"] = "no-cache"
-        headers["Content-Type"] = "text/event-stream"
-        headers["Accept"] = "text/event-stream"
-
-        return headers
+        return self._sse_headers()
 
     # ############################## REBALANCING ################################# #
 

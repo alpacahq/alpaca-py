@@ -69,10 +69,12 @@ def fetch_spec(url: str, destination: Path) -> bool:
             suffix=".tmp",
             delete=False,
         ) as temporary_file:
+            # Assign before write/flush/fsync. delete=False means a failure
+            # there would otherwise leave the partial file in the checkout.
+            temporary_path = Path(temporary_file.name)
             temporary_file.write(content)
             temporary_file.flush()
             os.fsync(temporary_file.fileno())
-            temporary_path = Path(temporary_file.name)
 
         temporary_path.replace(destination)
         temporary_path = None

@@ -47,6 +47,24 @@ def test_fetch_spec_normalizes_minified_upstream_payload(tmp_path, monkeypatch):
     )
 
 
+def test_fetch_spec_removes_temporary_file_when_fsync_fails(tmp_path, monkeypatch):
+    destination = tmp_path / "trading-api.json"
+    original = '{\n  "openapi": "3.0.0"\n}\n'
+    destination.write_text(original)
+    monkeypatch.setattr(fetch_specs, "_download", lambda _: b'{"openapi":"3.0.1"}')
+
+    def fail_fsync(_fd):
+        raise OSError("fsync failed")
+
+    monkeypatch.setattr(fetch_specs.os, "fsync", fail_fsync)
+
+    with pytest.raises(OSError, match="fsync failed"):
+        fetch_specs.fetch_spec("https://example.test/spec.json", destination)
+
+    assert destination.read_text() == original
+    assert not list(tmp_path.glob("*.tmp"))
+
+
 @pytest.mark.parametrize(
     "payload",
     [b"[]", b'{"openapi":"2.0"}', b"{}"],

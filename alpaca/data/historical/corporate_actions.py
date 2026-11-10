@@ -1,10 +1,14 @@
-from typing import Optional, Union
+from typing import Iterator, Optional, Union
+
+import sseclient
+from requests.exceptions import HTTPError
 
 from alpaca.common.enums import BaseURL
+from alpaca.common.exceptions import APIError
 from alpaca.common.rest import RESTClient
 from alpaca.common.types import RawData
 from alpaca.data.models.corporate_actions import CorporateActionsSet
-from alpaca.data.requests import CorporateActionsRequest
+from alpaca.data.requests import CorporateActionEventsRequest, CorporateActionsRequest
 
 
 class CorporateActionsClient(RESTClient):
@@ -74,3 +78,54 @@ class CorporateActionsClient(RESTClient):
             return response
 
         return CorporateActionsSet(response)
+
+    def get_corporate_action_events(
+        self, request_params: Optional[CorporateActionEventsRequest] = None
+    ) -> Iterator:
+        """
+        Subscribes to the corporate-actions SSE stream.
+
+        The client itself is version ``v1``. This stream is ``v1beta1``, so the
+        request URL is ``/v1beta1/events/corporate-actions`` and does not use the
+        client API version prefix.
+
+        Args:
+            request_params: Query filters and the optional ``Last-Event-Id`` reconnect header.
+
+        Returns:
+            Iterator: Yields event payloads as they arrive.
+        """
+        params = {}
+        headers = self._get_sse_headers()
+
+        if request_params is not None:
+            params = request_params.to_request_fields()
+            if request_params.last_event_id:
+                headers["Last-Event-Id"] = request_params.last_event_id
+
+        url = self._base_url + "/v1beta1/events/corporate-actions"
+        response = self._session.get(
+            url=url,
+            params=params,
+            stream=True,
+            headers=headers,
+        )
+        try:
+            response.raise_for_status()
+        except HTTPError as http_error:
+            response.close()
+            raise APIError(response.text, http_error)
+
+        client = sseclient.SSEClient(response)
+        try:
+            for event in client.events():
+                yield event.data
+        finally:
+            response.close()
+
+    def _get_sse_headers(self) -> dict:
+        headers = self._get_default_headers()
+        headers["Connection"] = "keep-alive"
+        headers["Cache-Control"] = "no-cache"
+        headers["Accept"] = "text/event-stream"
+        return headers

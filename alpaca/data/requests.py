@@ -735,3 +735,74 @@ class CorporateActionsRequest(NonEmptyRequest):
     ids: Optional[List[str]] = None
     limit: Optional[int] = 1000
     sort: Optional[Sort] = Sort.ASC
+
+
+def _comma_separated(value: Union[str, List[Any]]) -> str:
+    if isinstance(value, list):
+        return ",".join(str(item) for item in value)
+    return str(value)
+
+
+class FixedIncomeLatestPricesRequest(NonEmptyRequest):
+    """
+    Latest fixed-income prices for ``/fixed_income/latest/prices``.
+
+    Attributes:
+        isins (Union[str, List[str]]): One ISIN or a list of ISINs. A list is sent as a comma-separated query value.
+    """
+
+    isins: Union[str, List[str]]
+
+    def to_request_fields(self) -> dict:
+        fields = super().to_request_fields()
+        if "isins" in fields:
+            fields["isins"] = _comma_separated(fields["isins"])
+        return fields
+
+
+class FixedIncomeLatestQuotesRequest(FixedIncomeLatestPricesRequest):
+    """
+    Latest fixed-income quotes for ``/fixed_income/latest/quotes``.
+
+    Attributes:
+        isins (Union[str, List[str]]): One ISIN or a list of ISINs. A list is sent as a comma-separated query value.
+        trade_size (Optional[int]): Maximum minimum-trade-size used to select the best bid and ask.
+    """
+
+    trade_size: Optional[int] = None
+
+
+class CorporateActionEventsRequest(NonEmptyRequest):
+    """
+    Filters for the corporate-actions SSE stream.
+
+    Query parameters match the specification. ``last_event_id`` is sent as the
+    ``Last-Event-Id`` reconnect header, not as a query parameter.
+
+    Attributes:
+        type (Optional[Union[str, List[str]]]): Event types to deliver. A list is sent comma-separated.
+        region (Optional[str]): ``all``, ``us``, or ``non_us``.
+        since (Optional[datetime]): Replay events emitted on or after this time.
+        until (Optional[datetime]): Close the stream after this time.
+        since_id (Optional[str]): Replay events with ``event_id`` greater than or equal to this ULID.
+        until_id (Optional[str]): Close the stream once this event id has been delivered.
+        last_event_id (Optional[str]): ``Last-Event-Id`` reconnect header. Overrides ``since_id``.
+    """
+
+    type: Optional[Union[str, List[Any]]] = None
+    region: Optional[str] = None
+    since: Optional[datetime] = None
+    until: Optional[datetime] = None
+    since_id: Optional[str] = None
+    until_id: Optional[str] = None
+    last_event_id: Optional[str] = Field(default=None, exclude=True)
+
+    def __init__(self, **data: Any) -> None:
+        _drop_timezone(data, "since", "until")
+        super().__init__(**data)
+
+    def to_request_fields(self) -> dict:
+        fields = super().to_request_fields()
+        if "type" in fields:
+            fields["type"] = _comma_separated(fields["type"])
+        return fields

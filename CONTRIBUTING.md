@@ -163,6 +163,8 @@ Pass `category=None` instead, so only type checkers and IDEs flag the enum, when
 
 An enum that keeps its public name when its generated twin replaces it, such as `OrderStatus` in `alpaca/trading/enums.py`, gives users no other name to migrate to. Deprecate the members the twin lacks at runtime, and mark the enum itself with `category=None` so only type checkers and IDEs flag it. Start the message with `compatibility_shape_message(name)`'s sentence, written out as a literal so type checkers can show it, and then name the members that will go. An enum that keeps members its twin lacks on purpose, such as `OrderSide` with its FIX sides, is not going to switch and is not deprecated.
 
+When a client method returns a deprecated model whose replacement has a different name, add a keyword-only `generated: bool = False` that returns the replacement instead, as `TradingClient.get_asset` does. Declare two `typing.overload`s on `Literal[False]` and `Literal[True]` so each call keeps a precise return type, and return the class the route's spec documents (the Broker client returns the Broker API's class). The deprecation message then says how to get it: "Please use `Assets` instead: pass generated=True to the client methods that return Asset."
+
 To deprecate a model field, use Pydantic's `Field(deprecated="...")` and keep the field's existing type and default. Pydantic warns when the field is read and stays silent during parsing and serialization, as `Asset.easy_to_borrow` in `alpaca/trading/models.py` does.
 
 ### OpenAPI code generation

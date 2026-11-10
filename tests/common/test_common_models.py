@@ -222,7 +222,7 @@ def test_asset_parses_without_deprecated_borrow_field():
         warnings.simplefilter("error", DeprecationWarning)
         warnings.filterwarnings(
             "ignore",
-            message="Asset is deprecated; use Assets instead.",
+            message="Asset is deprecated and will be removed in a future version.",
             category=DeprecationWarning,
         )
         asset = Asset(**_asset_payload(borrow_status="hard_to_borrow"))
@@ -238,7 +238,7 @@ def test_missing_easy_to_borrow_follows_borrow_status():
         warnings.simplefilter("error", DeprecationWarning)
         warnings.filterwarnings(
             "ignore",
-            message="Asset is deprecated; use Assets instead.",
+            message="Asset is deprecated and will be removed in a future version.",
             category=DeprecationWarning,
         )
         easy = Asset(**_asset_payload(borrow_status="easy_to_borrow"))

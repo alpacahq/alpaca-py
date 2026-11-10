@@ -106,6 +106,13 @@ def test_deprecated_model_fields_warn_only_on_access(model, field, value, replac
 
     with warnings.catch_warnings():
         warnings.simplefilter("error", DeprecationWarning)
+        # Order warns on instantiation because it is a compatibility shape.
+        # Field deprecations must still stay silent until the field is read.
+        warnings.filterwarnings(
+            "ignore",
+            message="Order is a temporary compatibility shape",
+            category=DeprecationWarning,
+        )
         instance = model.model_validate(payload)
         assert instance.model_dump(mode="json")[field] == value
         assert (
@@ -213,6 +220,11 @@ def test_asset_parses_without_deprecated_borrow_field():
 
     with warnings.catch_warnings():
         warnings.simplefilter("error", DeprecationWarning)
+        warnings.filterwarnings(
+            "ignore",
+            message="Asset is deprecated; use Assets instead.",
+            category=DeprecationWarning,
+        )
         asset = Asset(**_asset_payload(borrow_status="hard_to_borrow"))
         assert asset.borrow_status == AssetBorrowStatus.HARD_TO_BORROW
         assert asset.model_dump(mode="json")["easy_to_borrow"] is False
@@ -224,6 +236,11 @@ def test_asset_parses_without_deprecated_borrow_field():
 def test_missing_easy_to_borrow_follows_borrow_status():
     with warnings.catch_warnings():
         warnings.simplefilter("error", DeprecationWarning)
+        warnings.filterwarnings(
+            "ignore",
+            message="Asset is deprecated; use Assets instead.",
+            category=DeprecationWarning,
+        )
         easy = Asset(**_asset_payload(borrow_status="easy_to_borrow"))
         omitted = Asset(**_asset_payload())
         explicit = Asset(
@@ -281,14 +298,16 @@ def test_asset_field_deprecations_preserve_round_trip(field, value, default, mes
 
 
 def test_deprecated_asset_fields_warn_on_read():
-    asset = Asset(
-        **_asset_payload(
-            easy_to_borrow=True,
-            maintenance_margin_requirement=30,
-            margin_requirement_long="100",
-            margin_requirement_short="30",
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", DeprecationWarning)
+        asset = Asset(
+            **_asset_payload(
+                easy_to_borrow=True,
+                maintenance_margin_requirement=30,
+                margin_requirement_long="100",
+                margin_requirement_short="30",
+            )
         )
-    )
 
     with warnings.catch_warnings():
         warnings.simplefilter("error", DeprecationWarning)

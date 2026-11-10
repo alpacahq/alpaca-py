@@ -122,7 +122,26 @@ def old_method(self) -> None:
 
 `@deprecated` does not apply to enum members. To deprecate one, give the enum `alpaca._deprecating_enum.DeprecatingEnumMeta`
 as its metaclass and pass a `deprecations={member_name: message}` mapping, as `ActivityType` in
-`alpaca/trading/enums.py` does.
+`alpaca/trading/enums.py` does. To rename a member, keep the old name as an alias of the new one and deprecate the
+alias, as `AgreementType` in `alpaca/broker/enums.py` does.
+
+To deprecate a whole enum in favour of a differently named one, decorate the class and pass `stacklevel=2`, as
+`AssetStatus` in `alpaca/trading/enums.py` does. Without it the warning is attributed to `enum.py`, and Python's default
+filters hide it. The runtime warning only fires on `OldEnum(value)`; type checkers and IDEs flag member access such as
+`OldEnum.MEMBER`. Widen request fields and client parameters typed with the old enum to `Union[OldEnum, NewEnum]`, old
+first so strings keep parsing into the old enum, so code that follows the message still type-checks.
+
+Pass `category=None` instead, so only type checkers and IDEs flag the enum, when a runtime warning would misfire: when
+the enum also deprecates members through `DeprecatingEnumMeta` (every member would warn), or when a model field falls
+back to the new enum for values the old one lacks (Pydantic calls the old enum class to look them up, so parsing would
+warn). `AssetExchange` is an example.
+
+An enum that keeps its public name when its generated twin replaces it, such as `OrderStatus` in
+`alpaca/trading/enums.py`, gives users no other name to migrate to. Deprecate the members the twin lacks at runtime, and
+mark the enum itself with `category=None` so only type checkers and IDEs flag it. Start the message with
+`compatibility_shape_message(name)`'s sentence, written out as a literal so type checkers can show it, and then name the
+members that will go. An enum that keeps members its twin lacks on purpose, such as `OrderSide` with its FIX sides, is
+not going to switch and is not deprecated.
 
 To deprecate a model field, use Pydantic's `Field(deprecated="...")` and keep the field's existing type and default.
 Pydantic warns when the field is read and stays silent during parsing and serialization, as `Asset.easy_to_borrow` in

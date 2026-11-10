@@ -6,6 +6,7 @@ from pydantic import TypeAdapter
 from typing_extensions import deprecated as _deprecated
 
 from alpaca.common import RawData
+from alpaca.common._deprecation import build_from_response as _build_from_response
 from alpaca.common.enums import BaseURL
 from alpaca.common.rest import RESTClient
 from alpaca.common.utils import (
@@ -40,6 +41,7 @@ from alpaca.trading.requests import (
     GetOrdersRequest,
     GetPortfolioHistoryRequest,
     OrderRequest,
+    PatchOrderRequest,
     ReplaceOrderRequest,
     UpdateWatchlistRequest,
 )
@@ -102,7 +104,7 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return Order(**response)
+        return _build_from_response(Order, response)
 
     def get_orders(
         self, filter: Optional[GetOrdersRequest] = None
@@ -152,7 +154,7 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return Order(**response)
+        return _build_from_response(Order, response)
 
     def get_order_by_client_id(self, client_id: str) -> Union[Order, RawData]:
         """
@@ -171,19 +173,20 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return Order(**response)
+        return _build_from_response(Order, response)
 
     def replace_order_by_id(
         self,
         order_id: Union[UUID, str],
-        order_data: Optional[ReplaceOrderRequest] = None,
+        order_data: Optional[Union[PatchOrderRequest, ReplaceOrderRequest]] = None,
     ) -> Union[Order, RawData]:
         """
         Updates an order with new parameters.
 
         Args:
             order_id (Union[UUID, str]): The unique uuid identifier for the order being replaced.
-            order_data (Optional[ReplaceOrderRequest]): The parameters we wish to update.
+            order_data (Optional[Union[PatchOrderRequest, ReplaceOrderRequest]]): The parameters to update.
+                ReplaceOrderRequest remains accepted.
 
         Returns:
             alpaca.trading.models.Order: The updated order.
@@ -198,7 +201,7 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return Order(**response)
+        return _build_from_response(Order, response)
 
     def cancel_orders(self) -> Union[List[CancelOrderResponse], RawData]:
         """
@@ -266,7 +269,7 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return Position(**response)
+        return _build_from_response(Position, response)
 
     def close_all_positions(
         self, cancel_orders: Optional[bool] = None
@@ -321,7 +324,7 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return Order(**response)
+        return _build_from_response(Order, response)
 
     def exercise_options_position(
         self,
@@ -369,7 +372,7 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return PortfolioHistory(**response)
+        return _build_from_response(PortfolioHistory, response)
 
     # ############################## Assets ################################# #
 
@@ -415,7 +418,7 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return Asset(**response)
+        return _build_from_response(Asset, response)
 
     # ############################## CLOCK & CALENDAR ################################# #
 
@@ -433,7 +436,7 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return Clock(**response)
+        return _build_from_response(Clock, response)
 
     def get_calendar(
         self,
@@ -476,7 +479,7 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return TradeAccount(**response)
+        return _build_from_response(TradeAccount, response)
 
     def get_account_configurations(self) -> Union[AccountConfiguration, RawData]:
         """
@@ -491,7 +494,7 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return AccountConfiguration(**response)
+        return _build_from_response(AccountConfiguration, response)
 
     def set_account_configurations(
         self, account_configurations: AccountConfiguration
@@ -510,7 +513,7 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return AccountConfiguration(**response)
+        return _build_from_response(AccountConfiguration, response)
 
     # ############################## WATCHLIST ################################# #
 
@@ -551,7 +554,7 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return result
 
-        return Watchlist(**result)
+        return _build_from_response(Watchlist, result)
 
     def create_watchlist(
         self,
@@ -574,7 +577,7 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return result
 
-        return Watchlist(**result)
+        return _build_from_response(Watchlist, result)
 
     def update_watchlist_by_id(
         self,
@@ -603,7 +606,7 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return result
 
-        return Watchlist(**result)
+        return _build_from_response(Watchlist, result)
 
     def add_asset_to_watchlist_by_id(
         self,
@@ -629,7 +632,7 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return result
 
-        return Watchlist(**result)
+        return _build_from_response(Watchlist, result)
 
     def delete_watchlist_by_id(
         self,
@@ -670,7 +673,7 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return result
 
-        return Watchlist(**result)
+        return _build_from_response(Watchlist, result)
 
     # ############################## CORPORATE ACTIONS ################################# #
 
@@ -736,7 +739,7 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return response
 
-        return CorporateActionAnnouncement(**response)
+        return _build_from_response(CorporateActionAnnouncement, response)
 
     # ############################## OPTIONS CONTRACTS ################################# #
 

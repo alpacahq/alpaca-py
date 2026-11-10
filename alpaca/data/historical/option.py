@@ -117,6 +117,17 @@ class OptionHistoricalDataClient(RESTClient):
 
         return raw_exchange_code
 
+    def get_option_condition_codes(self, ticktype: str) -> RawData:
+        """Returns the mapping between option condition codes and names.
+
+        Args:
+            ticktype (str): ``trade`` or ``quote``.
+
+        Returns:
+            RawData: Condition code map.
+        """
+        return self.get(path=f"/options/meta/conditions/{ticktype}")
+
     def get_option_latest_quote(
         self, request_params: OptionLatestQuoteRequest
     ) -> Union[Dict[str, Quote], RawData]:

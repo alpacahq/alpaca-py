@@ -2,6 +2,7 @@ import json
 import pytest
 from alpaca.common.enums import BaseURL
 from alpaca.trading.models import (
+    Account,
     AccountConfiguration,
     AccountConfigurations,
     TradeAccount,
@@ -246,3 +247,81 @@ def test_set_account_configurations_accepts_the_generated_configurations(
     }
     assert isinstance(result, AccountConfiguration)
     assert result.no_shorting is True
+
+
+def test_get_account_returns_the_generated_account_on_request(
+    reqmock: Mocker, trading_client: TradingClient
+):
+    reqmock.get(
+        f"{BaseURL.TRADING_PAPER.value}/v2/account",
+        text="""
+        {
+          "id": "e6fe16f3-64a4-4921-8928-cadf02f92f98",
+          "account_number": "010203ABCD",
+          "status": "ACTIVE",
+          "currency": "USD",
+          "cash": "-23140.2",
+          "buying_power": "262113.632",
+          "equity": "103820.56",
+          "last_equity": "103529.24",
+          "multiplier": "4",
+          "created_at": "2019-06-12T22:47:07.99658Z",
+          "options_approved_level": 1,
+          "options_trading_level": 1
+        }
+        """,
+    )
+
+    assert type(trading_client.get_account()) is TradeAccount
+    generated = trading_client.get_account(generated=True)
+    assert type(generated) is Account
+    assert generated.account_number == "010203ABCD"
+
+
+def test_account_configuration_methods_return_the_generated_class_on_request(
+    reqmock: Mocker, trading_client: TradingClient
+):
+    url = f"{BaseURL.TRADING_PAPER.value}/v2/account/configurations"
+    reqmock.get(
+        url,
+        text="""
+        {
+          "dtbp_check": "entry",
+          "no_shorting": false,
+          "suspend_trade": false,
+          "fractional_trading": true,
+          "max_margin_multiplier": "4",
+          "pdt_check": "entry",
+          "trade_confirm_email": "all",
+          "ptp_no_exception_entry": false
+        }
+        """,
+    )
+    reqmock.patch(
+        url,
+        text="""
+        {
+          "dtbp_check": "entry",
+          "no_shorting": false,
+          "suspend_trade": false,
+          "fractional_trading": true,
+          "max_margin_multiplier": "4",
+          "pdt_check": "entry",
+          "trade_confirm_email": "all",
+          "ptp_no_exception_entry": false
+        }
+        """,
+    )
+
+    assert type(trading_client.get_account_configurations()) is AccountConfiguration
+    assert (
+        type(trading_client.get_account_configurations(generated=True))
+        is AccountConfigurations
+    )
+    update = AccountConfigurations(no_shorting=False)
+    assert (
+        type(trading_client.set_account_configurations(update)) is AccountConfiguration
+    )
+    generated = trading_client.set_account_configurations(update, generated=True)
+    assert type(generated) is AccountConfigurations
+    assert generated.max_margin_multiplier == "4"

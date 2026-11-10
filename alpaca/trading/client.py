@@ -20,6 +20,7 @@ from alpaca.common.utils import (
 )
 from alpaca.trading.enums import ActivityType
 from alpaca.trading.models import (
+    Account,
     AccountConfiguration,
     AccountConfigurations,
     Asset,
@@ -584,13 +585,28 @@ class TradingClient(RESTClient):
 
     # ############################## ACCOUNT ################################# #
 
-    def get_account(self) -> Union[TradeAccount, RawData]:
+    @overload
+    def get_account(
+        self, *, generated: Literal[False] = False
+    ) -> Union[TradeAccount, RawData]: ...
+
+    @overload
+    def get_account(self, *, generated: Literal[True]) -> Union[Account, RawData]: ...
+
+    def get_account(
+        self, *, generated: bool = False
+    ) -> Union[TradeAccount, Account, RawData]:
         """
         Returns account details. Contains information like buying power,
         number of day trades, and account status.
 
+        Args:
+            generated (bool): Return the OpenAPI-generated Account instead of the deprecated TradeAccount.
+              Defaults to False.
+
         Returns:
-            alpaca.trading.models.TradeAccount: The account details
+            Union[alpaca.trading.models.TradeAccount, alpaca.trading.models.Account]: The account
+              details, as Account when ``generated`` is True.
         """
 
         response = self.get("/account")
@@ -598,27 +614,66 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return response
 
+        if generated:
+            return Account.model_validate(response)
         return _build_from_response(TradeAccount, response)
 
-    def get_account_configurations(self) -> Union[AccountConfiguration, RawData]:
+    @overload
+    def get_account_configurations(
+        self, *, generated: Literal[False] = False
+    ) -> Union[AccountConfiguration, RawData]: ...
+
+    @overload
+    def get_account_configurations(
+        self, *, generated: Literal[True]
+    ) -> Union[AccountConfigurations, RawData]: ...
+
+    def get_account_configurations(
+        self, *, generated: bool = False
+    ) -> Union[AccountConfiguration, AccountConfigurations, RawData]:
         """
         Returns account configuration details. Contains information like shorting, margin multiplier
         trader confirmation emails, and Pattern Day Trading (PDT) checks.
 
+        Args:
+            generated (bool): Return the OpenAPI-generated AccountConfigurations instead of the deprecated
+              AccountConfiguration. Defaults to False.
+
         Returns:
-            alpaca.broker.models.AccountConfiguration: The account configuration details
+            Union[AccountConfiguration, AccountConfigurations]: The account configuration details, as
+              AccountConfigurations when ``generated`` is True.
         """
         response = self.get("/account/configurations")
 
         if self._use_raw_data:
             return response
 
+        if generated:
+            return AccountConfigurations.model_validate(response)
         return _build_from_response(AccountConfiguration, response)
+
+    @overload
+    def set_account_configurations(
+        self,
+        account_configurations: Union[AccountConfiguration, AccountConfigurations],
+        *,
+        generated: Literal[False] = False,
+    ) -> Union[AccountConfiguration, RawData]: ...
+
+    @overload
+    def set_account_configurations(
+        self,
+        account_configurations: Union[AccountConfiguration, AccountConfigurations],
+        *,
+        generated: Literal[True],
+    ) -> Union[AccountConfigurations, RawData]: ...
 
     def set_account_configurations(
         self,
         account_configurations: Union[AccountConfiguration, AccountConfigurations],
-    ) -> Union[AccountConfiguration, RawData]:
+        *,
+        generated: bool = False,
+    ) -> Union[AccountConfiguration, AccountConfigurations, RawData]:
         """
         Returns account configuration details. Contains information like shorting, margin multiplier
         trader confirmation emails, and Pattern Day Trading (PDT) checks.
@@ -626,9 +681,12 @@ class TradingClient(RESTClient):
         Args:
             account_configurations (Union[AccountConfiguration, AccountConfigurations]): The settings to update.
               With the generated AccountConfigurations, only the fields you set are sent.
+            generated (bool): Return the OpenAPI-generated AccountConfigurations instead of the deprecated
+              AccountConfiguration. Defaults to False.
 
         Returns:
-            alpaca.broker.models.TradeAccountConfiguration: The account configuration details
+            Union[AccountConfiguration, AccountConfigurations]: The account configuration details, as
+              AccountConfigurations when ``generated`` is True.
         """
         response = self.patch(
             "/account/configurations",
@@ -638,6 +696,8 @@ class TradingClient(RESTClient):
         if self._use_raw_data:
             return response
 
+        if generated:
+            return AccountConfigurations.model_validate(response)
         return _build_from_response(AccountConfiguration, response)
 
     # ############################## WATCHLIST ################################# #

@@ -1208,6 +1208,66 @@ def test_update_trade_configuration_for_account_accepts_the_generated_configurat
     assert isinstance(result, TradeAccountConfiguration)
 
 
+def test_trade_configuration_methods_return_the_broker_class_on_request(
+    reqmock, client: BrokerClient
+):
+    account_id = "5fc0795e-1f16-40cc-aa90-ede67c39d7a9"
+    url = f"{BaseURL.BROKER_SANDBOX.value}/v1/trading/accounts/{account_id}/account/configurations"
+    reqmock.get(
+        url,
+        text="""
+        {
+          "dtbp_check": "entry",
+          "no_shorting": false,
+          "suspend_trade": false,
+          "fractional_trading": true,
+          "max_margin_multiplier": "4",
+          "pdt_check": "entry",
+          "trade_confirm_email": "all",
+          "ptp_no_exception_entry": false
+        }
+        """,
+    )
+    reqmock.patch(
+        url,
+        text="""
+        {
+          "dtbp_check": "entry",
+          "no_shorting": false,
+          "suspend_trade": false,
+          "fractional_trading": true,
+          "max_margin_multiplier": "4",
+          "pdt_check": "entry",
+          "trade_confirm_email": "all",
+          "ptp_no_exception_entry": false
+        }
+        """,
+    )
+    update = BrokerAccountConfigurations(no_shorting=False)
+
+    assert (
+        type(client.get_trade_configuration_for_account(account_id))
+        is TradeAccountConfiguration
+    )
+    # The Broker spec documents its own AccountConfigurations for this route.
+    assert (
+        type(client.get_trade_configuration_for_account(account_id, generated=True))
+        is BrokerAccountConfigurations
+    )
+    assert (
+        type(client.update_trade_configuration_for_account(account_id, update))
+        is TradeAccountConfiguration
+    )
+    assert (
+        type(
+            client.update_trade_configuration_for_account(
+                account_id, update, generated=True
+            )
+        )
+        is BrokerAccountConfigurations
+    )
+
+
 def test_update_trade_configuration_for_account_validates_id(
     reqmock, client: BrokerClient
 ):

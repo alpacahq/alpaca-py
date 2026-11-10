@@ -13,18 +13,24 @@ from pydantic import (
 )
 
 from alpaca._deprecating_enum import _warn_at_user_code
-
+from alpaca.broker._generated.models import Contact as _GeneratedContact
+from alpaca.broker._generated.models import TrustedContact as _GeneratedTrustedContact
 from alpaca.broker.enums import (
     AccountSubType,
     AccountType,
     AgreementType,
     ClearingBroker,
     EmploymentStatus,
+    AccountConfigurationsTradeConfirmEmail,
     FundingSource,
+    IdentityFundingSourceInner,
     TaxIdType,
     VisaType,
 )
 from alpaca.broker.models.documents import AccountDocument
+from alpaca.common._deprecation import (
+    deprecate_compatibility_shape as _deprecate_compatibility_shape,
+)
 from alpaca.common.models import ModelWithID
 from alpaca.common.models import ValidateBaseModel as BaseModel
 from alpaca.trading.enums import AccountStatus, AssetClass, TradeConfirmationEmail
@@ -123,51 +129,79 @@ class KycResults(BaseModel):
     summary: Optional[str] = None
 
 
-class Contact(BaseModel):
+@_deprecate_compatibility_shape
+class Agreement(BaseModel):
+    """User agreements signed within Account Model
+
+    see https://alpaca.markets/docs/broker/api-references/accounts/accounts/#the-account-model
+
+    The generated Agreement types signed_at as a datetime and revision as a strict
+    string; this shape keeps the published str signed_at and the short-name
+    AgreementType until the generated model replaces it.
+
+    Attributes:
+        agreement (Agreement): The type of agreement signed by the user
+        signed_at (str): The timestamp the agreement was signed
+        ip_address (str): The ip_address the signed agreements were sent from by the user
+        revision (str): The revision date
+    """
+
+    agreement: AgreementType
+    signed_at: str
+    ip_address: str
+    revision: Optional[str] = None
+
+
+class Contact(_GeneratedContact):
     """User contact details within Account Model
 
     see https://alpaca.markets/docs/broker/api-references/accounts/accounts/#the-account-model
 
-    Attributes:
-        email_address (str): The user's email address
-        phone_number (str): The user's phone number. It should include the country code.
-        street_address (List[str]): The user's street address lines.
-        unit (Optional[str]): The user's apartment unit, if any.
-        city (str): The city the user resides in.
-        state (Optional[str]): The state the user resides in. This is required if country is 'USA'.
-        postal_code (str): The user's postal
-        country (str): The country the user resides in. 3 letter country code is permissible.
+    Extends the OpenAPI-generated Contact and keeps the published
+    usa_state_has_value validator.
     """
-
-    email_address: str
-    phone_number: Optional[str] = None
-    street_address: List[str]
-    unit: Optional[str] = None
-    city: str
-    state: Optional[str] = None
-    postal_code: Optional[str] = None
-    country: Optional[str] = None
 
     @field_validator("state")
     def usa_state_has_value(cls, v: str, validation: ValidationInfo, **kwargs) -> str:
-        """Validates that the state has a value if the country is USA
+        """Accept the state as given; the Broker API enforces when it is required.
 
-        Args:
-            v (str): The state field's value
-            values (dict): The values of each field
-
-        Raises:
-            ValueError: State is required for country USA
+        The API requires contact.state on account creation when
+        identity.country_of_tax_residence is the United States (not when
+        contact.country is USA), and never checks its presence on partial updates.
+        This validator therefore does not reject anything, matching the behavior of
+        earlier releases, and keeps its signature for compatibility.
 
         Returns:
             str: The value of the state field
         """
-        values: dict = validation.data
-        if "country" in values and values["country"] == "USA" and v is None:
-            raise ValueError("State is required for country USA.")
         return v
 
 
+class TrustedContact(_GeneratedTrustedContact):
+    """Generated trusted contact that still accepts a string street address.
+
+    Pass a list of strings. A string still works, but it is deprecated and
+    stored as a one-item list. At least one of phone_number, street_address, or
+    email_address is required.
+    """
+
+    street_address: _TrustedStreetAddress = None
+
+    @model_validator(mode="before")
+    def root_validator(cls, values: dict) -> dict:
+        if not isinstance(values, dict):
+            return values
+        has_phone_number = values.get("phone_number") is not None
+        has_street_address = values.get("street_address") is not None
+        has_email_address = values.get("email_address") is not None
+
+        if has_phone_number or has_street_address or has_email_address:
+            return values
+
+        raise ValueError("At least one method of contact required for trusted contact")
+
+
+@_deprecate_compatibility_shape
 class Identity(BaseModel):
     """User identity details within Account Model
 
@@ -187,7 +221,8 @@ class Identity(BaseModel):
         visa_expiration_date (Optional[str]): The date of expiration for visa, Required if visa_type is set.
         date_of_departure_from_usa (Optional[str]): Required if visa_type = B1 or B2
         permanent_resident (Optional[bool]): Only used to collect permanent residence status in the USA.
-        funding_source (Optional[List[FundingSource]]): How the user will fund their account
+        funding_source (Optional[List[Union[FundingSource, IdentityFundingSourceInner]]]): How the user will fund
+          their account
         annual_income_min (Optional[float]): The minimum of the user's income range
         annual_income_max (Optional[float]): The maximum of the user's income range
         liquid_net_worth_min (Optional[float]): The minimum of the user's liquid net worth range
@@ -209,7 +244,9 @@ class Identity(BaseModel):
     visa_expiration_date: Optional[str] = None
     date_of_departure_from_usa: Optional[str] = None
     permanent_resident: Optional[bool] = None
-    funding_source: Optional[List[FundingSource]] = None
+    funding_source: Optional[List[Union[FundingSource, IdentityFundingSourceInner]]] = (
+        None
+    )
     annual_income_min: Optional[float] = None
     annual_income_max: Optional[float] = None
     liquid_net_worth_min: Optional[float] = None
@@ -218,6 +255,7 @@ class Identity(BaseModel):
     total_net_worth_max: Optional[float] = None
 
 
+@_deprecate_compatibility_shape
 class Disclosures(BaseModel):
     """User disclosures within Account Model
 
@@ -256,69 +294,6 @@ class AccountDisclosures(Disclosures):
     is_discretionary: Optional[bool] = None
 
 
-class Agreement(BaseModel):
-    """User agreements signed within Account Model
-
-    see https://alpaca.markets/docs/broker/api-references/accounts/accounts/#the-account-model
-
-    Attributes:
-        agreement (Agreement): The type of agreement signed by the user
-        signed_at (str): The timestamp the agreement was signed
-        ip_address (str): The ip_address the signed agreements were sent from by the user
-        revision (str): The revision date
-    """
-
-    agreement: AgreementType
-    signed_at: str
-    ip_address: str
-    revision: Optional[str] = None
-
-
-class TrustedContact(BaseModel):
-    """User's trusted contact details within Account Model
-
-    see https://alpaca.markets/docs/broker/api-references/accounts/accounts/#the-account-model
-
-    Attributes:given_name
-        given_name (str): The first name of the user's trusted contact
-        family_name (str): The last name of the user's trusted contact
-        email_address (Optional[str]): The email address of the user's trusted contact
-        phone_number (Optional[str]): The email address of the user's trusted contact
-        city (Optional[str]): The email address of the user's trusted contact
-        state (Optional[str]): The email address of the user's trusted contact
-        postal_code (Optional[str]): The email address of the user's trusted contact
-        country (Optional[str]): The email address of the user's trusted contact
-        street_address (Optional[str]): Street address. The Broker API stores an array of strings. A string still works and is stored as a string, but it is deprecated and will be removed in the next release; it is sent as a one-item list.
-    """
-
-    given_name: str
-    family_name: str
-    email_address: Optional[str] = None
-    phone_number: Optional[str] = None
-    street_address: _TrustedStreetAddress = None
-    city: Optional[str] = None
-    state: Optional[str] = None
-    postal_code: Optional[str] = None
-    country: Optional[str] = None
-
-    @model_validator(mode="before")
-    def root_validator(cls, values: dict) -> dict:
-        has_phone_number = (
-            "phone_number" in values and values["phone_number"] is not None
-        )
-        has_street_address = (
-            "street_address" in values and values["street_address"] is not None
-        )
-        has_email_address = (
-            "email_address" in values and values["email_address"] is not None
-        )
-
-        if has_phone_number or has_street_address or has_email_address:
-            return values
-
-        raise ValueError("At least one method of contact required for trusted contact")
-
-
 class MinorIdentity(BaseModel):
     """
     Identity of the minor on a custodial account.
@@ -350,6 +325,7 @@ class MinorIdentity(BaseModel):
     tax_id: Optional[str] = None
 
 
+@_deprecate_compatibility_shape
 class Beneficiary(BaseModel):
     """
     A beneficiary of an account. Used for IRA accounts.
@@ -448,7 +424,8 @@ class AccountTradingConfigurations(BaseModel):
         no_shorting (Optional[bool]): When true, the account is long-only.
         ptp_no_exception_entry (Optional[bool]): When true, PTP symbols with no exception are accepted.
         suspend_trade (Optional[bool]): When true, new orders are blocked.
-        trade_confirm_email (Optional[TradeConfirmationEmail]): ``all`` or ``none``.
+        trade_confirm_email (Optional[Union[TradeConfirmationEmail, AccountConfigurationsTradeConfirmEmail]]):
+          ``all`` or ``none``.
     """
 
     disable_overnight_trading: Optional[bool] = None
@@ -458,9 +435,12 @@ class AccountTradingConfigurations(BaseModel):
     no_shorting: Optional[bool] = None
     ptp_no_exception_entry: Optional[bool] = None
     suspend_trade: Optional[bool] = None
-    trade_confirm_email: Optional[TradeConfirmationEmail] = None
+    trade_confirm_email: Optional[
+        Union[TradeConfirmationEmail, AccountConfigurationsTradeConfirmEmail]
+    ] = None
 
 
+@_deprecate_compatibility_shape
 class Account(ModelWithID):
     """Contains information pertaining to a specific brokerage account
 
@@ -561,6 +541,7 @@ class Account(ModelWithID):
         )
 
 
+@_deprecate_compatibility_shape
 class AccountExtended(Account):
     """
     Account returned by the account list, account update, and ``GET /v1/accounts/{account_id}``.
@@ -618,6 +599,7 @@ class AccountExtended(Account):
         super(Account, self).__init__(**data)
 
 
+@_deprecate_compatibility_shape
 class TradeAccount(BaseTradeAccount):
     """
     See Base TradeAccount model in common for full details on available fields.

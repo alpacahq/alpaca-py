@@ -14,9 +14,13 @@ from alpaca.broker.enums import (
     TransferDirection,
     FeePaymentMethod,
 )
+from alpaca.common._deprecation import (
+    deprecate_compatibility_shape as _deprecate_compatibility_shape,
+)
 from alpaca.common.models import ModelWithID
 
 
+@_deprecate_compatibility_shape
 class BankAdditionalFields(BaseModel):
     """
     Intermediary-bank instructions for an international wire.
@@ -32,6 +36,7 @@ class BankAdditionalFields(BaseModel):
     intermediary_bank3_bic: Optional[str] = None
 
 
+@_deprecate_compatibility_shape
 class TransferIRADetails(BaseModel):
     """
     IRA withholding details returned on a transfer.
@@ -53,6 +58,7 @@ class TransferIRADetails(BaseModel):
     tax_year: Optional[str] = None
 
 
+@_deprecate_compatibility_shape
 class ACHRelationship(ModelWithID):
     """
     Attributes:
@@ -81,6 +87,7 @@ class ACHRelationship(ModelWithID):
     processor_token: Optional[str] = None
 
 
+@_deprecate_compatibility_shape
 class Bank(ModelWithID):
     """
     Attributes:
@@ -117,6 +124,7 @@ class Bank(ModelWithID):
     extra_fields: Optional[BankAdditionalFields] = None
 
 
+@_deprecate_compatibility_shape
 class Transfer(ModelWithID):
     """
     Attributes:

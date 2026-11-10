@@ -1,23 +1,105 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
 from pydantic import Field, field_serializer, field_validator, model_validator
 
+# Explicit rather than `import *`: the hand-written overrides bound below (same
+# names: compatibility shapes or SDK subclasses) are left out, so static analysis
+# (type checkers, AexPy) sees the same classes as runtime. The generated-
+# compatibility tests fail when a new generated name is missing here.
+from alpaca.broker._generated.requests import (
+    AcatsCashBalance,
+    AcatsContraAccountDetails,
+    AcatsEquity,
+    AcatsInitiateTransferDetails,
+    AcatsInitiateTransferRequest,
+    AcatsSecurities,
+    AccountCashInterestPatch,
+    AccountCashInterestPost,
+    AccountCreationRequest,
+    AccountFPSLItemPost,
+    AccountFPSLPatch,
+    AccountFPSLPost,
+    AccountUpdateRequest,
+    AdvancedInstructions,
+    BatchCreateFundingWalletRequest,
+    BatchJournalRequest,
+    BatchJournalRequestEntriesInner,
+    CreateAccountAgreementRequest,
+    CreateAgreementRequest,
+    CreateCryptoTransferRequest,
+    CreateFundingWalletRecipientBankRequest,
+    CreateFundingWalletWithdrawalRequest,
+    CreateIFTransferRequest,
+    CreateJITSettlementRequest,
+    CreateOrderRequest,
+    CreateOrderRequestStopLoss,
+    CreateOrderRequestTakeProfit,
+    CreatePartyAgreementRequest,
+    CreateSettlementRequest,
+    CreateTransferRequest,
+    CreateWatchlistRequest,
+    CreateWhitelistedAddressRequest,
+    ExerciseRequest,
+    GetV1TradingAccountsAccountIdOrdersEstimationRequest,
+    MLegOrderLeg,
+    OAuthTokenRequest,
+    OptionsApprovalRequest,
+    OwnerDocumentUploadRequest,
+    PatchV1AccountsAccountIdOnfidoSdkRequest,
+    PatchV1RebalancingPortfoliosPortfolioIdRequest,
+    PortfolioWeightRequest,
+    PostV1RebalancingPortfoliosRequest,
+    PostV1RebalancingRunsRequest,
+    PostV1RebalancingRunsRequestAmount,
+    PostV1RebalancingSubscriptionsRequest,
+    PostV1TradingAccountsAccountIdWatchlistsWatchlistIdRequest,
+    ReverseBatchJournalRequest,
+    ReverseBatchJournalRequestEntriesInner,
+    TokenizationMintRequest,
+    TokenizationRedeemRequest,
+    TokenizationRequest,
+    TravelRuleInfo,
+    TravelRuleManualEntry,
+    UpdateOrderRequest,
+    UpdateWhitelistedAddressTravelRuleInfoRequest,
+)
+from alpaca.common._deprecation import (
+    deprecate_compatibility_shape as _deprecate_compatibility_shape,
+)
 from alpaca.broker.enums import (
     AccountEntities,
     AccountSubType,
     AccountType,
+    AnnouncementCAType,
     BankAccountType,
+    BankBankCodeType,
     CalendarSubType,
+    CreateACHRelationshipRequestBankAccountType,
     DocumentType,
     DriftBandSubType,
     FeePaymentMethod,
     FundingSource,
+    GetAccountActivitiesCategoryParameter,
+    GetAllAccountsEntitiesParameter,
+    GetAllOrdersForAccountStatusParameter,
+    GetAssetsAssetClassParameter,
+    GetAssetsStatusParameter,
+    GetCorporateAnnouncementsDateTypeParameter,
+    GetDocsForAccountTypeParameter,
+    GetV1TradingAccountsAccountIdAccountPortfolioHistoryIntradayReportingParameter,
+    GetV1TradingAccountsAccountIdAccountPortfolioHistoryPnlResetParameter,
     IdentifierType,
+    IdentityFundingSourceInner,
     JournalEntryType,
     JournalStatus,
+    LegacyCalendarDateTypeParameter,
+    OrderSide,
+    OwnerDocumentType,
+    PortfolioRunType,
     PortfolioStatus,
+    PortfolioWeightRequestType,
     TaxIdType,
     RebalancingConditionsType,
     RunType,
@@ -52,6 +134,12 @@ from alpaca.trading.enums import (
     ActivityType,
     AssetClass,
     OrderType,
+)
+
+# ActivityCategory's deprecation names the Trading enum; the Broker spec has its own
+# class with the same values. Both are accepted so either type-checks.
+from alpaca.trading.enums import (
+    GetAccountActivitiesCategoryParameter as _TradingActivitiesCategory,
 )
 from alpaca.trading.requests import LimitOrderRequest as BaseLimitOrderRequest
 from alpaca.trading.requests import MarketOrderRequest as BaseMarketOrderRequest
@@ -247,7 +335,9 @@ class UpdatableIdentity(NonEmptyRequest):
     visa_expiration_date: Optional[str] = None
     date_of_departure_from_usa: Optional[str] = None
     permanent_resident: Optional[bool] = None
-    funding_source: Optional[List[FundingSource]] = None
+    funding_source: Optional[List[Union[FundingSource, IdentityFundingSourceInner]]] = (
+        None
+    )
     annual_income_min: Optional[float] = None
     annual_income_max: Optional[float] = None
     liquid_net_worth_min: Optional[float] = None
@@ -361,7 +451,9 @@ class ListAccountsRequest(NonEmptyRequest):
     created_after: Optional[datetime] = None
     status: Optional[List[AccountStatus]] = None
     sort: Sort
-    entities: Optional[List[AccountEntities]] = None
+    entities: Optional[
+        List[Union[AccountEntities, GetAllAccountsEntitiesParameter]]
+    ] = None
 
     def __init__(self, *args, **kwargs):
         # The api itself actually defaults to DESC, but this way our docs won't be incorrect if the api changes under us
@@ -401,7 +493,8 @@ class GetAccountActivitiesRequest(NonEmptyRequest):
         account_id (Optional[Union[UUID, str]]): Specifies to filter to only activities for this Account
         activity_types (Optional[List[ActivityType]]): A list of ActivityType's to filter results down to.
           Cannot be combined with ``category``.
-        category (Optional[ActivityCategory]): ``trade_activity`` or ``non_trade_activity``.
+        category (Optional[Union[ActivityCategory, GetAccountActivitiesCategoryParameter]]): ``trade_activity`` or
+          ``non_trade_activity``. The Trading and Broker GetAccountActivitiesCategoryParameter are both accepted.
           Cannot be combined with ``activity_types``.
         order_id (Optional[UUID]): Restrict results to this order.
         date (Optional[datetime]): Filter to Activities only on this date.
@@ -415,7 +508,13 @@ class GetAccountActivitiesRequest(NonEmptyRequest):
 
     account_id: Optional[Union[UUID, str]] = None
     activity_types: Optional[List[ActivityType]] = None
-    category: Optional[ActivityCategory] = None
+    category: Optional[
+        Union[
+            ActivityCategory,
+            GetAccountActivitiesCategoryParameter,
+            _TradingActivitiesCategory,
+        ]
+    ] = None
     order_id: Optional[UUID] = None
     date: Optional[datetime] = None
     until: Optional[datetime] = None
@@ -470,12 +569,13 @@ class GetTradeDocumentsRequest(NonEmptyRequest):
           be upcast into date instances. Format must be in YYYY-MM-DD.
         end (Optional[Union[date, str]]): Filter to TradeDocuments created before this Date. str values will attempt to
           be upcast into date instances. Format must be in YYYY-MM-DD.
-        type (Optional[TradeDocumentType]): Filter to only these types of TradeDocuments
+        type (Optional[Union[TradeDocumentType, GetDocsForAccountTypeParameter]]): Filter to only these types of
+          TradeDocuments
     """
 
     start: Optional[Union[date, str]] = None
     end: Optional[Union[date, str]] = None
-    type: Optional[TradeDocumentType] = None
+    type: Optional[Union[TradeDocumentType, GetDocsForAccountTypeParameter]] = None
 
     def __init__(self, **data) -> None:
         if "start" in data and isinstance(data["start"], str):
@@ -503,14 +603,14 @@ class GetTradeDocumentsRequest(NonEmptyRequest):
 class UploadDocumentRequest(NonEmptyRequest):
     """
     Attributes:
-        document_type (DocumentType): The type of document you are uploading
+        document_type (Union[DocumentType, OwnerDocumentType]): The type of document you are uploading
         document_sub_type (Optional[UploadDocumentSubType]): If supported for the corresponding `document_type` this
           field allows you to specify a sub type to be even more specific.
         content (str): A string containing Base64 encoded data to upload.
         mime_type (UploadDocumentMimeType): The mime type of the data in `content`
     """
 
-    document_type: DocumentType
+    document_type: Union[DocumentType, OwnerDocumentType]
     document_sub_type: Optional[UploadDocumentSubType] = None
     content: str
     mime_type: UploadDocumentMimeType
@@ -533,6 +633,7 @@ class UploadDocumentRequest(NonEmptyRequest):
 # ############################## Banking and Transfers ################################# #
 
 
+@_deprecate_compatibility_shape
 class CreateACHRelationshipRequest(NonEmptyRequest):
     """
     Attributes:
@@ -547,7 +648,9 @@ class CreateACHRelationshipRequest(NonEmptyRequest):
     """
 
     account_owner_name: str
-    bank_account_type: BankAccountType
+    bank_account_type: Union[
+        BankAccountType, CreateACHRelationshipRequestBankAccountType
+    ]
     bank_account_number: str  # TODO: Validate bank account number format.
     bank_routing_number: str  # TODO: Validate bank routing number format.
     nickname: Optional[str] = None
@@ -570,6 +673,7 @@ class CreatePlaidRelationshipRequest(NonEmptyRequest):
     processor_token: str
 
 
+@_deprecate_compatibility_shape
 class CreateBankRequest(NonEmptyRequest):
     """
     Attributes:
@@ -591,7 +695,7 @@ class CreateBankRequest(NonEmptyRequest):
     """
 
     name: str
-    bank_code_type: IdentifierType
+    bank_code_type: Union[IdentifierType, BankBankCodeType]
     bank_code: str
     account_number: str
     country: Optional[str] = None
@@ -914,6 +1018,7 @@ class TrailingStopOrderRequest(BaseTrailingStopOrderRequest):
 # ############################## Journals ################################# #
 
 
+@_deprecate_compatibility_shape
 class CreateJournalRequest(NonEmptyRequest):
     """
     Data for request to initiate a single journal.
@@ -956,14 +1061,14 @@ class CreateJournalRequest(NonEmptyRequest):
 
         # amount is for cash journals, symbol and qty are for security journals
         # they are mutually exclusive
-        if entry_type is not None and entry_type == JournalEntryType.CASH:
+        if entry_type is not None and entry_type == JournalEntryType.JNLC:
             if symbol or qty:
                 raise ValueError("Symbol and qty are reserved for security journals.")
 
             if not amount:
                 raise ValueError("Cash journals must contain an amount to transfer.")
 
-        if entry_type is not None and entry_type == JournalEntryType.SECURITY:
+        if entry_type is not None and entry_type == JournalEntryType.JNLS:
             if amount:
                 raise ValueError("Amount is reserved for cash journals.")
 
@@ -1146,7 +1251,7 @@ class Weight(BaseModel):
     https://docs.alpaca.markets/reference/post-v1-rebalancing-portfolios
     """
 
-    type: WeightType
+    type: Union[WeightType, PortfolioWeightRequestType]
     symbol: Optional[str] = None
     percent: float
 
@@ -1168,11 +1273,16 @@ class Weight(BaseModel):
         return values
 
 
+@_deprecate_compatibility_shape
 class RebalancingConditions(BaseModel):
     """
     Rebalancing conditions model.
 
     https://docs.alpaca.markets/reference/post-v1-rebalancing-portfolios
+
+    The generated RebalancingConditions types percent as a strict string and the
+    type/sub_type fields as plain strings; this shape keeps the published float and
+    enum fields until the generated model replaces it.
     """
 
     type: RebalancingConditionsType
@@ -1255,7 +1365,7 @@ class CreateRunRequest(NonEmptyRequest):
     """
 
     account_id: UUID
-    type: RunType
+    type: Union[RunType, PortfolioRunType]
     weights: List[Weight]
 
 
@@ -1267,7 +1377,7 @@ class GetRunsRequest(NonEmptyRequest):
     """
 
     account_id: Optional[UUID] = None
-    type: Optional[RunType] = None
+    type: Optional[Union[RunType, PortfolioRunType]] = None
     limit: Optional[int] = None
     page_token: Optional[str] = None
 
@@ -1283,3 +1393,134 @@ class CreateOptionExerciseRequest(NonEmptyRequest):
 
     commission: Optional[float] = None
     qty: Optional[str] = None
+
+
+# ############################## Trading ################################# #
+
+
+class ClosePositionRequest(NonEmptyRequest):
+    """
+    Query parameters for closing one open position.
+
+    Exactly one of `qty` or `percentage` must be set.
+    """
+
+    qty: Optional[str] = None
+    percentage: Optional[str] = None
+
+    @model_validator(mode="before")
+    def root_validator(cls, values: dict) -> dict:
+        qty = values.get("qty", None)
+        percentage = values.get("percentage", None)
+        if qty is None and percentage is None:
+            raise ValueError(
+                "qty or percentage must be given to the ClosePositionRequest, got None for both."
+            )
+
+        if qty is not None and percentage is not None:
+            raise ValueError(
+                "Only one of qty or percentage must be given to the ClosePositionRequest, got both."
+            )
+
+        return values
+
+
+class GetPortfolioHistoryRequest(NonEmptyRequest):
+    """
+    Query parameters for an account portfolio history request.
+    """
+
+    period: Optional[str] = None
+    timeframe: Optional[str] = None
+    intraday_reporting: Optional[
+        GetV1TradingAccountsAccountIdAccountPortfolioHistoryIntradayReportingParameter
+    ] = None
+    start: Optional[datetime] = None
+    pnl_reset: Optional[
+        GetV1TradingAccountsAccountIdAccountPortfolioHistoryPnlResetParameter
+    ] = None
+    end: Optional[datetime] = None
+    date_end: Optional[date] = None
+    extended_hours: Optional[bool] = None
+    cashflow_types: Optional[str] = None
+
+
+class GetCalendarRequest(NonEmptyRequest):
+    """
+    Query parameters for the legacy market calendar.
+    """
+
+    start: Optional[date] = None
+    end: Optional[date] = None
+    date_type: Optional[LegacyCalendarDateTypeParameter] = None
+
+
+class GetAssetsRequest(NonEmptyRequest):
+    """
+    Query parameters for listing assets.
+    """
+
+    status: Optional[GetAssetsStatusParameter] = None
+    asset_class: Optional[GetAssetsAssetClassParameter] = None
+    exchange: Optional[str] = None
+    attributes: Optional[str] = None
+
+
+class GetOrdersRequest(NonEmptyRequest):
+    """
+    Query parameters for listing orders on an account.
+    """
+
+    status: Optional[GetAllOrdersForAccountStatusParameter] = None
+    limit: Optional[int] = None
+    after: Optional[datetime] = None
+    until: Optional[datetime] = None
+    direction: Optional[Sort] = None
+    nested: Optional[bool] = None
+    side: Optional[OrderSide] = None
+    symbols: Optional[List[str]] = None
+
+
+class GetOrderByIdRequest(NonEmptyRequest):
+    """
+    Query parameters for retrieving one order by id.
+    """
+
+    nested: bool
+
+
+class GetCorporateAnnouncementsRequest(NonEmptyRequest):
+    """
+    Query parameters for corporate action announcements.
+
+    The `since`/`until` window is limited to 90 days.
+    """
+
+    ca_types: List[AnnouncementCAType]
+    since: date
+    until: date
+    symbol: Optional[str] = None
+    cusip: Optional[str] = None
+    date_type: Optional[GetCorporateAnnouncementsDateTypeParameter] = None
+
+    @model_validator(mode="before")
+    def root_validator(cls, values: dict) -> dict:
+        since = values.get("since")
+        until = values.get("until")
+        if since is None or until is None:
+            return values
+
+        since = _as_date(since)
+        until = _as_date(until)
+        if (until - since) > timedelta(days=90):
+            raise ValueError("The date range is limited to 90 days.")
+
+        return values
+
+
+def _as_date(value: Union[date, datetime, str]) -> date:
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, date):
+        return value
+    return date.fromisoformat(str(value)[:10])

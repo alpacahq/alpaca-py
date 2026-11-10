@@ -4,12 +4,17 @@ from uuid import UUID
 
 from pydantic import Field, field_validator
 
+from alpaca.broker._generated.models import SkippedOrder
 from alpaca.broker.enums import PortfolioStatus, RunInitiatedFrom, RunStatus, RunType
 from alpaca.broker.models import Order
 from alpaca.broker.requests import RebalancingConditions, Weight
+from alpaca.common._deprecation import (
+    deprecate_compatibility_shape as _deprecate_compatibility_shape,
+)
 from alpaca.common.models import ValidateBaseModel as BaseModel
 
 
+@_deprecate_compatibility_shape
 class Portfolio(BaseModel):
     """
     Portfolio response model.
@@ -60,21 +65,6 @@ class SubscriptionPage(BaseModel):
     @classmethod
     def _null_as_empty(cls, value):
         return [] if value is None else value
-
-
-class SkippedOrder(BaseModel):
-    """
-    Skipped order response model.
-
-    https://docs.alpaca.markets/reference/get-v1-rebalancing-runs-run_id-1
-    """
-
-    symbol: str
-    side: Optional[str] = None
-    notional: Optional[str] = None
-    currency: Optional[str] = None
-    reason: str
-    reason_details: str
 
 
 class RebalancingRun(BaseModel):

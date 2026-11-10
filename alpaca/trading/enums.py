@@ -115,7 +115,8 @@ class NonTradeActivityStatus(str, Enum):
 
 @_deprecated(
     "AssetStatus is deprecated and will be removed in a future version. "
-    "Please use `AssetsStatus` instead. AssetsStatus has no ALL member.",
+    "Please use `AssetsStatus` instead. AssetsStatus has no ALL member; for "
+    "Broker GET /v1/assets use GetAssetsStatusParameter from alpaca.broker.enums.",
     stacklevel=2,
 )
 class AssetStatus(str, Enum):
@@ -126,7 +127,8 @@ class AssetStatus(str, Enum):
     and inactive assets.
 
     .. deprecated:: 0.45.0
-        Please use `AssetsStatus` instead. It has no ``ALL`` member.
+        Please use `AssetsStatus` instead. It has no ``ALL`` member; for Broker
+        ``GET /v1/assets`` use `GetAssetsStatusParameter` from ``alpaca.broker.enums``.
     """
 
     ACTIVE = "active"
@@ -206,11 +208,21 @@ class CorporateActionType(str, Enum):
     SPLIT = "split"
 
 
+@_deprecated(
+    "CorporateActionSubType is deprecated and will be removed in a future version. "
+    "Please use `AnnouncementCASubType` instead. It spells UNIT_SPLIT's value "
+    "until_split rather than unit_split.",
+    stacklevel=2,
+)
 class CorporateActionSubType(str, Enum):
     """
     The specific types of corporate actions. Each subtype is related to CorporateActionType.
 
     Learn more here: https://alpaca.markets/docs/api-references/trading-api/corporate-actions-announcements/
+
+    .. deprecated:: 0.45.0
+        Please use `AnnouncementCASubType` instead. It spells the unit split value
+        ``until_split`` rather than ``unit_split``.
     """
 
     CASH = "cash"
@@ -299,7 +311,19 @@ class AccountStatus(
     SUBMITTED = "SUBMITTED"
 
 
+@_deprecated(
+    "CorporateActionDateType is deprecated and will be removed in a future version. "
+    "Please use `GetV2CorporateActionsAnnouncementsDateTypeParameter` instead.",
+    stacklevel=2,
+)
 class CorporateActionDateType(str, Enum):
+    """
+    Which announcement date ``since`` and ``until`` apply to.
+
+    .. deprecated:: 0.45.0
+        Please use `GetV2CorporateActionsAnnouncementsDateTypeParameter` instead.
+    """
+
     DECLARATION_DATE = "declaration_date"
     EX_DATE = "ex_date"
     RECORD_DATE = "record_date"
@@ -369,12 +393,20 @@ class PDTCheck(str, Enum):
     EXIT = "exit"
 
 
+@_deprecated(
+    "TradeConfirmationEmail is deprecated and will be removed in a future version. "
+    "Please use `AccountConfigurationsTradeConfirmEmail` instead.",
+    stacklevel=2,
+)
 class TradeConfirmationEmail(str, Enum):
     """
     Used for controlling when an Account will receive a trade confirmation email.
 
     please see https://docs.alpaca.markets/reference/getaccountconfig
     for more info.
+
+    .. deprecated:: 0.45.0
+        Please use `AccountConfigurationsTradeConfirmEmail` instead.
     """
 
     ALL = "all"
@@ -643,3 +675,27 @@ class CalendarDateType(str, Enum):
 
     TRADING = "TRADING"
     SETTLEMENT = "SETTLEMENT"
+
+
+# These enums are generated for the Broker API, not Trading, and are the
+# replacements named by TradeConfirmationEmail and CorporateActionSubType. The
+# Trading OpenAPI spec types the corresponding fields as plain strings, so no
+# Trading-owned enum exists. alpaca.broker imports from alpaca.trading.enums at
+# module load time, so a normal top-level import from alpaca.broker._generated.enums
+# here would deadlock as a circular import. Module __getattr__ (PEP 562) defers the
+# import until the name is actually looked up, by which point both packages have
+# finished loading.
+_BROKER_GENERATED_ENUMS = (
+    "AccountConfigurationsTradeConfirmEmail",
+    "AnnouncementCASubType",
+)
+
+
+def __getattr__(name: str):
+    if name in _BROKER_GENERATED_ENUMS:
+        from alpaca.broker._generated import enums as broker_enums
+
+        value = getattr(broker_enums, name)
+        globals()[name] = value
+        return value
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

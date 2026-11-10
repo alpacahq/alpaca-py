@@ -14,6 +14,13 @@
     }
   },
   "operationMethods": {
+    "listLocates": "get_locates",
+    "createLocates": "create_locate",
+    "getLocate": "get_locate",
+    "listLocateQuotes": "get_locate_quotes",
+    "getAccountActivities": "get_account_activities",
+    "getAccountActivitiesByActivityType": "get_account_activities_by_type",
+    "subscribeToActivitiesSSE": "subscribe_to_activities_sse",
     "optionDoNotExercise": "do_not_exercise_option",
     "postTokenizationMint": "tokenization_mint",
     "getTokenizationRequests": "get_tokenization_requests",
@@ -27,6 +34,12 @@
     "updateWhitelistedAddressTravelRuleInfo": "update_whitelisted_address_travel_rule_info",
     "listWhitelistedAddress": "list_whitelisted_addresses",
     "createWhitelistedAddress": "create_whitelisted_address",
-    "deleteWhitelistedAddress": "delete_whitelisted_address"
+    "deleteWhitelistedAddress": "delete_whitelisted_address",
+    "deleteWatchlistByName": "delete_watchlist_by_name",
+    "getWatchlistByName": "get_watchlist_by_name",
+    "addAssetToWatchlistByName": "add_asset_to_watchlist_by_name",
+    "updateWatchlistByName": "update_watchlist_by_name",
+    "Calendar": "get_v3_calendar",
+    "Clock": "get_v3_clock"
   }
 }

@@ -11,7 +11,7 @@ from alpaca.common._deprecation import (
 )
 from alpaca.common.enums import Sort
 from alpaca.common.models import ModelWithID
-from alpaca.common.requests import NonEmptyRequest
+from alpaca.common.requests import NonEmptyRequest, comma_separated
 from alpaca.trading._generated.models import CanceledOrderResponse
 from alpaca.trading._generated.requests import (
     AddAssetToWatchlistRequest,
@@ -39,15 +39,19 @@ from alpaca.trading.enums import (
     AssetsStatus,
     AssetStatus,
     CalendarDateType,
+    CalendarTimezoneParameter,
     ContractType,
     CorporateActionDateType,
     CorporateActionType,
     CryptoChain,
     Exchange,
     ExerciseStyle,
+    GetAccountActivitiesCategoryParameter,
+    GetAccountActivitiesDirectionParameter,
     GetAllOrdersStatusParameter,
     GetV2CorporateActionsAnnouncementsDateTypeParameter,
     LegacyCalendarDateTypeParameter,
+    LocateStatus,
     OptionContractStyle,
     OptionContractType,
     OrderClass,
@@ -861,6 +865,148 @@ class GetOptionContractsRequest(NonEmptyRequest):
     page_token: Optional[str] = None
 
 
+class GetLocatesRequest(NonEmptyRequest):
+    """
+    Filters for ``GET /v1/locates``.
+
+    Attributes:
+        page_token (Optional[str]): Token for the next page of results.
+        limit (Optional[int]): Maximum number of locates to return.
+        status (Optional[LocateStatus]): ``active``, ``expired``, or ``rejected``.
+        symbol (Optional[str]): Stock symbol.
+        start (Optional[date]): Inclusive start date.
+        end (Optional[date]): Inclusive end date.
+    """
+
+    page_token: Optional[str] = None
+    limit: Optional[int] = None
+    status: Optional[LocateStatus] = None
+    symbol: Optional[str] = None
+    start: Optional[date] = None
+    end: Optional[date] = None
+
+
+class GetLocateQuotesRequest(NonEmptyRequest):
+    """
+    Filters for ``GET /v1/locates/quotes``.
+
+    Attributes:
+        symbols (Union[str, List[str]]): Comma-separated symbols, or a list joined on the wire.
+    """
+
+    symbols: Union[str, List[str]]
+
+    def to_request_fields(self) -> dict:
+        fields = super().to_request_fields()
+        if "symbols" in fields:
+            fields["symbols"] = comma_separated(fields["symbols"])
+        return fields
+
+
+def _reject_conflicting_activity_dates(values: dict) -> None:
+    """``date`` is a single-day filter and cannot be combined with a range."""
+
+    if values.get("date") is None:
+        return
+
+    if values.get("after") is not None:
+        raise ValueError("Cannot set date and after at the same time")
+
+    if values.get("until") is not None:
+        raise ValueError("Cannot set date and until at the same time")
+
+
+def _activity_types_is_set(activity_types: Optional[Union[str, List[str]]]) -> bool:
+    if activity_types is None:
+        return False
+    if isinstance(activity_types, str):
+        return activity_types != ""
+    return len(activity_types) > 0
+
+
+class GetAccountActivitiesRequest(NonEmptyRequest):
+    """
+    Filters for ``GET /v2/account/activities``.
+
+    ``activity_types`` is sent as one comma-separated query value. It cannot be
+    combined with ``category``. ``date`` cannot be combined with ``after`` or
+    ``until``.
+
+    The response is one page. Pass the ``id`` of the last activity as
+    ``page_token`` to request the next page.
+    """
+
+    activity_types: Optional[Union[str, List[str]]] = None
+    category: Optional[GetAccountActivitiesCategoryParameter] = None
+    order_id: Optional[str] = None
+    date: Optional[datetime] = None
+    until: Optional[datetime] = None
+    after: Optional[datetime] = None
+    direction: Optional[GetAccountActivitiesDirectionParameter] = None
+    page_size: Optional[int] = None
+    page_token: Optional[str] = None
+
+    @model_validator(mode="before")
+    def reject_conflicting_filters(cls, values: dict) -> dict:
+        if not isinstance(values, dict):
+            return values
+
+        _reject_conflicting_activity_dates(values)
+        if values.get("category") is not None and _activity_types_is_set(
+            values.get("activity_types")
+        ):
+            raise ValueError("Cannot set category and activity_types at the same time")
+
+        return values
+
+    def to_request_fields(self) -> dict:
+        fields = super().to_request_fields()
+        if "activity_types" in fields:
+            fields["activity_types"] = comma_separated(fields["activity_types"])
+        return fields
+
+
+class GetAccountActivitiesByTypeRequest(NonEmptyRequest):
+    """
+    Filters for ``GET /v2/account/activities/{activity_type}``.
+
+    ``date`` cannot be combined with ``after`` or ``until``.
+    """
+
+    order_id: Optional[str] = None
+    date: Optional[datetime] = None
+    until: Optional[datetime] = None
+    after: Optional[datetime] = None
+    direction: Optional[GetAccountActivitiesDirectionParameter] = None
+    page_size: Optional[int] = None
+    page_token: Optional[str] = None
+
+    @model_validator(mode="before")
+    def reject_conflicting_filters(cls, values: dict) -> dict:
+        if not isinstance(values, dict):
+            return values
+
+        _reject_conflicting_activity_dates(values)
+        return values
+
+
+class ActivityEventsRequest(NonEmptyRequest):
+    """
+    Query filters for the account-activities SSE stream.
+
+    Attributes:
+        since (Optional[datetime]): Replay events at or after this time.
+        until (Optional[datetime]): Close the stream after this time.
+        since_id (Optional[str]): Replay events at or after this id.
+        until_id (Optional[str]): Close the stream at this id.
+    """
+
+    since: Optional[datetime] = None
+    until: Optional[datetime] = None
+    since_id: Optional[str] = None
+    until_id: Optional[str] = None
+
+
 class GetTokenizationRequestsRequest(NonEmptyRequest):
     """
     Filters for ``GET /v2/tokenization/requests``.
@@ -919,3 +1065,31 @@ class SearchVASPsRequest(NonEmptyRequest):
                 fields["includeSubsidiaryVASPs"]
             ).lower()
         return fields
+
+
+class GetV3CalendarRequest(NonEmptyRequest):
+    """
+    Filters for ``GET /v3/calendar/{market}``.
+
+    Attributes:
+        start (Optional[date]): Inclusive range start.
+        end (Optional[date]): Inclusive range end.
+        timezone (Optional[CalendarTimezoneParameter]): ``UTC`` when timestamps should be UTC.
+    """
+
+    start: Optional[date] = None
+    end: Optional[date] = None
+    timezone: Optional[CalendarTimezoneParameter] = None
+
+
+class GetV3ClockRequest(NonEmptyRequest):
+    """
+    Filters for ``GET /v3/clock``.
+
+    Attributes:
+        markets (Optional[str]): Comma-separated market acronyms, such as ``NYSE,LSE``.
+        time (Optional[datetime]): Instant at which to evaluate the clocks.
+    """
+
+    markets: Optional[str] = None
+    time: Optional[datetime] = None

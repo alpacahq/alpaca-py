@@ -102,6 +102,7 @@ class RESTClient(ABC):
         data: Optional[Union[dict, str]] = None,
         base_url: Optional[Union[BaseURL, str]] = None,
         api_version: Optional[str] = None,
+        params: Optional[dict] = None,
     ) -> HTTPResult:
         """Prepares and submits HTTP requests to given API endpoint and returns response.
         Handles retrying if 429 (Rate Limit) error arises.
@@ -113,6 +114,7 @@ class RESTClient(ABC):
              of values to be converted to appropriate format based on `method`. Defaults to None.
             base_url (Optional[Union[BaseURL, str]]): The base URL of the API. Defaults to None.
             api_version (Optional[str]): The API version. Defaults to None.
+            params (Optional[dict]): Query parameters for methods that also send a body.
 
         Returns:
             HTTPResult: The response from the API
@@ -136,6 +138,8 @@ class RESTClient(ABC):
             opts["params"] = data
         else:
             opts["json"] = data
+            if params:
+                opts["params"] = params
 
         retry = self._retry
 
@@ -241,7 +245,11 @@ class RESTClient(ABC):
         return self._request("GET", path, data, **kwargs)
 
     def post(
-        self, path: str, data: Optional[Union[dict, List[dict]]] = None
+        self,
+        path: str,
+        data: Optional[Union[dict, List[dict]]] = None,
+        params: Optional[dict] = None,
+        api_version: Optional[str] = None,
     ) -> HTTPResult:
         """Performs a single POST request
 
@@ -249,37 +257,45 @@ class RESTClient(ABC):
             path (str): The API endpoint path
             data (Optional[Union[dict, List[dict]]): The json payload as a dict of values to be converted.
              Defaults to None.
+            params (Optional[dict]): Query parameters sent alongside the body.
+            api_version (Optional[str]): Overrides the client API version for this request.
 
         Returns:
             dict: The response
         """
-        return self._request("POST", path, data)
+        return self._request("POST", path, data, api_version=api_version, params=params)
 
-    def put(self, path: str, data: Optional[dict] = None) -> dict:
+    def put(
+        self, path: str, data: Optional[dict] = None, params: Optional[dict] = None
+    ) -> dict:
         """Performs a single PUT request
 
         Args:
             path (str): The API endpoint path
             data (Optional[dict]): The json payload as a dict of values to be converted.
              Defaults to None.
+            params (Optional[dict]): Query parameters sent alongside the body.
 
         Returns:
             dict: The response
         """
-        return self._request("PUT", path, data)
+        return self._request("PUT", path, data, params=params)
 
-    def patch(self, path: str, data: Optional[dict] = None) -> dict:
+    def patch(
+        self, path: str, data: Optional[dict] = None, params: Optional[dict] = None
+    ) -> dict:
         """Performs a single PATCH request
 
         Args:
             path (str): The API endpoint path
             data (Optional[dict]): The json payload as a dict of values to be converted.
              Defaults to None.
+            params (Optional[dict]): Query parameters sent alongside the body.
 
         Returns:
             dict: The response
         """
-        return self._request("PATCH", path, data)
+        return self._request("PATCH", path, data, params=params)
 
     def delete(self, path, data: Optional[Union[dict, str]] = None) -> dict:
         """Performs a single DELETE request

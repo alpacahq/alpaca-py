@@ -4,7 +4,7 @@ from typing import Any, List, Optional, Union
 from pydantic import ConfigDict, Field
 
 from alpaca.common.enums import Sort, SupportedCurrencies
-from alpaca.common.requests import NonEmptyRequest
+from alpaca.common.requests import NonEmptyRequest, comma_separated
 from alpaca.data._generated.requests import *  # noqa: F403
 from alpaca.data.enums import (
     Adjustment,
@@ -737,12 +737,6 @@ class CorporateActionsRequest(NonEmptyRequest):
     sort: Optional[Sort] = Sort.ASC
 
 
-def _comma_separated(value: Union[str, List[Any]]) -> str:
-    if isinstance(value, list):
-        return ",".join(str(item) for item in value)
-    return str(value)
-
-
 class FixedIncomeLatestPricesRequest(NonEmptyRequest):
     """
     Latest fixed-income prices for ``/fixed_income/latest/prices``.
@@ -756,7 +750,7 @@ class FixedIncomeLatestPricesRequest(NonEmptyRequest):
     def to_request_fields(self) -> dict:
         fields = super().to_request_fields()
         if "isins" in fields:
-            fields["isins"] = _comma_separated(fields["isins"])
+            fields["isins"] = comma_separated(fields["isins"])
         return fields
 
 
@@ -804,5 +798,5 @@ class CorporateActionEventsRequest(NonEmptyRequest):
     def to_request_fields(self) -> dict:
         fields = super().to_request_fields()
         if "type" in fields:
-            fields["type"] = _comma_separated(fields["type"])
+            fields["type"] = comma_separated(fields["type"])
         return fields

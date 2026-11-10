@@ -3,8 +3,13 @@
   "fieldAliases": {},
   "operationMethods": {
     "CorporateActions": "get_corporate_actions",
+    "SubscribeToCorporateActionsEventsSSE": "get_corporate_action_events",
+    "FixedIncomeLatestPrices": "get_fixed_income_latest_prices",
+    "FixedIncomeLatestQuotes": "get_fixed_income_latest_quotes",
+    "Logos": "get_logo",
     "News": "get_news",
     "optionBars": "get_option_bars",
+    "OptionMetaConditions": "get_option_condition_codes",
     "OptionMetaExchanges": "get_option_exchange_codes",
     "OptionLatestQuotes": "get_option_latest_quote",
     "OptionSnapshots": "get_option_snapshot",

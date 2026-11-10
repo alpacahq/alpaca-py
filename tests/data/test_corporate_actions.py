@@ -1,5 +1,5 @@
 import urllib
-from datetime import date
+from datetime import date, datetime, timezone
 from urllib.parse import parse_qs, urlparse
 from uuid import UUID
 
@@ -14,7 +14,7 @@ from alpaca.data.models.corporate_actions import (
     StockDividend,
     UnitSplit,
 )
-from alpaca.data.requests import CorporateActionsRequest
+from alpaca.data.requests import CorporateActionEventsRequest, CorporateActionsRequest
 
 
 def test_get_corporate_actions(
@@ -395,3 +395,47 @@ def test_get_corporate_actions_parses_the_types_without_a_handwritten_model(
         "reorganizations",
         "capital_gains_distributions",
     }
+
+
+def test_get_corporate_action_events(
+    reqmock, corporate_actions_client: CorporateActionsClient
+):
+    payload = '{"action":"insert","event_id":"01J9RPMV5TKB8WX3M4F1KZ7QH2"}'
+    reqmock.get(
+        "https://data.alpaca.markets/v1beta1/events/corporate-actions",
+        text=f"data: {payload}\n\n",
+        headers={"Content-Type": "text/event-stream"},
+    )
+    request = CorporateActionEventsRequest(
+        type=[
+            "cash_dividend_corporateaction_event",
+            "stock_dividend_corporateaction_event",
+        ],
+        region="us",
+        since=datetime(2026, 3, 20, tzinfo=timezone.utc),
+        until=datetime(2026, 3, 20, 23, 59, 59, tzinfo=timezone.utc),
+        since_id="01J9RPMV5TKB8WX3M4F1KZ7QH2",
+        until_id="01J9RVB6Y4ZK8M3N7QD2WX1RFP",
+        last_event_id="01J9RPMV5TKB8WX3M4F1KZ7QH2",
+    )
+
+    events = list(corporate_actions_client.get_corporate_action_events(request))
+
+    assert events == [payload]
+    sent = reqmock.request_history[0]
+    assert urlparse(sent.url).path == "/v1beta1/events/corporate-actions"
+    assert "/v1/events/corporate-actions" not in sent.url
+    assert sent.headers["Accept"] == "text/event-stream"
+    assert sent.headers["Connection"] == "keep-alive"
+    assert sent.headers["Cache-Control"] == "no-cache"
+    assert sent.headers["Last-Event-Id"] == "01J9RPMV5TKB8WX3M4F1KZ7QH2"
+    query = parse_qs(urlparse(sent.url).query)
+    assert "last_event_id" not in query
+    assert query["type"] == [
+        "cash_dividend_corporateaction_event,stock_dividend_corporateaction_event"
+    ]
+    assert query["region"] == ["us"]
+    assert query["since_id"] == ["01J9RPMV5TKB8WX3M4F1KZ7QH2"]
+    assert query["until_id"] == ["01J9RVB6Y4ZK8M3N7QD2WX1RFP"]
+    assert "since" in query
+    assert "until" in query

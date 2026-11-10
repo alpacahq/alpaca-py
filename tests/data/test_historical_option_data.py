@@ -1064,3 +1064,19 @@ def test_get_option_chain(reqmock, option_client: OptionHistoricalDataClient):
     assert snapshot.implied_volatility == 0.4584478444465036
 
     assert reqmock.called_once
+
+
+def test_get_option_condition_codes(reqmock, option_client: OptionHistoricalDataClient):
+    reqmock.get(
+        "https://data.alpaca.markets/v1beta1/options/meta/conditions/quote",
+        json={"A": "Regular"},
+    )
+
+    codes = option_client.get_option_condition_codes("quote")
+
+    assert codes == {"A": "Regular"}
+    assert (
+        urllib.parse.urlparse(reqmock.request_history[0].url).path
+        == "/v1beta1/options/meta/conditions/quote"
+    )
+    assert reqmock.called_once

@@ -9,25 +9,25 @@
     },
     {
       "httpMethod": "GET",
-      "methodName": null,
+      "methodName": "get_corporate_action_events",
       "operationId": "SubscribeToCorporateActionsEventsSSE",
       "path": "/v1beta1/events/corporate-actions"
     },
     {
       "httpMethod": "GET",
-      "methodName": null,
+      "methodName": "get_fixed_income_latest_prices",
       "operationId": "FixedIncomeLatestPrices",
       "path": "/v1beta1/fixed_income/latest/prices"
     },
     {
       "httpMethod": "GET",
-      "methodName": null,
+      "methodName": "get_fixed_income_latest_quotes",
       "operationId": "FixedIncomeLatestQuotes",
       "path": "/v1beta1/fixed_income/latest/quotes"
     },
     {
       "httpMethod": "GET",
-      "methodName": null,
+      "methodName": "get_logo",
       "operationId": "Logos",
       "path": "/v1beta1/logos/{symbol}"
     },
@@ -45,7 +45,7 @@
     },
     {
       "httpMethod": "GET",
-      "methodName": null,
+      "methodName": "get_option_condition_codes",
       "operationId": "OptionMetaConditions",
       "path": "/v1beta1/options/meta/conditions/{ticktype}"
     },

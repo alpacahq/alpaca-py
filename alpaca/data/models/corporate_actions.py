@@ -4,6 +4,7 @@ from typing import Dict, List, Optional, Union
 import pandas as pd
 from pandas import DataFrame
 
+from alpaca.common._deprecation import builds_from_response as _builds_from_response
 from alpaca.common._deprecation import (
     deprecate_compatibility_shape as _deprecate_compatibility_shape,
 )
@@ -233,6 +234,7 @@ class CorporateActionsSet(BaseDataSet, TimeSeriesMixin):
         List[CorporateAction],
     ] = {}
 
+    @_builds_from_response
     def __init__(self, raw_data: RawData) -> None:
         """
         Instantiates a CorporateActionsSet - a collection of CorporateAction.

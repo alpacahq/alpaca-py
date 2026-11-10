@@ -1,6 +1,9 @@
 from enum import Enum
 from typing import Dict, Iterator, Optional, Union
 
+from alpaca.common._deprecation import (
+    building_from_response as _building_from_response,
+)
 from alpaca.common.enums import BaseURL, PaginationType
 from alpaca.common.rest import RESTClient
 from alpaca.common.types import RawData
@@ -219,7 +222,8 @@ class OptionHistoricalDataClient(RESTClient):
         if self._use_raw_data:
             return raw_snapshots
 
-        return parse_obj_as_symbol_dict(OptionsSnapshot, raw_snapshots)
+        with _building_from_response():
+            return parse_obj_as_symbol_dict(OptionsSnapshot, raw_snapshots)
 
     def get_option_chain(
         self, request_params: OptionChainRequest
@@ -247,4 +251,5 @@ class OptionHistoricalDataClient(RESTClient):
         if self._use_raw_data:
             return raw_snapshots
 
-        return parse_obj_as_symbol_dict(OptionsSnapshot, raw_snapshots)
+        with _building_from_response():
+            return parse_obj_as_symbol_dict(OptionsSnapshot, raw_snapshots)

@@ -29,6 +29,8 @@ from alpaca.common.enums import BaseURL, SupportedCurrencies
 from alpaca.common.exceptions import APIError
 from alpaca.trading.enums import DTBPCheck, PDTCheck
 from alpaca.trading.models import AccountConfiguration as TradeAccountConfiguration
+from alpaca.broker.models import AccountConfigurations as BrokerAccountConfigurations
+from alpaca.trading.models import AccountConfigurations as TradingAccountConfigurations
 from tests.broker.factories import accounts as factory
 
 
@@ -1171,6 +1173,39 @@ def test_update_trade_configuration_for_account(reqmock, client: BrokerClient):
     assert reqmock.called_once
     assert isinstance(result, TradeAccountConfiguration)
     assert result.fractional_trading is False
+
+
+@pytest.mark.parametrize(
+    "configurations_cls", [TradingAccountConfigurations, BrokerAccountConfigurations]
+)
+def test_update_trade_configuration_for_account_accepts_the_generated_configurations(
+    reqmock, client: BrokerClient, configurations_cls
+):
+    # TradeAccountConfiguration's deprecation names the Trading class, while the Broker
+    # spec generates its own. Both send only the fields that were set.
+    account_id = "5fc0795e-1f16-40cc-aa90-ede67c39d7a9"
+    reqmock.patch(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/trading/accounts/{account_id}/account/configurations",
+        text="""
+        {
+          "dtbp_check": "both",
+          "fractional_trading": false,
+          "max_margin_multiplier": "4",
+          "no_shorting": false,
+          "pdt_check": "entry",
+          "suspend_trade": true,
+          "trade_confirm_email": "all",
+          "ptp_no_exception_entry": false
+        }
+        """,
+    )
+
+    result = client.update_trade_configuration_for_account(
+        account_id=account_id, config=configurations_cls(suspend_trade=True)
+    )
+
+    assert reqmock.request_history[0].json() == {"suspend_trade": True}
+    assert isinstance(result, TradeAccountConfiguration)
 
 
 def test_update_trade_configuration_for_account_validates_id(

@@ -124,7 +124,8 @@ def test_deprecated_model_fields_warn_only_on_access(model, field, value, replac
         schema = model.model_json_schema()
         fields_schema = schema
         if "properties" not in schema:
-            fields_schema = schema["$defs"][model.__name__]
+            # Self-referencing models put their own schema behind the root $ref.
+            fields_schema = schema["$defs"][schema["$ref"].split("/")[-1]]
         assert fields_schema["properties"][field]["deprecated"] is True
         payload.pop(field)
         omitted = model.model_validate(payload)

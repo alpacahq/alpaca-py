@@ -7,6 +7,7 @@ from datetime import datetime
 from pathlib import Path
 
 import pytest
+from pydantic import TypeAdapter
 
 import alpaca.trading
 from alpaca._deprecating_enum import DeprecatingEnumMeta
@@ -293,6 +294,103 @@ def test_option_deliverable_warns_only_when_instantiated_directly():
         warnings.simplefilter("error", DeprecationWarning)
         built = build_from_response(models.OptionContract, contract)
     assert type(built.deliverables[0]) is models.OptionDeliverable
+
+
+@pytest.mark.parametrize(
+    ("container", "field", "legacy", "generated", "wrap"),
+    [
+        (
+            models.Position,
+            "usd",
+            models.USDPositionValues,
+            generated_models.USDPositionValues,
+            lambda x: x,
+        ),
+        (
+            models.AllAccountsPositions,
+            "positions",
+            models.Position,
+            generated_models.Position,
+            lambda x: {"id": [x]},
+        ),
+        (models.Order, "legs", models.Order, generated_models.Order, lambda x: [x]),
+        (
+            models.ClosePositionResponse,
+            "body",
+            models.Order,
+            generated_models.Order,
+            lambda x: x,
+        ),
+        (
+            models.Watchlist,
+            "assets",
+            models.Asset,
+            generated_models.Assets,
+            lambda x: [x],
+        ),
+        (
+            models.TradeUpdate,
+            "order",
+            models.Order,
+            generated_models.Order,
+            lambda x: x,
+        ),
+        (
+            models.OptionContract,
+            "deliverables",
+            models.OptionDeliverable,
+            generated_models.OptionDeliverable,
+            lambda x: [x],
+        ),
+        (
+            models.OptionContractsResponse,
+            "option_contracts",
+            models.OptionContract,
+            generated_models.OptionContract,
+            lambda x: [x],
+        ),
+    ],
+)
+def test_nested_fields_accept_the_generated_replacement(
+    container, field, legacy, generated, wrap
+):
+    adapter = TypeAdapter(container.model_fields[field].annotation)
+
+    def unwrap(value):
+        while isinstance(value, (list, dict)):
+            value = next(iter(value.values())) if isinstance(value, dict) else value[0]
+        return value
+
+    for cls in (legacy, generated):
+        instance = cls.model_construct()
+        assert unwrap(adapter.validate_python(wrap(instance))) is instance
+
+
+def test_nested_fields_parse_payloads_into_the_legacy_class_first():
+    usd = {name: "1" for name in models.USDPositionValues.model_fields}
+    field = TypeAdapter(models.Position.model_fields["usd"].annotation)
+    assert type(field.validate_python(usd)) is models.USDPositionValues
+    # A payload only the generated class accepts falls back to it.
+    partial = field.validate_python({"avg_entry_price": "1", "cost_basis": "1"})
+    assert type(partial) is generated_models.USDPositionValues
+
+    # A failed close still parses into FailedClosePositionDetails, as the client
+    # builds it.
+    failed = {
+        "available": "0",
+        "code": 40310000,
+        "existing_qty": "1",
+        "held_for_orders": "1",
+        "message": "insufficient qty available for order",
+        "symbol": "AAPL",
+    }
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", DeprecationWarning)
+        closed = build_from_response(
+            models.ClosePositionResponse,
+            {"symbol": "AAPL", "status": 403, "body": failed},
+        )
+    assert type(closed.body) is models.FailedClosePositionDetails
 
 
 def test_deprecated_enum_warns_when_constructed():

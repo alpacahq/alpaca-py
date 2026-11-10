@@ -65,9 +65,6 @@ from alpaca.broker._generated.requests import (
     UpdateOrderRequest,
     UpdateWhitelistedAddressTravelRuleInfoRequest,
 )
-from alpaca.common._deprecation import (
-    deprecate_compatibility_shape as _deprecate_compatibility_shape,
-)
 from alpaca.broker.enums import (
     AccountEntities,
     AccountSubType,
@@ -100,9 +97,9 @@ from alpaca.broker.enums import (
     PortfolioRunType,
     PortfolioStatus,
     PortfolioWeightRequestType,
-    TaxIdType,
     RebalancingConditionsType,
     RunType,
+    TaxIdType,
     TradeDocumentType,
     TransferDirection,
     TransferType,
@@ -112,19 +109,22 @@ from alpaca.broker.enums import (
     WeightType,
 )
 from alpaca.broker.models.accounts import (
+    FPSL,
     AccountDocument,
     Agreement,
     Beneficiary,
     CashInterest,
     Contact,
     Disclosures,
-    FPSL,
     Identity,
     MinorIdentity,
     TrustedContact,
 )
-from alpaca.broker.models.funding import BankAdditionalFields
 from alpaca.broker.models.documents import W8BenDocument
+from alpaca.broker.models.funding import BankAdditionalFields
+from alpaca.common._deprecation import (
+    deprecate_compatibility_shape as _deprecate_compatibility_shape,
+)
 from alpaca.common.enums import Sort, SupportedCurrencies
 from alpaca.common.models import BaseModel
 from alpaca.common.requests import NonEmptyRequest
@@ -1524,3 +1524,403 @@ def _as_date(value: Union[date, datetime, str]) -> date:
     if isinstance(value, date):
         return value
     return date.fromisoformat(str(value)[:10])
+
+
+# ############################## OpenAPI query parameters ################################# #
+
+
+class GetAccountActivitiesByTypeRequest(NonEmptyRequest):
+    """Query parameters for ``GET /v1/accounts/activities/{activity_type}``.
+
+    Retrieve Account Activities of Specific Type.
+    """
+
+    account_id: Optional[str] = None
+    order_id: Optional[str] = None
+    date: Optional[str] = None
+    until: Optional[str] = None
+    after: Optional[str] = None
+    direction: Optional[str] = None
+    page_size: Optional[int] = None
+    page_token: Optional[str] = None
+
+
+class GetOnfidoSdkTokenRequest(NonEmptyRequest):
+    """Query parameters for ``GET /v1/accounts/{account_id}/onfido/sdk/tokens``.
+
+    Retrieve an Onfido SDK Token.
+    """
+
+    referrer: Optional[str] = None
+    platform: Optional[str] = None
+
+
+class ListOptionsApprovalsRequest(NonEmptyRequest):
+    """Query parameters for ``GET /v1/accounts/options/approvals``.
+
+    Retrieve options level approval requests (BETA).
+    """
+
+    account_id: Optional[str] = None
+    requested_level: Optional[int] = None
+    approved_level: Optional[int] = None
+    status: Optional[str] = None
+    page_size: Optional[int] = None
+    page_token: Optional[str] = None
+
+
+class ListFundingDetailsRequest(NonEmptyRequest):
+    """Query parameters for ``GET /v1beta/accounts/{account_id}/funding_wallet/funding_details``.
+
+    Retrieve funding details.
+    """
+
+    payment_type: Optional[str] = None
+    currency: Optional[str] = None
+
+
+class GetInstantFundingAccountLimitsRequest(NonEmptyRequest):
+    """Query parameters for ``GET /v1/instant_funding/limits/accounts``.
+
+    Get instant funding account limits.
+    """
+
+    account_numbers: List[str]
+
+
+class GetInstantFundingTransfersRequest(NonEmptyRequest):
+    """Query parameters for ``GET /v1/instant_funding``.
+
+    Get Instant Funding List.
+    """
+
+    sort_by: Optional[str] = None
+    sort_order: Optional[str] = None
+    limit: Optional[int] = None
+    offset: Optional[int] = None
+    system_date: Optional[str] = None
+    deadline: Optional[str] = None
+    status: Optional[str] = None
+    before: Optional[str] = None
+
+
+class GetInstantFundingReportsRequest(NonEmptyRequest):
+    """Query parameters for ``GET /v1/instant_funding/reports``.
+
+    Get instant funding report.
+    """
+
+    report_type: Optional[str] = None
+    system_date: Optional[str] = None
+
+
+class GetInstantFundingSettlementsRequest(NonEmptyRequest):
+    """Query parameters for ``GET /v1/instant_funding/settlements``.
+
+    List settlements.
+    """
+
+    statuses: Optional[str] = None
+
+
+class GetJitSettlementsRequest(NonEmptyRequest):
+    """Query parameters for ``GET /v1/jit/settlements``.
+
+    List all JIT Settlements.
+    """
+
+    statuses: Optional[str] = None
+
+
+class GetJitLedgerBalancesRequest(NonEmptyRequest):
+    """Query parameters for ``GET /v1/transfers/jit/{ledger_id}/balances``.
+
+    Retrieve JIT Ledger Balances.
+    """
+
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+
+
+class GetJitReportRequest(NonEmptyRequest):
+    """Query parameters for ``GET /v1/transfers/jit/reports``.
+
+    Retrieve JIT Reports.
+    """
+
+    report_type: str
+    system_date: str
+    asset_class: Optional[str] = None
+    response_type: Optional[str] = None
+
+
+class GetCryptoTransferEstimateRequest(NonEmptyRequest):
+    """Query parameters for ``GET /v1/wallets/fees/estimate``.
+
+    Returns the estimated gas fee for a proposed transaction.
+    """
+
+    asset: Optional[str] = None
+    from_address: Optional[str] = None
+    to_address: Optional[str] = None
+    amount: Optional[str] = None
+
+
+class ListCryptoWalletsRequest(NonEmptyRequest):
+    """Query parameters for ``GET /v1/accounts/{account_id}/wallets``.
+
+    Retrieve Crypto Funding Wallets.
+    """
+
+    asset: Optional[str] = None
+    chain: Optional[str] = None
+    network: Optional[str] = None
+
+
+class SearchVaspsRequest(NonEmptyRequest):
+    """Query parameters for ``GET /v1/wallets/travel-rule/vasps``.
+
+    Search for VASPs.
+    """
+
+    q: Optional[str] = None
+    emailDomain: Optional[str] = None
+    chainalysisName: Optional[str] = None
+    fields: Optional[str] = None
+    page: Optional[int] = None
+    per_page: Optional[int] = None
+    order: Optional[str] = None
+    includeSubsidiaryVASPs: Optional[bool] = None
+
+
+class GetV2CalendarRequest(NonEmptyRequest):
+    """Query parameters for ``GET /v2/calendar/{market}``.
+
+    Get Market Calendar.
+    """
+
+    start: Optional[str] = None
+    end: Optional[str] = None
+    timezone: Optional[str] = None
+
+
+class GetV2ClockRequest(NonEmptyRequest):
+    """Query parameters for ``GET /v2/clock``.
+
+    Get Market Clock.
+    """
+
+    markets: Optional[str] = None
+    time: Optional[str] = None
+
+
+class GetAssetEntryRequirementsRequest(NonEmptyRequest):
+    """Query parameters for ``GET /v1/assets/entry-requirements``.
+
+    Retrieve Entry Requirements for requested assets.
+    """
+
+    symbols: str
+
+
+class GetOptionContractsRequest(NonEmptyRequest):
+    """Query parameters for ``GET /v1/options/contracts``.
+
+    Get Option Contracts (BETA).
+    """
+
+    underlying_symbols: Optional[str] = None
+    show_deliverables: Optional[bool] = None
+    status: Optional[str] = None
+    expiration_date: Optional[str] = None
+    expiration_date_gte: Optional[str] = None
+    expiration_date_lte: Optional[str] = None
+    root_symbol: Optional[str] = None
+    type: Optional[str] = None
+    style: Optional[str] = None
+    strike_price_gte: Optional[float] = None
+    strike_price_lte: Optional[float] = None
+    page_token: Optional[str] = None
+    limit: Optional[int] = None
+    ppind: Optional[bool] = None
+
+
+class GetLogoRequest(NonEmptyRequest):
+    """Query parameters for ``GET /v1beta1/logos/{symbol}``.
+
+    Get Logo.
+    """
+
+    placeholder: Optional[str] = None
+
+
+class GetUsCorporateBondsRequest(NonEmptyRequest):
+    """Query parameters for ``GET /v1/assets/fixed_income/us_corporates``.
+
+    Get US corporates.
+    """
+
+    bond_status: Optional[str] = None
+    isins: Optional[str] = None
+    cusips: Optional[str] = None
+    tickers: Optional[str] = None
+
+
+class GetUsTreasuriesRequest(NonEmptyRequest):
+    """Query parameters for ``GET /v1/assets/fixed_income/us_treasuries``.
+
+    Get US treasuries.
+    """
+
+    subtype: Optional[str] = None
+    bond_status: Optional[str] = None
+    cusips: Optional[str] = None
+    isins: Optional[str] = None
+
+
+class GetOauthClientRequest(NonEmptyRequest):
+    """Query parameters for ``GET /v1/oauth/clients/{client_id}``.
+
+    Get an OAuth client.
+    """
+
+    response_type: Optional[str] = None
+    redirect_uri: Optional[str] = None
+    scope: Optional[str] = None
+
+
+class ListAcatsTransfersRequest(NonEmptyRequest):
+    """Query parameters for ``GET /v1beta1/acats``.
+
+    List transfers.
+    """
+
+    account_number: Optional[str] = None
+    transfer_type: Optional[str] = None
+    transfer_direction: Optional[str] = None
+    transfer_status: Optional[str] = None
+    dtcc_status: Optional[str] = None
+    contra_broker_number: Optional[str] = None
+    since: Optional[str] = None
+    until: Optional[str] = None
+    sort_direction: Optional[str] = None
+    sort_by: Optional[str] = None
+    limit: Optional[int] = None
+    page_token: Optional[str] = None
+
+
+class ListAcatsTransfersForAccountRequest(NonEmptyRequest):
+    """Query parameters for ``GET /v1beta1/acats/{account_id}``.
+
+    List transfers for an account.
+    """
+
+    limit: Optional[int] = None
+    page_token: Optional[str] = None
+
+
+class ListIpoOfferingsRequest(NonEmptyRequest):
+    """Query parameters for ``GET /v1/ipos``.
+
+    List IPO Offerings.
+    """
+
+    availability: Optional[str] = None
+    ticker: Optional[str] = None
+    limit: Optional[int] = None
+    page_token: Optional[str] = None
+
+
+class GetTokenizationRequestByClientRequestIdRequest(NonEmptyRequest):
+    """Query parameters for ``GET /v1/accounts/{account_id}/tokenization/requests:by_client_request_id``.
+
+    Get Tokenization Request by `client_request_id`.
+    """
+
+    client_request_id: str
+
+
+class GetTokenizationRequestByIssuerRequestIdRequest(NonEmptyRequest):
+    """Query parameters for ``GET /v1/accounts/{account_id}/tokenization/requests:by_issuer_request_id``.
+
+    Get Tokenization Request by `issuer_request_id`.
+    """
+
+    issuer_request_id: str
+
+
+class ListTokenizationRequestsRequest(NonEmptyRequest):
+    """Query parameters for ``GET /v1/accounts/{account_id}/tokenization/requests``.
+
+    List Tokenization Requests.
+    """
+
+    type: Optional[str] = None
+    status: Optional[str] = None
+    underlying_symbol: Optional[str] = None
+    issuer: Optional[str] = None
+    network: Optional[str] = None
+    after: Optional[str] = None
+    before: Optional[str] = None
+
+
+class GetFpslAccountLoansRequest(NonEmptyRequest):
+    """Query parameters for ``GET /v1/fpsl/analytics/{account_id}/loans``.
+
+    Read FPSL Loans Analytics for an Account.
+    """
+
+    start: Optional[str] = None
+    end: Optional[str] = None
+
+
+class ListFpslLoansRequest(NonEmptyRequest):
+    """Query parameters for ``GET /v1/fpsl/loans``.
+
+    List FPSL Loans.
+    """
+
+    account_id: Optional[str] = None
+    start: Optional[str] = None
+    end: Optional[str] = None
+    page_token: Optional[str] = None
+    limit: Optional[int] = None
+
+
+class GetEodCashInterestReportRequest(NonEmptyRequest):
+    """Query parameters for ``GET /v1/reporting/eod/cash_interest``.
+
+    Retrieve EOD Cash Interest Details.
+    """
+
+    account_id: Optional[str] = None
+    date: Optional[str] = None
+    after: Optional[str] = None
+    before: Optional[str] = None
+    direction: Optional[str] = None
+    page_size: Optional[int] = None
+    page_token: Optional[str] = None
+
+
+class GetEodAggregatePositionsRequest(NonEmptyRequest):
+    """Query parameters for ``GET /v1/reporting/eod/aggregate_positions``.
+
+    Retrieve Aggregate Positions.
+    """
+
+    date: str
+    symbols: Optional[str] = None
+    firm_accounts: Optional[str] = None
+
+
+class GetEodPositionsRequest(NonEmptyRequest):
+    """Query parameters for ``GET /v1/reporting/eod/positions``.
+
+    Retrieve EOD Positions.
+    """
+
+    account_id: Optional[str] = None
+    asset: Optional[str] = None
+    asof: Optional[str] = None
+    page_token: Optional[str] = None
+    limit: Optional[int] = None

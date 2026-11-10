@@ -1,8 +1,9 @@
+import base64
+import time
+from abc import ABC
 from collections import defaultdict
 from collections.abc import Callable
-import time
-import base64
-from abc import ABC
+from itertools import chain
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -18,19 +19,18 @@ from typing import (
 from pydantic import BaseModel
 from requests import Session
 from requests.exceptions import HTTPError
-from itertools import chain
 
 from alpaca.common.constants import (
     DEFAULT_RETRY_ATTEMPTS,
-    DEFAULT_RETRY_WAIT_SECONDS,
     DEFAULT_RETRY_EXCEPTION_CODES,
+    DEFAULT_RETRY_WAIT_SECONDS,
 )
-
 from alpaca.common.exceptions import APIError, RetryException
-from alpaca.common.types import RawData, HTTPResult, Credentials
+from alpaca.common.types import Credentials, HTTPResult, RawData
 from alpaca.common.utils import get_default_user_agent
+
 from .constants import PageItem
-from .enums import PaginationType, BaseURL
+from .enums import BaseURL, PaginationType
 
 if TYPE_CHECKING:
     from alpaca.data.models.base import BaseDataSet
@@ -297,17 +297,23 @@ class RESTClient(ABC):
         """
         return self._request("PATCH", path, data, params=params)
 
-    def delete(self, path, data: Optional[Union[dict, str]] = None) -> dict:
+    def delete(
+        self,
+        path,
+        data: Optional[Union[dict, str]] = None,
+        api_version: Optional[str] = None,
+    ) -> dict:
         """Performs a single DELETE request
 
         Args:
             path (str): The API endpoint path
             data (Union[dict, str], optional): The payload if any. Defaults to None.
+            api_version (Optional[str]): Overrides the client API version for this request.
 
         Returns:
             dict: The response
         """
-        return self._request("DELETE", path, data)
+        return self._request("DELETE", path, data, api_version=api_version)
 
     # TODO: Refactor to be able to handle both parsing to types and parsing to collections of types (parse_as_obj)
     def response_wrapper(

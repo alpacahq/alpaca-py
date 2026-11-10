@@ -1,0 +1,113 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Minimal Trading API",
+    "description": "Stable fixture exercising the generation pipeline, not a real API.",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/v2/orders": {
+      "get": {
+        "operationId": "getAllOrders",
+        "summary": "Get all orders",
+        "tags": ["orders"],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/OrderStatus"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The list of orders.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Order"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "OrderStatus": {
+        "type": "string",
+        "description": "The status of an order.\n\nSupported values:\n- `new`: accepted by the exchange\n- `filled`: completely filled\n- `canceled`: canceled by the user or the exchange",
+        "enum": ["new", "filled", "canceled"]
+      },
+      "GetOrdersRequest": {
+        "type": "object",
+        "description": "Query parameters used to list orders.",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/OrderStatus"
+          },
+          "limit": {
+            "type": "integer",
+            "description": "The maximum number of orders to return."
+          }
+        }
+      },
+      "Order": {
+        "type": "object",
+        "description": "A single order.",
+        "required": ["id"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The order identifier."
+          },
+          "class": {
+            "type": "string",
+            "description": "The order class, named with a Python reserved word upstream."
+          },
+          "status": {
+            "$ref": "#/components/schemas/OrderStatus"
+          },
+          "submitted_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the order was submitted."
+          }
+        }
+      },
+      "OrderPreview": {
+        "type": "object",
+        "description": "A lightweight order preview.",
+        "properties": {
+          "symbol": {
+            "type": "string",
+            "description": "The traded symbol."
+          }
+        }
+      },
+      "OrderLike": {
+        "oneOf": [
+          {"$ref": "#/components/schemas/Order"},
+          {"$ref": "#/components/schemas/OrderPreview"}
+        ]
+      },
+      "TradeUpdate": {
+        "type": "object",
+        "description": "A WebSocket payload that stays hand-written.",
+        "properties": {
+          "event": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

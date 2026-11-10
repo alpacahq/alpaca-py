@@ -42,6 +42,7 @@ from alpaca.trading.enums import (
     ContractType,
     CorporateActionDateType,
     CorporateActionType,
+    CryptoChain,
     Exchange,
     ExerciseStyle,
     GetAllOrdersStatusParameter,
@@ -55,6 +56,11 @@ from alpaca.trading.enums import (
     PositionIntent,
     QueryOrderStatus,
     TimeInForce,
+    TokenizationIssuer,
+    TokenizationNetwork,
+    TokenizationRequestStatus,
+    TokenizationRequestType,
+    V2WalletsNetworkParameter,
 )
 
 
@@ -853,3 +859,63 @@ class GetOptionContractsRequest(NonEmptyRequest):
 
     limit: Optional[int] = None
     page_token: Optional[str] = None
+
+
+class GetTokenizationRequestsRequest(NonEmptyRequest):
+    """
+    Filters for ``GET /v2/tokenization/requests``.
+    """
+
+    type: Optional[TokenizationRequestType] = None
+    status: Optional[TokenizationRequestStatus] = None
+    underlying_symbol: Optional[str] = None
+    issuer: Optional[TokenizationIssuer] = None
+    network: Optional[TokenizationNetwork] = None
+    after: Optional[datetime] = None
+    before: Optional[datetime] = None
+
+
+class GetCryptoWalletsRequest(NonEmptyRequest):
+    """
+    Filters for ``GET /v2/wallets``.
+    """
+
+    asset: Optional[str] = None
+    chain: Optional[CryptoChain] = None
+    network: Optional[V2WalletsNetworkParameter] = None
+
+
+class GetWalletFeeEstimateRequest(NonEmptyRequest):
+    """
+    Filters for ``GET /v2/wallets/fees/estimate``.
+    """
+
+    asset: Optional[str] = None
+    from_address: Optional[str] = None
+    to_address: Optional[str] = None
+    amount: Optional[str] = None
+
+
+class SearchVASPsRequest(NonEmptyRequest):
+    """
+    Filters for ``GET /v2/wallets/travel-rule/vasps``.
+
+    Query names match the specification, including the camelCase parameters.
+    """
+
+    q: Optional[str] = None
+    emailDomain: Optional[str] = None
+    chainalysisName: Optional[str] = None
+    fields: Optional[str] = None
+    page: Optional[int] = None
+    per_page: Optional[int] = None
+    order: Optional[str] = None
+    includeSubsidiaryVASPs: Optional[bool] = None
+
+    def to_request_fields(self) -> dict:
+        fields = super().to_request_fields()
+        if "includeSubsidiaryVASPs" in fields:
+            fields["includeSubsidiaryVASPs"] = str(
+                fields["includeSubsidiaryVASPs"]
+            ).lower()
+        return fields

@@ -1,0 +1,13 @@
+# New public surface (since BASELINE) allowed to have no scenario exercising it.
+#
+# `check_surface.py --strict` (CI) fails on any other new item nothing
+# exercises. One fnmatch pattern per line on item ids (see _surface.py), then
+# `# reason`. Glob patterns are standing rules; an exact entry is for one item
+# and must be removed once that item is exercised (CI flags it).
+
+# Broker is not wired in yet (see coverage_allowlist.txt).
+*:BrokerClient.*  # Broker sandbox keys and safety rules come with the Broker work
+request:alpaca.broker.*  # as above
+response:alpaca.broker.*  # as above
+
+response:alpaca.data.historical.corporate_actions.CorporateActionsSet.next_page_token  # inherited from BaseDataSet (#877); get_corporate_actions merges all pages and never sets it, so users only ever see None

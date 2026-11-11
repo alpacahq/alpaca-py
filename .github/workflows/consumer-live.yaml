@@ -1,0 +1,110 @@
+name: Consumer checks (live paper API)
+
+# Runs the consumer scenarios against the real paper API, with the SDK of the
+# commit being tested. Catches server-side drift and anything the recordings
+# cannot. Separate from the required PR checks: it needs secrets, live data
+# changes, and it acts on a shared paper account.
+#
+# Runs:
+# - nightly on master (and by hand from the Actions tab, on any branch). A
+#   failing master run opens an issue (or comments on the open one) listing
+#   the failing scenarios; the next passing run closes it.
+# - on a pull request labeled `consumer-live`, when the label is added and on
+#   each new push while it stays: for PRs that change how the SDK talks to the
+#   API (HTTP layer, auth, retries, serialization). Only for branches of this
+#   repository, since forks get no secrets. The result is the PR's check and
+#   job summary; no issue is opened.
+#
+# Needs repository secrets CONSUMER_TRADING_API_KEY_ID and
+# CONSUMER_TRADING_API_SECRET_KEY for a paper account used only for these
+# checks: some scenarios cancel every open order and close every position on
+# it. See consumer_checks/README.md.
+on:
+  schedule:
+    - cron: "17 15 * * 1-5" # 15:17 UTC on weekdays, inside US market hours all year
+  workflow_dispatch:
+  pull_request:
+    types: [labeled, synchronize]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: consumer-live # one run at a time on the shared paper account
+  cancel-in-progress: false
+
+jobs:
+  consumer-live:
+    if: >-
+      github.event_name != 'pull_request' ||
+      (contains(github.event.pull_request.labels.*.name, 'consumer-live') &&
+       github.event.pull_request.head.repo.full_name == github.repository &&
+       (github.event.action != 'labeled' || github.event.label.name == 'consumer-live'))
+    runs-on: ubuntu-latest
+    env:
+      # Scheduled runs are always on the default branch; manual ones may target
+      # any branch. Only master runs open or close the issue.
+      ON_DEFAULT_BRANCH: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.ref_name == 'master') }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: setup poetry
+        run: pipx install poetry
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: "poetry"
+      - name: Poetry install
+        run: poetry install
+      - name: run scenarios against the paper API
+        shell: bash
+        env:
+          CONSUMER_TRADING_API_KEY_ID: ${{ secrets.CONSUMER_TRADING_API_KEY_ID }}
+          CONSUMER_TRADING_API_SECRET_KEY: ${{ secrets.CONSUMER_TRADING_API_SECRET_KEY }}
+        run: poetry run pytest consumer_checks --consumer-mode=live -rf 2>&1 | tee live.log
+      - name: write summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Consumer scenarios against the paper API'
+            echo '```'
+            grep -E '^(FAILED|=+ .* in [0-9.]+s)' live.log 2>/dev/null || echo 'no report produced'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: report the failure in an issue
+        if: failure() && env.ON_DEFAULT_BRANCH == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          TITLE: "Consumer checks: nightly live run failing"
+        run: |
+          {
+            echo "The nightly consumer checks failed against the paper API ([run]($RUN_URL))."
+            echo
+            echo '```'
+            grep '^FAILED' live.log 2>/dev/null || echo "No FAILED lines: see the run log."
+            echo '```'
+            echo
+            echo "Usually live data or the API changed (a contract expired, history moved)"
+            echo "rather than the SDK: replay on PRs still passes. Fix the scenario, then"
+            echo "re-record it: make consumer-record ARGS=\"--consumer-rerecord -k <name>\"."
+          } > body.md
+          open="$(gh issue list --state open --search "in:title \"$TITLE\"" --json number --jq '.[0].number')"
+          if [ -n "$open" ]; then
+            gh issue comment "$open" --body-file body.md
+          else
+            gh issue create --title "$TITLE" --body-file body.md
+          fi
+      - name: close the issue once passing again
+        if: success() && env.ON_DEFAULT_BRANCH == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          TITLE: "Consumer checks: nightly live run failing"
+        run: |
+          open="$(gh issue list --state open --search "in:title \"$TITLE\"" --json number --jq '.[0].number')"
+          if [ -n "$open" ]; then
+            gh issue close "$open" --comment "Passing again: $RUN_URL"
+          fi

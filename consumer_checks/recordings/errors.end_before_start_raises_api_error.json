@@ -1,0 +1,90 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "end",
+            "2024-03-04T00:00:00+00:00"
+          ],
+          [
+            "limit",
+            "10000"
+          ],
+          [
+            "start",
+            "2024-03-05T00:00:00+00:00"
+          ],
+          [
+            "symbols",
+            "BTC/USD"
+          ],
+          [
+            "timeframe",
+            "1Hour"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v1beta3/crypto/us/bars"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "message": "end should not be before start"
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "197",
+          "X-Ratelimit-Reset": "1794219215",
+          "X-Request-ID": "391c3000845b774e88d4e8636a822c14"
+        },
+        "reason": "Bad Request",
+        "status": 400
+      }
+    }
+  ],
+  "recorded_with": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "2.3.3",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "code_raises": "KeyError",
+    "error": {
+      "__type__": "APIError",
+      "status_code": 400
+    },
+    "message": "end should not be before start",
+    "text": "{\"message\": \"end should not be before start\"}"
+  },
+  "result_from": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "errors.end_before_start_raises_api_error",
+  "scenario_sha256": "8fe23e4569a15c29a7b3fc13e755c0ec9a36756134103a5f502b2dc6b53fa0ed",
+  "vars": {}
+}

@@ -1,0 +1,39 @@
+name: Consumer checks freeze
+
+# Recordings in consumer_checks/recordings/ capture how the BASELINE release
+# behaves. Changing or deleting one means accepting a change users will see,
+# so it needs the sdk-breaking label. Adding new recordings is always allowed.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  contents: read
+
+jobs:
+  consumer-freeze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: require sdk-breaking label for changed recordings
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HAS_LABEL: ${{ contains(github.event.pull_request.labels.*.name, 'sdk-breaking') }}
+        run: |
+          changed="$(git diff --name-only --diff-filter=MDR "$BASE_SHA"...HEAD -- \
+            consumer_checks/recordings consumer_checks/BASELINE)"
+          if [ -z "$changed" ]; then
+            echo "No existing recordings changed."
+            exit 0
+          fi
+          echo "Changed recordings:"
+          echo "$changed"
+          if [ "$HAS_LABEL" = "true" ]; then
+            echo "sdk-breaking label present: describe the user impact and migration in the PR and release notes."
+            exit 0
+          fi
+          echo "::error::Existing consumer recordings changed. This changes behavior users rely on. Add the sdk-breaking label and document the migration, or fix the SDK so the recordings still match."
+          exit 1

@@ -1,0 +1,1031 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": {
+          "json": {
+            "name": "consumer-check-ee5a8c96d570",
+            "symbols": [
+              "AAPL"
+            ]
+          }
+        },
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "content-type": "application/json",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "POST",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/watchlists"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "account_id": "00000000-0000-0000-0000-000000000000",
+            "assets": [
+              {
+                "attributes": null,
+                "borrow_status": "easy_to_borrow",
+                "class": "us_equity",
+                "easy_to_borrow": true,
+                "exchange": "NASDAQ",
+                "fractionable": true,
+                "id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+                "maintenance_margin_requirement": 0,
+                "margin_requirement_long": "0",
+                "margin_requirement_short": "0",
+                "marginable": true,
+                "name": "Apple Inc. Common Stock",
+                "shortable": true,
+                "status": "active",
+                "symbol": "AAPL",
+                "tradable": true
+              }
+            ],
+            "created_at": "2026-11-09T10:13:57.994958Z",
+            "id": "cad505de-669f-4bb4-acd8-7cf2560a2770",
+            "name": "consumer-check-ee5a8c96d570",
+            "updated_at": "2026-11-09T10:13:57.994958Z"
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization, Content-Type, X-Correspondent",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, POST, PATCH",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json; charset=UTF-8",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Origin",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "193",
+          "X-Ratelimit-Reset": "1794219240",
+          "X-Request-Id": "7c3d84633ffe2abc434e2ee341fb45af"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/watchlists"
+      },
+      "response": {
+        "body": {
+          "json": [
+            {
+              "account_id": "00000000-0000-0000-0000-000000000000",
+              "created_at": "2026-07-08T08:10:32.056449Z",
+              "id": "63d57c1a-5be9-441b-96eb-9f56a53049d5",
+              "name": "alpaca-node-validation-watchlist-node-20260708081029",
+              "updated_at": "2026-07-08T08:10:32.056449Z"
+            },
+            {
+              "account_id": "00000000-0000-0000-0000-000000000000",
+              "created_at": "2026-11-09T10:13:57.994958Z",
+              "id": "cad505de-669f-4bb4-acd8-7cf2560a2770",
+              "name": "consumer-check-ee5a8c96d570",
+              "updated_at": "2026-11-09T10:13:57.994958Z"
+            },
+            {
+              "account_id": "00000000-0000-0000-0000-000000000000",
+              "created_at": "2026-07-10T07:39:53.408465Z",
+              "id": "af84c4ed-c087-497b-bfcc-0126bccad58a",
+              "name": "test",
+              "updated_at": "2026-07-10T07:39:53.408465Z"
+            }
+          ]
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization, Content-Type, X-Correspondent",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, POST, PATCH",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json; charset=UTF-8",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Origin",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "192",
+          "X-Ratelimit-Reset": "1794219240",
+          "X-Request-Id": "a6f1c89749ca204c37b7eb79cf98ffd6"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/watchlists/cad505de-669f-4bb4-acd8-7cf2560a2770"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "account_id": "00000000-0000-0000-0000-000000000000",
+            "assets": [
+              {
+                "attributes": null,
+                "borrow_status": "easy_to_borrow",
+                "class": "us_equity",
+                "easy_to_borrow": true,
+                "exchange": "NASDAQ",
+                "fractionable": true,
+                "id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+                "maintenance_margin_requirement": 0,
+                "margin_requirement_long": "0",
+                "margin_requirement_short": "0",
+                "marginable": true,
+                "name": "Apple Inc. Common Stock",
+                "shortable": true,
+                "status": "active",
+                "symbol": "AAPL",
+                "tradable": true
+              }
+            ],
+            "created_at": "2026-11-09T10:13:57.994958Z",
+            "id": "cad505de-669f-4bb4-acd8-7cf2560a2770",
+            "name": "consumer-check-ee5a8c96d570",
+            "updated_at": "2026-11-09T10:13:57.994958Z"
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization, Content-Type, X-Correspondent",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, POST, PATCH",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json; charset=UTF-8",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Origin",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "191",
+          "X-Ratelimit-Reset": "1794219240",
+          "X-Request-Id": "a30b0f6de82cd1a02fedbb8f5d17093a"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": {
+          "json": {
+            "name": "consumer-check-ee5a8c96d570-renamed",
+            "symbols": [
+              "AAPL",
+              "MSFT"
+            ]
+          }
+        },
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "content-type": "application/json",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "PUT",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/watchlists/cad505de-669f-4bb4-acd8-7cf2560a2770"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "account_id": "00000000-0000-0000-0000-000000000000",
+            "assets": [
+              {
+                "attributes": null,
+                "borrow_status": "easy_to_borrow",
+                "class": "us_equity",
+                "easy_to_borrow": true,
+                "exchange": "NASDAQ",
+                "fractionable": true,
+                "id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+                "maintenance_margin_requirement": 0,
+                "margin_requirement_long": "0",
+                "margin_requirement_short": "0",
+                "marginable": true,
+                "name": "Apple Inc. Common Stock",
+                "shortable": true,
+                "status": "active",
+                "symbol": "AAPL",
+                "tradable": true
+              },
+              {
+                "attributes": null,
+                "borrow_status": "easy_to_borrow",
+                "class": "us_equity",
+                "easy_to_borrow": true,
+                "exchange": "NASDAQ",
+                "fractionable": true,
+                "id": "b6d1aa75-5c9c-4353-a305-9e2caa1925ab",
+                "maintenance_margin_requirement": 0,
+                "margin_requirement_long": "0",
+                "margin_requirement_short": "0",
+                "marginable": true,
+                "name": "Microsoft Corporation Common Stock",
+                "shortable": true,
+                "status": "active",
+                "symbol": "MSFT",
+                "tradable": true
+              }
+            ],
+            "created_at": "2026-11-09T10:13:57.994958Z",
+            "id": "cad505de-669f-4bb4-acd8-7cf2560a2770",
+            "name": "consumer-check-ee5a8c96d570-renamed",
+            "updated_at": "2026-11-09T10:13:58.328917Z"
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization, Content-Type, X-Correspondent",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, POST, PATCH",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json; charset=UTF-8",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Accept-Encoding, Origin",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "191",
+          "X-Ratelimit-Reset": "1794219241",
+          "X-Request-Id": "c9f1c106fe79eb293d8757948192ca1b"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": {
+          "json": {
+            "symbol": "GOOGL"
+          }
+        },
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "content-type": "application/json",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "POST",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/watchlists/cad505de-669f-4bb4-acd8-7cf2560a2770"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "account_id": "00000000-0000-0000-0000-000000000000",
+            "assets": [
+              {
+                "attributes": null,
+                "borrow_status": "easy_to_borrow",
+                "class": "us_equity",
+                "easy_to_borrow": true,
+                "exchange": "NASDAQ",
+                "fractionable": true,
+                "id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+                "maintenance_margin_requirement": 0,
+                "margin_requirement_long": "0",
+                "margin_requirement_short": "0",
+                "marginable": true,
+                "name": "Apple Inc. Common Stock",
+                "shortable": true,
+                "status": "active",
+                "symbol": "AAPL",
+                "tradable": true
+              },
+              {
+                "attributes": null,
+                "borrow_status": "easy_to_borrow",
+                "class": "us_equity",
+                "easy_to_borrow": true,
+                "exchange": "NASDAQ",
+                "fractionable": true,
+                "id": "b6d1aa75-5c9c-4353-a305-9e2caa1925ab",
+                "maintenance_margin_requirement": 0,
+                "margin_requirement_long": "0",
+                "margin_requirement_short": "0",
+                "marginable": true,
+                "name": "Microsoft Corporation Common Stock",
+                "shortable": true,
+                "status": "active",
+                "symbol": "MSFT",
+                "tradable": true
+              },
+              {
+                "attributes": null,
+                "borrow_status": "easy_to_borrow",
+                "class": "us_equity",
+                "easy_to_borrow": true,
+                "exchange": "NASDAQ",
+                "fractionable": true,
+                "id": "69b15845-7c63-4586-b274-1cfdfe9df3d8",
+                "maintenance_margin_requirement": 0,
+                "margin_requirement_long": "0",
+                "margin_requirement_short": "0",
+                "marginable": true,
+                "name": "Alphabet Inc. Class A Common Stock",
+                "shortable": true,
+                "status": "active",
+                "symbol": "GOOGL",
+                "tradable": true
+              }
+            ],
+            "created_at": "2026-11-09T10:13:57.994958Z",
+            "id": "cad505de-669f-4bb4-acd8-7cf2560a2770",
+            "name": "consumer-check-ee5a8c96d570-renamed",
+            "updated_at": "2026-11-09T10:13:58.328917Z"
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization, Content-Type, X-Correspondent",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, POST, PATCH",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json; charset=UTF-8",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Accept-Encoding, Origin",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "190",
+          "X-Ratelimit-Reset": "1794219241",
+          "X-Request-Id": "9f39fa0ea2c228ab405c81e84b5a533c"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "DELETE",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/watchlists/cad505de-669f-4bb4-acd8-7cf2560a2770/AAPL"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "account_id": "00000000-0000-0000-0000-000000000000",
+            "assets": [
+              {
+                "attributes": null,
+                "borrow_status": "easy_to_borrow",
+                "class": "us_equity",
+                "easy_to_borrow": true,
+                "exchange": "NASDAQ",
+                "fractionable": true,
+                "id": "b6d1aa75-5c9c-4353-a305-9e2caa1925ab",
+                "maintenance_margin_requirement": 0,
+                "margin_requirement_long": "0",
+                "margin_requirement_short": "0",
+                "marginable": true,
+                "name": "Microsoft Corporation Common Stock",
+                "shortable": true,
+                "status": "active",
+                "symbol": "MSFT",
+                "tradable": true
+              },
+              {
+                "attributes": null,
+                "borrow_status": "easy_to_borrow",
+                "class": "us_equity",
+                "easy_to_borrow": true,
+                "exchange": "NASDAQ",
+                "fractionable": true,
+                "id": "69b15845-7c63-4586-b274-1cfdfe9df3d8",
+                "maintenance_margin_requirement": 0,
+                "margin_requirement_long": "0",
+                "margin_requirement_short": "0",
+                "marginable": true,
+                "name": "Alphabet Inc. Class A Common Stock",
+                "shortable": true,
+                "status": "active",
+                "symbol": "GOOGL",
+                "tradable": true
+              }
+            ],
+            "created_at": "2026-11-09T10:13:57.994958Z",
+            "id": "cad505de-669f-4bb4-acd8-7cf2560a2770",
+            "name": "consumer-check-ee5a8c96d570-renamed",
+            "updated_at": "2026-11-09T10:13:58.328917Z"
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization, Content-Type, X-Correspondent",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, POST, PATCH",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json; charset=UTF-8",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Accept-Encoding, Origin",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "189",
+          "X-Ratelimit-Reset": "1794219241",
+          "X-Request-Id": "30725461cf37f774531a5960d450e3db"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "DELETE",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/watchlists/cad505de-669f-4bb4-acd8-7cf2560a2770"
+      },
+      "response": {
+        "body": null,
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization, Content-Type, X-Correspondent",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, POST, PATCH",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json; charset=UTF-8",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Origin",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "190",
+          "X-Ratelimit-Reset": "1794219241",
+          "X-Request-Id": "407bf2f28cecb094326c6b977d775b85"
+        },
+        "reason": "No Content",
+        "status": 204
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/watchlists/cad505de-669f-4bb4-acd8-7cf2560a2770"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "code": 40410000,
+            "message": "watchlist not found: cad505de-669f-4bb4-acd8-7cf2560a2770"
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization, Content-Type, X-Correspondent",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, POST, PATCH",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json; charset=UTF-8",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Origin",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "189",
+          "X-Ratelimit-Reset": "1794219242",
+          "X-Request-Id": "2668499d8519ee4411622577b579bfcf"
+        },
+        "reason": "Not Found",
+        "status": 404
+      }
+    }
+  ],
+  "recorded_with": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "2.3.3",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "added": {
+      "__type__": "Watchlist",
+      "fields": {
+        "account_id": {
+          "__type__": "UUID",
+          "value": "00000000-0000-0000-0000-000000000000"
+        },
+        "assets": [
+          {
+            "__type__": "Asset",
+            "fields": {
+              "asset_class": {
+                "__type__": "AssetClass",
+                "name": "US_EQUITY",
+                "value": "us_equity"
+              },
+              "attributes": null,
+              "borrow_status": {
+                "__type__": "AssetBorrowStatus",
+                "name": "EASY_TO_BORROW",
+                "value": "easy_to_borrow"
+              },
+              "cusip": null,
+              "easy_to_borrow": true,
+              "exchange": {
+                "__type__": "AssetExchange",
+                "name": "NASDAQ",
+                "value": "NASDAQ"
+              },
+              "fractionable": true,
+              "id": {
+                "__type__": "UUID",
+                "value": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415"
+              },
+              "maintenance_margin_requirement": 0.0,
+              "margin_requirement_long": "0",
+              "margin_requirement_short": "0",
+              "marginable": true,
+              "min_order_size": null,
+              "min_trade_increment": null,
+              "name": "Apple Inc. Common Stock",
+              "price_increment": null,
+              "shortable": true,
+              "status": {
+                "__type__": "AssetStatus",
+                "name": "ACTIVE",
+                "value": "active"
+              },
+              "symbol": "AAPL",
+              "tradable": true
+            }
+          },
+          {
+            "__type__": "Asset",
+            "fields": {
+              "asset_class": {
+                "__type__": "AssetClass",
+                "name": "US_EQUITY",
+                "value": "us_equity"
+              },
+              "attributes": null,
+              "borrow_status": {
+                "__type__": "AssetBorrowStatus",
+                "name": "EASY_TO_BORROW",
+                "value": "easy_to_borrow"
+              },
+              "cusip": null,
+              "easy_to_borrow": true,
+              "exchange": {
+                "__type__": "AssetExchange",
+                "name": "NASDAQ",
+                "value": "NASDAQ"
+              },
+              "fractionable": true,
+              "id": {
+                "__type__": "UUID",
+                "value": "b6d1aa75-5c9c-4353-a305-9e2caa1925ab"
+              },
+              "maintenance_margin_requirement": 0.0,
+              "margin_requirement_long": "0",
+              "margin_requirement_short": "0",
+              "marginable": true,
+              "min_order_size": null,
+              "min_trade_increment": null,
+              "name": "Microsoft Corporation Common Stock",
+              "price_increment": null,
+              "shortable": true,
+              "status": {
+                "__type__": "AssetStatus",
+                "name": "ACTIVE",
+                "value": "active"
+              },
+              "symbol": "MSFT",
+              "tradable": true
+            }
+          },
+          {
+            "__type__": "Asset",
+            "fields": {
+              "asset_class": {
+                "__type__": "AssetClass",
+                "name": "US_EQUITY",
+                "value": "us_equity"
+              },
+              "attributes": null,
+              "borrow_status": {
+                "__type__": "AssetBorrowStatus",
+                "name": "EASY_TO_BORROW",
+                "value": "easy_to_borrow"
+              },
+              "cusip": null,
+              "easy_to_borrow": true,
+              "exchange": {
+                "__type__": "AssetExchange",
+                "name": "NASDAQ",
+                "value": "NASDAQ"
+              },
+              "fractionable": true,
+              "id": {
+                "__type__": "UUID",
+                "value": "69b15845-7c63-4586-b274-1cfdfe9df3d8"
+              },
+              "maintenance_margin_requirement": 0.0,
+              "margin_requirement_long": "0",
+              "margin_requirement_short": "0",
+              "marginable": true,
+              "min_order_size": null,
+              "min_trade_increment": null,
+              "name": "Alphabet Inc. Class A Common Stock",
+              "price_increment": null,
+              "shortable": true,
+              "status": {
+                "__type__": "AssetStatus",
+                "name": "ACTIVE",
+                "value": "active"
+              },
+              "symbol": "GOOGL",
+              "tradable": true
+            }
+          }
+        ],
+        "created_at": {
+          "__type__": "datetime",
+          "value": "2026-11-09T10:13:57.994958+00:00"
+        },
+        "id": {
+          "__type__": "UUID",
+          "value": "cad505de-669f-4bb4-acd8-7cf2560a2770"
+        },
+        "name": "consumer-check-ee5a8c96d570-renamed",
+        "updated_at": {
+          "__type__": "datetime",
+          "value": "2026-11-09T10:13:58.328917+00:00"
+        }
+      }
+    },
+    "after_delete": {
+      "__type__": "APIError",
+      "code": 40410000,
+      "status_code": 404
+    },
+    "created": {
+      "__type__": "Watchlist",
+      "fields": {
+        "account_id": {
+          "__type__": "UUID",
+          "value": "00000000-0000-0000-0000-000000000000"
+        },
+        "assets": [
+          {
+            "__type__": "Asset",
+            "fields": {
+              "asset_class": {
+                "__type__": "AssetClass",
+                "name": "US_EQUITY",
+                "value": "us_equity"
+              },
+              "attributes": null,
+              "borrow_status": {
+                "__type__": "AssetBorrowStatus",
+                "name": "EASY_TO_BORROW",
+                "value": "easy_to_borrow"
+              },
+              "cusip": null,
+              "easy_to_borrow": true,
+              "exchange": {
+                "__type__": "AssetExchange",
+                "name": "NASDAQ",
+                "value": "NASDAQ"
+              },
+              "fractionable": true,
+              "id": {
+                "__type__": "UUID",
+                "value": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415"
+              },
+              "maintenance_margin_requirement": 0.0,
+              "margin_requirement_long": "0",
+              "margin_requirement_short": "0",
+              "marginable": true,
+              "min_order_size": null,
+              "min_trade_increment": null,
+              "name": "Apple Inc. Common Stock",
+              "price_increment": null,
+              "shortable": true,
+              "status": {
+                "__type__": "AssetStatus",
+                "name": "ACTIVE",
+                "value": "active"
+              },
+              "symbol": "AAPL",
+              "tradable": true
+            }
+          }
+        ],
+        "created_at": {
+          "__type__": "datetime",
+          "value": "2026-11-09T10:13:57.994958+00:00"
+        },
+        "id": {
+          "__type__": "UUID",
+          "value": "cad505de-669f-4bb4-acd8-7cf2560a2770"
+        },
+        "name": "consumer-check-ee5a8c96d570",
+        "updated_at": {
+          "__type__": "datetime",
+          "value": "2026-11-09T10:13:57.994958+00:00"
+        }
+      }
+    },
+    "listed": {
+      "__type__": "Watchlist",
+      "fields": {
+        "account_id": {
+          "__type__": "UUID",
+          "value": "00000000-0000-0000-0000-000000000000"
+        },
+        "assets": null,
+        "created_at": {
+          "__type__": "datetime",
+          "value": "2026-11-09T10:13:57.994958+00:00"
+        },
+        "id": {
+          "__type__": "UUID",
+          "value": "cad505de-669f-4bb4-acd8-7cf2560a2770"
+        },
+        "name": "consumer-check-ee5a8c96d570",
+        "updated_at": {
+          "__type__": "datetime",
+          "value": "2026-11-09T10:13:57.994958+00:00"
+        }
+      }
+    },
+    "removed": {
+      "__type__": "Watchlist",
+      "fields": {
+        "account_id": {
+          "__type__": "UUID",
+          "value": "00000000-0000-0000-0000-000000000000"
+        },
+        "assets": [
+          {
+            "__type__": "Asset",
+            "fields": {
+              "asset_class": {
+                "__type__": "AssetClass",
+                "name": "US_EQUITY",
+                "value": "us_equity"
+              },
+              "attributes": null,
+              "borrow_status": {
+                "__type__": "AssetBorrowStatus",
+                "name": "EASY_TO_BORROW",
+                "value": "easy_to_borrow"
+              },
+              "cusip": null,
+              "easy_to_borrow": true,
+              "exchange": {
+                "__type__": "AssetExchange",
+                "name": "NASDAQ",
+                "value": "NASDAQ"
+              },
+              "fractionable": true,
+              "id": {
+                "__type__": "UUID",
+                "value": "b6d1aa75-5c9c-4353-a305-9e2caa1925ab"
+              },
+              "maintenance_margin_requirement": 0.0,
+              "margin_requirement_long": "0",
+              "margin_requirement_short": "0",
+              "marginable": true,
+              "min_order_size": null,
+              "min_trade_increment": null,
+              "name": "Microsoft Corporation Common Stock",
+              "price_increment": null,
+              "shortable": true,
+              "status": {
+                "__type__": "AssetStatus",
+                "name": "ACTIVE",
+                "value": "active"
+              },
+              "symbol": "MSFT",
+              "tradable": true
+            }
+          },
+          {
+            "__type__": "Asset",
+            "fields": {
+              "asset_class": {
+                "__type__": "AssetClass",
+                "name": "US_EQUITY",
+                "value": "us_equity"
+              },
+              "attributes": null,
+              "borrow_status": {
+                "__type__": "AssetBorrowStatus",
+                "name": "EASY_TO_BORROW",
+                "value": "easy_to_borrow"
+              },
+              "cusip": null,
+              "easy_to_borrow": true,
+              "exchange": {
+                "__type__": "AssetExchange",
+                "name": "NASDAQ",
+                "value": "NASDAQ"
+              },
+              "fractionable": true,
+              "id": {
+                "__type__": "UUID",
+                "value": "69b15845-7c63-4586-b274-1cfdfe9df3d8"
+              },
+              "maintenance_margin_requirement": 0.0,
+              "margin_requirement_long": "0",
+              "margin_requirement_short": "0",
+              "marginable": true,
+              "min_order_size": null,
+              "min_trade_increment": null,
+              "name": "Alphabet Inc. Class A Common Stock",
+              "price_increment": null,
+              "shortable": true,
+              "status": {
+                "__type__": "AssetStatus",
+                "name": "ACTIVE",
+                "value": "active"
+              },
+              "symbol": "GOOGL",
+              "tradable": true
+            }
+          }
+        ],
+        "created_at": {
+          "__type__": "datetime",
+          "value": "2026-11-09T10:13:57.994958+00:00"
+        },
+        "id": {
+          "__type__": "UUID",
+          "value": "cad505de-669f-4bb4-acd8-7cf2560a2770"
+        },
+        "name": "consumer-check-ee5a8c96d570-renamed",
+        "updated_at": {
+          "__type__": "datetime",
+          "value": "2026-11-09T10:13:58.328917+00:00"
+        }
+      }
+    },
+    "updated": {
+      "__type__": "Watchlist",
+      "fields": {
+        "account_id": {
+          "__type__": "UUID",
+          "value": "00000000-0000-0000-0000-000000000000"
+        },
+        "assets": [
+          {
+            "__type__": "Asset",
+            "fields": {
+              "asset_class": {
+                "__type__": "AssetClass",
+                "name": "US_EQUITY",
+                "value": "us_equity"
+              },
+              "attributes": null,
+              "borrow_status": {
+                "__type__": "AssetBorrowStatus",
+                "name": "EASY_TO_BORROW",
+                "value": "easy_to_borrow"
+              },
+              "cusip": null,
+              "easy_to_borrow": true,
+              "exchange": {
+                "__type__": "AssetExchange",
+                "name": "NASDAQ",
+                "value": "NASDAQ"
+              },
+              "fractionable": true,
+              "id": {
+                "__type__": "UUID",
+                "value": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415"
+              },
+              "maintenance_margin_requirement": 0.0,
+              "margin_requirement_long": "0",
+              "margin_requirement_short": "0",
+              "marginable": true,
+              "min_order_size": null,
+              "min_trade_increment": null,
+              "name": "Apple Inc. Common Stock",
+              "price_increment": null,
+              "shortable": true,
+              "status": {
+                "__type__": "AssetStatus",
+                "name": "ACTIVE",
+                "value": "active"
+              },
+              "symbol": "AAPL",
+              "tradable": true
+            }
+          },
+          {
+            "__type__": "Asset",
+            "fields": {
+              "asset_class": {
+                "__type__": "AssetClass",
+                "name": "US_EQUITY",
+                "value": "us_equity"
+              },
+              "attributes": null,
+              "borrow_status": {
+                "__type__": "AssetBorrowStatus",
+                "name": "EASY_TO_BORROW",
+                "value": "easy_to_borrow"
+              },
+              "cusip": null,
+              "easy_to_borrow": true,
+              "exchange": {
+                "__type__": "AssetExchange",
+                "name": "NASDAQ",
+                "value": "NASDAQ"
+              },
+              "fractionable": true,
+              "id": {
+                "__type__": "UUID",
+                "value": "b6d1aa75-5c9c-4353-a305-9e2caa1925ab"
+              },
+              "maintenance_margin_requirement": 0.0,
+              "margin_requirement_long": "0",
+              "margin_requirement_short": "0",
+              "marginable": true,
+              "min_order_size": null,
+              "min_trade_increment": null,
+              "name": "Microsoft Corporation Common Stock",
+              "price_increment": null,
+              "shortable": true,
+              "status": {
+                "__type__": "AssetStatus",
+                "name": "ACTIVE",
+                "value": "active"
+              },
+              "symbol": "MSFT",
+              "tradable": true
+            }
+          }
+        ],
+        "created_at": {
+          "__type__": "datetime",
+          "value": "2026-11-09T10:13:57.994958+00:00"
+        },
+        "id": {
+          "__type__": "UUID",
+          "value": "cad505de-669f-4bb4-acd8-7cf2560a2770"
+        },
+        "name": "consumer-check-ee5a8c96d570-renamed",
+        "updated_at": {
+          "__type__": "datetime",
+          "value": "2026-11-09T10:13:58.328917+00:00"
+        }
+      }
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "trading_watchlists.watchlist_lifecycle",
+  "scenario_sha256": "584499751a968839cce9285548a5e45d4791fb4663cf008acbc5d217f256bd10",
+  "vars": {
+    "watchlist": "ee5a8c96d57044079f1fd3a23ef3b20c"
+  }
+}

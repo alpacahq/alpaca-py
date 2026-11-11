@@ -1,0 +1,487 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "end",
+            "2024-03-09T00:00:00+00:00"
+          ],
+          [
+            "limit",
+            "10000"
+          ],
+          [
+            "start",
+            "2024-03-04T00:00:00+00:00"
+          ],
+          [
+            "symbols",
+            "AAPL240308C00175000"
+          ],
+          [
+            "timeframe",
+            "1Day"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v1beta1/options/bars"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "bars": {
+              "AAPL240308C00175000": [
+                {
+                  "c": 2.05,
+                  "h": 3.15,
+                  "l": 1.48,
+                  "n": 14381,
+                  "o": 2.71,
+                  "t": "2024-03-04T05:00:00Z",
+                  "v": 84265,
+                  "vw": 1.9028
+                },
+                {
+                  "c": 0.41,
+                  "h": 0.85,
+                  "l": 0.34,
+                  "n": 8941,
+                  "o": 0.58,
+                  "t": "2024-03-05T05:00:00Z",
+                  "v": 70593,
+                  "vw": 0.462598
+                },
+                {
+                  "c": 0.15,
+                  "h": 0.52,
+                  "l": 0.12,
+                  "n": 6600,
+                  "o": 0.52,
+                  "t": "2024-03-06T05:00:00Z",
+                  "v": 53554,
+                  "vw": 0.232254
+                },
+                {
+                  "c": 0.05,
+                  "h": 0.14,
+                  "l": 0.04,
+                  "n": 4454,
+                  "o": 0.09,
+                  "t": "2024-03-07T05:00:00Z",
+                  "v": 45435,
+                  "vw": 0.08974
+                },
+                {
+                  "c": 0.01,
+                  "h": 0.06,
+                  "l": 0.01,
+                  "n": 5359,
+                  "o": 0.02,
+                  "t": "2024-03-08T05:00:00Z",
+                  "v": 66973,
+                  "vw": 0.028645
+                }
+              ]
+            },
+            "next_page_token": null
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Accept-Encoding",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "197",
+          "X-Ratelimit-Reset": "1794219219",
+          "X-Request-ID": "99e01283d93bc939fec0f2ec6be955db"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "end",
+            "2024-03-09T00:00:00+00:00"
+          ],
+          [
+            "limit",
+            "5"
+          ],
+          [
+            "start",
+            "2024-03-04T00:00:00+00:00"
+          ],
+          [
+            "symbols",
+            "AAPL240308C00175000"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v1beta1/options/trades"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "next_page_token": "QUFQTDI0MDMwOEMwMDE3NTAwMHwxNzA5NTYyNjAzMTg5NzU5NDg4fEh8MA==",
+            "trades": {
+              "AAPL240308C00175000": [
+                {
+                  "c": "I",
+                  "p": 2.71,
+                  "s": 11,
+                  "t": "2024-03-04T14:30:00.30862592Z",
+                  "x": "Q"
+                },
+                {
+                  "c": "I",
+                  "p": 2.7,
+                  "s": 22,
+                  "t": "2024-03-04T14:30:00.788052992Z",
+                  "x": "Q"
+                },
+                {
+                  "c": "f",
+                  "p": 2.52,
+                  "s": 4,
+                  "t": "2024-03-04T14:30:01.53232768Z",
+                  "x": "I"
+                },
+                {
+                  "c": "I",
+                  "p": 2.3,
+                  "s": 1,
+                  "t": "2024-03-04T14:30:01.955395072Z",
+                  "x": "Q"
+                },
+                {
+                  "c": "I",
+                  "p": 2.3,
+                  "s": 5,
+                  "t": "2024-03-04T14:30:01.961559808Z",
+                  "x": "M"
+                }
+              ]
+            }
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Accept-Encoding",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "196",
+          "X-Ratelimit-Reset": "1794219220",
+          "X-Request-ID": "555f0210bfc03f220a4bc117ad985d61"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_with": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "2.3.3",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "bars": {
+      "__type__": "BarSet",
+      "fields": {
+        "data": {
+          "AAPL240308C00175000": [
+            {
+              "__type__": "Bar",
+              "fields": {
+                "close": 2.05,
+                "high": 3.15,
+                "low": 1.48,
+                "open": 2.71,
+                "symbol": "AAPL240308C00175000",
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-04T05:00:00+00:00"
+                },
+                "trade_count": 14381.0,
+                "volume": 84265.0,
+                "vwap": 1.9028
+              }
+            },
+            {
+              "__type__": "Bar",
+              "fields": {
+                "close": 0.41,
+                "high": 0.85,
+                "low": 0.34,
+                "open": 0.58,
+                "symbol": "AAPL240308C00175000",
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-05T05:00:00+00:00"
+                },
+                "trade_count": 8941.0,
+                "volume": 70593.0,
+                "vwap": 0.462598
+              }
+            },
+            {
+              "__type__": "Bar",
+              "fields": {
+                "close": 0.15,
+                "high": 0.52,
+                "low": 0.12,
+                "open": 0.52,
+                "symbol": "AAPL240308C00175000",
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-06T05:00:00+00:00"
+                },
+                "trade_count": 6600.0,
+                "volume": 53554.0,
+                "vwap": 0.232254
+              }
+            },
+            {
+              "__type__": "Bar",
+              "fields": {
+                "close": 0.05,
+                "high": 0.14,
+                "low": 0.04,
+                "open": 0.09,
+                "symbol": "AAPL240308C00175000",
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-07T05:00:00+00:00"
+                },
+                "trade_count": 4454.0,
+                "volume": 45435.0,
+                "vwap": 0.08974
+              }
+            },
+            {
+              "__type__": "Bar",
+              "fields": {
+                "close": 0.01,
+                "high": 0.06,
+                "low": 0.01,
+                "open": 0.02,
+                "symbol": "AAPL240308C00175000",
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-08T05:00:00+00:00"
+                },
+                "trade_count": 5359.0,
+                "volume": 66973.0,
+                "vwap": 0.028645
+              }
+            }
+          ]
+        }
+      }
+    },
+    "bars_df": {
+      "__type__": "DataFrame",
+      "columns": [
+        "open",
+        "high",
+        "low",
+        "close",
+        "volume",
+        "trade_count",
+        "vwap"
+      ],
+      "dtypes": {
+        "close": "float64",
+        "high": "float64",
+        "low": "float64",
+        "open": "float64",
+        "trade_count": "float64",
+        "volume": "float64",
+        "vwap": "float64"
+      },
+      "head": [
+        [
+          "('AAPL240308C00175000', Timestamp('2024-03-04 05:00:00+0000', tz='UTC'))",
+          [
+            "2.71",
+            "3.15",
+            "1.48",
+            "2.05",
+            "84265.0",
+            "14381.0",
+            "1.9028"
+          ]
+        ],
+        [
+          "('AAPL240308C00175000', Timestamp('2024-03-05 05:00:00+0000', tz='UTC'))",
+          [
+            "0.58",
+            "0.85",
+            "0.34",
+            "0.41",
+            "70593.0",
+            "8941.0",
+            "0.462598"
+          ]
+        ],
+        [
+          "('AAPL240308C00175000', Timestamp('2024-03-06 05:00:00+0000', tz='UTC'))",
+          [
+            "0.52",
+            "0.52",
+            "0.12",
+            "0.15",
+            "53554.0",
+            "6600.0",
+            "0.232254"
+          ]
+        ]
+      ],
+      "index": {
+        "dtypes": [
+          "str",
+          "datetime64[us, UTC]"
+        ],
+        "names": [
+          "symbol",
+          "timestamp"
+        ]
+      },
+      "shape": [
+        5,
+        7
+      ]
+    },
+    "trades": {
+      "__type__": "TradeSet",
+      "fields": {
+        "data": {
+          "AAPL240308C00175000": [
+            {
+              "__type__": "Trade",
+              "fields": {
+                "conditions": "I",
+                "exchange": "Q",
+                "id": null,
+                "price": 2.71,
+                "size": 11.0,
+                "symbol": "AAPL240308C00175000",
+                "tape": null,
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-04T14:30:00.308625+00:00"
+                }
+              }
+            },
+            {
+              "__type__": "Trade",
+              "fields": {
+                "conditions": "I",
+                "exchange": "Q",
+                "id": null,
+                "price": 2.7,
+                "size": 22.0,
+                "symbol": "AAPL240308C00175000",
+                "tape": null,
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-04T14:30:00.788052+00:00"
+                }
+              }
+            },
+            {
+              "__type__": "Trade",
+              "fields": {
+                "conditions": "f",
+                "exchange": "I",
+                "id": null,
+                "price": 2.52,
+                "size": 4.0,
+                "symbol": "AAPL240308C00175000",
+                "tape": null,
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-04T14:30:01.532327+00:00"
+                }
+              }
+            },
+            {
+              "__type__": "Trade",
+              "fields": {
+                "conditions": "I",
+                "exchange": "Q",
+                "id": null,
+                "price": 2.3,
+                "size": 1.0,
+                "symbol": "AAPL240308C00175000",
+                "tape": null,
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-04T14:30:01.955395+00:00"
+                }
+              }
+            },
+            {
+              "__type__": "Trade",
+              "fields": {
+                "conditions": "I",
+                "exchange": "M",
+                "id": null,
+                "price": 2.3,
+                "size": 5.0,
+                "symbol": "AAPL240308C00175000",
+                "tape": null,
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-04T14:30:01.961559+00:00"
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "option_data.expired_contract_bars_and_trades",
+  "scenario_sha256": "2f6c09ae9dcd55d636f5a93ce87325a7e504289800d1c3cc61ca1e56d64c12c6",
+  "vars": {}
+}

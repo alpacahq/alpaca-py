@@ -1,0 +1,61 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/clock"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "code": 50010000,
+            "message": "internal server error"
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 500
+      }
+    }
+  ],
+  "recorded_with": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "2.3.3",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "code": 50010000,
+    "error": {
+      "__type__": "APIError",
+      "code": 50010000,
+      "status_code": 500
+    },
+    "message": "internal server error",
+    "text": "{\"code\": 50010000, \"message\": \"internal server error\"}"
+  },
+  "result_from": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "errors_stubbed.server_error_is_not_retried",
+  "scenario_sha256": "d306913fe831a6dc4e8fa41a1331d6ce4c1a757c7c077dcab5fdeebb69be7560",
+  "vars": {}
+}

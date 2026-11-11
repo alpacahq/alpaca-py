@@ -1,0 +1,783 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": {
+          "json": {
+            "client_order_id": "b6ce689254324ffe917ad4fe57031506",
+            "notional": 10.0,
+            "side": "buy",
+            "symbol": "BTC/USD",
+            "time_in_force": "gtc",
+            "type": "market"
+          }
+        },
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "content-type": "application/json",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "POST",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/orders"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "asset_class": "crypto",
+            "asset_id": "276e2673-764b-4ab6-a611-caf665ca6340",
+            "canceled_at": null,
+            "client_order_id": "b6ce689254324ffe917ad4fe57031506",
+            "created_at": "2026-11-09T10:13:50.352282019Z",
+            "expired_at": null,
+            "expires_at": "2027-02-04T21:00:00Z",
+            "extended_hours": false,
+            "failed_at": null,
+            "filled_at": null,
+            "filled_avg_price": null,
+            "filled_qty": "0",
+            "hwm": null,
+            "id": "ce2d6c3e-caa5-4ec0-bd88-61b8a846b3f1",
+            "legs": null,
+            "limit_price": null,
+            "notional": "10",
+            "order_class": "",
+            "order_type": "market",
+            "position_intent": "buy_to_open",
+            "qty": null,
+            "replaced_at": null,
+            "replaced_by": null,
+            "replaces": null,
+            "side": "buy",
+            "source": null,
+            "status": "pending_new",
+            "stop_price": null,
+            "submitted_at": "2026-11-09T10:13:50.352282019Z",
+            "subtag": null,
+            "symbol": "BTC/USD",
+            "time_in_force": "gtc",
+            "trail_percent": null,
+            "trail_price": null,
+            "type": "market",
+            "updated_at": "2026-11-09T10:13:50.352698944Z"
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization, Content-Type, X-Correspondent",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, POST, PATCH",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json; charset=UTF-8",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Origin",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "194",
+          "X-Ratelimit-Reset": "1794219232",
+          "X-Request-Id": "373f0ef767ca2c5bc12d4c11944627c2"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/orders/ce2d6c3e-caa5-4ec0-bd88-61b8a846b3f1"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "asset_class": "crypto",
+            "asset_id": "276e2673-764b-4ab6-a611-caf665ca6340",
+            "canceled_at": null,
+            "client_order_id": "b6ce689254324ffe917ad4fe57031506",
+            "created_at": "2026-11-09T10:13:50.352282019Z",
+            "expired_at": null,
+            "expires_at": "2027-02-04T21:00:00Z",
+            "extended_hours": false,
+            "failed_at": null,
+            "filled_at": "2026-11-09T10:13:50.353834257Z",
+            "filled_avg_price": "74126.14",
+            "filled_qty": "0.000132358",
+            "hwm": null,
+            "id": "ce2d6c3e-caa5-4ec0-bd88-61b8a846b3f1",
+            "legs": null,
+            "limit_price": null,
+            "notional": "10",
+            "order_class": "",
+            "order_type": "market",
+            "position_intent": "buy_to_open",
+            "qty": null,
+            "replaced_at": null,
+            "replaced_by": null,
+            "replaces": null,
+            "side": "buy",
+            "source": null,
+            "status": "filled",
+            "stop_price": null,
+            "submitted_at": "2026-11-09T10:13:50.352282019Z",
+            "subtag": null,
+            "symbol": "BTC/USD",
+            "time_in_force": "gtc",
+            "trail_percent": null,
+            "trail_price": null,
+            "type": "market",
+            "updated_at": "2026-11-09T10:13:50.387227614Z"
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization, Content-Type, X-Correspondent",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, POST, PATCH",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json; charset=UTF-8",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Origin",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "193",
+          "X-Ratelimit-Reset": "1794219232",
+          "X-Request-Id": "316b21fc5d0f2b15b125725759562d2a"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": {
+          "json": {
+            "client_order_id": "d96cbf1d374f4ea68669dea1bc8ab43a",
+            "limit_price": 1.0,
+            "qty": 1.0,
+            "side": "buy",
+            "symbol": "AAPL",
+            "time_in_force": "day",
+            "type": "limit"
+          }
+        },
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "content-type": "application/json",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "POST",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/orders"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "asset_class": "us_equity",
+            "asset_id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+            "canceled_at": null,
+            "client_order_id": "d96cbf1d374f4ea68669dea1bc8ab43a",
+            "created_at": "2026-11-09T10:13:50.575999807Z",
+            "expired_at": null,
+            "expires_at": "2026-11-09T21:00:00Z",
+            "extended_hours": false,
+            "failed_at": null,
+            "filled_at": null,
+            "filled_avg_price": null,
+            "filled_qty": "0",
+            "hwm": null,
+            "id": "cee8072f-b0e5-413c-8696-80c35b4756c2",
+            "legs": null,
+            "limit_price": "1",
+            "notional": null,
+            "order_class": "",
+            "order_type": "limit",
+            "position_intent": "buy_to_open",
+            "qty": "1",
+            "replaced_at": null,
+            "replaced_by": null,
+            "replaces": null,
+            "side": "buy",
+            "source": null,
+            "status": "pending_new",
+            "stop_price": null,
+            "submitted_at": "2026-11-09T10:13:50.575999807Z",
+            "subtag": null,
+            "symbol": "AAPL",
+            "time_in_force": "day",
+            "trail_percent": null,
+            "trail_price": null,
+            "type": "limit",
+            "updated_at": "2026-11-09T10:13:50.576956532Z"
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization, Content-Type, X-Correspondent",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, POST, PATCH",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json; charset=UTF-8",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Origin",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "192",
+          "X-Ratelimit-Reset": "1794219232",
+          "X-Request-Id": "ffaee08ab521cb3b416004172b73707f"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "DELETE",
+        "query": [
+          [
+            "cancel_orders",
+            "True"
+          ]
+        ],
+        "url": "https://paper-api.alpaca.markets/v2/positions"
+      },
+      "response": {
+        "body": {
+          "json": [
+            {
+              "body": {
+                "asset_class": "crypto",
+                "asset_id": "276e2673-764b-4ab6-a611-caf665ca6340",
+                "canceled_at": null,
+                "client_order_id": "f6892448-23c9-4cee-8681-b16a680f92e0",
+                "created_at": "2026-11-09T10:13:50.686171405Z",
+                "expired_at": null,
+                "expires_at": "2027-02-04T21:00:00Z",
+                "extended_hours": false,
+                "failed_at": null,
+                "filled_at": null,
+                "filled_avg_price": null,
+                "filled_qty": "0",
+                "hwm": null,
+                "id": "500ebaac-9934-49f6-8dd7-a4d81937df8e",
+                "legs": null,
+                "limit_price": null,
+                "notional": null,
+                "order_class": "",
+                "order_type": "market",
+                "position_intent": "sell_to_close",
+                "qty": "0.000132027",
+                "replaced_at": null,
+                "replaced_by": null,
+                "replaces": null,
+                "side": "sell",
+                "source": null,
+                "status": "pending_new",
+                "stop_price": null,
+                "submitted_at": "2026-11-09T10:13:50.686171405Z",
+                "subtag": null,
+                "symbol": "BTC/USD",
+                "time_in_force": "gtc",
+                "trail_percent": null,
+                "trail_price": null,
+                "type": "market",
+                "updated_at": "2026-11-09T10:13:50.687191225Z"
+              },
+              "status": 200,
+              "symbol": "BTCUSD"
+            }
+          ]
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization, Content-Type, X-Correspondent",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, POST, PATCH",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json; charset=UTF-8",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Origin",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "192",
+          "X-Ratelimit-Reset": "1794219233",
+          "X-Request-Id": "778c75a74b45718fabe855da67c2c195"
+        },
+        "reason": "Multi-Status",
+        "status": 207
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/orders/500ebaac-9934-49f6-8dd7-a4d81937df8e"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "asset_class": "crypto",
+            "asset_id": "276e2673-764b-4ab6-a611-caf665ca6340",
+            "canceled_at": null,
+            "client_order_id": "f6892448-23c9-4cee-8681-b16a680f92e0",
+            "created_at": "2026-11-09T10:13:50.686171405Z",
+            "expired_at": null,
+            "expires_at": "2027-02-04T21:00:00Z",
+            "extended_hours": false,
+            "failed_at": null,
+            "filled_at": "2026-11-09T10:13:50.68819372Z",
+            "filled_avg_price": "74076.41",
+            "filled_qty": "0.000132027",
+            "hwm": null,
+            "id": "500ebaac-9934-49f6-8dd7-a4d81937df8e",
+            "legs": null,
+            "limit_price": null,
+            "notional": null,
+            "order_class": "",
+            "order_type": "market",
+            "position_intent": "sell_to_close",
+            "qty": "0.000132027",
+            "replaced_at": null,
+            "replaced_by": null,
+            "replaces": null,
+            "side": "sell",
+            "source": null,
+            "status": "filled",
+            "stop_price": null,
+            "submitted_at": "2026-11-09T10:13:50.686171405Z",
+            "subtag": null,
+            "symbol": "BTC/USD",
+            "time_in_force": "gtc",
+            "trail_percent": null,
+            "trail_price": null,
+            "type": "market",
+            "updated_at": "2026-11-09T10:13:50.736418161Z"
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization, Content-Type, X-Correspondent",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, POST, PATCH",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json; charset=UTF-8",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Origin",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "191",
+          "X-Ratelimit-Reset": "1794219233",
+          "X-Request-Id": "12eb6cfb5989653b1eae6c21b438f188"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/orders/cee8072f-b0e5-413c-8696-80c35b4756c2"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "asset_class": "us_equity",
+            "asset_id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+            "canceled_at": "2026-11-09T10:13:50.688566214Z",
+            "client_order_id": "d96cbf1d374f4ea68669dea1bc8ab43a",
+            "created_at": "2026-11-09T10:13:50.575999807Z",
+            "expired_at": null,
+            "expires_at": "2026-11-09T21:00:00Z",
+            "extended_hours": false,
+            "failed_at": null,
+            "filled_at": null,
+            "filled_avg_price": null,
+            "filled_qty": "0",
+            "hwm": null,
+            "id": "cee8072f-b0e5-413c-8696-80c35b4756c2",
+            "legs": null,
+            "limit_price": "1",
+            "notional": null,
+            "order_class": "",
+            "order_type": "limit",
+            "position_intent": "buy_to_open",
+            "qty": "1",
+            "replaced_at": null,
+            "replaced_by": null,
+            "replaces": null,
+            "side": "buy",
+            "source": null,
+            "status": "canceled",
+            "stop_price": null,
+            "submitted_at": "2026-11-09T10:13:50.580903924Z",
+            "subtag": null,
+            "symbol": "AAPL",
+            "time_in_force": "day",
+            "trail_percent": null,
+            "trail_price": null,
+            "type": "limit",
+            "updated_at": "2026-11-09T10:13:50.690276753Z"
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization, Content-Type, X-Correspondent",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, POST, PATCH",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json; charset=UTF-8",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Origin",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "190",
+          "X-Ratelimit-Reset": "1794219233",
+          "X-Request-Id": "6ed96d47d5a13c857e6bdad6fa403fd1"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_with": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "2.3.3",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "btc": {
+      "__type__": "ClosePositionResponse",
+      "fields": {
+        "body": {
+          "__type__": "Order",
+          "fields": {
+            "asset_class": {
+              "__type__": "AssetClass",
+              "name": "CRYPTO",
+              "value": "crypto"
+            },
+            "asset_id": {
+              "__type__": "UUID",
+              "value": "276e2673-764b-4ab6-a611-caf665ca6340"
+            },
+            "canceled_at": null,
+            "client_order_id": "f6892448-23c9-4cee-8681-b16a680f92e0",
+            "created_at": {
+              "__type__": "datetime",
+              "value": "2026-11-09T10:13:50.686171+00:00"
+            },
+            "expired_at": null,
+            "expires_at": {
+              "__type__": "datetime",
+              "value": "2027-02-04T21:00:00+00:00"
+            },
+            "extended_hours": false,
+            "failed_at": null,
+            "filled_at": null,
+            "filled_avg_price": null,
+            "filled_qty": "0",
+            "group_id": null,
+            "group_role": null,
+            "hwm": null,
+            "id": {
+              "__type__": "UUID",
+              "value": "500ebaac-9934-49f6-8dd7-a4d81937df8e"
+            },
+            "legs": null,
+            "limit_price": null,
+            "notional": null,
+            "order_class": {
+              "__type__": "OrderClass",
+              "name": "SIMPLE",
+              "value": "simple"
+            },
+            "order_type": {
+              "__type__": "OrderType",
+              "name": "MARKET",
+              "value": "market"
+            },
+            "position_intent": {
+              "__type__": "PositionIntent",
+              "name": "SELL_TO_CLOSE",
+              "value": "sell_to_close"
+            },
+            "qty": "0.000132027",
+            "ratio_qty": null,
+            "replaced_at": null,
+            "replaced_by": null,
+            "replaces": null,
+            "side": {
+              "__type__": "OrderSide",
+              "name": "SELL",
+              "value": "sell"
+            },
+            "status": {
+              "__type__": "OrderStatus",
+              "name": "PENDING_NEW",
+              "value": "pending_new"
+            },
+            "stop_price": null,
+            "submitted_at": {
+              "__type__": "datetime",
+              "value": "2026-11-09T10:13:50.686171+00:00"
+            },
+            "symbol": "BTC/USD",
+            "time_in_force": {
+              "__type__": "TimeInForce",
+              "name": "GTC",
+              "value": "gtc"
+            },
+            "trail_percent": null,
+            "trail_price": null,
+            "type": {
+              "__type__": "OrderType",
+              "name": "MARKET",
+              "value": "market"
+            },
+            "updated_at": {
+              "__type__": "datetime",
+              "value": "2026-11-09T10:13:50.687191+00:00"
+            }
+          }
+        },
+        "order_id": null,
+        "status": 200,
+        "symbol": "BTCUSD"
+      }
+    },
+    "canceled": {
+      "__type__": "Order",
+      "fields": {
+        "asset_class": {
+          "__type__": "AssetClass",
+          "name": "US_EQUITY",
+          "value": "us_equity"
+        },
+        "asset_id": {
+          "__type__": "UUID",
+          "value": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415"
+        },
+        "canceled_at": {
+          "__type__": "datetime",
+          "value": "2026-11-09T10:13:50.688566+00:00"
+        },
+        "client_order_id": "d96cbf1d374f4ea68669dea1bc8ab43a",
+        "created_at": {
+          "__type__": "datetime",
+          "value": "2026-11-09T10:13:50.575999+00:00"
+        },
+        "expired_at": null,
+        "expires_at": {
+          "__type__": "datetime",
+          "value": "2026-11-09T21:00:00+00:00"
+        },
+        "extended_hours": false,
+        "failed_at": null,
+        "filled_at": null,
+        "filled_avg_price": null,
+        "filled_qty": "0",
+        "group_id": null,
+        "group_role": null,
+        "hwm": null,
+        "id": {
+          "__type__": "UUID",
+          "value": "cee8072f-b0e5-413c-8696-80c35b4756c2"
+        },
+        "legs": null,
+        "limit_price": "1",
+        "notional": null,
+        "order_class": {
+          "__type__": "OrderClass",
+          "name": "SIMPLE",
+          "value": "simple"
+        },
+        "order_type": {
+          "__type__": "OrderType",
+          "name": "LIMIT",
+          "value": "limit"
+        },
+        "position_intent": {
+          "__type__": "PositionIntent",
+          "name": "BUY_TO_OPEN",
+          "value": "buy_to_open"
+        },
+        "qty": "1",
+        "ratio_qty": null,
+        "replaced_at": null,
+        "replaced_by": null,
+        "replaces": null,
+        "side": {
+          "__type__": "OrderSide",
+          "name": "BUY",
+          "value": "buy"
+        },
+        "status": {
+          "__type__": "OrderStatus",
+          "name": "CANCELED",
+          "value": "canceled"
+        },
+        "stop_price": null,
+        "submitted_at": {
+          "__type__": "datetime",
+          "value": "2026-11-09T10:13:50.580903+00:00"
+        },
+        "symbol": "AAPL",
+        "time_in_force": {
+          "__type__": "TimeInForce",
+          "name": "DAY",
+          "value": "day"
+        },
+        "trail_percent": null,
+        "trail_price": null,
+        "type": {
+          "__type__": "OrderType",
+          "name": "LIMIT",
+          "value": "limit"
+        },
+        "updated_at": {
+          "__type__": "datetime",
+          "value": "2026-11-09T10:13:50.690276+00:00"
+        }
+      }
+    },
+    "sold": {
+      "__type__": "Order",
+      "fields": {
+        "asset_class": {
+          "__type__": "AssetClass",
+          "name": "CRYPTO",
+          "value": "crypto"
+        },
+        "asset_id": {
+          "__type__": "UUID",
+          "value": "276e2673-764b-4ab6-a611-caf665ca6340"
+        },
+        "canceled_at": null,
+        "client_order_id": "f6892448-23c9-4cee-8681-b16a680f92e0",
+        "created_at": {
+          "__type__": "datetime",
+          "value": "2026-11-09T10:13:50.686171+00:00"
+        },
+        "expired_at": null,
+        "expires_at": {
+          "__type__": "datetime",
+          "value": "2027-02-04T21:00:00+00:00"
+        },
+        "extended_hours": false,
+        "failed_at": null,
+        "filled_at": {
+          "__type__": "datetime",
+          "value": "2026-11-09T10:13:50.688193+00:00"
+        },
+        "filled_avg_price": "74076.41",
+        "filled_qty": "0.000132027",
+        "group_id": null,
+        "group_role": null,
+        "hwm": null,
+        "id": {
+          "__type__": "UUID",
+          "value": "500ebaac-9934-49f6-8dd7-a4d81937df8e"
+        },
+        "legs": null,
+        "limit_price": null,
+        "notional": null,
+        "order_class": {
+          "__type__": "OrderClass",
+          "name": "SIMPLE",
+          "value": "simple"
+        },
+        "order_type": {
+          "__type__": "OrderType",
+          "name": "MARKET",
+          "value": "market"
+        },
+        "position_intent": {
+          "__type__": "PositionIntent",
+          "name": "SELL_TO_CLOSE",
+          "value": "sell_to_close"
+        },
+        "qty": "0.000132027",
+        "ratio_qty": null,
+        "replaced_at": null,
+        "replaced_by": null,
+        "replaces": null,
+        "side": {
+          "__type__": "OrderSide",
+          "name": "SELL",
+          "value": "sell"
+        },
+        "status": {
+          "__type__": "OrderStatus",
+          "name": "FILLED",
+          "value": "filled"
+        },
+        "stop_price": null,
+        "submitted_at": {
+          "__type__": "datetime",
+          "value": "2026-11-09T10:13:50.686171+00:00"
+        },
+        "symbol": "BTC/USD",
+        "time_in_force": {
+          "__type__": "TimeInForce",
+          "name": "GTC",
+          "value": "gtc"
+        },
+        "trail_percent": null,
+        "trail_price": null,
+        "type": {
+          "__type__": "OrderType",
+          "name": "MARKET",
+          "value": "market"
+        },
+        "updated_at": {
+          "__type__": "datetime",
+          "value": "2026-11-09T10:13:50.736418+00:00"
+        }
+      }
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.15.2",
+    "requests": "2.34.2"
+  },
+  "scenario": "trading_account_wide.close_all_positions_and_cancel_orders",
+  "scenario_sha256": "812fbf49ea6080ca814755370587c835e304966ff8cdf55235d3081896d51509",
+  "vars": {
+    "buy": "b6ce689254324ffe917ad4fe57031506",
+    "pending": "d96cbf1d374f4ea68669dea1bc8ab43a"
+  }
+}

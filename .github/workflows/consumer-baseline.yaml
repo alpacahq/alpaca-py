@@ -1,0 +1,131 @@
+name: Consumer checks baseline bump
+
+# After a release is published, move consumer_checks/BASELINE to it, re-record
+# every consumer scenario against it, and open a PR with the sdk-breaking label.
+# The PR diff shows what changed for users between the two releases.
+#
+# Uses the same dedicated paper account as the nightly live job (repository
+# secrets CONSUMER_TRADING_API_KEY_ID / CONSUMER_TRADING_API_SECRET_KEY). A PR
+# opened with GITHUB_TOKEN does not start other workflows: close and reopen it
+# (or push to it) to run CI.
+on:
+  workflow_run:
+    workflows: ["Publish python package"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Released alpaca-py version to move the baseline to, e.g. 0.46.0"
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: consumer-live # shares the paper account with the nightly job
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       startsWith(github.event.workflow_run.head_branch, 'v'))
+    runs-on: ubuntu-latest
+    steps:
+      - name: resolve version
+        id: version
+        env:
+          INPUT: ${{ github.event.inputs.version }}
+          TAG: ${{ github.event.workflow_run.head_branch }}
+        run: |
+          version="${INPUT:-${TAG#v}}"
+          if ! printf '%s' "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::not a release version: '$version'"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          ref: master
+      - name: setup poetry
+        run: pipx install poetry
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: "poetry"
+      - name: Poetry install
+        run: poetry install
+      - name: wait for the release on PyPI
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          for _ in $(seq 1 30); do
+            curl -sf "https://pypi.org/pypi/alpaca-py/$VERSION/json" > /dev/null && exit 0
+            sleep 30
+          done
+          echo "::error::alpaca-py $VERSION is not on PyPI after 15 minutes"
+          exit 1
+      - name: move BASELINE and re-record everything
+        id: record
+        shell: bash
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          CONSUMER_TRADING_API_KEY_ID: ${{ secrets.CONSUMER_TRADING_API_KEY_ID }}
+          CONSUMER_TRADING_API_SECRET_KEY: ${{ secrets.CONSUMER_TRADING_API_SECRET_KEY }}
+        run: |
+          printf '%s\n' "$VERSION" > consumer_checks/BASELINE
+          # The release's public surface: what check_surface.py compares against.
+          make consumer-surface-baseline
+          # Exceptions for items the release now includes are no longer needed.
+          poetry run python consumer_checks/check_surface.py --prune-allowlist
+          # Keep going on failures: the PR still shows what was recorded, and the
+          # failing scenarios are listed in its description.
+          set +e
+          make consumer-record ARGS="--consumer-rerecord -rf" 2>&1 | tee record.log
+          echo "status=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
+          exit 0
+      - name: open the pull request
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          STATUS: ${{ steps.record.outputs.status }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          branch="consumer-baseline/$VERSION"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git add -A consumer_checks/BASELINE consumer_checks/surface_baseline.json \
+            consumer_checks/surface_allowlist.txt consumer_checks/recordings
+          git commit -m "chore(consumer-checks): move baseline to $VERSION"
+          git push origin "$branch"
+
+          failed="$(grep '^FAILED' record.log || true)"
+          {
+            echo "Moves \`consumer_checks/BASELINE\` to alpaca-py $VERSION and re-records"
+            echo "every consumer scenario against it. The recording diff is what users see"
+            echo "change between the previous baseline and $VERSION."
+            echo "\`surface_baseline.json\` now describes $VERSION, so the surface gate"
+            echo "only asks for scenarios for API added after it."
+            echo
+            if [ "$STATUS" != "0" ]; then
+              echo "**Recording failed for some scenarios** ([run]($RUN_URL)):"
+              echo '```'
+              echo "${failed:-see the run log}"
+              echo '```'
+              echo "A scenario assertion failing here means $VERSION changed behavior"
+              echo "that scenario relies on. Fix the scenario or note the break."
+            else
+              echo "All scenarios recorded ([run]($RUN_URL))."
+            fi
+            echo
+            echo "Opened by a workflow, so CI has not run: close and reopen the PR to start it."
+          } > body.md
+          draft=""
+          [ "$STATUS" != "0" ] && draft="--draft"
+          gh pr create --base master --head "$branch" $draft \
+            --label sdk-breaking \
+            --title "chore(consumer-checks): move baseline to $VERSION" \
+            --body-file body.md

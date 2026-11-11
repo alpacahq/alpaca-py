@@ -1,0 +1,357 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "end",
+            "2024-06-04T00:00:00+00:00"
+          ],
+          [
+            "limit",
+            "3"
+          ],
+          [
+            "start",
+            "2024-06-03T00:00:00+00:00"
+          ],
+          [
+            "symbols",
+            "BTC/USD"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v1beta3/crypto/us/quotes"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "next_page_token": "QlRDL1VTRHwxNzE3MzczMDUxMzUwMTEzMTUyfDY3NzIwfDAuMDAxNHw2Nzc4Ny44OXwwLjU1MDkyMg==",
+            "quotes": {
+              "BTC/USD": [
+                {
+                  "ap": 67791.53,
+                  "as": 0.276607,
+                  "bp": 67720,
+                  "bs": 0.0014,
+                  "t": "2024-06-03T00:01:08.884510385Z"
+                },
+                {
+                  "ap": 67796.7,
+                  "as": 0.5512,
+                  "bp": 67720,
+                  "bs": 0.0014,
+                  "t": "2024-06-03T00:01:08.885020925Z"
+                },
+                {
+                  "ap": 67747.215,
+                  "as": 0.2767,
+                  "bp": 67720,
+                  "bs": 0.0014,
+                  "t": "2024-06-03T00:01:08.885029955Z"
+                }
+              ]
+            }
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Accept-Encoding",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "199",
+          "X-Ratelimit-Reset": "1794219213",
+          "X-Request-ID": "f18d3e226b0bd90510874ae6e8255c63"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "end",
+            "2024-06-04T00:00:00+00:00"
+          ],
+          [
+            "limit",
+            "3"
+          ],
+          [
+            "start",
+            "2024-06-03T00:00:00+00:00"
+          ],
+          [
+            "symbols",
+            "BTC/USD"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v1beta3/crypto/us/trades"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "next_page_token": "QlRDL1VTRHwxNzE3Mzc4NTY1OTU2MTEyNDA5fDMyMjc1MjYzMTU1NzAyNTA0NDA=",
+            "trades": {
+              "BTC/USD": [
+                {
+                  "i": 3431650972335686103,
+                  "p": 67720,
+                  "s": 0.0014,
+                  "t": "2024-06-03T00:04:11.350449122Z",
+                  "tks": "S"
+                },
+                {
+                  "i": 2082697738752640436,
+                  "p": 68062.46,
+                  "s": 0.004,
+                  "t": "2024-06-03T01:11:51.630491502Z",
+                  "tks": "B"
+                },
+                {
+                  "i": 5923668629007911806,
+                  "p": 68296.1,
+                  "s": 0.0002,
+                  "t": "2024-06-03T01:35:50.337577595Z",
+                  "tks": "B"
+                }
+              ]
+            }
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Accept-Encoding",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "198",
+          "X-Ratelimit-Reset": "1794219213",
+          "X-Request-ID": "f94c6b4ad061ad50cb32e5a76c769c79"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_with": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "2.3.3",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "quotes": {
+      "__type__": "QuoteSet",
+      "fields": {
+        "data": {
+          "BTC/USD": [
+            {
+              "__type__": "Quote",
+              "fields": {
+                "ask_exchange": null,
+                "ask_price": 67791.53,
+                "ask_size": 0.276607,
+                "bid_exchange": null,
+                "bid_price": 67720.0,
+                "bid_size": 0.0014,
+                "conditions": null,
+                "symbol": "BTC/USD",
+                "tape": null,
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-06-03T00:01:08.884510+00:00"
+                }
+              }
+            },
+            {
+              "__type__": "Quote",
+              "fields": {
+                "ask_exchange": null,
+                "ask_price": 67796.7,
+                "ask_size": 0.5512,
+                "bid_exchange": null,
+                "bid_price": 67720.0,
+                "bid_size": 0.0014,
+                "conditions": null,
+                "symbol": "BTC/USD",
+                "tape": null,
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-06-03T00:01:08.885020+00:00"
+                }
+              }
+            },
+            {
+              "__type__": "Quote",
+              "fields": {
+                "ask_exchange": null,
+                "ask_price": 67747.215,
+                "ask_size": 0.2767,
+                "bid_exchange": null,
+                "bid_price": 67720.0,
+                "bid_size": 0.0014,
+                "conditions": null,
+                "symbol": "BTC/USD",
+                "tape": null,
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-06-03T00:01:08.885029+00:00"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "trades": {
+      "__type__": "TradeSet",
+      "fields": {
+        "data": {
+          "BTC/USD": [
+            {
+              "__type__": "Trade",
+              "fields": {
+                "conditions": null,
+                "exchange": null,
+                "id": 3431650972335686103,
+                "price": 67720.0,
+                "size": 0.0014,
+                "symbol": "BTC/USD",
+                "tape": null,
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-06-03T00:04:11.350449+00:00"
+                }
+              }
+            },
+            {
+              "__type__": "Trade",
+              "fields": {
+                "conditions": null,
+                "exchange": null,
+                "id": 2082697738752640436,
+                "price": 68062.46,
+                "size": 0.004,
+                "symbol": "BTC/USD",
+                "tape": null,
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-06-03T01:11:51.630491+00:00"
+                }
+              }
+            },
+            {
+              "__type__": "Trade",
+              "fields": {
+                "conditions": null,
+                "exchange": null,
+                "id": 5923668629007911806,
+                "price": 68296.1,
+                "size": 0.0002,
+                "symbol": "BTC/USD",
+                "tape": null,
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-06-03T01:35:50.337577+00:00"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "trades_df": {
+      "__type__": "DataFrame",
+      "columns": [
+        "price",
+        "size",
+        "id"
+      ],
+      "dtypes": {
+        "id": "int64",
+        "price": "float64",
+        "size": "float64"
+      },
+      "head": [
+        [
+          "('BTC/USD', Timestamp('2024-06-03 00:04:11.350449+0000', tz='UTC'))",
+          [
+            "67720.0",
+            "0.0014",
+            "3431650972335686103"
+          ]
+        ],
+        [
+          "('BTC/USD', Timestamp('2024-06-03 01:11:51.630491+0000', tz='UTC'))",
+          [
+            "68062.46",
+            "0.004",
+            "2082697738752640436"
+          ]
+        ],
+        [
+          "('BTC/USD', Timestamp('2024-06-03 01:35:50.337577+0000', tz='UTC'))",
+          [
+            "68296.1",
+            "0.0002",
+            "5923668629007911806"
+          ]
+        ]
+      ],
+      "index": {
+        "dtypes": [
+          "str",
+          "datetime64[us, UTC]"
+        ],
+        "names": [
+          "symbol",
+          "timestamp"
+        ]
+      },
+      "shape": [
+        3,
+        3
+      ]
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "crypto_data.historical_quotes_and_trades_with_limit",
+  "scenario_sha256": "c23987f5530d11f3b1e39490effabfc8da2e16da3722d9bd0906fb8037aa747a",
+  "vars": {}
+}

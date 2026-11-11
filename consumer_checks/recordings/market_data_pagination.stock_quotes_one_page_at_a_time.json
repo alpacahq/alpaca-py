@@ -1,0 +1,219 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "end",
+            "2024-03-09T00:00:00+00:00"
+          ],
+          [
+            "feed",
+            "iex"
+          ],
+          [
+            "limit",
+            "10000"
+          ],
+          [
+            "start",
+            "2024-03-04T00:00:00+00:00"
+          ],
+          [
+            "symbols",
+            "AAPL"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v2/stocks/quotes"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "next_page_token": "page-2",
+            "quotes": {
+              "AAPL": [
+                {
+                  "ap": 175.1,
+                  "as": 3,
+                  "ax": "V",
+                  "bp": 174.9,
+                  "bs": 2,
+                  "bx": "V",
+                  "c": [
+                    "R"
+                  ],
+                  "t": "2024-03-04T15:00:00Z",
+                  "z": "C"
+                }
+              ]
+            }
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "end",
+            "2024-03-09T00:00:00+00:00"
+          ],
+          [
+            "feed",
+            "iex"
+          ],
+          [
+            "limit",
+            "10000"
+          ],
+          [
+            "page_token",
+            "page-2"
+          ],
+          [
+            "start",
+            "2024-03-04T00:00:00+00:00"
+          ],
+          [
+            "symbols",
+            "AAPL"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v2/stocks/quotes"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "next_page_token": null,
+            "quotes": {
+              "AAPL": [
+                {
+                  "ap": 175.1,
+                  "as": 3,
+                  "ax": "V",
+                  "bp": 174.9,
+                  "bs": 2,
+                  "bx": "V",
+                  "c": [
+                    "R"
+                  ],
+                  "t": "2024-03-04T15:00:00Z",
+                  "z": "C"
+                }
+              ]
+            }
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_against": "checkout",
+  "recorded_with": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "first": {
+      "__type__": "QuoteSet",
+      "fields": {
+        "data": {
+          "AAPL": [
+            {
+              "__type__": "Quote",
+              "fields": {
+                "ask_exchange": "V",
+                "ask_price": 175.1,
+                "ask_size": 3.0,
+                "bid_exchange": "V",
+                "bid_price": 174.9,
+                "bid_size": 2.0,
+                "conditions": [
+                  "R"
+                ],
+                "symbol": "AAPL",
+                "tape": "C",
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-04T15:00:00+00:00"
+                }
+              }
+            }
+          ]
+        },
+        "next_page_token": "page-2"
+      }
+    },
+    "last": {
+      "__type__": "QuoteSet",
+      "fields": {
+        "data": {
+          "AAPL": [
+            {
+              "__type__": "Quote",
+              "fields": {
+                "ask_exchange": "V",
+                "ask_price": 175.1,
+                "ask_size": 3.0,
+                "bid_exchange": "V",
+                "bid_price": 174.9,
+                "bid_size": 2.0,
+                "conditions": [
+                  "R"
+                ],
+                "symbol": "AAPL",
+                "tape": "C",
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-04T15:00:00+00:00"
+                }
+              }
+            }
+          ]
+        },
+        "next_page_token": null
+      }
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "market_data_pagination.stock_quotes_one_page_at_a_time",
+  "scenario_sha256": "f85b6ba21f01d16571dc88ef93c703762ea7f58f75697a7d16b397b2b009859e",
+  "vars": {}
+}

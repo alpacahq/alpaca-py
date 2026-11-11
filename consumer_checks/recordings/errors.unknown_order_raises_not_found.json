@@ -1,0 +1,127 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/orders/00000000-0000-4000-8000-000000000000"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "code": 40410000,
+            "message": "order not found for 00000000-0000-4000-8000-000000000000"
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization, Content-Type, X-Correspondent",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, POST, PATCH",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json; charset=UTF-8",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Origin",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "198",
+          "X-Ratelimit-Reset": "1794219216",
+          "X-Request-Id": "5e8b342a227cb171e5dd5f7809db15ce"
+        },
+        "reason": "Not Found",
+        "status": 404
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "client_order_id",
+            "consumer-check-order-that-does-not-exist"
+          ]
+        ],
+        "url": "https://paper-api.alpaca.markets/v2/orders:by_client_order_id"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "code": 40410000,
+            "message": "order not found for consumer-check-order-that-does-not-exist"
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization, Content-Type, X-Correspondent",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, POST, PATCH",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json; charset=UTF-8",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Origin",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "197",
+          "X-Ratelimit-Reset": "1794219217",
+          "X-Request-Id": "489ddfca0b924086fe6711d9c2248185"
+        },
+        "reason": "Not Found",
+        "status": 404
+      }
+    }
+  ],
+  "recorded_with": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "2.3.3",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "by_client_id": {
+      "code": 40410000,
+      "error": {
+        "__type__": "APIError",
+        "code": 40410000,
+        "status_code": 404
+      },
+      "message": "order not found for consumer-check-order-that-does-not-exist",
+      "text": "{\"code\": 40410000, \"message\": \"order not found for consumer-check-order-that-does-not-exist\"}"
+    },
+    "by_id": {
+      "code": 40410000,
+      "error": {
+        "__type__": "APIError",
+        "code": 40410000,
+        "status_code": 404
+      },
+      "message": "order not found for 00000000-0000-4000-8000-000000000000",
+      "text": "{\"code\": 40410000, \"message\": \"order not found for 00000000-0000-4000-8000-000000000000\"}"
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "errors.unknown_order_raises_not_found",
+  "scenario_sha256": "4c011adcacad757010109b9b826f9f1d81bd9a6615853b53fe2543cdebf24fd5",
+  "vars": {}
+}

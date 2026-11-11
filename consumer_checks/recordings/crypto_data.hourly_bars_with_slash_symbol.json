@@ -1,0 +1,359 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "end",
+            "2024-03-04T06:00:00+00:00"
+          ],
+          [
+            "limit",
+            "10000"
+          ],
+          [
+            "start",
+            "2024-03-04T00:00:00+00:00"
+          ],
+          [
+            "symbols",
+            "BTC/USD"
+          ],
+          [
+            "timeframe",
+            "1Hour"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v1beta3/crypto/us/bars"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "bars": {
+              "BTC/USD": [
+                {
+                  "c": 63475.415,
+                  "h": 64301.79,
+                  "l": 62390.2375,
+                  "n": 11,
+                  "o": 63139.045,
+                  "t": "2024-03-04T00:00:00Z",
+                  "v": 0.029965794,
+                  "vw": 63304.955651
+                },
+                {
+                  "c": 63564.85,
+                  "h": 63854.95,
+                  "l": 63294.108,
+                  "n": 2,
+                  "o": 63470.3,
+                  "t": "2024-03-04T01:00:00Z",
+                  "v": 0.000209757,
+                  "vw": 63736.211165
+                },
+                {
+                  "c": 63727.7,
+                  "h": 63933.715,
+                  "l": 63162.2,
+                  "n": 3,
+                  "o": 63549.72,
+                  "t": "2024-03-04T02:00:00Z",
+                  "v": 0.00630278,
+                  "vw": 63667.404432
+                },
+                {
+                  "c": 63516.3145,
+                  "h": 63793.2365,
+                  "l": 63415.145,
+                  "n": 4,
+                  "o": 63715.2085,
+                  "t": "2024-03-04T03:00:00Z",
+                  "v": 0.001542939,
+                  "vw": 63717.603199
+                },
+                {
+                  "c": 63689.478,
+                  "h": 63812.5,
+                  "l": 63434.919,
+                  "n": 4,
+                  "o": 63483.9355,
+                  "t": "2024-03-04T04:00:00Z",
+                  "v": 0.00116636,
+                  "vw": 63613.448548
+                },
+                {
+                  "c": 63359.805,
+                  "h": 63743.9575,
+                  "l": 63252.195,
+                  "n": 3,
+                  "o": 63660.717,
+                  "t": "2024-03-04T05:00:00Z",
+                  "v": 0.000888453,
+                  "vw": 63543.859652
+                },
+                {
+                  "c": 63742.397,
+                  "h": 63744.05,
+                  "l": 63362.079,
+                  "n": 3,
+                  "o": 63414.362,
+                  "t": "2024-03-04T06:00:00Z",
+                  "v": 0.025294009,
+                  "vw": 63475.018428
+                }
+              ]
+            },
+            "next_page_token": null
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Accept-Encoding",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "198",
+          "X-Ratelimit-Reset": "1794219214",
+          "X-Request-ID": "300567e2b2d3aff5f94557d3043f297b"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_with": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "2.3.3",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "bars": {
+      "__type__": "BarSet",
+      "fields": {
+        "data": {
+          "BTC/USD": [
+            {
+              "__type__": "Bar",
+              "fields": {
+                "close": 63475.415,
+                "high": 64301.79,
+                "low": 62390.2375,
+                "open": 63139.045,
+                "symbol": "BTC/USD",
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-04T00:00:00+00:00"
+                },
+                "trade_count": 11.0,
+                "volume": 0.029965794,
+                "vwap": 63304.955651
+              }
+            },
+            {
+              "__type__": "Bar",
+              "fields": {
+                "close": 63564.85,
+                "high": 63854.95,
+                "low": 63294.108,
+                "open": 63470.3,
+                "symbol": "BTC/USD",
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-04T01:00:00+00:00"
+                },
+                "trade_count": 2.0,
+                "volume": 0.000209757,
+                "vwap": 63736.211165
+              }
+            },
+            {
+              "__type__": "Bar",
+              "fields": {
+                "close": 63727.7,
+                "high": 63933.715,
+                "low": 63162.2,
+                "open": 63549.72,
+                "symbol": "BTC/USD",
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-04T02:00:00+00:00"
+                },
+                "trade_count": 3.0,
+                "volume": 0.00630278,
+                "vwap": 63667.404432
+              }
+            },
+            {
+              "__type__": "Bar",
+              "fields": {
+                "close": 63516.3145,
+                "high": 63793.2365,
+                "low": 63415.145,
+                "open": 63715.2085,
+                "symbol": "BTC/USD",
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-04T03:00:00+00:00"
+                },
+                "trade_count": 4.0,
+                "volume": 0.001542939,
+                "vwap": 63717.603199
+              }
+            },
+            {
+              "__type__": "Bar",
+              "fields": {
+                "close": 63689.478,
+                "high": 63812.5,
+                "low": 63434.919,
+                "open": 63483.9355,
+                "symbol": "BTC/USD",
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-04T04:00:00+00:00"
+                },
+                "trade_count": 4.0,
+                "volume": 0.00116636,
+                "vwap": 63613.448548
+              }
+            },
+            {
+              "__type__": "Bar",
+              "fields": {
+                "close": 63359.805,
+                "high": 63743.9575,
+                "low": 63252.195,
+                "open": 63660.717,
+                "symbol": "BTC/USD",
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-04T05:00:00+00:00"
+                },
+                "trade_count": 3.0,
+                "volume": 0.000888453,
+                "vwap": 63543.859652
+              }
+            },
+            {
+              "__type__": "Bar",
+              "fields": {
+                "close": 63742.397,
+                "high": 63744.05,
+                "low": 63362.079,
+                "open": 63414.362,
+                "symbol": "BTC/USD",
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-04T06:00:00+00:00"
+                },
+                "trade_count": 3.0,
+                "volume": 0.025294009,
+                "vwap": 63475.018428
+              }
+            }
+          ]
+        }
+      }
+    },
+    "df": {
+      "__type__": "DataFrame",
+      "columns": [
+        "open",
+        "high",
+        "low",
+        "close",
+        "volume",
+        "trade_count",
+        "vwap"
+      ],
+      "dtypes": {
+        "close": "float64",
+        "high": "float64",
+        "low": "float64",
+        "open": "float64",
+        "trade_count": "float64",
+        "volume": "float64",
+        "vwap": "float64"
+      },
+      "head": [
+        [
+          "('BTC/USD', Timestamp('2024-03-04 00:00:00+0000', tz='UTC'))",
+          [
+            "63139.045",
+            "64301.79",
+            "62390.2375",
+            "63475.415",
+            "0.029965794",
+            "11.0",
+            "63304.955651"
+          ]
+        ],
+        [
+          "('BTC/USD', Timestamp('2024-03-04 01:00:00+0000', tz='UTC'))",
+          [
+            "63470.3",
+            "63854.95",
+            "63294.108",
+            "63564.85",
+            "0.000209757",
+            "2.0",
+            "63736.211165"
+          ]
+        ],
+        [
+          "('BTC/USD', Timestamp('2024-03-04 02:00:00+0000', tz='UTC'))",
+          [
+            "63549.72",
+            "63933.715",
+            "63162.2",
+            "63727.7",
+            "0.00630278",
+            "3.0",
+            "63667.404432"
+          ]
+        ]
+      ],
+      "index": {
+        "dtypes": [
+          "str",
+          "datetime64[us, UTC]"
+        ],
+        "names": [
+          "symbol",
+          "timestamp"
+        ]
+      },
+      "shape": [
+        7,
+        7
+      ]
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "crypto_data.hourly_bars_with_slash_symbol",
+  "scenario_sha256": "4b33b4d35640046d63f7fb8694b23f6ff50c9865f3a32edca37d4375a490762d",
+  "vars": {}
+}

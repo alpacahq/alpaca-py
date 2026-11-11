@@ -1,0 +1,241 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "top",
+            "5"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v1beta1/screener/stocks/movers"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "gainers": [
+              {
+                "change": 0.2227,
+                "percent_change": 144.8,
+                "price": 0.3765,
+                "symbol": "SDA"
+              },
+              {
+                "change": 1.47,
+                "percent_change": 82.12,
+                "price": 3.26,
+                "symbol": "STAK"
+              },
+              {
+                "change": 0.4499,
+                "percent_change": 76.25,
+                "price": 1.0399,
+                "symbol": "NUAIW"
+              },
+              {
+                "change": 0.0061,
+                "percent_change": 75.31,
+                "price": 0.0142,
+                "symbol": "BNCWW"
+              },
+              {
+                "change": 1.565,
+                "percent_change": 72.96,
+                "price": 3.71,
+                "symbol": "FLYT"
+              }
+            ],
+            "last_updated": "2026-11-07T00:59:00.05893082Z",
+            "losers": [
+              {
+                "change": -2.902,
+                "percent_change": -81.29,
+                "price": 0.668,
+                "symbol": "SITC"
+              },
+              {
+                "change": -0.0291,
+                "percent_change": -73.48,
+                "price": 0.0105,
+                "symbol": "CDROW"
+              },
+              {
+                "change": -0.0022,
+                "percent_change": -73.33,
+                "price": 0.0008,
+                "symbol": "SWAGW"
+              },
+              {
+                "change": -0.9061,
+                "percent_change": -62.92,
+                "price": 0.5339,
+                "symbol": "AIRS"
+              },
+              {
+                "change": -0.0182,
+                "percent_change": -60.67,
+                "price": 0.0118,
+                "symbol": "AMPGZ"
+              }
+            ],
+            "market_type": "stocks"
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Accept-Encoding",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "199",
+          "X-Ratelimit-Reset": "1794219217",
+          "X-Request-ID": "e7cb22f235c229343a97d62e03a2e06b"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_with": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "2.3.3",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "movers": {
+      "__type__": "Movers",
+      "fields": {
+        "gainers": [
+          {
+            "__type__": "Mover",
+            "fields": {
+              "change": 0.2227,
+              "percent_change": 144.8,
+              "price": 0.3765,
+              "symbol": "SDA"
+            }
+          },
+          {
+            "__type__": "Mover",
+            "fields": {
+              "change": 1.47,
+              "percent_change": 82.12,
+              "price": 3.26,
+              "symbol": "STAK"
+            }
+          },
+          {
+            "__type__": "Mover",
+            "fields": {
+              "change": 0.4499,
+              "percent_change": 76.25,
+              "price": 1.0399,
+              "symbol": "NUAIW"
+            }
+          },
+          {
+            "__type__": "Mover",
+            "fields": {
+              "change": 0.0061,
+              "percent_change": 75.31,
+              "price": 0.0142,
+              "symbol": "BNCWW"
+            }
+          },
+          {
+            "__type__": "Mover",
+            "fields": {
+              "change": 1.565,
+              "percent_change": 72.96,
+              "price": 3.71,
+              "symbol": "FLYT"
+            }
+          }
+        ],
+        "last_updated": {
+          "__type__": "datetime",
+          "value": "2026-11-07T00:59:00.058930+00:00"
+        },
+        "losers": [
+          {
+            "__type__": "Mover",
+            "fields": {
+              "change": -2.902,
+              "percent_change": -81.29,
+              "price": 0.668,
+              "symbol": "SITC"
+            }
+          },
+          {
+            "__type__": "Mover",
+            "fields": {
+              "change": -0.0291,
+              "percent_change": -73.48,
+              "price": 0.0105,
+              "symbol": "CDROW"
+            }
+          },
+          {
+            "__type__": "Mover",
+            "fields": {
+              "change": -0.0022,
+              "percent_change": -73.33,
+              "price": 0.0008,
+              "symbol": "SWAGW"
+            }
+          },
+          {
+            "__type__": "Mover",
+            "fields": {
+              "change": -0.9061,
+              "percent_change": -62.92,
+              "price": 0.5339,
+              "symbol": "AIRS"
+            }
+          },
+          {
+            "__type__": "Mover",
+            "fields": {
+              "change": -0.0182,
+              "percent_change": -60.67,
+              "price": 0.0118,
+              "symbol": "AMPGZ"
+            }
+          }
+        ],
+        "market_type": {
+          "__type__": "MarketType",
+          "name": "STOCKS",
+          "value": "stocks"
+        }
+      }
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "market_info_data.stock_market_movers",
+  "scenario_sha256": "231d9cda61c6299b1152b6e4fa7021a716ac467456c3669f6ac93d29da2badf2",
+  "vars": {}
+}

@@ -23,10 +23,21 @@ jobs:
       - name: Poetry install
         run: poetry install
       - name: run lint checks
-        run: poetry run black --check alpaca/ tests/
+        run: poetry run black --check alpaca/ tests/ consumer_checks/
       - name: run type checks
         # Same gate as `make typecheck`. Scope lives in pyproject.toml.
         run: poetry run mypy tests/type_checks/
+      - name: type-check consumer scenarios
+        run: make consumer-typecheck
+      - name: consumer scenario coverage
+        # Fails when a public client method has no recorded consumer scenario and is
+        # not in consumer_checks/coverage_allowlist.txt, or an allowlist entry is stale.
+        run: poetry run python consumer_checks/check_coverage.py --strict
+      - name: consumer surface gate
+        # Public surface new since consumer_checks/BASELINE (parameters, request and
+        # response fields) must be exercised by a recorded scenario, or allowlisted
+        # in consumer_checks/surface_allowlist.txt. Replays the scenarios itself.
+        run: poetry run python consumer_checks/check_surface.py --strict
       - name: build doc html to lint for errors
         run: ./tools/scripts/generate-docs.sh
 
@@ -50,6 +61,10 @@ jobs:
         run: poetry install
       - name: run tests
         run: poetry run pytest
+      - name: replay consumer scenarios
+        # Offline: recorded paper API responses, frozen against consumer_checks/BASELINE.
+        # Strict: a scenario without a recording fails instead of being skipped.
+        run: poetry run pytest consumer_checks --consumer-strict
 
   # poetry.lock pins pandas 3, but pyproject.toml allows pandas>=1.5.3, so
   # check the oldest and the latest 2.x releases that users can still install.
@@ -75,3 +90,39 @@ jobs:
         run: poetry run pip install ${{ matrix.pandas-spec }}
       - name: run tests
         run: poetry run pytest
+
+  api-breakage:
+    # Report only: some breaking changes are intended. Findings go to the job summary
+    # and a warning annotation; the check itself stays green.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # poetry-dynamic-versioning needs tags to build the wheel
+      - name: setup poetry
+        run: pipx install poetry
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: compare public API with the latest release
+        id: compare
+        continue-on-error: true
+        shell: bash
+        run: |
+          python3 tools/scripts/compare_api_breakage.py --fail-on-breaking 2>&1 | tee api-breakage.txt
+      - name: flag breaking changes
+        if: steps.compare.outcome == 'failure'
+        shell: bash
+        run: |
+          summary="$(grep -m1 '^Summary vs' api-breakage.txt || echo 'see the job summary')"
+          echo "::warning title=Public API breaking changes::$summary"
+      - name: write summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Public API compared with the latest release'
+            echo '```'
+            cat api-breakage.txt 2>/dev/null || echo 'no report produced'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

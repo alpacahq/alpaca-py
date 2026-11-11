@@ -1,0 +1,149 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": {
+          "json": {
+            "client_order_id": "a9bd015204114983b52f89afdbf64549",
+            "limit_price": 1.0,
+            "qty": 10000000.0,
+            "side": "buy",
+            "symbol": "AAPL",
+            "time_in_force": "day",
+            "type": "limit"
+          }
+        },
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "content-type": "application/json",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "POST",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/orders"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "buying_power": "408185.8",
+            "code": 40310000,
+            "cost_basis": "10000030",
+            "message": "insufficient buying power"
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization, Content-Type, X-Correspondent",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, POST, PATCH",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json; charset=UTF-8",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Origin",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "199",
+          "X-Ratelimit-Reset": "1794219215",
+          "X-Request-Id": "52ffd2c0ff2f6e04b2587c91740c4643"
+        },
+        "reason": "Forbidden",
+        "status": 403
+      }
+    },
+    {
+      "request": {
+        "body": {
+          "json": {
+            "client_order_id": "ae05441df92446059d8512b405229f8b",
+            "limit_price": 1.0001,
+            "qty": 1.0,
+            "side": "buy",
+            "symbol": "AAPL",
+            "time_in_force": "day",
+            "type": "limit"
+          }
+        },
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "content-type": "application/json",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "POST",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/orders"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "code": 42210000,
+            "message": "invalid limit_price 1.0001. sub-penny increment does not fulfill minimum pricing criteria"
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization, Content-Type, X-Correspondent",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, POST, PATCH",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json; charset=UTF-8",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Origin",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "198",
+          "X-Ratelimit-Reset": "1794219216",
+          "X-Request-Id": "bb52efe8d454d7825bb24307cea09754"
+        },
+        "reason": "Unprocessable Entity",
+        "status": 422
+      }
+    }
+  ],
+  "recorded_with": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "2.3.3",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "insufficient_buying_power": {
+      "code": 40310000,
+      "error": {
+        "__type__": "APIError",
+        "code": 40310000,
+        "status_code": 403
+      },
+      "message": "insufficient buying power",
+      "text": "{\"buying_power\": \"408185.8\", \"code\": 40310000, \"cost_basis\": \"10000030\", \"message\": \"insufficient buying power\"}"
+    },
+    "sub_penny_limit_price": {
+      "code": 42210000,
+      "error": {
+        "__type__": "APIError",
+        "code": 42210000,
+        "status_code": 422
+      },
+      "message": "invalid limit_price 1.0001. sub-penny increment does not fulfill minimum pricing criteria",
+      "text": "{\"code\": 42210000, \"message\": \"invalid limit_price 1.0001. sub-penny increment does not fulfill minimum pricing criteria\"}"
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "errors.rejected_orders_raise_api_error",
+  "scenario_sha256": "e59b97443b6997649c8b04e4436b81f3e42e9eaf26a7afa717a36cf93ff588a3",
+  "vars": {
+    "sub-penny": "ae05441df92446059d8512b405229f8b",
+    "too-big": "a9bd015204114983b52f89afdbf64549"
+  }
+}

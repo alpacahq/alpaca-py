@@ -1,0 +1,452 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "adjustment",
+            "raw"
+          ],
+          [
+            "end",
+            "2024-03-09T00:00:00+00:00"
+          ],
+          [
+            "feed",
+            "iex"
+          ],
+          [
+            "limit",
+            "10000"
+          ],
+          [
+            "start",
+            "2024-03-04T00:00:00+00:00"
+          ],
+          [
+            "symbols",
+            "AAPL,MSFT"
+          ],
+          [
+            "timeframe",
+            "1Day"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v2/stocks/bars"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "bars": {
+              "AAPL": [
+                {
+                  "c": 175.09,
+                  "h": 176.85,
+                  "l": 173.79,
+                  "n": 21331,
+                  "o": 176.3,
+                  "t": "2024-03-04T05:00:00Z",
+                  "v": 1705811,
+                  "vw": 174.759337
+                },
+                {
+                  "c": 170.13,
+                  "h": 172.02,
+                  "l": 169.64,
+                  "n": 14852,
+                  "o": 170.8,
+                  "t": "2024-03-05T05:00:00Z",
+                  "v": 1462313,
+                  "vw": 170.367208
+                },
+                {
+                  "c": 169.11,
+                  "h": 171.21,
+                  "l": 168.71,
+                  "n": 11875,
+                  "o": 171.115,
+                  "t": "2024-03-06T05:00:00Z",
+                  "v": 909179,
+                  "vw": 169.541027
+                },
+                {
+                  "c": 168.97,
+                  "h": 170.685,
+                  "l": 168.5,
+                  "n": 13510,
+                  "o": 169.15,
+                  "t": "2024-03-07T05:00:00Z",
+                  "v": 1216615,
+                  "vw": 169.345488
+                },
+                {
+                  "c": 170.98,
+                  "h": 173.68,
+                  "l": 168.975,
+                  "n": 14317,
+                  "o": 169.03,
+                  "t": "2024-03-08T05:00:00Z",
+                  "v": 1143439,
+                  "vw": 171.734353
+                }
+              ],
+              "MSFT": [
+                {
+                  "c": 414.86,
+                  "h": 417.34,
+                  "l": 412.62,
+                  "n": 5221,
+                  "o": 413.44,
+                  "t": "2024-03-04T05:00:00Z",
+                  "v": 261461,
+                  "vw": 415.331156
+                },
+                {
+                  "c": 402.71,
+                  "h": 414.13,
+                  "l": 400.65,
+                  "n": 8723,
+                  "o": 413.94,
+                  "t": "2024-03-05T05:00:00Z",
+                  "v": 488977,
+                  "vw": 403.791097
+                },
+                {
+                  "c": 402,
+                  "h": 405.13,
+                  "l": 398.525,
+                  "n": 9035,
+                  "o": 402.9,
+                  "t": "2024-03-06T05:00:00Z",
+                  "v": 528887,
+                  "vw": 402.001494
+                },
+                {
+                  "c": 409.02,
+                  "h": 409.77,
+                  "l": 402.39,
+                  "n": 6973,
+                  "o": 406.12,
+                  "t": "2024-03-07T05:00:00Z",
+                  "v": 348075,
+                  "vw": 407.220164
+                },
+                {
+                  "c": 406.23,
+                  "h": 410.385,
+                  "l": 404.455,
+                  "n": 6805,
+                  "o": 407.885,
+                  "t": "2024-03-08T05:00:00Z",
+                  "v": 265488,
+                  "vw": 407.381689
+                }
+              ]
+            },
+            "next_page_token": null
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Accept-Encoding",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "199",
+          "X-Ratelimit-Reset": "1794219223",
+          "X-Request-ID": "4121079babe89ebe378921d6bed3f857"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_with": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "2.3.3",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "bars": {
+      "__type__": "BarSet",
+      "fields": {
+        "data": {
+          "AAPL": [
+            {
+              "__type__": "Bar",
+              "fields": {
+                "close": 175.09,
+                "high": 176.85,
+                "low": 173.79,
+                "open": 176.3,
+                "symbol": "AAPL",
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-04T05:00:00+00:00"
+                },
+                "trade_count": 21331.0,
+                "volume": 1705811.0,
+                "vwap": 174.759337
+              }
+            },
+            {
+              "__type__": "Bar",
+              "fields": {
+                "close": 170.13,
+                "high": 172.02,
+                "low": 169.64,
+                "open": 170.8,
+                "symbol": "AAPL",
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-05T05:00:00+00:00"
+                },
+                "trade_count": 14852.0,
+                "volume": 1462313.0,
+                "vwap": 170.367208
+              }
+            },
+            {
+              "__type__": "Bar",
+              "fields": {
+                "close": 169.11,
+                "high": 171.21,
+                "low": 168.71,
+                "open": 171.115,
+                "symbol": "AAPL",
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-06T05:00:00+00:00"
+                },
+                "trade_count": 11875.0,
+                "volume": 909179.0,
+                "vwap": 169.541027
+              }
+            },
+            {
+              "__type__": "Bar",
+              "fields": {
+                "close": 168.97,
+                "high": 170.685,
+                "low": 168.5,
+                "open": 169.15,
+                "symbol": "AAPL",
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-07T05:00:00+00:00"
+                },
+                "trade_count": 13510.0,
+                "volume": 1216615.0,
+                "vwap": 169.345488
+              }
+            },
+            {
+              "__type__": "Bar",
+              "fields": {
+                "close": 170.98,
+                "high": 173.68,
+                "low": 168.975,
+                "open": 169.03,
+                "symbol": "AAPL",
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-08T05:00:00+00:00"
+                },
+                "trade_count": 14317.0,
+                "volume": 1143439.0,
+                "vwap": 171.734353
+              }
+            }
+          ],
+          "MSFT": [
+            {
+              "__type__": "Bar",
+              "fields": {
+                "close": 414.86,
+                "high": 417.34,
+                "low": 412.62,
+                "open": 413.44,
+                "symbol": "MSFT",
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-04T05:00:00+00:00"
+                },
+                "trade_count": 5221.0,
+                "volume": 261461.0,
+                "vwap": 415.331156
+              }
+            },
+            {
+              "__type__": "Bar",
+              "fields": {
+                "close": 402.71,
+                "high": 414.13,
+                "low": 400.65,
+                "open": 413.94,
+                "symbol": "MSFT",
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-05T05:00:00+00:00"
+                },
+                "trade_count": 8723.0,
+                "volume": 488977.0,
+                "vwap": 403.791097
+              }
+            },
+            {
+              "__type__": "Bar",
+              "fields": {
+                "close": 402.0,
+                "high": 405.13,
+                "low": 398.525,
+                "open": 402.9,
+                "symbol": "MSFT",
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-06T05:00:00+00:00"
+                },
+                "trade_count": 9035.0,
+                "volume": 528887.0,
+                "vwap": 402.001494
+              }
+            },
+            {
+              "__type__": "Bar",
+              "fields": {
+                "close": 409.02,
+                "high": 409.77,
+                "low": 402.39,
+                "open": 406.12,
+                "symbol": "MSFT",
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-07T05:00:00+00:00"
+                },
+                "trade_count": 6973.0,
+                "volume": 348075.0,
+                "vwap": 407.220164
+              }
+            },
+            {
+              "__type__": "Bar",
+              "fields": {
+                "close": 406.23,
+                "high": 410.385,
+                "low": 404.455,
+                "open": 407.885,
+                "symbol": "MSFT",
+                "timestamp": {
+                  "__type__": "datetime",
+                  "value": "2024-03-08T05:00:00+00:00"
+                },
+                "trade_count": 6805.0,
+                "volume": 265488.0,
+                "vwap": 407.381689
+              }
+            }
+          ]
+        }
+      }
+    },
+    "df": {
+      "__type__": "DataFrame",
+      "columns": [
+        "open",
+        "high",
+        "low",
+        "close",
+        "volume",
+        "trade_count",
+        "vwap"
+      ],
+      "dtypes": {
+        "close": "float64",
+        "high": "float64",
+        "low": "float64",
+        "open": "float64",
+        "trade_count": "float64",
+        "volume": "float64",
+        "vwap": "float64"
+      },
+      "head": [
+        [
+          "('AAPL', Timestamp('2024-03-04 05:00:00+0000', tz='UTC'))",
+          [
+            "176.3",
+            "176.85",
+            "173.79",
+            "175.09",
+            "1705811.0",
+            "21331.0",
+            "174.759337"
+          ]
+        ],
+        [
+          "('AAPL', Timestamp('2024-03-05 05:00:00+0000', tz='UTC'))",
+          [
+            "170.8",
+            "172.02",
+            "169.64",
+            "170.13",
+            "1462313.0",
+            "14852.0",
+            "170.367208"
+          ]
+        ],
+        [
+          "('AAPL', Timestamp('2024-03-06 05:00:00+0000', tz='UTC'))",
+          [
+            "171.115",
+            "171.21",
+            "168.71",
+            "169.11",
+            "909179.0",
+            "11875.0",
+            "169.541027"
+          ]
+        ]
+      ],
+      "index": {
+        "dtypes": [
+          "str",
+          "datetime64[us, UTC]"
+        ],
+        "names": [
+          "symbol",
+          "timestamp"
+        ]
+      },
+      "shape": [
+        10,
+        7
+      ]
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "stock_data.daily_bars_for_two_symbols",
+  "scenario_sha256": "614484220bc752c748b0d7a7ba18c1d898093e6e6ce9036e941497100a94849c",
+  "vars": {}
+}

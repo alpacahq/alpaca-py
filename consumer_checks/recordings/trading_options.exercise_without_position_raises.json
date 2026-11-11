@@ -1,0 +1,227 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "limit",
+            "1"
+          ],
+          [
+            "status",
+            "active"
+          ],
+          [
+            "type",
+            "call"
+          ],
+          [
+            "underlying_symbols",
+            "AAPL"
+          ]
+        ],
+        "url": "https://paper-api.alpaca.markets/v2/options/contracts"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "next_page_token": "MQ==",
+            "option_contracts": [
+              {
+                "close_price": "67.97",
+                "close_price_date": "2026-11-06",
+                "expiration_date": "2026-11-09",
+                "id": "23b3490f-b1fe-44b8-89c3-6a9ce92cded1",
+                "multiplier": "100",
+                "name": "AAPL Nov 09 2026 275 Call",
+                "open_interest": null,
+                "open_interest_date": null,
+                "ppind": true,
+                "root_symbol": "AAPL",
+                "size": "100",
+                "status": "active",
+                "strike_price": "275",
+                "style": "american",
+                "symbol": "AAPL261109C00275000",
+                "tradable": true,
+                "type": "call",
+                "underlying_asset_id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+                "underlying_symbol": "AAPL"
+              }
+            ]
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization, Content-Type, X-Correspondent",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, POST, PATCH",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json; charset=UTF-8",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Origin",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "191",
+          "X-Ratelimit-Reset": "1794219233",
+          "X-Request-Id": "3182a1950310b78436e5ef5ba9059aa1"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/positions"
+      },
+      "response": {
+        "body": {
+          "json": []
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization, Content-Type, X-Correspondent",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, POST, PATCH",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json; charset=UTF-8",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Origin",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "190",
+          "X-Ratelimit-Reset": "1794219234",
+          "X-Request-Id": "e5ded222ee00467c357a3e77693e6fb3"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "POST",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/positions/AAPL261109C00275000/exercise"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "code": 40310000,
+            "message": "no qty available to exercise"
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization, Content-Type, X-Correspondent",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, POST, PATCH",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json; charset=UTF-8",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Origin",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "189",
+          "X-Ratelimit-Reset": "1794219234",
+          "X-Request-Id": "d9a1a5d1489fbfa817288081de41e458"
+        },
+        "reason": "Forbidden",
+        "status": 403
+      }
+    }
+  ],
+  "recorded_with": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "2.3.3",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "contract": {
+      "__type__": "OptionContract",
+      "fields": {
+        "close_price": "67.97",
+        "close_price_date": {
+          "__type__": "date",
+          "value": "2026-11-06"
+        },
+        "deliverables": null,
+        "expiration_date": {
+          "__type__": "date",
+          "value": "2026-11-09"
+        },
+        "id": "23b3490f-b1fe-44b8-89c3-6a9ce92cded1",
+        "multiplier": "100",
+        "name": "AAPL Nov 09 2026 275 Call",
+        "open_interest": null,
+        "open_interest_date": null,
+        "ppind": true,
+        "root_symbol": "AAPL",
+        "size": "100",
+        "status": {
+          "__type__": "AssetStatus",
+          "name": "ACTIVE",
+          "value": "active"
+        },
+        "strike_price": 275.0,
+        "style": {
+          "__type__": "ExerciseStyle",
+          "name": "AMERICAN",
+          "value": "american"
+        },
+        "symbol": "AAPL261109C00275000",
+        "tradable": true,
+        "type": {
+          "__type__": "ContractType",
+          "name": "CALL",
+          "value": "call"
+        },
+        "underlying_asset_id": {
+          "__type__": "UUID",
+          "value": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415"
+        },
+        "underlying_symbol": "AAPL"
+      }
+    },
+    "error": {
+      "__type__": "APIError",
+      "code": 40310000,
+      "status_code": 403
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "trading_options.exercise_without_position_raises",
+  "scenario_sha256": "e66ff18b285f692f486ea6f9761fcb464158a332e23d2d4d0bf78de47bcde072",
+  "vars": {}
+}

@@ -268,6 +268,40 @@ make check-api-breakage BASELINE_REF=origin/master WORKDIR=/tmp/aexpy-alpaca
 make check-api-breakage BASELINE_REF=$(git merge-base origin/master HEAD) WORKDIR=/tmp/aexpy-alpaca
 ```
 
+### Consumer checks
+
+`consumer_checks/` holds SDK code written the way users write it, frozen against
+the last release (`consumer_checks/BASELINE`) and replayed offline on every PR.
+`make check-api-breakage` compares signatures; consumer checks compare what the
+SDK sends and returns. Details are in [consumer_checks/README.md](consumer_checks/README.md).
+
+What a change needs:
+
+- **New public API** (a client, a method, a method parameter, a request field or
+  a response field): add or extend a scenario under `consumer_checks/scenarios/`
+  that uses it, and record it with `make consumer-record` (keys: `.env.example`).
+  If the API is not in the BASELINE release yet, set
+  `since="<first release with it>"` on the scenario: it is then recorded with
+  your branch's SDK. CI fails when a public method has no recorded scenario
+  (`coverage_allowlist.txt`), and when anything new since BASELINE is not
+  exercised: a parameter nobody passes, a request field nobody sets, a response
+  field nobody sees with a value (`surface_allowlist.txt`). Run
+  `make consumer-surface` to see what is missing.
+- **A change users will see**: replay fails. Fix the SDK, or, if the change is
+  intended, update the recording (`make consumer-record ARGS="--consumer-rerecord
+  -k <scenario>"`), add the `sdk-breaking` label, and describe the impact and the
+  migration in the PR and the release notes.
+- **A pandas, numpy or pydantic bump in `poetry.lock`**: run `poetry install`
+  and `make consumer-refresh`, which re-takes the snapshots offline.
+
+Replay checks a PR against stored responses. If the PR changes how the SDK
+talks to the API (the HTTP layer, auth, retries, request serialization), also
+add the `consumer-live` label: it runs the scenarios against the real paper API
+with your branch's code, on each push while the label stays.
+
+Run `make consumer-check` before opening a PR. After each release, a workflow
+moves BASELINE to it and opens a PR with the re-recorded scenarios.
+
 ## Pull request checklist
 
 Before requesting review, confirm that:
@@ -275,6 +309,8 @@ Before requesting review, confirm that:
 - the change is focused and follows the contribution policy;
 - any substantial API, dependency, or third-party work was discussed with maintainers before implementation;
 - `make check-api-breakage` was run when the change could affect the public SDK surface;
+- `make consumer-check` passes, new public API (a method, a parameter, a request or response field) is exercised by a recorded consumer scenario, and unreleased API sets `since=` (see [Consumer checks](#consumer-checks));
+- if a consumer recording changed, the PR has the `sdk-breaking` label and its description says what changes for users and how to migrate;
 - new or changed behavior has focused tests when applicable;
 - default tests are deterministic and credential-free and cannot place live orders, trading examples default to paper trading, and fixtures use synthetic data;
 - documentation and examples are updated when applicable;

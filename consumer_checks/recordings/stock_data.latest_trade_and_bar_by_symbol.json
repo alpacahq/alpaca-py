@@ -1,0 +1,234 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "feed",
+            "iex"
+          ],
+          [
+            "symbols",
+            "AAPL,MSFT"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v2/stocks/trades/latest"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "trades": {
+              "AAPL": {
+                "c": [
+                  "@"
+                ],
+                "i": 27590,
+                "p": 342.41,
+                "s": 50,
+                "t": "2026-11-06T20:59:57.566180707Z",
+                "x": "V",
+                "z": "C"
+              },
+              "MSFT": {
+                "c": [
+                  "@"
+                ],
+                "i": 20701,
+                "p": 530.58,
+                "s": 120,
+                "t": "2026-11-06T20:59:59.251240703Z",
+                "x": "V",
+                "z": "C"
+              }
+            }
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "199",
+          "X-Ratelimit-Reset": "1794219225",
+          "X-Request-ID": "ce13079d2e9fb5d5a6d5f87d1514c8e5"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "feed",
+            "iex"
+          ],
+          [
+            "symbols",
+            "AAPL,MSFT"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v2/stocks/bars/latest"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "bars": {
+              "AAPL": {
+                "c": 342.41,
+                "h": 342.6,
+                "l": 342.31,
+                "n": 704,
+                "o": 342.37,
+                "t": "2026-11-06T20:59:00Z",
+                "v": 32953,
+                "vw": 342.452145
+              },
+              "MSFT": {
+                "c": 530.58,
+                "h": 531.31,
+                "l": 530.505,
+                "n": 512,
+                "o": 531.13,
+                "t": "2026-11-06T20:59:00Z",
+                "v": 17811,
+                "vw": 530.942667
+              }
+            }
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "198",
+          "X-Ratelimit-Reset": "1794219225",
+          "X-Request-ID": "7aa9eab47691eeb799dcadcd2f9b4808"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_with": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "2.3.3",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "bars": {
+      "AAPL": {
+        "__type__": "Bar",
+        "fields": {
+          "close": 342.41,
+          "high": 342.6,
+          "low": 342.31,
+          "open": 342.37,
+          "symbol": "AAPL",
+          "timestamp": {
+            "__type__": "datetime",
+            "value": "2026-11-06T20:59:00+00:00"
+          },
+          "trade_count": 704.0,
+          "volume": 32953.0,
+          "vwap": 342.452145
+        }
+      },
+      "MSFT": {
+        "__type__": "Bar",
+        "fields": {
+          "close": 530.58,
+          "high": 531.31,
+          "low": 530.505,
+          "open": 531.13,
+          "symbol": "MSFT",
+          "timestamp": {
+            "__type__": "datetime",
+            "value": "2026-11-06T20:59:00+00:00"
+          },
+          "trade_count": 512.0,
+          "volume": 17811.0,
+          "vwap": 530.942667
+        }
+      }
+    },
+    "trades": {
+      "AAPL": {
+        "__type__": "Trade",
+        "fields": {
+          "conditions": [
+            "@"
+          ],
+          "exchange": "V",
+          "id": 27590,
+          "price": 342.41,
+          "size": 50.0,
+          "symbol": "AAPL",
+          "tape": "C",
+          "timestamp": {
+            "__type__": "datetime",
+            "value": "2026-11-06T20:59:57.566180+00:00"
+          }
+        }
+      },
+      "MSFT": {
+        "__type__": "Trade",
+        "fields": {
+          "conditions": [
+            "@"
+          ],
+          "exchange": "V",
+          "id": 20701,
+          "price": 530.58,
+          "size": 120.0,
+          "symbol": "MSFT",
+          "tape": "C",
+          "timestamp": {
+            "__type__": "datetime",
+            "value": "2026-11-06T20:59:59.251240+00:00"
+          }
+        }
+      }
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "stock_data.latest_trade_and_bar_by_symbol",
+  "scenario_sha256": "c21b5dd7ed9666def2d5bcb3de1291be0b2545659361a7d50bae1cd94051a61c",
+  "vars": {}
+}

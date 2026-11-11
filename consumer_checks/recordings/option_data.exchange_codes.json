@@ -1,0 +1,102 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [],
+        "url": "https://data.alpaca.markets/v1beta1/options/meta/exchanges"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "A": "AMEX - NYSE American",
+            "B": "BOX - Boston Options Exchange",
+            "C": "CBOE - Cboe Options Exchange",
+            "D": "EMERALD - Miami International Stock Exchange Emerald Options",
+            "E": "EDGX - Cboe EDGX Options Exchange",
+            "H": "GEMX - Nasdaq GEMX",
+            "I": "ISE - Nasdaq International Securities Exchange",
+            "J": "MRX - Nasdaq MRX",
+            "M": "MIAX - Miami International Stock Exchange",
+            "N": "NYSE - NYSE Arca",
+            "O": "OPRA - Options Price Reporting Authority",
+            "P": "PEARL - Miami International Stock Exchange Pearl Options",
+            "Q": "NASD - Nasdaq Options",
+            "S": "SPHR - Miami International Stock Exchange Sapphire Options",
+            "T": "BX - Nasdaq BX Options",
+            "U": "MEMX - Members Options Exchange",
+            "W": "C2 - Cboe C2 Options Exchange",
+            "X": "PHLX - Nasdaq PHLX",
+            "Z": "BATS - Cboe BZX Options Exchange"
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Accept-Encoding",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "197",
+          "X-Ratelimit-Reset": "1794219219",
+          "X-Request-ID": "78e2dc89eea7f835ed56c3ffa77d0eab"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_with": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "2.3.3",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "codes": {
+      "A": "AMEX - NYSE American",
+      "B": "BOX - Boston Options Exchange",
+      "C": "CBOE - Cboe Options Exchange",
+      "D": "EMERALD - Miami International Stock Exchange Emerald Options",
+      "E": "EDGX - Cboe EDGX Options Exchange",
+      "H": "GEMX - Nasdaq GEMX",
+      "I": "ISE - Nasdaq International Securities Exchange",
+      "J": "MRX - Nasdaq MRX",
+      "M": "MIAX - Miami International Stock Exchange",
+      "N": "NYSE - NYSE Arca",
+      "O": "OPRA - Options Price Reporting Authority",
+      "P": "PEARL - Miami International Stock Exchange Pearl Options",
+      "Q": "NASD - Nasdaq Options",
+      "S": "SPHR - Miami International Stock Exchange Sapphire Options",
+      "T": "BX - Nasdaq BX Options",
+      "U": "MEMX - Members Options Exchange",
+      "W": "C2 - Cboe C2 Options Exchange",
+      "X": "PHLX - Nasdaq PHLX",
+      "Z": "BATS - Cboe BZX Options Exchange"
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "option_data.exchange_codes",
+  "scenario_sha256": "9f7028916eac377fbaa03cad7b4449f2635b3937232c2c9d8cf5dcf945305a28",
+  "vars": {}
+}

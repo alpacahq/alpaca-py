@@ -1,0 +1,225 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/account"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "account_blocked": false,
+            "account_number": "SCRUBBED",
+            "accrued_fees": "0",
+            "admin_configurations": {},
+            "balance_asof": "2026-11-06",
+            "buying_power": "408185.8",
+            "cash": "102046.45",
+            "created_at": "2026-06-09T12:06:41.526106Z",
+            "crypto_status": "ACTIVE",
+            "crypto_tier": 1,
+            "currency": "USD",
+            "effective_buying_power": "408185.8",
+            "equity": "102046.45",
+            "id": "00000000-0000-0000-0000-000000000000",
+            "initial_margin": "0",
+            "intraday_adjustments": "0",
+            "last_equity": "102046.87",
+            "last_maintenance_margin": "0",
+            "long_market_value": "0",
+            "maintenance_margin": "0",
+            "multiplier": "4",
+            "non_marginable_buying_power": "102046.45",
+            "options_approved_level": 3,
+            "options_buying_power": "102046.45",
+            "options_trading_level": 3,
+            "pending_reg_taf_fees": "0",
+            "portfolio_value": "102046.45",
+            "position_market_value": "0",
+            "regt_buying_power": "204092.9",
+            "short_market_value": "0",
+            "shorting_enabled": true,
+            "sma": "102046.87",
+            "status": "ACTIVE",
+            "trade_suspended_by_user": false,
+            "trading_blocked": false,
+            "transfers_blocked": false,
+            "user_configurations": {
+              "fractional_trading": true,
+              "max_margin_multiplier": "4",
+              "trade_confirm_email": "all"
+            }
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization, Content-Type, X-Correspondent",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, POST, PATCH",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json; charset=UTF-8",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Accept-Encoding, Origin",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "198",
+          "X-Ratelimit-Reset": "1794219228",
+          "X-Request-Id": "4a7b9ff2d7991424625fc98f85a961fa"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/account/configurations"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "closing_transactions_only": false,
+            "disable_overnight_trading": false,
+            "fractional_trading": true,
+            "max_margin_multiplier": "4",
+            "no_shorting": false,
+            "ptp_no_exception_entry": false,
+            "suspend_trade": false,
+            "trade_confirm_email": "all"
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization, Content-Type, X-Correspondent",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, POST, PATCH",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json; charset=UTF-8",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Origin",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "197",
+          "X-Ratelimit-Reset": "1794219229",
+          "X-Request-Id": "673c3d43a947d30edd473f98dee27949"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_with": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "2.3.3",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "account": {
+      "__type__": "TradeAccount",
+      "fields": {
+        "account_blocked": false,
+        "account_number": "SCRUBBED",
+        "accrued_fees": "0",
+        "balance_asof": "2026-11-06",
+        "buying_power": "408185.8",
+        "cash": "102046.45",
+        "created_at": {
+          "__type__": "datetime",
+          "value": "2026-06-09T12:06:41.526106+00:00"
+        },
+        "crypto_status": {
+          "__type__": "AccountStatus",
+          "name": "ACTIVE",
+          "value": "ACTIVE"
+        },
+        "crypto_tier": 1,
+        "currency": "USD",
+        "daytrade_count": null,
+        "daytrading_buying_power": null,
+        "effective_buying_power": "408185.8",
+        "equity": "102046.45",
+        "id": {
+          "__type__": "UUID",
+          "value": "00000000-0000-0000-0000-000000000000"
+        },
+        "initial_margin": "0",
+        "intraday_adjustments": "0",
+        "last_equity": "102046.87",
+        "last_maintenance_margin": "0",
+        "long_market_value": "0",
+        "maintenance_margin": "0",
+        "multiplier": "4",
+        "non_marginable_buying_power": "102046.45",
+        "options_approved_level": 3,
+        "options_buying_power": "102046.45",
+        "options_trading_level": 3,
+        "pattern_day_trader": null,
+        "pending_reg_taf_fees": "0",
+        "pending_transfer_in": null,
+        "pending_transfer_out": null,
+        "portfolio_value": "102046.45",
+        "position_market_value": "0",
+        "regt_buying_power": "204092.9",
+        "short_market_value": "0",
+        "shorting_enabled": true,
+        "sma": "102046.87",
+        "status": {
+          "__type__": "AccountStatus",
+          "name": "ACTIVE",
+          "value": "ACTIVE"
+        },
+        "trade_suspended_by_user": false,
+        "trading_blocked": false,
+        "transfers_blocked": false
+      }
+    },
+    "configuration": {
+      "__type__": "AccountConfiguration",
+      "fields": {
+        "disable_overnight_trading": false,
+        "dtbp_check": null,
+        "fractional_trading": true,
+        "max_margin_multiplier": "4",
+        "max_options_trading_level": null,
+        "no_shorting": false,
+        "pdt_check": null,
+        "ptp_no_exception_entry": false,
+        "suspend_trade": false,
+        "trade_confirm_email": {
+          "__type__": "TradeConfirmationEmail",
+          "name": "ALL",
+          "value": "all"
+        }
+      }
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "trading_account.account_and_configuration",
+  "scenario_sha256": "c2ea67789b701d33e3b0be0e8e32578bff7c8e8bedb8a68a078355d12d946514",
+  "vars": {}
+}

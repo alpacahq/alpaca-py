@@ -1,0 +1,146 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "end",
+            "2024-03-31"
+          ],
+          [
+            "limit",
+            "1000"
+          ],
+          [
+            "sort",
+            "asc"
+          ],
+          [
+            "start",
+            "2024-01-01"
+          ],
+          [
+            "symbols",
+            "AAPL"
+          ],
+          [
+            "types",
+            "cash_dividend"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v1/corporate-actions"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "corporate_actions": {
+              "cash_dividends": [
+                {
+                  "cusip": "037833100",
+                  "ex_date": "2024-02-09",
+                  "foreign": false,
+                  "id": "35849a16-e94e-4f9a-b66f-a1333d6289af",
+                  "payable_date": "2024-02-15",
+                  "process_date": "2024-02-15",
+                  "rate": 0.24,
+                  "record_date": "2024-02-12",
+                  "special": false,
+                  "symbol": "AAPL"
+                }
+              ]
+            },
+            "next_page_token": null
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Accept-Encoding",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "199",
+          "X-Ratelimit-Reset": "1794219216",
+          "X-Request-ID": "6c692476336417a265761ccf73dd3a36"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_with": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "2.3.3",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "actions": {
+      "__type__": "CorporateActionsSet",
+      "fields": {
+        "data": {
+          "cash_dividends": [
+            {
+              "__type__": "CashDividend",
+              "fields": {
+                "corporate_action_type": "cash_dividends",
+                "cusip": "037833100",
+                "due_bill_off_date": null,
+                "due_bill_on_date": null,
+                "ex_date": {
+                  "__type__": "date",
+                  "value": "2024-02-09"
+                },
+                "foreign": false,
+                "id": {
+                  "__type__": "UUID",
+                  "value": "35849a16-e94e-4f9a-b66f-a1333d6289af"
+                },
+                "payable_date": {
+                  "__type__": "date",
+                  "value": "2024-02-15"
+                },
+                "process_date": {
+                  "__type__": "date",
+                  "value": "2024-02-15"
+                },
+                "rate": 0.24,
+                "record_date": {
+                  "__type__": "date",
+                  "value": "2024-02-12"
+                },
+                "special": false,
+                "symbol": "AAPL"
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "market_info_data.cash_dividends_for_a_quarter",
+  "scenario_sha256": "ab799f0e6b9281672252f3d18dcbc35693821d9e3a7bde2c6b893cac7d26cb0f",
+  "vars": {}
+}

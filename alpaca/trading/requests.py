@@ -710,6 +710,22 @@ class GetCorporateAnnouncementsRequest(NonEmptyRequest):
         return values
 
 
+def _strike_price_warning_is_internal(frame, model_cls: type) -> bool:
+    """Pydantic frames, and a subclass ``__init__`` that only forwards into them.
+
+    The forwarding ``__init__`` is the same file as the call that constructs the
+    subclass, so stopping there hides the line that passed the string.
+    """
+
+    filename = frame.f_code.co_filename.replace("\\", "/")
+    if "/pydantic/" in filename:
+        return True
+    if frame.f_code.co_name != "__init__" or not frame.f_code.co_varnames:
+        return False
+    instance = frame.f_locals.get(frame.f_code.co_varnames[0])
+    return isinstance(instance, model_cls)
+
+
 class GetOptionContractsRequest(NonEmptyRequest):
     """
     Used to fetch option contracts for a given underlying symbol.
@@ -765,12 +781,9 @@ class GetOptionContractsRequest(NonEmptyRequest):
         blank = not value.strip()
         hint = "Pass None to leave it unset." if blank else "Pass a float instead."
 
-        # Skip Pydantic frames; construction and assignment have different depths.
+        # Construction and assignment have different depths.
         frame, stacklevel = sys._getframe(1), 2
-        while (
-            frame is not None
-            and "/pydantic/" in frame.f_code.co_filename.replace("\\", "/")
-        ):
+        while frame is not None and _strike_price_warning_is_internal(frame, cls):
             frame, stacklevel = frame.f_back, stacklevel + 1
 
         warnings.warn(

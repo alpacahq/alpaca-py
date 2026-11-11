@@ -2,6 +2,7 @@
 Contains tests for Trading API's option routes.
 """
 
+import inspect
 import json
 import warnings
 from uuid import UUID
@@ -465,9 +466,30 @@ class _SubclassedRequest(GetOptionContractsRequest):
         super().__init__(**data)
 
 
+def _subclass(**fields):
+    return _SubclassedRequest(**fields)
+
+
+def _caller_lineno(build) -> int:
+    """Line that passes the string, not a frame that only forwards it."""
+
+    needle = {
+        _construct: "return GetOptionContractsRequest(**fields)",
+        _model_validate: "return GetOptionContractsRequest.model_validate(fields)",
+        _model_validate_json: "return GetOptionContractsRequest.model_validate_json(",
+        _assign: "setattr(request, name, value)",
+        _subclass: "return _SubclassedRequest(**fields)",
+    }[build]
+    lines, start = inspect.getsourcelines(build)
+    for offset, line in enumerate(lines):
+        if needle in line:
+            return start + offset
+    raise AssertionError(f"{build.__name__} has no line containing {needle!r}")
+
+
 @pytest.mark.parametrize(
     "build",
-    [_construct, _model_validate, _model_validate_json, _assign, _SubclassedRequest],
+    [_construct, _model_validate, _model_validate_json, _assign, _subclass],
     ids=[
         "construct",
         "model_validate",
@@ -481,7 +503,9 @@ def test_strike_price_deprecation_warning_points_at_the_caller(build):
         request = build(strike_price_gte="150.5")
 
     assert request.strike_price_gte == 150.5
-    assert [warning.filename for warning in caught] == [__file__]
+    assert [(warning.filename, warning.lineno) for warning in caught] == [
+        (__file__, _caller_lineno(build))
+    ]
 
 
 def test_get_option_contracts_blank_strike_prices_are_unset(

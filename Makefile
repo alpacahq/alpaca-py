@@ -13,6 +13,12 @@ install: ## Install the SDK and its dependencies using poetry
 lint: ## Run the linters
 	poetry run black --check alpaca/ tests/
 
+# Same mypy config as CI (`pyproject.toml`): public SDK signatures stay visible,
+# and implementation errors in imported `alpaca.*` modules are outside this gate.
+.PHONY: typecheck
+typecheck: ## Check the return types that type checkers infer for the public client overloads
+	poetry run mypy tests/type_checks/
+
 .PHONY: generate
 generate: ## Generate the documentation
 	./tools/scripts/generate-docs.sh

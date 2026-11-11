@@ -24,6 +24,9 @@ jobs:
         run: poetry install
       - name: run lint checks
         run: poetry run black --check alpaca/ tests/
+      - name: run type checks
+        # Same gate as `make typecheck`. Scope lives in pyproject.toml.
+        run: poetry run mypy tests/type_checks/
       - name: build doc html to lint for errors
         run: ./tools/scripts/generate-docs.sh
 

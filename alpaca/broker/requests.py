@@ -142,6 +142,7 @@ class CreateAccountRequest(NonEmptyRequest):
         documents (List[Union[AccountDocument, UploadW8BenDocumentRequest]]): The documents the account holder has submitted
         trusted_contact (TrustedContact): The account holder's trusted contact details
         minor_identity (Optional[MinorIdentity]): Identity of the minor. Required for a custodial account.
+        cash_interest (Optional[CashInterest]): USD cash interest enrollment
     """
 
     account_type: Optional[Union[AccountType, str]] = None
@@ -155,6 +156,7 @@ class CreateAccountRequest(NonEmptyRequest):
     currency: Optional[SupportedCurrencies] = None  # None = USD
     enabled_assets: Optional[List[AssetClass]] = None  # None = Default to server
     minor_identity: Optional[MinorIdentity] = None
+    cash_interest: Optional[CashInterest] = None
 
     @model_validator(mode="before")
     def validate_parameters_only_optional_in_response(cls, values: dict) -> dict:

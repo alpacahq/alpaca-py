@@ -12,6 +12,8 @@ from alpaca.broker.models import (
     Account,
     AccountExtended,
     Contact,
+    CashInterest,
+    CashInterestProgram,
     OptionExerciseResponse,
     Identity,
     TradeAccount,
@@ -155,6 +157,95 @@ def test_create_account(reqmock, client: BrokerClient):
     assert returned_account.id == UUID(created_id)
     assert returned_account.kyc_results is None
     assert returned_account.account_type == AccountType.TRADING
+    assert returned_account.account_sub_type is None
+
+
+def test_create_account_with_cash_interest(reqmock, client: BrokerClient):
+    created_id = "0d969814-40d6-4b2b-99ac-2e37427f1ad2"
+
+    reqmock.post(
+        "https://broker-api.sandbox.alpaca.markets/v1/accounts",
+        text=f"""
+        {{
+          "id": "{created_id}",
+          "account_number": "682389557",
+          "status": "SUBMITTED",
+          "crypto_status": "INACTIVE",
+          "currency": "USD",
+          "last_equity": "0",
+          "created_at": "2022-04-12T17:24:31.30283Z",
+          "contact": {{
+            "email_address": "cool_alpaca@example.com",
+            "phone_number": "555-666-7788",
+            "street_address": [
+              "20 N San Mateo Dr"
+            ],
+            "city": "San Mateo",
+            "state": "CA",
+            "postal_code": "94401"
+          }},
+          "identity": {{
+            "given_name": "John",
+            "family_name": "Doe",
+            "date_of_birth": "1990-01-01",
+            "tax_id": "666-55-4321",
+            "tax_id_type": "USA_SSN",
+            "country_of_citizenship": "USA",
+            "country_of_birth": "USA",
+            "country_of_tax_residence": "USA",
+            "funding_source": [
+              "employment_income"
+            ]
+          }},
+          "disclosures": {{
+            "is_control_person": false,
+            "is_affiliated_exchange_or_finra": false,
+            "is_politically_exposed": false,
+            "immediate_family_exposed": false
+          }},
+          "agreements": [
+            {{
+              "agreement": "customer_agreement",
+              "signed_at": "2020-09-11T18:13:44Z",
+              "ip_address": "185.13.21.99"
+            }}
+          ],
+          "documents": [
+            {{
+              "document_type": "identity_verification",
+              "document_sub_type": "passport",
+              "id": "e6a0459c-6b3a-44ff-a0ff-ab6ae8013d2f",
+              "content": "https://example.com/not-a-real-url",
+              "created_at": "2022-04-12T17:24:31.30283Z"
+            }}
+          ],
+          "trusted_contact": {{
+            "given_name": "Jane",
+            "family_name": "Doe",
+            "email_address": "jane.doe@example.com"
+          }}
+        }}
+        """,
+    )
+
+    create_data = CreateAccountRequest(
+        agreements=factory.create_dummy_agreements(),
+        contact=factory.create_dummy_contact(),
+        disclosures=factory.create_dummy_disclosures(),
+        documents=factory.create_dummy_account_documents(),
+        identity=factory.create_dummy_identity(),
+        trusted_contact=factory.create_dummy_trusted_contact(),
+        cash_interest=CashInterest(USD=CashInterestProgram(apr_tier_name="gold")),
+    )
+
+    returned_account = client.create_account(create_data)
+
+    assert reqmock.called_once
+    request_body = reqmock.request_history[0].json()
+    assert "cash_interest" in request_body
+    assert request_body["cash_interest"] == {"USD": {"apr_tier_name": "gold"}}
+    assert type(returned_account) == Account
+    assert returned_account.id == UUID(created_id)
     assert returned_account.account_sub_type is None
 
 

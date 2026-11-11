@@ -241,7 +241,10 @@ def test_create_account_with_cash_interest(reqmock, client: BrokerClient):
     returned_account = client.create_account(create_data)
 
     assert reqmock.called_once
-    request_body = reqmock.request_history[0].json()
+    sent = reqmock.request_history[0]
+    assert sent.method == "POST"
+    assert sent.url == "https://broker-api.sandbox.alpaca.markets/v1/accounts"
+    request_body = sent.json()
     assert "cash_interest" in request_body
     assert request_body["cash_interest"] == {"USD": {"apr_tier_name": "gold"}}
     assert type(returned_account) == Account

@@ -5,6 +5,7 @@ from typing import List, Optional, Union, get_args, get_type_hints
 import pytest
 from pydantic import TypeAdapter
 
+from alpaca.broker.models.accounts import _TrustedStreetAddressSchema
 from alpaca.broker.requests import (
     UploadDocumentMimeType,
     UploadDocumentRequest,
@@ -65,7 +66,13 @@ from alpaca.trading.enums import (
     CalendarDateType,
 )
 from alpaca.trading.requests import GetCalendarRequest
-from tests.broker.factories import create_dummy_w8ben_document
+from tests.broker.factories import (
+    create_dummy_agreements,
+    create_dummy_contact,
+    create_dummy_disclosures,
+    create_dummy_identity,
+    create_dummy_w8ben_document,
+)
 from uuid import UUID, uuid4
 
 
@@ -677,6 +684,29 @@ def test_trusted_contact_street_address_schema_uses_stored_list():
     assert serialization["anyOf"] == [list_schema, null_schema]
 
 
+def test_trusted_street_address_schema_hook_orders_array_first():
+    # Python caches Union[str, List[str]] and Union[List[str], str] as one
+    # object, so pydantic can hand the hook the string-first order. The hook
+    # must publish the Broker API array first regardless.
+    string_first = {
+        "anyOf": [
+            {"type": "string"},
+            {"items": {"type": "string"}, "type": "array"},
+            {"type": "null"},
+        ]
+    }
+
+    schema = _TrustedStreetAddressSchema.__get_pydantic_json_schema__(
+        None, lambda _core_schema: string_first
+    )
+
+    assert schema["anyOf"] == [
+        {"items": {"type": "string"}, "type": "array"},
+        {"deprecated": True, "type": "string"},
+        {"type": "null"},
+    ]
+
+
 def test_trusted_contact_rejects_non_string_street_address():
     with pytest.raises(ValueError):
         TrustedContact(
@@ -894,6 +924,41 @@ def test_create_account_request_includes_cash_interest():
         agreements=agreements,
     )
     assert "cash_interest" not in req_without.to_request_fields()
+
+
+@pytest.mark.parametrize("key", ["usd", "EUR", "Usd"])
+def test_create_account_request_rejects_unknown_cash_interest_currency(key):
+    with pytest.raises(ValueError, match="cash_interest only supports the 'USD' key"):
+        CreateAccountRequest(
+            contact=create_dummy_contact(),
+            identity=create_dummy_identity(),
+            disclosures=create_dummy_disclosures(),
+            agreements=create_dummy_agreements(),
+            cash_interest={key: {"apr_tier_name": "gold"}},
+        )
+
+
+@pytest.mark.parametrize("key", ["usd", "EUR"])
+def test_update_account_request_rejects_unknown_cash_interest_currency(key):
+    with pytest.raises(ValueError, match="cash_interest only supports the 'USD' key"):
+        UpdateAccountRequest(cash_interest={key: {"apr_tier_name": "gold"}})
+
+
+def test_update_account_request_sends_cash_interest_unenroll():
+    request = UpdateAccountRequest(cash_interest={"USD": {"status": "INACTIVE"}})
+
+    assert request.to_request_fields() == {
+        "cash_interest": {"USD": {"status": "INACTIVE"}}
+    }
+
+
+def test_cash_interest_response_keeps_ignoring_unknown_currencies():
+    # A new currency in a response must not break account parsing.
+    parsed = CashInterest.model_validate(
+        {"USD": {"apr_tier_name": "gold", "status": "ACTIVE"}, "EUR": {}}
+    )
+
+    assert parsed.USD.apr_tier_name == "gold"
 
 
 def test_ach_relationship_can_include_instant_and_processor_token():

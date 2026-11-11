@@ -13,6 +13,12 @@ install: ## Install the SDK and its dependencies using poetry
 lint: ## Run the linters
 	poetry run black --check alpaca/ tests/ consumer_checks/
 
+# Same mypy config as CI (`pyproject.toml`): public SDK signatures stay visible,
+# and implementation errors in imported `alpaca.*` modules are outside this gate.
+.PHONY: typecheck
+typecheck: ## Check the return types that type checkers infer for the public client overloads
+	poetry run mypy tests/type_checks/
+
 .PHONY: generate
 generate: ## Generate the documentation
 	./tools/scripts/generate-docs.sh
@@ -38,13 +44,8 @@ check-api-breakage: ## Compare public API vs a release (AGAINST=version) or ref 
 .PHONY: consumer-check
 consumer-check: consumer-typecheck consumer-replay ## Type-check and replay the consumer scenarios (offline)
 
-# mypy is not a dev dependency on master yet (alpacahq/alpaca-py#886 adds it with
-# this same constraint), so install it on demand. A no-op once it is installed.
-MYPY_REQUIREMENT := mypy>=1.10,<3.0
-
 .PHONY: consumer-typecheck
 consumer-typecheck: ## Type-check the consumer scenarios against the current SDK
-	@poetry run python -c "import mypy" 2>/dev/null || poetry run pip install --quiet "$(MYPY_REQUIREMENT)"
 	poetry run mypy --follow-imports=silent --warn-unused-ignores consumer_checks/scenarios
 
 .PHONY: consumer-replay

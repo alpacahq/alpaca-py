@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Dict, Iterator, Optional, Union
+from typing import Dict, Iterator, Literal, Optional, Union, overload
 
 from alpaca.common.enums import BaseURL, PaginationType
 from alpaca.common.rest import RESTClient
@@ -70,6 +70,29 @@ class OptionHistoricalDataClient(RESTClient):
             sandbox=sandbox,
             raw_data=raw_data,
         )
+
+    @overload
+    def get_option_bars(
+        self,
+        request_params: OptionBarsRequest,
+        handle_pagination: Literal[PaginationType.ITERATOR],
+    ) -> Iterator[Union[BarSet, RawData]]: ...
+
+    @overload
+    def get_option_bars(
+        self,
+        request_params: OptionBarsRequest,
+        handle_pagination: Optional[
+            Literal[PaginationType.FULL, PaginationType.NONE]
+        ] = None,
+    ) -> Union[BarSet, RawData]: ...
+
+    @overload
+    def get_option_bars(
+        self,
+        request_params: OptionBarsRequest,
+        handle_pagination: Optional[PaginationType] = None,
+    ) -> Union[BarSet, RawData, Iterator[Union[BarSet, RawData]]]: ...
 
     def get_option_bars(
         self,
@@ -158,6 +181,29 @@ class OptionHistoricalDataClient(RESTClient):
             return raw_latest_trades
 
         return parse_obj_as_symbol_dict(Trade, raw_latest_trades)
+
+    @overload
+    def get_option_trades(
+        self,
+        request_params: OptionTradesRequest,
+        handle_pagination: Literal[PaginationType.ITERATOR],
+    ) -> Iterator[Union[TradeSet, RawData]]: ...
+
+    @overload
+    def get_option_trades(
+        self,
+        request_params: OptionTradesRequest,
+        handle_pagination: Optional[
+            Literal[PaginationType.FULL, PaginationType.NONE]
+        ] = None,
+    ) -> Union[TradeSet, RawData]: ...
+
+    @overload
+    def get_option_trades(
+        self,
+        request_params: OptionTradesRequest,
+        handle_pagination: Optional[PaginationType] = None,
+    ) -> Union[TradeSet, RawData, Iterator[Union[TradeSet, RawData]]]: ...
 
     def get_option_trades(
         self,

@@ -31,6 +31,7 @@ pytest = ">=7.1,<10.0"
 pytest-asyncio = ">=0.23.7,<1.5.0"
 requests-mock = "^1.9.3"
 black = ">=24.3,<27.0"
+mypy = ">=1.10,<3.0"
 isort = ">=5.10.1,<10.0.0"
 pre-commit = ">=2.17,<5.0"
 furo = ">=2022.2.14,<2026.0.0"
@@ -46,6 +47,18 @@ build-backend = "poetry_dynamic_versioning.backend"
 [tool.pytest.ini_options]
 # Only run SDK tests here; example projects have their own test setups
 testpaths = ["tests"]
+
+[tool.mypy]
+# Shared by `.github/workflows/ci.yaml` and `make typecheck`.
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = "alpaca.*"
+# The fixture imports the SDK for its public signatures. `silent` still loads
+# those signatures and hides implementation errors, such as `get_stock_bars()`
+# promising `BarSet` while returning `_get_paginated_marketdata()`'s wider
+# `BaseDataSet`. A correct fixture then passes.
+follow_imports = "silent"
 
 [tool.poetry-dynamic-versioning]
 enable=true

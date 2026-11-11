@@ -211,7 +211,7 @@ class GetOrdersRequest(NonEmptyRequest):
         after (Optional[datetime]): The response will include only ones submitted after this timestamp.
         until (Optional[datetime]): The response will include only ones submitted until this timestamp.
         direction (Optional[Sort]): The chronological order of response based on the submission time. asc or desc. Defaults to desc.
-        nested (Optional[bool]): If true, the result will roll up multi-leg orders under the legs field of primary order.
+        nested (Optional[bool]): If true, the legs of complex orders (such as :class:`~alpaca.trading.enums.OrderClass.OCO`, :class:`~alpaca.trading.enums.OrderClass.OTO`, or :class:`~alpaca.trading.enums.OrderClass.BRACKET`) are rolled up under the legs field of the primary order. Defaults to false.
         side (Optional[OrderSide]): Filters down to orders that have a matching side field set.
         symbols (Optional[List[str]]): List of symbols to filter by.
     """
@@ -230,7 +230,7 @@ class GetOrderByIdRequest(NonEmptyRequest):
     """Contains data for submitting a request to retrieve a single order by its order id.
 
     Attributes:
-        nested (bool): If true, the result will roll up multi-leg orders under the legs field of primary order.
+        nested (bool): If true, the legs of complex orders (such as :class:`~alpaca.trading.enums.OrderClass.OCO`, :class:`~alpaca.trading.enums.OrderClass.OTO`, or :class:`~alpaca.trading.enums.OrderClass.BRACKET`) are rolled up under the legs field of the primary order. Note that while the API endpoint defaults to false when omitted, this request model requires an explicit boolean value.
     """
 
     nested: bool
@@ -721,8 +721,8 @@ class GetOptionContractsRequest(NonEmptyRequest):
         root_symbol (Optional[str]): The option root symbol.
         type (Optional[ContractType]): The option contract type.
         style (Optional[ExerciseStyle]): The option contract style.
-        strike_price_gte (Optional[str]): The option contract strike price greater than or equal to.
-        strike_price_lte (Optional[str]): The option contract strike price less than or equal to.
+        strike_price_gte (Optional[Union[float, str]]): The option contract strike price greater than or equal to.
+        strike_price_lte (Optional[Union[float, str]]): The option contract strike price less than or equal to.
         show_deliverables (Optional[bool]): Include each contract's deliverables. The list endpoint omits them unless this is true.
         ppind (Optional[bool]): Filter by Penny Program eligibility. True returns only contracts eligible for penny price increments.
         limit (Optional[int]): The number of contracts to limit per page (default=100, max=10000).
@@ -738,8 +738,8 @@ class GetOptionContractsRequest(NonEmptyRequest):
     root_symbol: Optional[str] = None
     type: Optional[ContractType] = None
     style: Optional[ExerciseStyle] = None
-    strike_price_gte: Optional[str] = None
-    strike_price_lte: Optional[str] = None
+    strike_price_gte: Optional[Union[float, str]] = None
+    strike_price_lte: Optional[Union[float, str]] = None
     show_deliverables: Optional[bool] = None
     ppind: Optional[bool] = None
 

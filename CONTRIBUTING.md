@@ -210,6 +210,25 @@ The target runs `tools/scripts/compare_api_breakage.py`, which:
    inside a generic such as `Iterator[...]` and when AexPy ranked the change
    compatible, because that means `raw_data=True` stopped being honored. Any other
    change to an existing annotation is breaking.
+5. Reads `@overload` stubs from the snapshot, including parameter types. They are
+   erased at runtime, so the steps above only see the implementation's return
+   annotation, and the same is true of AexPy's `ChangeReturnType` findings. Stubs are
+   walked in declaration order. A stub that no baseline-shaped call can select is
+   skipped: it adds a required parameter, it is incompatible with the old signature,
+   or a parameter that must be supplied has a builtin type that cannot overlap the
+   baseline type. A parameter both signatures let callers omit does not skip the stub.
+   A stub that only some baseline calls select — a narrower parameter type, or a
+   parameter that used to be optional — contributes its return and the walk continues.
+   The walk stops at the first stub that accepts every baseline input. The change is
+   not reported when the union of the returns collected equals the baseline return,
+   spelling and union order aside. This is how a new opt-in argument such as
+   `handle_pagination` can widen the implementation's return without changing what
+   existing callers are told. Anything else stays reported. The same rule filters
+   AexPy's return findings, and the adjusted entries drive the summary, the report,
+   and the exit status. These are listed under `VERBOSE=1`. Known limitations:
+   the baseline is judged by its implementation signature, not by any `@overload`
+   stubs it already had, changes made only to stubs are not detected, and parameters
+   are matched by name rather than position.
 
 The Makefile target is quiet by default. Useful flags on the script itself:
 

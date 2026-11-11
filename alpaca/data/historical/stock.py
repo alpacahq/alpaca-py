@@ -1,6 +1,6 @@
 from collections import defaultdict
 from enum import Enum
-from typing import Dict, Iterator, List, Optional, Union
+from typing import Dict, Iterator, List, Literal, Optional, Union, overload
 
 from alpaca.common.constants import DATA_V2_MAX_LIMIT
 from alpaca.common.enums import BaseURL, PaginationType
@@ -72,6 +72,29 @@ class StockHistoricalDataClient(RESTClient):
             raw_data=raw_data,
         )
 
+    @overload
+    def get_stock_bars(
+        self,
+        request_params: StockBarsRequest,
+        handle_pagination: Literal[PaginationType.ITERATOR],
+    ) -> Iterator[Union[BarSet, RawData]]: ...
+
+    @overload
+    def get_stock_bars(
+        self,
+        request_params: StockBarsRequest,
+        handle_pagination: Optional[
+            Literal[PaginationType.FULL, PaginationType.NONE]
+        ] = None,
+    ) -> Union[BarSet, RawData]: ...
+
+    @overload
+    def get_stock_bars(
+        self,
+        request_params: StockBarsRequest,
+        handle_pagination: Optional[PaginationType] = None,
+    ) -> Union[BarSet, RawData, Iterator[Union[BarSet, RawData]]]: ...
+
     def get_stock_bars(
         self,
         request_params: StockBarsRequest,
@@ -100,6 +123,29 @@ class StockHistoricalDataClient(RESTClient):
             handle_pagination=handle_pagination,
         )
 
+    @overload
+    def get_stock_quotes(
+        self,
+        request_params: StockQuotesRequest,
+        handle_pagination: Literal[PaginationType.ITERATOR],
+    ) -> Iterator[Union[QuoteSet, RawData]]: ...
+
+    @overload
+    def get_stock_quotes(
+        self,
+        request_params: StockQuotesRequest,
+        handle_pagination: Optional[
+            Literal[PaginationType.FULL, PaginationType.NONE]
+        ] = None,
+    ) -> Union[QuoteSet, RawData]: ...
+
+    @overload
+    def get_stock_quotes(
+        self,
+        request_params: StockQuotesRequest,
+        handle_pagination: Optional[PaginationType] = None,
+    ) -> Union[QuoteSet, RawData, Iterator[Union[QuoteSet, RawData]]]: ...
+
     def get_stock_quotes(
         self,
         request_params: StockQuotesRequest,
@@ -126,6 +172,29 @@ class StockHistoricalDataClient(RESTClient):
             set_type=QuoteSet,
             handle_pagination=handle_pagination,
         )
+
+    @overload
+    def get_stock_trades(
+        self,
+        request_params: StockTradesRequest,
+        handle_pagination: Literal[PaginationType.ITERATOR],
+    ) -> Iterator[Union[TradeSet, RawData]]: ...
+
+    @overload
+    def get_stock_trades(
+        self,
+        request_params: StockTradesRequest,
+        handle_pagination: Optional[
+            Literal[PaginationType.FULL, PaginationType.NONE]
+        ] = None,
+    ) -> Union[TradeSet, RawData]: ...
+
+    @overload
+    def get_stock_trades(
+        self,
+        request_params: StockTradesRequest,
+        handle_pagination: Optional[PaginationType] = None,
+    ) -> Union[TradeSet, RawData, Iterator[Union[TradeSet, RawData]]]: ...
 
     def get_stock_trades(
         self,

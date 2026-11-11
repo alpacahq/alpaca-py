@@ -24,8 +24,10 @@ jobs:
         run: poetry install
       - name: run lint checks
         run: poetry run black --check alpaca/ tests/ consumer_checks/
+      - name: run type checks
+        # Same gate as `make typecheck`. Scope lives in pyproject.toml.
+        run: poetry run mypy tests/type_checks/
       - name: type-check consumer scenarios
-        # The make target installs mypy if the poetry env lacks it.
         run: make consumer-typecheck
       - name: consumer scenario coverage
         # Fails when a public client method has no recorded consumer scenario and is

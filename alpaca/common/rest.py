@@ -406,7 +406,7 @@ class RESTClient(ABC):
 
         while True:
             # adjusts the limit parameter value if it is over the page_limit
-            if limit:
+            if limit is not None:
                 # actual_limit is the adjusted total number of items to query per request
                 actual_limit = min(int(limit) - sum(counts.values()), page_limit)
                 if actual_limit < 1:
@@ -505,8 +505,16 @@ class RESTClient(ABC):
         if handle_pagination == PaginationType.ITERATOR:
             return iterator
 
-        # PaginationType.NONE: a single page. An empty response still is one page.
-        return next(iterator)
+        # PaginationType.NONE returns the first page. An empty API body is
+        # still yielded, so next() returns that page.
+        try:
+            return next(iterator)
+        except StopIteration:
+            # A non-positive limit yields nothing and sends no request.
+            # Return an empty page instead of letting StopIteration escape.
+            if self._use_raw_data:
+                return {}
+            return set_type({})
 
 
 def _get_marketdata_entries(response: HTTPResult, no_sub_key: bool) -> RawData:

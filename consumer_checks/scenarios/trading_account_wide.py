@@ -119,52 +119,55 @@ def cancel_all_open_orders(ctx: Context) -> Dict[str, Any]:
 
 @scenario(covers=["TradingClient.close_all_positions"])
 def close_all_positions_and_cancel_orders(ctx: Context) -> Dict[str, Any]:
-    buy = ctx.trading.submit_order(
-        MarketOrderRequest(
-            symbol=CRYPTO_SYMBOL,
-            notional=CRYPTO_NOTIONAL,
-            side=OrderSide.BUY,
-            time_in_force=TimeInForce.GTC,
-            client_order_id=ctx.unique_id("buy"),
-        )
-    )
-    assert isinstance(buy, Order)
+    buy: Optional[Order] = None
     pending: Optional[Order] = None
-    btc_closed = False
+    succeeded = False
     try:
+        submitted = ctx.trading.submit_order(
+            MarketOrderRequest(
+                symbol=CRYPTO_SYMBOL,
+                notional=CRYPTO_NOTIONAL,
+                side=OrderSide.BUY,
+                time_in_force=TimeInForce.GTC,
+                client_order_id=ctx.unique_id("buy"),
+            )
+        )
+        assert isinstance(submitted, Order)
+        buy = submitted
         bought = _wait_for_status(ctx, buy.id, OrderStatus.FILLED)
         if bought.status != OrderStatus.FILLED:
             raise AssertionError(f"market buy did not fill: {bought.status}")
         pending = _unfillable_limit_buy(ctx, "AAPL", "pending")
         # cancel_orders=True also cancels the open AAPL order first.
-        result = ctx.trading.close_all_positions(cancel_orders=True)
-        assert isinstance(result, list)
-        closed = result
+        closed = ctx.trading.close_all_positions(cancel_orders=True)
+        assert isinstance(closed, list)
+        assert all(isinstance(response, ClosePositionResponse) for response in closed)
         btc = [r for r in closed if r.symbol == CRYPTO_POSITION_SYMBOL]
-        btc_closed = len(btc) == 1 and btc[0].status == 200
+        assert len(btc) == 1
+        assert btc[0].status == 200
+        closing = btc[0].body
+        assert isinstance(closing, Order)
+        assert closing.side == OrderSide.SELL
+        # The API sends no order_id, so it stays None despite its docstring; the
+        # closing order is in body. The snapshot keeps that None.
+
+        sold = _wait_for_status(ctx, closing.id, OrderStatus.FILLED)
+        assert sold.status == OrderStatus.FILLED
+        canceled = _wait_for_status(ctx, pending.id, OrderStatus.CANCELED)
+        assert canceled.status == OrderStatus.CANCELED
+        succeeded = True
+        return {"btc": btc[0], "sold": sold, "canceled": canceled}
     finally:
-        if not btc_closed:
-            # A step failed, or the close-all reported a failure for BTC: undo
-            # what this scenario created. The buy may have filled after all, and
-            # the close-all may have gone through even if the SDK then failed.
-            _cancel_quietly(ctx, [buy.id] + ([pending.id] if pending else []))
+        if not succeeded:
+            # Any step failed, up to the closing sell filling and the AAPL order
+            # being canceled: undo what this scenario created, so the next run
+            # starts from a clean account. The orders may have filled or been
+            # canceled already, and the close-all may have gone through even if
+            # the SDK then failed; the quiet helpers ignore that.
+            _cancel_quietly(
+                ctx, [order.id for order in (buy, pending) if order is not None]
+            )
             _close_quietly(ctx, CRYPTO_POSITION_SYMBOL)
-
-    assert pending is not None
-    assert all(isinstance(response, ClosePositionResponse) for response in closed)
-    assert len(btc) == 1
-    assert btc[0].status == 200
-    closing = btc[0].body
-    assert isinstance(closing, Order)
-    assert closing.side == OrderSide.SELL
-    # The API sends no order_id, so it stays None despite its docstring; the
-    # closing order is in body. The snapshot keeps that None.
-
-    sold = _wait_for_status(ctx, closing.id, OrderStatus.FILLED)
-    assert sold.status == OrderStatus.FILLED
-    canceled = _wait_for_status(ctx, pending.id, OrderStatus.CANCELED)
-    assert canceled.status == OrderStatus.CANCELED
-    return {"btc": btc[0], "sold": sold, "canceled": canceled}
 
 
 @scenario(

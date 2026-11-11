@@ -769,13 +769,13 @@
   "result_from": {
     "alpaca-py": "0.45.0",
     "numpy": "2.5.4",
-    "pandas": "3.1.0",
-    "pydantic": "2.14.2",
-    "python": "3.14.7",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.15.2",
     "requests": "2.34.2"
   },
   "scenario": "trading_account_wide.close_all_positions_and_cancel_orders",
-  "scenario_sha256": "ef4eb5c38af0a0867677d3079a2285da91ac43421ee5680cb900ef5b002258c0",
+  "scenario_sha256": "812fbf49ea6080ca814755370587c835e304966ff8cdf55235d3081896d51509",
   "vars": {
     "buy": "b6ce689254324ffe917ad4fe57031506",
     "pending": "d96cbf1d374f4ea68669dea1bc8ab43a"

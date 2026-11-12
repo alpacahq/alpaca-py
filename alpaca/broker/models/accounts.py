@@ -88,10 +88,16 @@ class _TrustedStreetAddressSchema:
         schema = handler(core_schema)
         variants = schema.get("anyOf")
         if variants:
-            # Python caches Optional[Union[str, List[str]]] and
-            # Optional[Union[List[str], str]] as one object, so the generated
-            # order depends on which was built first. Publish the Broker API
-            # array first, then the deprecated string, then null.
+            # Union equality ignores argument order, so typing's __getitem__
+            # cache returns one object for Optional[Union[str, List[str]]] and
+            # Optional[Union[List[str], str]]. The generated order therefore
+            # depends on which was built first. Publish the Broker API array
+            # first, then the deprecated string, then null.
+            # https://docs.python.org/3/library/typing.html#typing.Union
+            # ("When comparing unions, the argument order is ignored")
+            # https://docs.python.org/3/library/typing.html#typing.get_args
+            # (the order of union arguments "may be different ... due to type
+            # caching")
             order = {"array": 0, "string": 1}
             schema["anyOf"] = sorted(
                 variants, key=lambda variant: order.get(variant.get("type"), 2)
@@ -392,8 +398,8 @@ class CashInterestProgram(BaseModel):
     USD cash interest program enrollment.
 
     To enroll an account, or to change its APR tier, send only ``apr_tier_name``.
-    Do not send ``status`` for either. Send ``status="INACTIVE"`` on an update to
-    unenroll. Responses report ``ACTIVE``, ``INACTIVE`` or ``PENDING_CHANGE``.
+    Send ``status="INACTIVE"`` on an update to unenroll. Responses report a
+    status such as ``ACTIVE``, ``INACTIVE`` or ``PENDING_CHANGE``.
 
     Attributes:
         apr_tier_name (Optional[str]): Name of the APR tier.

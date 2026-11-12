@@ -138,7 +138,7 @@ def _validate_cash_interest_currencies(value: Any) -> Any:
     in the default tier.
     """
     if isinstance(value, dict):
-        unknown = sorted(str(key) for key in value if key != "USD")
+        unknown = [str(key) for key in value if key != "USD"]
         if unknown:
             raise ValueError(
                 "cash_interest only supports the 'USD' key, got: " + ", ".join(unknown)

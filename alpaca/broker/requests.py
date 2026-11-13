@@ -129,6 +129,23 @@ class UploadW8BenDocumentRequest(NonEmptyRequest):
         return values
 
 
+def _validate_cash_interest_currencies(value: Any) -> Any:
+    """Reject currency keys other than ``USD`` in a ``cash_interest`` mapping.
+
+    The Broker API only defines the ``USD`` program. ``CashInterest`` ignores
+    unknown keys so a response with a new currency still parses, but on a request
+    that would silently drop a mistyped key such as ``usd`` and enroll the account
+    in the default tier.
+    """
+    if isinstance(value, dict):
+        unknown = [str(key) for key in value if key != "USD"]
+        if unknown:
+            raise ValueError(
+                "cash_interest only supports the 'USD' key, got: " + ", ".join(unknown)
+            )
+    return value
+
+
 class CreateAccountRequest(NonEmptyRequest):
     """Class used to format data necessary for making a request to create a brokerage account
 
@@ -142,7 +159,11 @@ class CreateAccountRequest(NonEmptyRequest):
         documents (List[Union[AccountDocument, UploadW8BenDocumentRequest]]): The documents the account holder has submitted
         trusted_contact (TrustedContact): The account holder's trusted contact details
         minor_identity (Optional[MinorIdentity]): Identity of the minor. Required for a custodial account.
-        cash_interest (Optional[CashInterest]): USD cash interest enrollment
+        cash_interest (Optional[CashInterest]): USD cash interest enrollment. To enroll in a
+            non-default APR tier, pass only ``apr_tier_name`` and do not set ``status``. When
+            omitted, the default APR tier is used if one is defined. Use the ``USD`` key: a
+            dict with any other key is rejected, and a ``CashInterest`` instance ignores
+            unknown fields, so construct it with ``USD=``.
     """
 
     account_type: Optional[Union[AccountType, str]] = None
@@ -157,6 +178,11 @@ class CreateAccountRequest(NonEmptyRequest):
     enabled_assets: Optional[List[AssetClass]] = None  # None = Default to server
     minor_identity: Optional[MinorIdentity] = None
     cash_interest: Optional[CashInterest] = None
+
+    @field_validator("cash_interest", mode="before")
+    @classmethod
+    def validate_cash_interest_currencies(cls, value: Any) -> Any:
+        return _validate_cash_interest_currencies(value)
 
     @model_validator(mode="before")
     def validate_parameters_only_optional_in_response(cls, values: dict) -> dict:
@@ -321,7 +347,10 @@ class UpdateAccountRequest(NonEmptyRequest):
         agreements (Optional[List[Agreement]]): Agreements to add or revise
         allow_instant_ach (Optional[bool]): Whether the partner enables Instant ACH
         beneficiaries (Optional[List[Beneficiary]]): IRA beneficiaries
-        cash_interest (Optional[CashInterest]): USD cash interest enrollment
+        cash_interest (Optional[CashInterest]): USD cash interest enrollment. To enroll or change
+            the APR tier, pass only ``apr_tier_name``. To unenroll, pass ``status="INACTIVE"``.
+            Use the ``USD`` key: a dict with any other key is rejected, and a ``CashInterest``
+            instance ignores unknown fields, so construct it with ``USD=``.
         enabled_assets (Optional[List[AssetClass]]): Asset classes enabled on the account
         fpsl (Optional[FPSL]): Fully Paid Securities Lending configuration
     """
@@ -336,6 +365,11 @@ class UpdateAccountRequest(NonEmptyRequest):
     cash_interest: Optional[CashInterest] = None
     enabled_assets: Optional[List[AssetClass]] = None
     fpsl: Optional[FPSL] = None
+
+    @field_validator("cash_interest", mode="before")
+    @classmethod
+    def validate_cash_interest_currencies(cls, value: Any) -> Any:
+        return _validate_cash_interest_currencies(value)
 
 
 class ListAccountsRequest(NonEmptyRequest):

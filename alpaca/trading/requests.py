@@ -1,8 +1,10 @@
+import sys
+import warnings
 from datetime import date, datetime, timedelta
 from typing import Any, Dict, List, Optional, Union
 
 import pandas as pd
-from pydantic import model_validator
+from pydantic import ValidationInfo, field_validator, model_validator
 
 from alpaca.common.enums import Sort
 from alpaca.common.models import ModelWithID
@@ -708,6 +710,22 @@ class GetCorporateAnnouncementsRequest(NonEmptyRequest):
         return values
 
 
+def _strike_price_warning_is_internal(frame, model_cls: type) -> bool:
+    """Pydantic frames, and a subclass ``__init__`` that only forwards into them.
+
+    The forwarding ``__init__`` is the same file as the call that constructs the
+    subclass, so stopping there hides the line that passed the string.
+    """
+
+    filename = frame.f_code.co_filename.replace("\\", "/")
+    if "/pydantic/" in filename:
+        return True
+    if frame.f_code.co_name != "__init__" or not frame.f_code.co_varnames:
+        return False
+    instance = frame.f_locals.get(frame.f_code.co_varnames[0])
+    return isinstance(instance, model_cls)
+
+
 class GetOptionContractsRequest(NonEmptyRequest):
     """
     Used to fetch option contracts for a given underlying symbol.
@@ -721,8 +739,14 @@ class GetOptionContractsRequest(NonEmptyRequest):
         root_symbol (Optional[str]): The option root symbol.
         type (Optional[ContractType]): The option contract type.
         style (Optional[ExerciseStyle]): The option contract style.
-        strike_price_gte (Optional[Union[float, str]]): The option contract strike price greater than or equal to.
-        strike_price_lte (Optional[Union[float, str]]): The option contract strike price less than or equal to.
+        strike_price_gte (Optional[float]): The option contract strike price greater than or equal to.
+
+          .. deprecated:: 0.50.0
+              Passing a ``str`` is deprecated. Pass a ``float`` instead. A blank string is treated as unset.
+        strike_price_lte (Optional[float]): The option contract strike price less than or equal to.
+
+          .. deprecated:: 0.50.0
+              Passing a ``str`` is deprecated. Pass a ``float`` instead. A blank string is treated as unset.
         show_deliverables (Optional[bool]): Include each contract's deliverables. The list endpoint omits them unless this is true.
         ppind (Optional[bool]): Filter by Penny Program eligibility. True returns only contracts eligible for penny price increments.
         limit (Optional[int]): The number of contracts to limit per page (default=100, max=10000).
@@ -738,10 +762,34 @@ class GetOptionContractsRequest(NonEmptyRequest):
     root_symbol: Optional[str] = None
     type: Optional[ContractType] = None
     style: Optional[ExerciseStyle] = None
-    strike_price_gte: Optional[Union[float, str]] = None
-    strike_price_lte: Optional[Union[float, str]] = None
+    strike_price_gte: Optional[float] = None
+    strike_price_lte: Optional[float] = None
     show_deliverables: Optional[bool] = None
     ppind: Optional[bool] = None
 
     limit: Optional[int] = None
     page_token: Optional[str] = None
+
+    @field_validator("strike_price_gte", "strike_price_lte", mode="before")
+    @classmethod
+    def deprecate_string_strike_price(cls, value: Any, info: ValidationInfo) -> Any:
+        """Accept a numeric string for one release, and treat a blank string as unset."""
+
+        if not isinstance(value, str):
+            return value
+
+        blank = not value.strip()
+        hint = "Pass None to leave it unset." if blank else "Pass a float instead."
+
+        # Construction and assignment have different depths.
+        frame, stacklevel = sys._getframe(1), 2
+        while frame is not None and _strike_price_warning_is_internal(frame, cls):
+            frame, stacklevel = frame.f_back, stacklevel + 1
+
+        warnings.warn(
+            f"Passing {info.field_name} as str is deprecated since 0.50.0 and will "
+            f"be removed in a future version. {hint}",
+            DeprecationWarning,
+            stacklevel=stacklevel,
+        )
+        return None if blank else value

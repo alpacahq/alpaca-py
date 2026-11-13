@@ -2,7 +2,13 @@
 Contains tests for Trading API's option routes.
 """
 
+import inspect
+import json
+import warnings
 from uuid import UUID
+
+import pytest
+from pydantic import ValidationError
 
 from alpaca.common.enums import BaseURL
 from alpaca.trading.requests import GetOptionContractsRequest
@@ -362,10 +368,8 @@ def test_get_option_contract_delayed_settlement_null_amount(
 def test_get_option_contracts_strike_price_types(
     reqmock, trading_client: TradingClient
 ):
-    import re
-
     reqmock.get(
-        re.compile(r".*/options/contracts.*"),
+        f"{BaseURL.TRADING_PAPER.value}/v2/options/contracts",
         text="""
         {
             "option_contracts": [],
@@ -374,12 +378,19 @@ def test_get_option_contracts_strike_price_types(
         """,
     )
 
-    # Float strike prices
-    req_float = GetOptionContractsRequest(
-        underlying_symbols=["AAPL"],
-        strike_price_gte=150.5,
-        strike_price_lte=200.0,
-    )
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", DeprecationWarning)
+        req_float = GetOptionContractsRequest(
+            underlying_symbols=["AAPL"],
+            strike_price_gte=150.5,
+            strike_price_lte=200.0,
+        )
+        req_int = GetOptionContractsRequest(
+            underlying_symbols=["AAPL"],
+            strike_price_gte=150,
+            strike_price_lte=200,
+        )
+
     assert req_float.strike_price_gte == 150.5
     assert req_float.strike_price_lte == 200.0
     res = trading_client.get_option_contracts(req_float)
@@ -387,14 +398,144 @@ def test_get_option_contracts_strike_price_types(
     assert reqmock.request_history[0].qs["strike_price_gte"] == ["150.5"]
     assert reqmock.request_history[0].qs["strike_price_lte"] == ["200.0"]
 
-    # String strike prices
-    req_str = GetOptionContractsRequest(
-        underlying_symbols=["AAPL"],
-        strike_price_gte="150.5",
-        strike_price_lte="200",
+    assert req_int.strike_price_gte == 150.0
+    assert req_int.strike_price_lte == 200.0
+    trading_client.get_option_contracts(req_int)
+    assert reqmock.request_history[1].qs["strike_price_gte"] == ["150.0"]
+    assert reqmock.request_history[1].qs["strike_price_lte"] == ["200.0"]
+
+    with pytest.warns(DeprecationWarning, match="strike_price_gte"):
+        with pytest.raises(ValidationError):
+            GetOptionContractsRequest(strike_price_gte="abc")
+
+
+def test_get_option_contracts_accepts_string_strike_prices(
+    reqmock, trading_client: TradingClient
+):
+    reqmock.get(
+        f"{BaseURL.TRADING_PAPER.value}/v2/options/contracts",
+        text="""
+        {
+            "option_contracts": [],
+            "next_page_token": null
+        }
+        """,
     )
-    assert req_str.strike_price_gte == "150.5"
-    assert req_str.strike_price_lte == "200"
-    trading_client.get_option_contracts(req_str)
-    assert reqmock.request_history[1].qs["strike_price_gte"] == ["150.5"]
-    assert reqmock.request_history[1].qs["strike_price_lte"] == ["200"]
+
+    with pytest.warns(DeprecationWarning, match="Pass a float instead") as caught:
+        request = GetOptionContractsRequest(
+            underlying_symbols=["AAPL"],
+            strike_price_gte="150.5",
+            strike_price_lte="200",
+        )
+
+    assert [str(warning.message) for warning in caught] == [
+        "Passing strike_price_gte as str is deprecated since 0.50.0 and will be removed in a future version. Pass a float instead.",
+        "Passing strike_price_lte as str is deprecated since 0.50.0 and will be removed in a future version. Pass a float instead.",
+    ]
+    assert all(warning.filename == __file__ for warning in caught)
+    assert request.strike_price_gte == 150.5
+    assert request.strike_price_lte == 200.0
+
+    trading_client.get_option_contracts(request)
+    assert reqmock.request_history[0].qs["strike_price_gte"] == ["150.5"]
+    assert reqmock.request_history[0].qs["strike_price_lte"] == ["200.0"]
+
+
+def _construct(**fields):
+    return GetOptionContractsRequest(**fields)
+
+
+def _model_validate(**fields):
+    return GetOptionContractsRequest.model_validate(fields)
+
+
+def _model_validate_json(**fields):
+    return GetOptionContractsRequest.model_validate_json(json.dumps(fields))
+
+
+def _assign(**fields):
+    request = GetOptionContractsRequest()
+    for name, value in fields.items():
+        setattr(request, name, value)
+    return request
+
+
+class _SubclassedRequest(GetOptionContractsRequest):
+    def __init__(self, **data):
+        super().__init__(**data)
+
+
+def _subclass(**fields):
+    return _SubclassedRequest(**fields)
+
+
+def _caller_lineno(build) -> int:
+    """Line that passes the string, not a frame that only forwards it."""
+
+    needle = {
+        _construct: "return GetOptionContractsRequest(**fields)",
+        _model_validate: "return GetOptionContractsRequest.model_validate(fields)",
+        _model_validate_json: "return GetOptionContractsRequest.model_validate_json(",
+        _assign: "setattr(request, name, value)",
+        _subclass: "return _SubclassedRequest(**fields)",
+    }[build]
+    lines, start = inspect.getsourcelines(build)
+    for offset, line in enumerate(lines):
+        if needle in line:
+            return start + offset
+    raise AssertionError(f"{build.__name__} has no line containing {needle!r}")
+
+
+@pytest.mark.parametrize(
+    "build",
+    [_construct, _model_validate, _model_validate_json, _assign, _subclass],
+    ids=[
+        "construct",
+        "model_validate",
+        "model_validate_json",
+        "assignment",
+        "subclass",
+    ],
+)
+def test_strike_price_deprecation_warning_points_at_the_caller(build):
+    with pytest.warns(DeprecationWarning, match="strike_price_gte") as caught:
+        request = build(strike_price_gte="150.5")
+
+    assert request.strike_price_gte == 150.5
+    assert [(warning.filename, warning.lineno) for warning in caught] == [
+        (__file__, _caller_lineno(build))
+    ]
+
+
+def test_get_option_contracts_blank_strike_prices_are_unset(
+    reqmock, trading_client: TradingClient
+):
+    reqmock.get(
+        f"{BaseURL.TRADING_PAPER.value}/v2/options/contracts",
+        text="""
+        {
+            "option_contracts": [],
+            "next_page_token": null
+        }
+        """,
+    )
+
+    with pytest.warns(
+        DeprecationWarning, match="Pass None to leave it unset"
+    ) as caught:
+        request = GetOptionContractsRequest(
+            underlying_symbols=["AAPL"],
+            strike_price_gte="",
+            strike_price_lte=" \t",
+        )
+
+    assert len(caught) == 2
+    assert all(warning.filename == __file__ for warning in caught)
+    assert request.strike_price_gte is None
+    assert request.strike_price_lte is None
+
+    trading_client.get_option_contracts(request)
+    query = reqmock.request_history[0].qs
+    assert "strike_price_gte" not in query
+    assert "strike_price_lte" not in query

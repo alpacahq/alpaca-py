@@ -77,6 +77,10 @@ TOP_MODULE = {top_module!r}
 PACKAGE_NAME = {package_name!r}
 
 
+def _bases(cls):
+    return [f"{{b.__module__}}.{{b.__qualname__}}" for b in cls.__bases__]
+
+
 def _is_public(module_name):
     return not any(part.startswith("_") for part in module_name.split(".")[1:])
 
@@ -277,6 +281,7 @@ def main():
             if issubclass(obj, enum.Enum):
                 enums[path] = {{
                     "target": f"{{obj.__module__}}.{{obj.__qualname__}}",
+                    "bases": _bases(obj),
                     "members": {{
                         member_name: repr(member.value)
                         for member_name, member in obj.__members__.items()
@@ -285,6 +290,7 @@ def main():
             elif issubclass(obj, BaseModel) and obj is not BaseModel:
                 models[path] = {{
                     "target": f"{{obj.__module__}}.{{obj.__qualname__}}",
+                    "bases": _bases(obj),
                     "fields": {{
                         field_name: _field_snapshot(field_info)
                         for field_name, field_info in obj.model_fields.items()
@@ -643,6 +649,53 @@ def _sorted_findings(findings: dict[str, list[str]]) -> Findings:
     return [(message, sorted(paths)) for message, paths in sorted(findings.items())]
 
 
+def _moved_targets(old: dict, new: dict) -> dict[str, str]:
+    """Map old defining target -> new defining target for classes that merely moved.
+
+    A class moved (rather than replaced) when the old defining path is still
+    importable from the new wheel (it is a public path there), resolves to the
+    class that now defines the same public name, and that class has the same base
+    classes. Members and fields are still compared separately, so a move that
+    also drops or retypes something is still reported.
+    """
+    moved: dict[str, str] = {}
+    for kind in ("enums", "models"):
+        old_entries = old.get(kind, {})
+        new_entries = new.get(kind, {})
+        for path, old_entry in old_entries.items():
+            new_entry = new_entries.get(path)
+            if new_entry is None:
+                continue
+            old_target = old_entry.get("target")
+            new_target = new_entry.get("target")
+            if not old_target or old_target == new_target:
+                continue
+            resolved = new_entries.get(old_target)
+            if (
+                resolved is not None
+                and resolved.get("target") == new_target
+                and old_entry.get("bases") == new_entry.get("bases")
+            ):
+                moved[old_target] = new_target
+    return moved
+
+
+def _rewrite_moved(annotation: str, moved: dict[str, str]) -> str:
+    """Rename moved class paths inside an annotation string."""
+    for old_target, new_target in moved.items():
+        annotation = re.sub(
+            rf"(?<![\w.]){re.escape(old_target)}(?![\w.])", new_target, annotation
+        )
+    return annotation
+
+
+def _is_widening(old_type: str, new_type: str) -> bool:
+    """True when ``new_type`` accepts every union member ``old_type`` did."""
+    old_members = set(_split_top_level_union(_normalize_type_annotation(old_type)))
+    new_members = set(_split_top_level_union(_normalize_type_annotation(new_type)))
+    return old_members < new_members
+
+
 def _compare_enums(old: dict, new: dict) -> tuple[Findings, Findings]:
     """Return (breaking, additive) enum findings as ``(message, public paths)`` pairs.
 
@@ -651,6 +704,7 @@ def _compare_enums(old: dict, new: dict) -> tuple[Findings, Findings]:
     """
     old_enums = old.get("enums", {})
     new_enums = new.get("enums", {})
+    moved = _moved_targets(old, new)
 
     breaking: dict[str, list[str]] = {}
     additive: dict[str, list[str]] = {}
@@ -666,7 +720,7 @@ def _compare_enums(old: dict, new: dict) -> tuple[Findings, Findings]:
         new_entry = new_enums[path]
         old_target = old_entry.get("target")
         new_target = new_entry.get("target")
-        if old_target != new_target:
+        if old_target != new_target and moved.get(old_target) != new_target:
             message = f"{short_name}: target changed: {old_target} -> {new_target}"
             breaking.setdefault(message, []).append(path)
 
@@ -693,12 +747,21 @@ def _compare_enums(old: dict, new: dict) -> tuple[Findings, Findings]:
 def _compare_models(old: dict, new: dict) -> tuple[Findings, Findings]:
     """Return (breaking, additive) Pydantic model findings.
 
+    A class that only moved (its old defining path still resolves to it, with the
+    same bases) is not a target change, and field types are compared after
+    renaming moved classes. A field type that only gained union members is
+    additive: every value the old annotation accepted still validates, and the
+    attribute type is a supertype of the old one. A field using
+    ``union_mode="left_to_right"`` stays order-sensitive, so a change there is
+    still breaking.
+
     Breaking: removed export/field, required field added, requiredness tightened,
     type or alias changes, defining-target swaps.
-    Additive: optional field added, requiredness relaxed.
+    Additive: optional field added, requiredness relaxed, union members added.
     """
     old_models = old.get("models", {})
     new_models = new.get("models", {})
+    moved = _moved_targets(old, new)
 
     breaking: dict[str, list[str]] = {}
     additive: dict[str, list[str]] = {}
@@ -714,7 +777,7 @@ def _compare_models(old: dict, new: dict) -> tuple[Findings, Findings]:
         new_entry = new_models[path]
         old_target = old_entry.get("target")
         new_target = new_entry.get("target")
-        if old_target != new_target:
+        if old_target != new_target and moved.get(old_target) != new_target:
             message = f"{short_name}: target changed: {old_target} -> {new_target}"
             breaking.setdefault(message, []).append(path)
 
@@ -728,6 +791,7 @@ def _compare_models(old: dict, new: dict) -> tuple[Findings, Findings]:
             new_field = new_fields[field_name]
             old_type = old_field.get("type")
             new_type = new_field.get("type")
+            old_comparable = _rewrite_moved(str(old_type), moved)
             # Union member order is not part of the type (Union[str, float] ==
             # Union[float, str]); only a real change should be reported. The
             # same normalizer return-annotation comparison uses also collapses
@@ -746,7 +810,7 @@ def _compare_models(old: dict, new: dict) -> tuple[Findings, Findings]:
                 new_field.get("union_mode"),
             )
             if _normalize_type_annotation(
-                str(old_type), preserve_union_order=preserve_union_order
+                old_comparable, preserve_union_order=preserve_union_order
             ) != _normalize_type_annotation(
                 str(new_type), preserve_union_order=preserve_union_order
             ):
@@ -754,7 +818,12 @@ def _compare_models(old: dict, new: dict) -> tuple[Findings, Findings]:
                     f"{short_name}.{field_name} type changed: "
                     f"{old_type} -> {new_type}"
                 )
-                breaking.setdefault(message, []).append(path)
+                if preserve_union_order or not _is_widening(
+                    old_comparable, str(new_type)
+                ):
+                    breaking.setdefault(message, []).append(path)
+                else:
+                    additive.setdefault(message, []).append(path)
             old_required = bool(old_field.get("required"))
             new_required = bool(new_field.get("required"))
             if not old_required and new_required:
@@ -1415,8 +1484,13 @@ def _compare_return_annotations(
     new_api: dict,
     already_reported: set[str] | None = None,
     aexpy_compatible: set[str] | None = None,
+    moved: dict[str, str] | None = None,
 ) -> tuple[Findings, Findings]:
     """Return ``(breaking, compatible)`` public return-annotation changes.
+
+    ``moved`` is the verified old -> new defining-path map from
+    ``_moved_targets``. Moved class paths in the old annotation are renamed
+    before comparing, so a compatible model move is not a return-type change.
 
     AexPy only emits ``ChangeReturnType`` when mypy filled ``returnType`` on
     both sides. Unions that include ``dict[str, Any]`` stay null, so the
@@ -1470,6 +1544,8 @@ def _compare_return_annotations(
         if not str(old_annotation).strip():
             continue
         new_annotation = new_entry.get("returnAnnotation") or ""
+        if moved:
+            old_annotation = _rewrite_moved(str(old_annotation), moved)
         old_normalized = _normalize_type_annotation(str(old_annotation))
         new_normalized = _normalize_type_annotation(str(new_annotation))
         if api_id in compatible_resolved:
@@ -1836,11 +1912,38 @@ def _rank_value(entry: dict) -> int:
         return 0
 
 
+def _entry_api_ids(entry: dict) -> list[str]:
+    ids = []
+    for side in ("old", "new"):
+        payload = entry.get(side)
+        if isinstance(payload, dict) and isinstance(payload.get("id"), str):
+            ids.append(payload["id"])
+    return ids
+
+
+def _is_private_entry(entry: dict) -> bool:
+    """True when AexPy reported a change to a module-private (``_x``) API.
+
+    AexPy extracts underscore-prefixed callables too; they are not public API,
+    so a change to one cannot break a caller.
+    """
+    ids = _entry_api_ids(entry)
+    return bool(ids) and all(
+        any(
+            part.startswith("_") and not (part.startswith("__") and part.endswith("__"))
+            for part in api_id.split(".")
+        )
+        for api_id in ids
+    )
+
+
 def _is_caller_compatible(entry: dict) -> bool:
     return entry.get("kind") in CALLER_COMPATIBLE_KINDS and _rank_value(entry) > 0
 
 
 def _effective_rank(entry: dict) -> int:
+    if _is_private_entry(entry):
+        return 0
     return 0 if _is_caller_compatible(entry) else _rank_value(entry)
 
 
@@ -2163,6 +2266,11 @@ def main(argv: list[str] | None = None) -> int:
             json.loads(api_new.read_text()),
             already_reported=_reported_return_type_ids(change_entries),
             aexpy_compatible=_aexpy_compatible_return_ids(change_entries),
+            moved=(
+                _moved_targets(old_snapshot, new_snapshot)
+                if old_snapshot is not None and new_snapshot is not None
+                else None
+            ),
         )
         # AexPy's own return findings get the same @overload check; the
         # adjusted entries drive the report and the exit status.

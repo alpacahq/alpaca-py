@@ -125,6 +125,7 @@ class Transfer(ModelWithID):
         created_at (datetime): Date and time when this Transfer was created.
         updated_at (datetime): Date and time of when this Transfer was last updated.
         expires_at (datetime): Date and time of when this Transfer will expire.
+        hold_until (Optional[datetime]): Date and time until which the transferred funds are held and cannot be withdrawn.
         relationship_id (UUID): ID of the funding relationship used to make the transfer.
         amount (str): The amount the recipient will receive after any applicable fees are deducted.
         type (TransferType): The type of transfer.
@@ -142,6 +143,7 @@ class Transfer(ModelWithID):
     created_at: datetime
     updated_at: Optional[datetime] = None
     expires_at: Optional[datetime] = None
+    hold_until: Optional[datetime] = None
     relationship_id: Optional[UUID] = None
     bank_id: Optional[UUID] = None
     amount: str

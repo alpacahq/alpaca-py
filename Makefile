@@ -23,9 +23,11 @@ typecheck: ## Check the return types that type checkers infer for the public cli
 generate: ## Generate the documentation
 	./tools/scripts/generate-docs.sh
 
-.PHONY: test
-test: ## Run the unit tests
-	poetry run pytest
+.PHONY: fetch-openapi
+fetch-openapi: ## Fetch official Alpaca OpenAPI specifications
+	poetry run python tools/scripts/openapi/fetch_specs.py trading
+	poetry run python tools/scripts/openapi/fetch_specs.py market-data
+	poetry run python tools/scripts/openapi/fetch_specs.py broker
 
 # Compare the current tree's public API against a published PyPI release, or
 # against a git ref (e.g. origin/master) with BASELINE_REF.
@@ -79,3 +81,7 @@ consumer-surface-baseline: ## Write surface_baseline.json, the public surface of
 .PHONY: consumer-coverage
 consumer-coverage: ## Show which public client methods have no consumer scenario
 	poetry run python consumer_checks/check_coverage.py --show-uncovered
+
+.PHONY: test
+test: ## Run the unit tests
+	poetry run pytest

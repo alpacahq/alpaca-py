@@ -132,9 +132,13 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+# Maintainer-only OpenAPI code generation toolchain
+node_modules/
+
 #IDE configs
 .idea
 .vscode/
+.worktrees/
 
 # Cloudflare stuff
 Cloudflare_CA.pem

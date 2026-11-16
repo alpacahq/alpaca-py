@@ -1,0 +1,10 @@
+{
+  "name": "alpaca-py-codegen",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Maintainer-only toolchain that generates alpaca-py code from Alpaca's OpenAPI specifications.",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@openapitools/openapi-generator-cli": "2.42.0"
+  }
+}

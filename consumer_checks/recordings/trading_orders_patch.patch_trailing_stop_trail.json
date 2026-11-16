@@ -1,0 +1,183 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": {
+          "json": {
+            "client_order_id": "patched-trail",
+            "trail": "0.5"
+          }
+        },
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "content-type": "application/json",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "PATCH",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/orders/0b1f8e2c-5a3d-4c6e-9f10-2d7a8b9c0e11"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "asset_class": "us_equity",
+            "asset_id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+            "canceled_at": null,
+            "client_order_id": "patched-trail",
+            "created_at": "2024-03-04T15:00:00.000000Z",
+            "expired_at": null,
+            "extended_hours": false,
+            "failed_at": null,
+            "filled_at": null,
+            "filled_avg_price": null,
+            "filled_qty": "0",
+            "hwm": null,
+            "id": "6c2d4f8a-1b3e-4a5c-8d7f-9e0a1b2c3d4e",
+            "legs": null,
+            "limit_price": null,
+            "notional": null,
+            "order_class": "",
+            "order_type": "trailing_stop",
+            "position_intent": "buy_to_open",
+            "qty": "4",
+            "replaced_at": null,
+            "replaced_by": null,
+            "replaces": "0b1f8e2c-5a3d-4c6e-9f10-2d7a8b9c0e11",
+            "side": "buy",
+            "status": "new",
+            "stop_price": null,
+            "submitted_at": "2024-03-04T15:00:00.000000Z",
+            "symbol": "AAPL",
+            "time_in_force": "gtc",
+            "trail_percent": null,
+            "trail_price": "0.5",
+            "type": "trailing_stop",
+            "updated_at": "2024-03-04T15:00:00.000000Z"
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_against": "checkout",
+  "recorded_with": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "patched": {
+      "__type__": "Order",
+      "fields": {
+        "asset_class": {
+          "__type__": "AssetClass",
+          "name": "US_EQUITY",
+          "value": "us_equity"
+        },
+        "asset_id": {
+          "__type__": "UUID",
+          "value": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415"
+        },
+        "canceled_at": null,
+        "client_order_id": "patched-trail",
+        "created_at": {
+          "__type__": "datetime",
+          "value": "2024-03-04T15:00:00+00:00"
+        },
+        "expired_at": null,
+        "expires_at": null,
+        "extended_hours": false,
+        "failed_at": null,
+        "filled_at": null,
+        "filled_avg_price": null,
+        "filled_qty": "0",
+        "group_id": null,
+        "group_role": null,
+        "hwm": null,
+        "id": {
+          "__type__": "UUID",
+          "value": "6c2d4f8a-1b3e-4a5c-8d7f-9e0a1b2c3d4e"
+        },
+        "legs": null,
+        "limit_price": null,
+        "notional": null,
+        "order_class": {
+          "__type__": "OrderClass",
+          "name": "SIMPLE",
+          "value": "simple"
+        },
+        "order_type": {
+          "__type__": "OrderType",
+          "name": "TRAILING_STOP",
+          "value": "trailing_stop"
+        },
+        "position_intent": {
+          "__type__": "PositionIntent",
+          "name": "BUY_TO_OPEN",
+          "value": "buy_to_open"
+        },
+        "qty": "4",
+        "ratio_qty": null,
+        "replaced_at": null,
+        "replaced_by": null,
+        "replaces": {
+          "__type__": "UUID",
+          "value": "0b1f8e2c-5a3d-4c6e-9f10-2d7a8b9c0e11"
+        },
+        "side": {
+          "__type__": "OrderSide",
+          "name": "BUY",
+          "value": "buy"
+        },
+        "status": {
+          "__type__": "OrderStatus",
+          "name": "NEW",
+          "value": "new"
+        },
+        "stop_price": null,
+        "submitted_at": {
+          "__type__": "datetime",
+          "value": "2024-03-04T15:00:00+00:00"
+        },
+        "symbol": "AAPL",
+        "time_in_force": {
+          "__type__": "TimeInForce",
+          "name": "GTC",
+          "value": "gtc"
+        },
+        "trail_percent": null,
+        "trail_price": "0.5",
+        "type": {
+          "__type__": "OrderType",
+          "name": "TRAILING_STOP",
+          "value": "trailing_stop"
+        },
+        "updated_at": {
+          "__type__": "datetime",
+          "value": "2024-03-04T15:00:00+00:00"
+        }
+      }
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "trading_orders_patch.patch_trailing_stop_trail",
+  "scenario_sha256": "da196e4d1005a9f5bc9789b9212a83762f9eccf9e564bbe2905cfee30b33d965",
+  "vars": {}
+}

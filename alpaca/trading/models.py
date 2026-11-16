@@ -1,39 +1,160 @@
-from alpaca.common.models import ModelWithID, ValidateBaseModel as BaseModel
+from datetime import date, datetime
+from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
-from datetime import datetime, date
-from typing import Any, Optional, List, Union, Dict
+
+from pydantic import Field, model_validator
+from typing_extensions import deprecated as _deprecated
+
+from alpaca.common._deprecation import (
+    compatibility_shape_message as _compatibility_shape_message,
+    deprecate_compatibility_shape as _deprecate_compatibility_shape,
+    warn_on_direct_instantiation as _warn_on_direct_instantiation,
+)
+from alpaca.common.models import ModelWithID
+from alpaca.common.models import ValidateBaseModel as BaseModel
+from alpaca.trading._generated.models import (
+    AcatcActivityV2,
+    AcatsActivityV2,
+    Account,
+    AccountConfigurations,
+    ActivityEventV2,
+    ActivityEventV2AllOfDetails,
+    ActivityEventV2Asset,
+    ActivityEventV2CommonFields,
+    ActivityV2DetailNTA,
+    ActivityV2DetailTRD,
+    Assets,
+    CalendarDay,
+    CanceledOrderResponse,
+    CDIVActivityV2,
+    CGDActivityV2,
+    ClockResp,
+    CommonAcatActivityV2,
+    CommonCaActivityV2,
+    CommonCDIVActivityV2,
+    CommonFixedIncomeInterestActivityV2,
+    CommonJournalActivityV2,
+    CommonMAActivityV2,
+    CommonNCActivityV2,
+    CommonNTAActivityV2,
+    CommonOPCAActivityV2,
+    CommonOptionsActivityV2,
+    CommonREOActivityV2,
+    CommonSDIVActivityV2,
+    CommonSpinoffActivityV2,
+    CommonSplitActivityV2,
+    CommonSplitStockActivityV2,
+    CommonVOFSubtypeActivityV2,
+    CryptoTransfer,
+    CryptoWallet,
+    CSWActivityV2,
+    CorporateAnnouncement,
+    DIVNRAActivityV2,
+    DIVSPDActivityV2,
+    DIVWHActivityV2,
+    Error,
+    ErrorResponse,
+    ExchangeOfferActivityV2,
+    FEEActivityV2,
+    FixedIncomeInterestActivityV2,
+    FixedIncomeRedemptionActivityV2,
+    FOPTActivityV2,
+    ForwardSplitActivityV2,
+    FXTRDActivityV2,
+    GetAccountActivities200ResponseInner,
+    GetAccountActivitiesByActivityType200ResponseInner,
+    JNLCActivityV2,
+    JNLSActivityV2,
+    LegacyCalendarDay,
+    LegacyClock,
+    ListLocateQuotesResponse,
+    ListLocatesResponse,
+    Locate,
+    LocateError,
+    LocateQuote,
+    LocateQuoteError,
+    MAActivityV2,
+    MEMActivityV2,
+    NCActivityV2,
+    NonTradeActivities,
+    OPASNActivityV2,
+    OpcaCDIVActivityV2,
+    OpcaFSPLITActivityV2,
+    OpcaMAActivityV2,
+    OpcaNCActivityV2,
+    OpcaRSPLITActivityV2,
+    OpcaSDIVActivityV2,
+    OpcaSPINActivityV2,
+    OpcaUSPLITActivityV2,
+    OPCSHActivityV2,
+    OPEXCActivityV2,
+    OPEXPActivityV2,
+    OPTRDActivityV2,
+    OCTActivityV2,
+    OrderLeg,
+    PortfolioHistoryError,
+    PositionClosedResponse,
+    PublicCalendarResp,
+    PublicMarket,
+    REOActivityV2,
+    ReverseSplitActivityV2,
+    RightsDistributionActivityV2,
+    RightsSubscriptionElectionActivityV2,
+    SDIVActivityV2,
+    SearchVASPsResponse,
+    SpinoffActivityV2,
+    TenderOfferActivityV2,
+    TokenizationMintResponse,
+    TokenizationRequest,
+    TradingActivities,
+    TravelRuleErrorResponse,
+    TravelRuleFieldOption,
+    TravelRuleNextAction,
+    TravelRuleRequiredField,
+    TravelRuleValidationError,
+    UnitSplitActivityV2,
+    VASP,
+    WalletError,
+    WalletFeeEstimateResponse,
+    WarrantExerciseElectionActivityV2,
+    WatchlistWithoutAsset,
+    WhitelistedAddress,
+    WRMActivityV2,
+)
 from alpaca.trading.enums import (
+    AccountStatus,
+    ActivityType,
     AssetBorrowStatus,
     AssetClass,
-    AssetStatus,
     AssetExchange,
+    AssetStatus,
     ContractType,
+    CorporateActionSubType,
+    CorporateActionType,
     DTBPCheck,
+    Exchange,
     ExerciseStyle,
+    NonTradeActivityStatus,
     OptionDeliverableSettlementMethod,
     OptionDeliverableSettlementType,
     OptionDeliverableType,
+    OrderClass,
     OrderGroupRole,
+    OrderSide,
     OrderStatus,
     OrderType,
-    OrderClass,
     PDTCheck,
     PositionIntent,
-    TimeInForce,
-    OrderSide,
     PositionSide,
-    AccountStatus,
+    TimeInForce,
     TradeActivityType,
-    NonTradeActivityStatus,
-    ActivityType,
-    CorporateActionType,
-    CorporateActionSubType,
     TradeConfirmationEmail,
     TradeEvent,
 )
-from pydantic import Field, model_validator
 
 
+@_deprecated("Asset is deprecated; use Assets instead.", category=None)
+@_warn_on_direct_instantiation("Asset is deprecated; use Assets instead.")
 class Asset(ModelWithID):
     """
     Represents a security. Some Assets are not tradable with Alpaca. These Assets are
@@ -44,7 +165,8 @@ class Asset(ModelWithID):
     Attributes:
         id (UUID): Unique id of asset
         asset_class (AssetClass): The name of the asset class.
-        exchange (AssetExchange): Which exchange this asset is available through.
+        exchange (Union[AssetExchange, Exchange]): Which exchange this asset is available through. Exchanges
+          AssetExchange lacks, such as INDEX, parse into Exchange.
         symbol (str): The symbol identifier of the asset.
         name (Optional[str]): The name of the asset.
         status (AssetStatus): The active status of the asset.
@@ -68,7 +190,7 @@ class Asset(ModelWithID):
     asset_class: AssetClass = Field(
         alias="class"
     )  # using a pydantic alias to allow parsing data with the `class` keyword field
-    exchange: AssetExchange
+    exchange: Union[AssetExchange, Exchange]
     symbol: str
     name: Optional[str] = None
     status: AssetStatus
@@ -117,6 +239,7 @@ class Asset(ModelWithID):
         return filled
 
 
+@_deprecate_compatibility_shape
 class USDPositionValues(BaseModel):
     """
     Represents an open long or short holding in an asset in USD.
@@ -147,6 +270,7 @@ class USDPositionValues(BaseModel):
     change_today: str
 
 
+@_deprecate_compatibility_shape
 class Position(BaseModel):
     """
     Represents an open long or short holding in an asset.
@@ -154,7 +278,8 @@ class Position(BaseModel):
     Attributes:
         asset_id (UUID): ID of the asset.
         symbol (str): Symbol of the asset.
-        exchange (AssetExchange): Exchange name of the asset.
+        exchange (Union[AssetExchange, Exchange]): Exchange name of the asset. Exchanges AssetExchange lacks,
+          such as INDEX, parse into Exchange.
         asset_class (AssetClass): Name of the asset's asset class.
         asset_marginable (Optional[bool]): Indicates if this asset is marginable.
         avg_entry_price (str): The average entry price of the position.
@@ -179,7 +304,7 @@ class Position(BaseModel):
 
     asset_id: UUID
     symbol: str
-    exchange: AssetExchange
+    exchange: Union[AssetExchange, Exchange]
     asset_class: AssetClass
     asset_marginable: Optional[bool] = None
     avg_entry_price: str
@@ -214,6 +339,7 @@ class AllAccountsPositions(BaseModel):
     positions: Dict[str, List[Position]]
 
 
+@_deprecate_compatibility_shape
 class Order(ModelWithID):
     """
     Represents a request for the sale or purchase of an asset.
@@ -346,6 +472,13 @@ class FailedClosePositionDetails(BaseModel):
     symbol: Optional[str] = None
 
 
+@_deprecated(
+    "ClosePositionResponse is deprecated; use PositionClosedResponse instead.",
+    category=None,
+)
+@_warn_on_direct_instantiation(
+    "ClosePositionResponse is deprecated; use PositionClosedResponse instead."
+)
 class ClosePositionResponse(BaseModel):
     """API response for a close position request.
     Attributes:
@@ -361,6 +494,7 @@ class ClosePositionResponse(BaseModel):
     body: Union[FailedClosePositionDetails, Order]
 
 
+@_deprecate_compatibility_shape
 class PortfolioHistory(BaseModel):
     """
     Contains information about the value of a portfolio over time.
@@ -386,6 +520,7 @@ class PortfolioHistory(BaseModel):
     cashflow: Dict[ActivityType, List[float]] = {}
 
 
+@_deprecate_compatibility_shape
 class Watchlist(ModelWithID):
     """
     A watchlist is an ordered list of assets. An account can have multiple watchlists.
@@ -407,6 +542,8 @@ class Watchlist(ModelWithID):
     assets: Optional[List[Asset]] = None
 
 
+@_deprecated("Clock is deprecated; use LegacyClock instead.", category=None)
+@_warn_on_direct_instantiation("Clock is deprecated; use LegacyClock instead.")
 class Clock(BaseModel):
     """
     The market clock for US equity markets. Timestamps are in eastern time.
@@ -424,6 +561,8 @@ class Clock(BaseModel):
     next_close: datetime
 
 
+@_deprecated("Calendar is deprecated; use CalendarDay instead.", category=None)
+@_warn_on_direct_instantiation("Calendar is deprecated; use CalendarDay instead.")
 class Calendar(BaseModel):
     """
     The market calendar for equity markets. Describes the market open and close time on a given day.
@@ -488,6 +627,12 @@ class BaseActivity(BaseModel):
         super().__init__(*args, **data)
 
 
+@_deprecated(
+    "NonTradeActivity is deprecated; use NonTradeActivities instead.", category=None
+)
+@_warn_on_direct_instantiation(
+    "NonTradeActivity is deprecated; use NonTradeActivities instead."
+)
 class NonTradeActivity(BaseActivity):
     """
     A NonTradeActivity represents an Activity that happened for an account that doesn't have to do with orders or trades.
@@ -517,6 +662,12 @@ class NonTradeActivity(BaseActivity):
     per_share_amount: Optional[float] = None
 
 
+@_deprecated(
+    "TradeActivity is deprecated; use TradingActivities instead.", category=None
+)
+@_warn_on_direct_instantiation(
+    "TradeActivity is deprecated; use TradingActivities instead."
+)
 class TradeActivity(BaseActivity):
     """
     Represents information for TradeActivities. TradeActivities are Activities that pertain to trades that happened for
@@ -549,6 +700,8 @@ class TradeActivity(BaseActivity):
     order_status: OrderStatus
 
 
+@_deprecated("TradeAccount is deprecated; use Account instead.", category=None)
+@_warn_on_direct_instantiation("TradeAccount is deprecated; use Account instead.")
 class TradeAccount(ModelWithID):
     """
     Represents trading account information for an Account.
@@ -670,6 +823,13 @@ class TradeAccount(ModelWithID):
     pending_reg_taf_fees: Optional[str] = None
 
 
+@_deprecated(
+    "AccountConfiguration is deprecated; use AccountConfigurations instead.",
+    category=None,
+)
+@_warn_on_direct_instantiation(
+    "AccountConfiguration is deprecated; use AccountConfigurations instead."
+)
 class AccountConfiguration(BaseModel):
     """
     Represents configuration options for a TradeAccount.
@@ -726,6 +886,13 @@ class AccountConfiguration(BaseModel):
         return payload
 
 
+@_deprecated(
+    "CorporateActionAnnouncement is deprecated; use CorporateAnnouncement instead.",
+    category=None,
+)
+@_warn_on_direct_instantiation(
+    "CorporateActionAnnouncement is deprecated; use CorporateAnnouncement instead."
+)
 class CorporateActionAnnouncement(ModelWithID):
     """
     An announcement of a corporate action. Corporate actions are events like dividend payouts, mergers and stock splits.
@@ -782,9 +949,13 @@ class TradeUpdate(BaseModel):
     qty: Optional[float] = None
 
 
+@_deprecated(_compatibility_shape_message("OptionDeliverable"), category=None)
 class OptionDeliverable(BaseModel):
     """
     One cash or equity deliverable tied to an option contract.
+
+    The generated model requires ``amount``. Delayed settlements omit it, so the
+    public type stays handwritten until the spec allows null.
 
     Attributes:
         type (OptionDeliverableType): Whether the deliverable is cash or equity.
@@ -807,6 +978,7 @@ class OptionDeliverable(BaseModel):
     asset_id: Optional[UUID] = None
 
 
+@_deprecate_compatibility_shape
 class OptionContract(BaseModel):
     """
     Represents an option contract.
@@ -856,6 +1028,7 @@ class OptionContract(BaseModel):
     close_price_date: Optional[date] = None
 
 
+@_deprecate_compatibility_shape
 class OptionContractsResponse(BaseModel):
     """
     Represents a response from the option contracts endpoint.

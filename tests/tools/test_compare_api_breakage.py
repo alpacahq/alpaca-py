@@ -2445,9 +2445,7 @@ class TestCallableSnapshotSource:
             f"class M{index}(BaseModel):\n    f: {field_type}\n"
             for index, field_type in enumerate(field_types)
         )
-        (package / "__init__.py").write_text(
-            textwrap.dedent(
-                """
+        (package / "__init__.py").write_text(textwrap.dedent("""
                 from typing import Iterable, Mapping, Optional, Sequence, Union
 
                 from pydantic import BaseModel
@@ -2456,10 +2454,7 @@ class TestCallableSnapshotSource:
 
                 class B(BaseModel): ...
 
-                """
-            )
-            + body
-        )
+                """) + body)
         source = cab._PUBLIC_DUMP_SOURCE.format(top_module=name, package_name="pytest")
         result = subprocess.run(
             [sys.executable, "-c", source],

@@ -44,6 +44,7 @@ from alpaca.trading.requests import (
     PatchOrderRequest,
     ReplaceOrderRequest,
     UpdateWatchlistRequest,
+    validate_replace_order_bounds,
 )
 
 
@@ -191,6 +192,9 @@ class TradingClient(RESTClient):
         Returns:
             alpaca.trading.models.Order: The updated order.
         """
+        if order_data is not None:
+            validate_replace_order_bounds(order_data)
+
         # checking to see if we specified at least one param
         params = order_data.to_request_fields() if order_data is not None else {}
 

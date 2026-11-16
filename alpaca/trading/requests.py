@@ -8,7 +8,6 @@ from pydantic import ValidationInfo, field_validator, model_validator
 from typing_extensions import deprecated as _deprecated
 
 from alpaca.common._deprecation import (
-    deprecate_compatibility_shape as _deprecate_compatibility_shape,
     warn_on_direct_instantiation as _warn_on_direct_instantiation,
 )
 from alpaca.common.enums import Sort
@@ -131,7 +130,15 @@ class GetCalendarRequest(NonEmptyRequest):
     date_type: Optional[Union[CalendarDateType, LegacyCalendarDateTypeParameter]] = None
 
 
-@_deprecate_compatibility_shape
+@_deprecated(
+    "CreateWatchlistRequest is a temporary compatibility shape and will be replaced "
+    "by the OpenAPI-generated CreateWatchlistRequest in a future release.",
+    category=None,
+)
+@_warn_on_direct_instantiation(
+    "CreateWatchlistRequest is a temporary compatibility shape and will be replaced "
+    "by the OpenAPI-generated CreateWatchlistRequest in a future release."
+)
 class CreateWatchlistRequest(NonEmptyRequest):
     """
     Represents the fields you can specify when creating a Watchlist
@@ -145,7 +152,15 @@ class CreateWatchlistRequest(NonEmptyRequest):
     symbols: List[str]
 
 
-@_deprecate_compatibility_shape
+@_deprecated(
+    "UpdateWatchlistRequest is a temporary compatibility shape and will be replaced "
+    "by the OpenAPI-generated UpdateWatchlistRequest in a future release.",
+    category=None,
+)
+@_warn_on_direct_instantiation(
+    "UpdateWatchlistRequest is a temporary compatibility shape and will be replaced "
+    "by the OpenAPI-generated UpdateWatchlistRequest in a future release."
+)
 class UpdateWatchlistRequest(NonEmptyRequest):
     """
     Represents the fields you can specify when updating a Watchlist
@@ -246,6 +261,10 @@ class OptionLegRequest(NonEmptyRequest):
 
     @model_validator(mode="before")
     def root_validator(cls, values: dict) -> dict:
+        # Union fields may offer other models (e.g. MLegOrderLeg) to this validator.
+        if not isinstance(values, dict):
+            return values
+
         side = values.get("side", None)
         position_intent = values.get("position_intent", None)
 
@@ -359,6 +378,20 @@ def _reject_non_positive(value: Any, field_name: str) -> None:
         raise ValueError(f"{field_name} must be greater than 0")
 
 
+def validate_replace_order_bounds(
+    order_data: Union["PatchOrderRequest", "ReplaceOrderRequest"],
+) -> None:
+    """Reject non-positive ``qty``, ``stop_price`` and ``trail`` on a replace request.
+
+    ``ReplaceOrderRequest`` enforces this on construction. The generated
+    ``PatchOrderRequest`` does not, so the client applies the same checks to both
+    types before sending.
+    """
+    _reject_non_positive(getattr(order_data, "qty", None), "qty")
+    _reject_non_positive(getattr(order_data, "stop_price", None), "stop_price")
+    _reject_non_positive(getattr(order_data, "trail", None), "trail")
+
+
 @_deprecated(
     "ReplaceOrderRequest is deprecated; use PatchOrderRequest instead.", category=None
 )
@@ -456,9 +489,9 @@ class OrderRequest(NonEmptyRequest):
     order_class: Optional[OrderClass] = None
     extended_hours: Optional[bool] = None
     client_order_id: Optional[str] = None
-    legs: Optional[List[OptionLegRequest]] = None
-    take_profit: Optional[TakeProfitRequest] = None
-    stop_loss: Optional[StopLossRequest] = None
+    legs: Optional[List[Union[OptionLegRequest, MLegOrderLeg]]] = None
+    take_profit: Optional[Union[TakeProfitRequest, CreateOrderRequestTakeProfit]] = None
+    stop_loss: Optional[Union[StopLossRequest, CreateOrderRequestStopLoss]] = None
     position_intent: Optional[PositionIntent] = None
 
     @model_validator(mode="before")

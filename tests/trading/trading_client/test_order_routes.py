@@ -18,12 +18,18 @@ from alpaca.trading.enums import (
 from alpaca.trading.models import Order
 from alpaca.trading.requests import (
     CancelOrderResponse,
+    CreateOrderRequestStopLoss,
+    CreateOrderRequestTakeProfit,
+    CreateWatchlistRequest,
     GetOrderByIdRequest,
     GetOrdersRequest,
     LimitOrderRequest,
     MarketOrderRequest,
+    MLegOrderLeg,
     OptionLegRequest,
+    PatchOrderRequest,
     ReplaceOrderRequest,
+    UpdateWatchlistRequest,
     StopLossRequest,
     TakeProfitRequest,
 )
@@ -353,6 +359,117 @@ def test_replace_order_validate_replace_request() -> None:
         ReplaceOrderRequest(stop_price=Decimal("-1"))
     with pytest.raises(ValueError):
         ReplaceOrderRequest(trail=Decimal("0"))
+
+
+@pytest.mark.parametrize(
+    "request_factory",
+    [
+        lambda **kwargs: PatchOrderRequest(**kwargs),
+        lambda **kwargs: ReplaceOrderRequest(**kwargs),
+    ],
+    ids=["patch", "replace"],
+)
+@pytest.mark.parametrize(
+    "bad_fields",
+    [
+        {"qty": "0"},
+        {"qty": "-1"},
+        {"stop_price": "0"},
+        {"stop_price": "-1.5"},
+        {"trail": "0"},
+        {"trail": "-0.1"},
+    ],
+)
+def test_replace_order_by_id_rejects_non_positive_values(
+    reqmock, trading_client: TradingClient, request_factory, bad_fields
+) -> None:
+    order_id = "61e69015-8549-4bfd-b9c3-01e75843f47d"
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", DeprecationWarning)
+        try:
+            order_request = request_factory(**bad_fields)
+        except ValueError:
+            # ReplaceOrderRequest already rejects these on construction.
+            return
+
+    with pytest.raises(ValueError):
+        trading_client.replace_order_by_id(order_id, order_request)
+
+    assert not reqmock.called
+
+
+def test_replace_order_by_id_accepts_positive_patch_values(
+    reqmock, trading_client: TradingClient
+) -> None:
+    order_id = "61e69015-8549-4bfd-b9c3-01e75843f47d"
+    reqmock.patch(
+        f"{BaseURL.TRADING_PAPER.value}/v2/orders/{order_id}",
+        json={
+            "id": order_id,
+            "client_order_id": "eb9e2aaa-f71a-4f51-b5b4-52a6c565dad4",
+            "created_at": "2021-03-16T18:38:01.942282Z",
+            "updated_at": "2021-03-16T18:38:01.942282Z",
+            "submitted_at": "2021-03-16T18:38:01.937734Z",
+            "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
+            "symbol": "AAPL",
+            "asset_class": "us_equity",
+            "qty": "4",
+            "filled_qty": "0",
+            "order_class": "simple",
+            "type": "limit",
+            "side": "buy",
+            "time_in_force": "day",
+            "status": "accepted",
+            "extended_hours": False,
+        },
+    )
+
+    trading_client.replace_order_by_id(
+        order_id, PatchOrderRequest(qty="4", stop_price="3.14", trail="1.5")
+    )
+
+    assert reqmock.request_history[0].json() == {
+        "qty": "4",
+        "stop_price": "3.14",
+        "trail": "1.5",
+    }
+
+
+def test_order_request_accepts_generated_nested_replacements() -> None:
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", DeprecationWarning)
+        bracket = MarketOrderRequest(
+            symbol="AAPL",
+            qty=1,
+            side=OrderSide.BUY,
+            time_in_force=TimeInForce.DAY,
+            order_class=OrderClass.BRACKET,
+            take_profit=CreateOrderRequestTakeProfit(limit_price="110"),
+            stop_loss=CreateOrderRequestStopLoss(stop_price="90"),
+        )
+        mleg = MarketOrderRequest(
+            qty=1,
+            time_in_force=TimeInForce.DAY,
+            order_class=OrderClass.MLEG,
+            legs=[
+                MLegOrderLeg(symbol="AAPL250117C00150000", ratio_qty="1", side="buy"),
+                MLegOrderLeg(symbol="AAPL250117C00160000", ratio_qty="1", side="sell"),
+            ],
+        )
+
+    fields = bracket.to_request_fields()
+    assert fields["take_profit"] == {"limit_price": "110"}
+    assert fields["stop_loss"] == {"stop_price": "90"}
+    assert [leg["symbol"] for leg in mleg.to_request_fields()["legs"]] == [
+        "AAPL250117C00150000",
+        "AAPL250117C00160000",
+    ]
+
+
+def test_watchlist_requests_are_statically_deprecated() -> None:
+    assert CreateWatchlistRequest.__deprecated__
+    assert UpdateWatchlistRequest.__deprecated__
 
 
 def test_cancel_order_by_id(reqmock, trading_client: TradingClient):

@@ -125,6 +125,7 @@ class Transfer(ModelWithID):
         created_at (datetime): Date and time when this Transfer was created.
         updated_at (datetime): Date and time of when this Transfer was last updated.
         expires_at (datetime): Date and time of when this Transfer will expire.
+        hold_until (Optional[datetime]): For an incoming deposit, the time after which its amount is no longer excluded from the account's cash_withdrawable. The deposit is already included in the account balance. Null when the transfer has no hold, including outgoing transfers and incoming deposits whose hold time is not set yet.
         relationship_id (UUID): ID of the funding relationship used to make the transfer.
         amount (str): The amount the recipient will receive after any applicable fees are deducted.
         type (TransferType): The type of transfer.
@@ -142,6 +143,7 @@ class Transfer(ModelWithID):
     created_at: datetime
     updated_at: Optional[datetime] = None
     expires_at: Optional[datetime] = None
+    hold_until: Optional[datetime] = None
     relationship_id: Optional[UUID] = None
     bank_id: Optional[UUID] = None
     amount: str

@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from typing import Iterator
 from urllib.parse import parse_qs, urlparse
 from uuid import UUID
@@ -279,6 +280,48 @@ def test_create_transfer_for_account(reqmock, client: BrokerClient):
     assert reqmock.called_once
     assert isinstance(transfer_entity, Transfer)
     assert transfer_entity.account_id == UUID(account_id)
+
+
+def test_get_transfers_for_account_parses_hold_until(reqmock, client: BrokerClient):
+    account_id = "2a87c088-ffb6-472b-a4a3-cd9305c8605c"
+
+    reqmock.get(
+        f"{BaseURL.BROKER_SANDBOX.value}/v1/accounts/{account_id}/transfers",
+        [
+            {"text": """
+                [
+                    {
+                      "id": "be3c368a-4c7c-4384-808e-f02c9f5a8afe",
+                      "relationship_id": "0f08c6bc-8e9f-463d-a73f-fd047fdb5e94",
+                      "account_id": "2a87c088-ffb6-472b-a4a3-cd9305c8605c",
+                      "type": "ach",
+                      "status": "COMPLETE",
+                      "amount": "500",
+                      "direction": "INCOMING",
+                      "created_at": "2021-05-05T07:55:31.190788Z",
+                      "hold_until": "2021-05-12T13:30:00Z"
+                    },
+                    {
+                      "id": "786b0a11-cdbf-4c0b-b146-6cdbcb94f2d3",
+                      "relationship_id": "0f08c6bc-8e9f-463d-a73f-fd047fdb5e94",
+                      "account_id": "2a87c088-ffb6-472b-a4a3-cd9305c8605c",
+                      "type": "ach",
+                      "status": "COMPLETE",
+                      "amount": "200",
+                      "direction": "OUTGOING",
+                      "created_at": "2021-05-05T07:55:31.190788Z",
+                      "hold_until": null
+                    }
+                ]
+                """},
+            {"text": "[]"},
+        ],
+    )
+
+    transfers = client.get_transfers_for_account(account_id)
+
+    assert transfers[0].hold_until == datetime(2021, 5, 12, 13, 30, tzinfo=timezone.utc)
+    assert transfers[1].hold_until is None
 
 
 def setup_reqmock_for_paginated_transfers_response(account_id, reqmock):

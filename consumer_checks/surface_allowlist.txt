@@ -10,7 +10,7 @@
 request:alpaca.broker.*  # as above
 response:alpaca.broker.*  # as above
 
-response:alpaca.data.historical.corporate_actions.CorporateActionsSet.next_page_token  # inherited from BaseDataSet (#877); get_corporate_actions merges all pages and never sets it, so users only ever see None
+response:alpaca.data.CorporateActionsSet.next_page_token  # inherited from BaseDataSet (#877); get_corporate_actions merges all pages and never sets it, so users only ever see None
 
 # Generated Trading types (alpaca.trading._generated) served through the public
 # modules. The patterns below are classes, not single fields, so they stay valid
@@ -67,3 +67,99 @@ response:alpaca.trading.Locate*  # locates have no client method yet
 response:alpaca.trading.ListLocate*  # as above
 response:alpaca.trading.TokenizationMintResponse.*  # tokenization has no client method yet
 response:alpaca.trading.TokenizationRequest.*  # as above
+
+# Corporate action stream events: the live streams deliver them, and no scenario drives a stream (see README, Known gaps).
+response:alpaca.data.CaEventBase.*  # stream event models, not returned by any client method
+response:alpaca.data.CaEventCapitalGainsDistribution.*  # stream event models, not returned by any client method
+response:alpaca.data.CaEventCashDividend.*  # stream event models, not returned by any client method
+response:alpaca.data.CaEventCashMerger.*  # stream event models, not returned by any client method
+response:alpaca.data.CaEventEquityPartialCall.*  # stream event models, not returned by any client method
+response:alpaca.data.CaEventForwardSplit.*  # stream event models, not returned by any client method
+response:alpaca.data.CaEventNameChange.*  # stream event models, not returned by any client method
+response:alpaca.data.CaEventRedemption.*  # stream event models, not returned by any client method
+response:alpaca.data.CaEventReorganization.*  # stream event models, not returned by any client method
+response:alpaca.data.CaEventReorganizationStockMovement.*  # stream event models, not returned by any client method
+response:alpaca.data.CaEventReverseSplit.*  # stream event models, not returned by any client method
+response:alpaca.data.CaEventRightsDistribution.*  # stream event models, not returned by any client method
+response:alpaca.data.CaEventSpinOff.*  # stream event models, not returned by any client method
+response:alpaca.data.CaEventStockAndCashMerger.*  # stream event models, not returned by any client method
+response:alpaca.data.CaEventStockDividend.*  # stream event models, not returned by any client method
+response:alpaca.data.CaEventStockMerger.*  # stream event models, not returned by any client method
+response:alpaca.data.CaEventUnitSplit.*  # stream event models, not returned by any client method
+response:alpaca.data.CaEventWorthlessRemoval.*  # stream event models, not returned by any client method
+response:alpaca.data.CorporateActionEventBase.*  # stream event models, not returned by any client method
+response:alpaca.data.CorporateActionEventCapitalGainsDistribution.*  # stream event models, not returned by any client method
+response:alpaca.data.CorporateActionEventCashDividend.*  # stream event models, not returned by any client method
+response:alpaca.data.CorporateActionEventCashMerger.*  # stream event models, not returned by any client method
+response:alpaca.data.CorporateActionEventEquityPartialCall.*  # stream event models, not returned by any client method
+response:alpaca.data.CorporateActionEventForwardSplit.*  # stream event models, not returned by any client method
+response:alpaca.data.CorporateActionEventNameChange.*  # stream event models, not returned by any client method
+response:alpaca.data.CorporateActionEventRedemption.*  # stream event models, not returned by any client method
+response:alpaca.data.CorporateActionEventReorganization.*  # stream event models, not returned by any client method
+response:alpaca.data.CorporateActionEventReverseSplit.*  # stream event models, not returned by any client method
+response:alpaca.data.CorporateActionEventRightsDistribution.*  # stream event models, not returned by any client method
+response:alpaca.data.CorporateActionEventSpinOff.*  # stream event models, not returned by any client method
+response:alpaca.data.CorporateActionEventStockAndCashMerger.*  # stream event models, not returned by any client method
+response:alpaca.data.CorporateActionEventStockDividend.*  # stream event models, not returned by any client method
+response:alpaca.data.CorporateActionEventStockMerger.*  # stream event models, not returned by any client method
+response:alpaca.data.CorporateActionEventUnitSplit.*  # stream event models, not returned by any client method
+response:alpaca.data.CorporateActionEventWorthlessRemoval.*  # stream event models, not returned by any client method
+
+# Generated corporate actions envelopes: get_corporate_actions returns CorporateActionsSet.
+response:alpaca.data.CorporateActions.*  # get_corporate_actions returns CorporateActionsSet
+response:alpaca.data.CorporateActionsResp.*  # get_corporate_actions returns CorporateActionsSet
+
+# Generated Market Data models the clients do not return yet; the hand-written models (Bar, Quote, Trade, Snapshot, BarSet, ...) are still what users get.
+response:alpaca.data.CryptoBar.*  # the client still returns the hand-written model
+response:alpaca.data.CryptoBarsResp.*  # the client still returns the hand-written model
+response:alpaca.data.CryptoLatestBarsResp.*  # the client still returns the hand-written model
+response:alpaca.data.CryptoLatestOrderbooksResp.*  # the client still returns the hand-written model
+response:alpaca.data.CryptoLatestQuotesResp.*  # the client still returns the hand-written model
+response:alpaca.data.CryptoLatestTradesResp.*  # the client still returns the hand-written model
+response:alpaca.data.CryptoOrderbook.*  # the client still returns the hand-written model
+response:alpaca.data.CryptoOrderbookEntry.*  # the client still returns the hand-written model
+response:alpaca.data.CryptoQuote.*  # the client still returns the hand-written model
+response:alpaca.data.CryptoQuotesResp.*  # the client still returns the hand-written model
+response:alpaca.data.CryptoSnapshot.*  # the client still returns the hand-written model
+response:alpaca.data.CryptoSnapshotsResp.*  # the client still returns the hand-written model
+response:alpaca.data.CryptoTrade.*  # the client still returns the hand-written model
+response:alpaca.data.CryptoTradesResp.*  # the client still returns the hand-written model
+response:alpaca.data.FixedIncomeLatestPricesResp.*  # the client still returns the hand-written model
+response:alpaca.data.FixedIncomeLatestQuotesResp.*  # the client still returns the hand-written model
+response:alpaca.data.FixedIncomePrice.*  # the client still returns the hand-written model
+response:alpaca.data.FixedIncomeQuote.*  # the client still returns the hand-written model
+response:alpaca.data.MostActive.*  # the client still returns the hand-written model
+response:alpaca.data.MostActivesResp.*  # the client still returns the hand-written model
+response:alpaca.data.MoversResp.*  # the client still returns the hand-written model
+response:alpaca.data.NewsResp.*  # the client still returns the hand-written model
+response:alpaca.data.OptionBar.*  # the client still returns the hand-written model
+response:alpaca.data.OptionBarsResp.*  # the client still returns the hand-written model
+response:alpaca.data.OptionGreeks.*  # the client still returns the hand-written model
+response:alpaca.data.OptionLatestQuotesResp.*  # the client still returns the hand-written model
+response:alpaca.data.OptionLatestTradesResp.*  # the client still returns the hand-written model
+response:alpaca.data.OptionQuote.*  # the client still returns the hand-written model
+response:alpaca.data.OptionSnapshot.*  # the client still returns the hand-written model
+response:alpaca.data.OptionSnapshotsResp.*  # the client still returns the hand-written model
+response:alpaca.data.OptionTrade.*  # the client still returns the hand-written model
+response:alpaca.data.OptionTradesResp.*  # the client still returns the hand-written model
+response:alpaca.data.StockAuction.*  # the client still returns the hand-written model
+response:alpaca.data.StockAuctionsResp.*  # the client still returns the hand-written model
+response:alpaca.data.StockAuctionsRespSingle.*  # the client still returns the hand-written model
+response:alpaca.data.StockBar.*  # the client still returns the hand-written model
+response:alpaca.data.StockBarsResp.*  # the client still returns the hand-written model
+response:alpaca.data.StockBarsRespSingle.*  # the client still returns the hand-written model
+response:alpaca.data.StockDailyAuctions.*  # the client still returns the hand-written model
+response:alpaca.data.StockLatestBarsResp.*  # the client still returns the hand-written model
+response:alpaca.data.StockLatestBarsRespSingle.*  # the client still returns the hand-written model
+response:alpaca.data.StockLatestQuotesResp.*  # the client still returns the hand-written model
+response:alpaca.data.StockLatestQuotesRespSingle.*  # the client still returns the hand-written model
+response:alpaca.data.StockLatestTradesResp.*  # the client still returns the hand-written model
+response:alpaca.data.StockLatestTradesRespSingle.*  # the client still returns the hand-written model
+response:alpaca.data.StockQuote.*  # the client still returns the hand-written model
+response:alpaca.data.StockQuotesResp.*  # the client still returns the hand-written model
+response:alpaca.data.StockQuotesRespSingle.*  # the client still returns the hand-written model
+response:alpaca.data.StockSnapshot.*  # the client still returns the hand-written model
+response:alpaca.data.StockSnapshotsRespSingle.*  # the client still returns the hand-written model
+response:alpaca.data.StockTrade.*  # the client still returns the hand-written model
+response:alpaca.data.StockTradesResp.*  # the client still returns the hand-written model
+response:alpaca.data.StockTradesRespSingle.*  # the client still returns the hand-written model

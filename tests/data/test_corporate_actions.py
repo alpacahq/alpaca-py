@@ -1,9 +1,11 @@
 import urllib
 from datetime import date
+from urllib.parse import parse_qs, urlparse
 from uuid import UUID
 
 from alpaca.data.enums import CorporateActionsType
 from alpaca.data.historical.corporate_actions import CorporateActionsClient
+from alpaca.data.models import CapitalGainsDistribution, PartialCall, Reorganization
 from alpaca.data.models.corporate_actions import (
     CashDividend,
     CorporateActionsSet,
@@ -328,3 +330,68 @@ def test_get_corporate_actions(
     assert res.df.index[0] == "reverse_splits"
 
     assert reqmock.call_count == 2
+
+
+def test_get_corporate_actions_parses_the_types_without_a_handwritten_model(
+    reqmock, corporate_actions_client: CorporateActionsClient
+):
+    reqmock.get(
+        "https://data.alpaca.markets/v1/corporate-actions",
+        text="""
+{
+  "corporate_actions": {
+    "partial_calls": [
+      {
+        "id": "a7932b15-f816-4f83-921e-998b524487c0",
+        "symbol": "PCALL",
+        "process_date": "2024-03-01"
+      }
+    ],
+    "reorganizations": [
+      {
+        "id": "a7932b15-f816-4f83-921e-998b524487c1",
+        "symbol": "REORG",
+        "cusip": "CUSIPR",
+        "effective_date": "2024-03-01",
+        "process_date": "2024-03-01"
+      }
+    ],
+    "capital_gains_distributions": [
+      {
+        "id": "a7932b15-f816-4f83-921e-998b524487c2",
+        "symbol": "CGD",
+        "cusip": "CUSIPC",
+        "ex_date": "2024-03-01",
+        "process_date": "2024-03-01",
+        "long_term_rate": 0.5
+      }
+    ]
+  },
+  "next_page_token": null
+}
+        """,
+    )
+
+    req = CorporateActionsRequest(
+        types=[
+            CorporateActionsType.PARTIAL_CALL,
+            CorporateActionsType.REORGANIZATION,
+            CorporateActionsType.CAPITAL_GAINS_DISTRIBUTION,
+        ]
+    )
+    res = corporate_actions_client.get_corporate_actions(request_params=req)
+
+    query = parse_qs(urlparse(reqmock.request_history[0].url).query)
+    assert query["types"] == ["partial_call,reorganization,capital_gains_distribution"]
+
+    assert isinstance(res["partial_calls"][0], PartialCall)
+    assert res["partial_calls"][0].symbol == "PCALL"
+    assert isinstance(res["reorganizations"][0], Reorganization)
+    assert res["reorganizations"][0].effective_date == date(2024, 3, 1)
+    assert isinstance(res["capital_gains_distributions"][0], CapitalGainsDistribution)
+    assert res["capital_gains_distributions"][0].long_term_rate == 0.5
+    assert set(res.df.index) == {
+        "partial_calls",
+        "reorganizations",
+        "capital_gains_distributions",
+    }

@@ -9,7 +9,7 @@ import pytest
 from msgpack.ext import Timestamp
 
 from alpaca.common.utils import get_default_user_agent, get_websocket_headers_key
-from alpaca.data.enums import DataFeed, Exchange
+from alpaca.data.enums import DataFeed, Exchange, StockLatestFeed
 from alpaca.data.live.stock import StockDataStream
 from alpaca.data.live.websocket import DataStream
 from alpaca.data.models import Bar, News, Trade
@@ -321,6 +321,8 @@ async def test_dispatch(ws_client: DataStream, timestamp: Timestamp):
         (DataFeed.DELAYED_SIP, "wss://stream.data.alpaca.markets/v2/delayed_sip"),
         (DataFeed.BOATS, "wss://stream.data.alpaca.markets/v1beta1/boats"),
         (DataFeed.OVERNIGHT, "wss://stream.data.alpaca.markets/v1beta1/overnight"),
+        (StockLatestFeed.IEX, "wss://stream.data.alpaca.markets/v2/iex"),
+        (StockLatestFeed.BOATS, "wss://stream.data.alpaca.markets/v1beta1/boats"),
     ],
 )
 def test_stock_data_stream_feed_endpoint(feed: DataFeed, endpoint: str):

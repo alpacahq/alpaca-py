@@ -2,20 +2,21 @@ import asyncio
 from typing import Awaitable, Callable, Dict, Optional, Union
 
 from alpaca.common.enums import BaseURL
-from alpaca.data.enums import DataFeed
+from alpaca.data.enums import DataFeed, StockLatestFeed
 from alpaca.data.live.websocket import DataStream
 from alpaca.data.models.bars import Bar
 from alpaca.data.models.quotes import Quote
 from alpaca.data.models.trades import Trade, TradeCancel, TradeCorrection, TradingStatus
 
-# Stream endpoint version per feed, as documented in
+# Stream endpoint version per feed value, as documented in
 # https://docs.alpaca.markets/us/docs/real-time-stock-pricing-data
+# Keyed by value so DataFeed and StockLatestFeed members both resolve.
 _FEED_VERSIONS = {
-    DataFeed.IEX: "v2",
-    DataFeed.SIP: "v2",
-    DataFeed.DELAYED_SIP: "v2",
-    DataFeed.BOATS: "v1beta1",
-    DataFeed.OVERNIGHT: "v1beta1",
+    "iex": "v2",
+    "sip": "v2",
+    "delayed_sip": "v2",
+    "boats": "v1beta1",
+    "overnight": "v1beta1",
 }
 
 
@@ -29,7 +30,7 @@ class StockDataStream(DataStream):
         api_key: str,
         secret_key: str,
         raw_data: bool = False,
-        feed: DataFeed = DataFeed.IEX,
+        feed: Union[DataFeed, StockLatestFeed] = DataFeed.IEX,
         websocket_params: Optional[Dict] = None,
         url_override: Optional[str] = None,
         data_timeout: Optional[float] = None,
@@ -55,15 +56,15 @@ class StockDataStream(DataStream):
         Raises:
             ValueError: Only IEX, SIP, DELAYED_SIP, BOATS or OVERNIGHT market data feeds are supported
         """
-        if feed not in _FEED_VERSIONS:
-            supported = ", ".join(f.name for f in _FEED_VERSIONS)
+        if feed.value not in _FEED_VERSIONS:
+            supported = ", ".join(value.upper() for value in _FEED_VERSIONS)
             raise ValueError(f"only {supported} feeds are supported")
 
         super().__init__(
             endpoint=(
                 url_override
                 if url_override is not None
-                else f"{BaseURL.MARKET_DATA_STREAM.value}/{_FEED_VERSIONS[feed]}/{feed.value}"
+                else f"{BaseURL.MARKET_DATA_STREAM.value}/{_FEED_VERSIONS[feed.value]}/{feed.value}"
             ),
             api_key=api_key,
             secret_key=secret_key,

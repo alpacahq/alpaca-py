@@ -1,0 +1,1087 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "end",
+            "2024-03-31"
+          ],
+          [
+            "limit",
+            "1000"
+          ],
+          [
+            "sort",
+            "asc"
+          ],
+          [
+            "start",
+            "2024-03-01"
+          ],
+          [
+            "symbols",
+            "AAA"
+          ],
+          [
+            "types",
+            "partial_call,reorganization,capital_gains_distribution"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v1/corporate-actions"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "corporate_actions": {
+              "capital_gains_distributions": [
+                {
+                  "currency": "USD",
+                  "cusip": "000000016",
+                  "ex_date": "2024-03-05",
+                  "id": "00000000-0000-4000-8000-000000000016",
+                  "isin": "US0000000164",
+                  "long_term_rate": 0.4,
+                  "payable_date": "2024-03-06",
+                  "process_date": "2024-03-04",
+                  "record_date": "2024-03-04",
+                  "short_term_rate": 0.1,
+                  "symbol": "PPP"
+                }
+              ],
+              "cash_dividends": [
+                {
+                  "cusip": "000000005",
+                  "due_bill_off_date": "2024-03-06",
+                  "due_bill_on_date": "2024-03-05",
+                  "ex_date": "2024-03-05",
+                  "foreign": true,
+                  "id": "00000000-0000-4000-8000-000000000005",
+                  "payable_date": "2024-03-06",
+                  "process_date": "2024-03-04",
+                  "rate": 0.25,
+                  "record_date": "2024-03-04",
+                  "special": false,
+                  "symbol": "EEE"
+                }
+              ],
+              "cash_mergers": [
+                {
+                  "acquiree_cusip": "000000107",
+                  "acquiree_symbol": "GGH",
+                  "acquirer_cusip": "000000007",
+                  "acquirer_symbol": "GGG",
+                  "effective_date": "2024-03-05",
+                  "id": "00000000-0000-4000-8000-000000000007",
+                  "payable_date": "2024-03-06",
+                  "process_date": "2024-03-04",
+                  "rate": 12.5
+                }
+              ],
+              "forward_splits": [
+                {
+                  "cusip": "000000001",
+                  "due_bill_redemption_date": "2024-03-07",
+                  "ex_date": "2024-03-05",
+                  "id": "00000000-0000-4000-8000-000000000001",
+                  "new_rate": 2,
+                  "old_rate": 1,
+                  "payable_date": "2024-03-06",
+                  "process_date": "2024-03-04",
+                  "record_date": "2024-03-04",
+                  "symbol": "AAA"
+                }
+              ],
+              "name_changes": [
+                {
+                  "id": "00000000-0000-4000-8000-000000000011",
+                  "new_cusip": "000000111",
+                  "new_symbol": "KKL",
+                  "old_cusip": "000000011",
+                  "old_symbol": "KKK",
+                  "process_date": "2024-03-04"
+                }
+              ],
+              "partial_calls": [
+                {
+                  "currency": "USD",
+                  "cusip": "000000014",
+                  "dividend_rate": 0.02,
+                  "id": "00000000-0000-4000-8000-000000000014",
+                  "isin": "US0000000149",
+                  "lottery_date": "2024-03-05",
+                  "lottery_type": "original",
+                  "payable_date": "2024-03-06",
+                  "price": 100,
+                  "process_date": "2024-03-04",
+                  "record_date": "2024-03-04",
+                  "results_publication_date": "2024-03-07",
+                  "symbol": "NNN"
+                }
+              ],
+              "redemptions": [
+                {
+                  "cusip": "000000010",
+                  "id": "00000000-0000-4000-8000-000000000010",
+                  "payable_date": "2024-03-06",
+                  "process_date": "2024-03-04",
+                  "rate": 25,
+                  "symbol": "JJJ"
+                }
+              ],
+              "reorganizations": [
+                {
+                  "cash_rate": 1.5,
+                  "currency": "USD",
+                  "cusip": "000000015",
+                  "effective_date": "2024-03-05",
+                  "id": "00000000-0000-4000-8000-000000000015",
+                  "isin": "US0000000156",
+                  "payable_date": "2024-03-06",
+                  "process_date": "2024-03-04",
+                  "stock_movements": [
+                    {
+                      "cusip": "000000115",
+                      "isin": "US0000001150",
+                      "new_rate": 2,
+                      "source_rate": 1,
+                      "symbol": "OOP"
+                    }
+                  ],
+                  "symbol": "OOO"
+                }
+              ],
+              "reverse_splits": [
+                {
+                  "ex_date": "2024-03-05",
+                  "id": "00000000-0000-4000-8000-000000000002",
+                  "new_cusip": "000000102",
+                  "new_rate": 1,
+                  "old_cusip": "000000002",
+                  "old_rate": 10,
+                  "payable_date": "2024-03-06",
+                  "process_date": "2024-03-04",
+                  "record_date": "2024-03-04",
+                  "symbol": "BBB"
+                }
+              ],
+              "rights_distributions": [
+                {
+                  "ex_date": "2024-03-05",
+                  "expiration_date": "2024-04-05",
+                  "id": "00000000-0000-4000-8000-000000000013",
+                  "new_cusip": "000000113",
+                  "new_symbol": "MMR",
+                  "payable_date": "2024-03-06",
+                  "process_date": "2024-03-04",
+                  "rate": 0.1,
+                  "record_date": "2024-03-04",
+                  "source_cusip": "000000013",
+                  "source_symbol": "MMM"
+                }
+              ],
+              "spin_offs": [
+                {
+                  "due_bill_redemption_date": "2024-03-07",
+                  "ex_date": "2024-03-05",
+                  "id": "00000000-0000-4000-8000-000000000006",
+                  "new_cusip": "000000106",
+                  "new_rate": 0.5,
+                  "new_symbol": "FFG",
+                  "payable_date": "2024-03-06",
+                  "process_date": "2024-03-04",
+                  "record_date": "2024-03-04",
+                  "source_cusip": "000000006",
+                  "source_rate": 1,
+                  "source_symbol": "FFF"
+                }
+              ],
+              "stock_and_cash_mergers": [
+                {
+                  "acquiree_cusip": "000000109",
+                  "acquiree_rate": 2,
+                  "acquiree_symbol": "IIJ",
+                  "acquirer_cusip": "000000009",
+                  "acquirer_rate": 1,
+                  "acquirer_symbol": "III",
+                  "cash_rate": 3.5,
+                  "effective_date": "2024-03-05",
+                  "id": "00000000-0000-4000-8000-000000000009",
+                  "payable_date": "2024-03-06",
+                  "process_date": "2024-03-04"
+                }
+              ],
+              "stock_dividends": [
+                {
+                  "cusip": "000000004",
+                  "ex_date": "2024-03-05",
+                  "id": "00000000-0000-4000-8000-000000000004",
+                  "payable_date": "2024-03-06",
+                  "process_date": "2024-03-04",
+                  "rate": 0.05,
+                  "record_date": "2024-03-04",
+                  "symbol": "DDD"
+                }
+              ],
+              "stock_mergers": [
+                {
+                  "acquiree_cusip": "000000108",
+                  "acquiree_rate": 2,
+                  "acquiree_symbol": "HHI",
+                  "acquirer_cusip": "000000008",
+                  "acquirer_rate": 1,
+                  "acquirer_symbol": "HHH",
+                  "effective_date": "2024-03-05",
+                  "id": "00000000-0000-4000-8000-000000000008",
+                  "payable_date": "2024-03-06",
+                  "process_date": "2024-03-04"
+                }
+              ],
+              "unit_splits": [
+                {
+                  "alternate_cusip": "000000203",
+                  "alternate_rate": 3,
+                  "alternate_symbol": "CCE",
+                  "effective_date": "2024-03-05",
+                  "id": "00000000-0000-4000-8000-000000000003",
+                  "new_cusip": "000000103",
+                  "new_rate": 2,
+                  "new_symbol": "CCD",
+                  "old_cusip": "000000003",
+                  "old_rate": 1,
+                  "old_symbol": "CCC",
+                  "payable_date": "2024-03-06",
+                  "process_date": "2024-03-04"
+                }
+              ],
+              "worthless_removals": [
+                {
+                  "cusip": "000000012",
+                  "id": "00000000-0000-4000-8000-000000000012",
+                  "process_date": "2024-03-04",
+                  "symbol": "LLL"
+                }
+              ]
+            },
+            "next_page_token": null
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_against": "checkout",
+  "recorded_with": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "actions": {
+      "__type__": "CorporateActionsSet",
+      "fields": {
+        "data": {
+          "capital_gains_distributions": [
+            {
+              "__type__": "CapitalGainsDistribution",
+              "fields": {
+                "currency": "USD",
+                "cusip": "000000016",
+                "ex_date": {
+                  "__type__": "date",
+                  "value": "2024-03-05"
+                },
+                "id": {
+                  "__type__": "UUID",
+                  "value": "00000000-0000-4000-8000-000000000016"
+                },
+                "isin": "US0000000164",
+                "long_term_rate": 0.4,
+                "payable_date": {
+                  "__type__": "date",
+                  "value": "2024-03-06"
+                },
+                "process_date": {
+                  "__type__": "date",
+                  "value": "2024-03-04"
+                },
+                "record_date": {
+                  "__type__": "date",
+                  "value": "2024-03-04"
+                },
+                "short_term_rate": 0.1,
+                "symbol": "PPP"
+              }
+            }
+          ],
+          "cash_dividends": [
+            {
+              "__type__": "CashDividend",
+              "fields": {
+                "corporate_action_type": "cash_dividends",
+                "cusip": "000000005",
+                "due_bill_off_date": {
+                  "__type__": "date",
+                  "value": "2024-03-06"
+                },
+                "due_bill_on_date": {
+                  "__type__": "date",
+                  "value": "2024-03-05"
+                },
+                "ex_date": {
+                  "__type__": "date",
+                  "value": "2024-03-05"
+                },
+                "foreign": true,
+                "id": {
+                  "__type__": "UUID",
+                  "value": "00000000-0000-4000-8000-000000000005"
+                },
+                "payable_date": {
+                  "__type__": "date",
+                  "value": "2024-03-06"
+                },
+                "process_date": {
+                  "__type__": "date",
+                  "value": "2024-03-04"
+                },
+                "rate": 0.25,
+                "record_date": {
+                  "__type__": "date",
+                  "value": "2024-03-04"
+                },
+                "special": false,
+                "symbol": "EEE"
+              }
+            }
+          ],
+          "cash_mergers": [
+            {
+              "__type__": "CashMerger",
+              "fields": {
+                "acquiree_cusip": "000000107",
+                "acquiree_symbol": "GGH",
+                "acquirer_cusip": "000000007",
+                "acquirer_symbol": "GGG",
+                "corporate_action_type": "cash_mergers",
+                "effective_date": {
+                  "__type__": "date",
+                  "value": "2024-03-05"
+                },
+                "id": {
+                  "__type__": "UUID",
+                  "value": "00000000-0000-4000-8000-000000000007"
+                },
+                "payable_date": {
+                  "__type__": "date",
+                  "value": "2024-03-06"
+                },
+                "process_date": {
+                  "__type__": "date",
+                  "value": "2024-03-04"
+                },
+                "rate": 12.5
+              }
+            }
+          ],
+          "forward_splits": [
+            {
+              "__type__": "ForwardSplit",
+              "fields": {
+                "corporate_action_type": "forward_splits",
+                "cusip": "000000001",
+                "due_bill_redemption_date": {
+                  "__type__": "date",
+                  "value": "2024-03-07"
+                },
+                "ex_date": {
+                  "__type__": "date",
+                  "value": "2024-03-05"
+                },
+                "id": {
+                  "__type__": "UUID",
+                  "value": "00000000-0000-4000-8000-000000000001"
+                },
+                "new_rate": 2.0,
+                "old_rate": 1.0,
+                "payable_date": {
+                  "__type__": "date",
+                  "value": "2024-03-06"
+                },
+                "process_date": {
+                  "__type__": "date",
+                  "value": "2024-03-04"
+                },
+                "record_date": {
+                  "__type__": "date",
+                  "value": "2024-03-04"
+                },
+                "symbol": "AAA"
+              }
+            }
+          ],
+          "name_changes": [
+            {
+              "__type__": "NameChange",
+              "fields": {
+                "corporate_action_type": "name_changes",
+                "id": {
+                  "__type__": "UUID",
+                  "value": "00000000-0000-4000-8000-000000000011"
+                },
+                "new_cusip": "000000111",
+                "new_symbol": "KKL",
+                "old_cusip": "000000011",
+                "old_symbol": "KKK",
+                "process_date": {
+                  "__type__": "date",
+                  "value": "2024-03-04"
+                }
+              }
+            }
+          ],
+          "partial_calls": [
+            {
+              "__type__": "PartialCall",
+              "fields": {
+                "currency": "USD",
+                "cusip": "000000014",
+                "dividend_rate": 0.02,
+                "id": {
+                  "__type__": "UUID",
+                  "value": "00000000-0000-4000-8000-000000000014"
+                },
+                "isin": "US0000000149",
+                "lottery_date": {
+                  "__type__": "date",
+                  "value": "2024-03-05"
+                },
+                "lottery_type": {
+                  "__type__": "PartialCallLotteryType",
+                  "name": "ORIGINAL",
+                  "value": "original"
+                },
+                "payable_date": {
+                  "__type__": "date",
+                  "value": "2024-03-06"
+                },
+                "price": 100,
+                "process_date": {
+                  "__type__": "date",
+                  "value": "2024-03-04"
+                },
+                "record_date": {
+                  "__type__": "date",
+                  "value": "2024-03-04"
+                },
+                "results_publication_date": {
+                  "__type__": "date",
+                  "value": "2024-03-07"
+                },
+                "symbol": "NNN"
+              }
+            }
+          ],
+          "redemptions": [
+            {
+              "__type__": "Redemption",
+              "fields": {
+                "corporate_action_type": "redemptions",
+                "cusip": "000000010",
+                "id": {
+                  "__type__": "UUID",
+                  "value": "00000000-0000-4000-8000-000000000010"
+                },
+                "payable_date": {
+                  "__type__": "date",
+                  "value": "2024-03-06"
+                },
+                "process_date": {
+                  "__type__": "date",
+                  "value": "2024-03-04"
+                },
+                "rate": 25.0,
+                "symbol": "JJJ"
+              }
+            }
+          ],
+          "reorganizations": [
+            {
+              "__type__": "Reorganization",
+              "fields": {
+                "cash_rate": 1.5,
+                "currency": "USD",
+                "cusip": "000000015",
+                "effective_date": {
+                  "__type__": "date",
+                  "value": "2024-03-05"
+                },
+                "id": {
+                  "__type__": "UUID",
+                  "value": "00000000-0000-4000-8000-000000000015"
+                },
+                "isin": "US0000000156",
+                "payable_date": {
+                  "__type__": "date",
+                  "value": "2024-03-06"
+                },
+                "process_date": {
+                  "__type__": "date",
+                  "value": "2024-03-04"
+                },
+                "stock_movements": [
+                  {
+                    "__type__": "ReorganizationStockMovement",
+                    "fields": {
+                      "cusip": "000000115",
+                      "isin": "US0000001150",
+                      "new_rate": 2,
+                      "source_rate": 1,
+                      "symbol": "OOP"
+                    }
+                  }
+                ],
+                "symbol": "OOO"
+              }
+            }
+          ],
+          "reverse_splits": [
+            {
+              "__type__": "ReverseSplit",
+              "fields": {
+                "corporate_action_type": "reverse_splits",
+                "ex_date": {
+                  "__type__": "date",
+                  "value": "2024-03-05"
+                },
+                "id": {
+                  "__type__": "UUID",
+                  "value": "00000000-0000-4000-8000-000000000002"
+                },
+                "new_cusip": "000000102",
+                "new_rate": 1.0,
+                "old_cusip": "000000002",
+                "old_rate": 10.0,
+                "payable_date": {
+                  "__type__": "date",
+                  "value": "2024-03-06"
+                },
+                "process_date": {
+                  "__type__": "date",
+                  "value": "2024-03-04"
+                },
+                "record_date": {
+                  "__type__": "date",
+                  "value": "2024-03-04"
+                },
+                "symbol": "BBB"
+              }
+            }
+          ],
+          "rights_distributions": [
+            {
+              "__type__": "RightsDistribution",
+              "fields": {
+                "corporate_action_type": "rights_distributions",
+                "ex_date": {
+                  "__type__": "date",
+                  "value": "2024-03-05"
+                },
+                "expiration_date": {
+                  "__type__": "date",
+                  "value": "2024-04-05"
+                },
+                "id": {
+                  "__type__": "UUID",
+                  "value": "00000000-0000-4000-8000-000000000013"
+                },
+                "new_cusip": "000000113",
+                "new_symbol": "MMR",
+                "payable_date": {
+                  "__type__": "date",
+                  "value": "2024-03-06"
+                },
+                "process_date": {
+                  "__type__": "date",
+                  "value": "2024-03-04"
+                },
+                "rate": 0.1,
+                "record_date": {
+                  "__type__": "date",
+                  "value": "2024-03-04"
+                },
+                "source_cusip": "000000013",
+                "source_symbol": "MMM"
+              }
+            }
+          ],
+          "spin_offs": [
+            {
+              "__type__": "SpinOff",
+              "fields": {
+                "corporate_action_type": "spin_offs",
+                "due_bill_redemption_date": {
+                  "__type__": "date",
+                  "value": "2024-03-07"
+                },
+                "ex_date": {
+                  "__type__": "date",
+                  "value": "2024-03-05"
+                },
+                "id": {
+                  "__type__": "UUID",
+                  "value": "00000000-0000-4000-8000-000000000006"
+                },
+                "new_cusip": "000000106",
+                "new_rate": 0.5,
+                "new_symbol": "FFG",
+                "payable_date": {
+                  "__type__": "date",
+                  "value": "2024-03-06"
+                },
+                "process_date": {
+                  "__type__": "date",
+                  "value": "2024-03-04"
+                },
+                "record_date": {
+                  "__type__": "date",
+                  "value": "2024-03-04"
+                },
+                "source_cusip": "000000006",
+                "source_rate": 1.0,
+                "source_symbol": "FFF"
+              }
+            }
+          ],
+          "stock_and_cash_mergers": [
+            {
+              "__type__": "StockAndCashMerger",
+              "fields": {
+                "acquiree_cusip": "000000109",
+                "acquiree_rate": 2.0,
+                "acquiree_symbol": "IIJ",
+                "acquirer_cusip": "000000009",
+                "acquirer_rate": 1.0,
+                "acquirer_symbol": "III",
+                "cash_rate": 3.5,
+                "corporate_action_type": "stock_and_cash_mergers",
+                "effective_date": {
+                  "__type__": "date",
+                  "value": "2024-03-05"
+                },
+                "id": {
+                  "__type__": "UUID",
+                  "value": "00000000-0000-4000-8000-000000000009"
+                },
+                "payable_date": {
+                  "__type__": "date",
+                  "value": "2024-03-06"
+                },
+                "process_date": {
+                  "__type__": "date",
+                  "value": "2024-03-04"
+                }
+              }
+            }
+          ],
+          "stock_dividends": [
+            {
+              "__type__": "StockDividend",
+              "fields": {
+                "corporate_action_type": "stock_dividends",
+                "cusip": "000000004",
+                "ex_date": {
+                  "__type__": "date",
+                  "value": "2024-03-05"
+                },
+                "id": {
+                  "__type__": "UUID",
+                  "value": "00000000-0000-4000-8000-000000000004"
+                },
+                "payable_date": {
+                  "__type__": "date",
+                  "value": "2024-03-06"
+                },
+                "process_date": {
+                  "__type__": "date",
+                  "value": "2024-03-04"
+                },
+                "rate": 0.05,
+                "record_date": {
+                  "__type__": "date",
+                  "value": "2024-03-04"
+                },
+                "symbol": "DDD"
+              }
+            }
+          ],
+          "stock_mergers": [
+            {
+              "__type__": "StockMerger",
+              "fields": {
+                "acquiree_cusip": "000000108",
+                "acquiree_rate": 2.0,
+                "acquiree_symbol": "HHI",
+                "acquirer_cusip": "000000008",
+                "acquirer_rate": 1.0,
+                "acquirer_symbol": "HHH",
+                "corporate_action_type": "stock_mergers",
+                "effective_date": {
+                  "__type__": "date",
+                  "value": "2024-03-05"
+                },
+                "id": {
+                  "__type__": "UUID",
+                  "value": "00000000-0000-4000-8000-000000000008"
+                },
+                "payable_date": {
+                  "__type__": "date",
+                  "value": "2024-03-06"
+                },
+                "process_date": {
+                  "__type__": "date",
+                  "value": "2024-03-04"
+                }
+              }
+            }
+          ],
+          "unit_splits": [
+            {
+              "__type__": "UnitSplit",
+              "fields": {
+                "alternate_cusip": "000000203",
+                "alternate_rate": 3.0,
+                "alternate_symbol": "CCE",
+                "corporate_action_type": "unit_splits",
+                "effective_date": {
+                  "__type__": "date",
+                  "value": "2024-03-05"
+                },
+                "id": {
+                  "__type__": "UUID",
+                  "value": "00000000-0000-4000-8000-000000000003"
+                },
+                "new_cusip": "000000103",
+                "new_rate": 2.0,
+                "new_symbol": "CCD",
+                "old_cusip": "000000003",
+                "old_rate": 1.0,
+                "old_symbol": "CCC",
+                "payable_date": {
+                  "__type__": "date",
+                  "value": "2024-03-06"
+                },
+                "process_date": {
+                  "__type__": "date",
+                  "value": "2024-03-04"
+                }
+              }
+            }
+          ],
+          "worthless_removals": [
+            {
+              "__type__": "WorthlessRemoval",
+              "fields": {
+                "corporate_action_type": "worthless_removals",
+                "cusip": "000000012",
+                "id": {
+                  "__type__": "UUID",
+                  "value": "00000000-0000-4000-8000-000000000012"
+                },
+                "process_date": {
+                  "__type__": "date",
+                  "value": "2024-03-04"
+                },
+                "symbol": "LLL"
+              }
+            }
+          ]
+        },
+        "next_page_token": null
+      }
+    },
+    "df": {
+      "__type__": "DataFrame",
+      "columns": [
+        "currency",
+        "cusip",
+        "ex_date",
+        "id",
+        "isin",
+        "long_term_rate",
+        "payable_date",
+        "process_date",
+        "record_date",
+        "short_term_rate",
+        "symbol",
+        "rate",
+        "special",
+        "foreign",
+        "due_bill_on_date",
+        "due_bill_off_date",
+        "acquirer_symbol",
+        "acquirer_cusip",
+        "acquiree_symbol",
+        "acquiree_cusip",
+        "effective_date",
+        "new_rate",
+        "old_rate",
+        "due_bill_redemption_date",
+        "old_symbol",
+        "old_cusip",
+        "new_symbol",
+        "new_cusip",
+        "dividend_rate",
+        "lottery_date",
+        "lottery_type",
+        "price",
+        "results_publication_date",
+        "cash_rate",
+        "stock_movements",
+        "source_symbol",
+        "source_cusip",
+        "expiration_date",
+        "source_rate",
+        "acquirer_rate",
+        "acquiree_rate",
+        "alternate_symbol",
+        "alternate_cusip",
+        "alternate_rate"
+      ],
+      "dtypes": {
+        "acquiree_cusip": "str",
+        "acquiree_rate": "float64",
+        "acquiree_symbol": "str",
+        "acquirer_cusip": "str",
+        "acquirer_rate": "float64",
+        "acquirer_symbol": "str",
+        "alternate_cusip": "str",
+        "alternate_rate": "float64",
+        "alternate_symbol": "str",
+        "cash_rate": "float64",
+        "currency": "str",
+        "cusip": "str",
+        "dividend_rate": "float64",
+        "due_bill_off_date": "object",
+        "due_bill_on_date": "object",
+        "due_bill_redemption_date": "object",
+        "effective_date": "object",
+        "ex_date": "object",
+        "expiration_date": "object",
+        "foreign": "object",
+        "id": "object",
+        "isin": "str",
+        "long_term_rate": "float64",
+        "lottery_date": "object",
+        "lottery_type": "str",
+        "new_cusip": "str",
+        "new_rate": "float64",
+        "new_symbol": "str",
+        "old_cusip": "str",
+        "old_rate": "float64",
+        "old_symbol": "str",
+        "payable_date": "object",
+        "price": "float64",
+        "process_date": "object",
+        "rate": "float64",
+        "record_date": "object",
+        "results_publication_date": "object",
+        "short_term_rate": "float64",
+        "source_cusip": "str",
+        "source_rate": "float64",
+        "source_symbol": "str",
+        "special": "object",
+        "stock_movements": "object",
+        "symbol": "str"
+      },
+      "head": [
+        [
+          "capital_gains_distributions",
+          [
+            "USD",
+            "000000016",
+            "2024-03-05",
+            "00000000-0000-4000-8000-000000000016",
+            "US0000000164",
+            "0.4",
+            "2024-03-06",
+            "2024-03-04",
+            "2024-03-04",
+            "0.1",
+            "PPP",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan"
+          ]
+        ],
+        [
+          "cash_dividends",
+          [
+            "nan",
+            "000000005",
+            "2024-03-05",
+            "00000000-0000-4000-8000-000000000005",
+            "nan",
+            "nan",
+            "2024-03-06",
+            "2024-03-04",
+            "2024-03-04",
+            "nan",
+            "EEE",
+            "0.25",
+            "False",
+            "True",
+            "2024-03-05",
+            "2024-03-06",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan"
+          ]
+        ],
+        [
+          "cash_mergers",
+          [
+            "nan",
+            "nan",
+            "nan",
+            "00000000-0000-4000-8000-000000000007",
+            "nan",
+            "nan",
+            "2024-03-06",
+            "2024-03-04",
+            "nan",
+            "nan",
+            "nan",
+            "12.5",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "GGG",
+            "000000007",
+            "GGH",
+            "000000107",
+            "2024-03-05",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan",
+            "nan"
+          ]
+        ]
+      ],
+      "index": {
+        "dtypes": [
+          "str"
+        ],
+        "names": [
+          "corporate_action_type"
+        ]
+      },
+      "shape": [
+        16,
+        44
+      ]
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "corporate_actions_types.every_corporate_action_type",
+  "scenario_sha256": "2156c4706a08932aef2d06ec3dc5484fed77aac0c4cb1d676966380e50f9c3b1",
+  "vars": {}
+}

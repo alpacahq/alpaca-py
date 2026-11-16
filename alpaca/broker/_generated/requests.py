@@ -71,7 +71,6 @@ from alpaca.broker._generated.models import (
     TrustedContact,
     W8benDocument,
 )
-from alpaca.common.models import ModelWithID
 from alpaca.common.requests import NonEmptyRequest
 
 
@@ -1159,7 +1158,7 @@ class TokenizationRedeemRequest(NonEmptyRequest):
     )
 
 
-class TokenizationRequest(ModelWithID):
+class TokenizationRequest(NonEmptyRequest):
     """
     TokenizationRequest
     """

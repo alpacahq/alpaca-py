@@ -947,22 +947,32 @@ _ANNOTATION_NAMES = {
     "typing.Type": "type",
     "typing.Optional": "Optional",
     "typing.Union": "Union",
-    "typing.Iterable": "collections.abc.Iterable",
-    "typing.Iterator": "collections.abc.Iterator",
-    "typing.Sequence": "collections.abc.Sequence",
-    "typing.Mapping": "collections.abc.Mapping",
-    "typing.MutableMapping": "collections.abc.MutableMapping",
-    "typing.MutableSequence": "collections.abc.MutableSequence",
-    "typing.Callable": "collections.abc.Callable",
-    "typing.Generator": "collections.abc.Generator",
-    "typing.Awaitable": "collections.abc.Awaitable",
-    "typing.Coroutine": "collections.abc.Coroutine",
-    "typing.AsyncIterator": "collections.abc.AsyncIterator",
-    "typing.AsyncIterable": "collections.abc.AsyncIterable",
     "NoneType": "None",
     "types.NoneType": "None",
     "builtins.NoneType": "None",
 }
+# Container ABCs. The snapshot writes the origin's bare ``__name__`` for these
+# (``Sequence[...]``), source strings may use ``typing.Sequence`` or the bare
+# name, and ``collections.abc.Sequence`` is the canonical form, so all three
+# spellings map to the canonical one.
+_ABC_NAMES = (
+    "Iterable",
+    "Iterator",
+    "Sequence",
+    "Mapping",
+    "MutableMapping",
+    "MutableSequence",
+    "Callable",
+    "Generator",
+    "Awaitable",
+    "Coroutine",
+    "AsyncIterator",
+    "AsyncIterable",
+)
+for _abc_name in _ABC_NAMES:
+    _ANNOTATION_NAMES[_abc_name] = f"collections.abc.{_abc_name}"
+    _ANNOTATION_NAMES[f"typing.{_abc_name}"] = f"collections.abc.{_abc_name}"
+del _abc_name
 _BUILTIN_NAMES = {
     "list",
     "dict",

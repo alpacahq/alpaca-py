@@ -2431,6 +2431,74 @@ class TestCallableSnapshotSource:
         assert callables["overload_fixture.helper"]["return"] == "str"
         assert "overload_fixture.Client._private" not in callables
 
+    @staticmethod
+    def _dump_models(cab, root, field_types):
+        """Snapshot a throwaway package with one model per field type."""
+        import subprocess
+        import sys
+        import textwrap
+
+        name = "model_fixture"
+        package = root / name
+        package.mkdir(parents=True)
+        body = "\n".join(
+            f"class M{index}(BaseModel):\n    f: {field_type}\n"
+            for index, field_type in enumerate(field_types)
+        )
+        (package / "__init__.py").write_text(
+            textwrap.dedent(
+                """
+                from typing import Iterable, Mapping, Optional, Sequence, Union
+
+                from pydantic import BaseModel
+
+                class A(BaseModel): ...
+
+                class B(BaseModel): ...
+
+                """
+            )
+            + body
+        )
+        source = cab._PUBLIC_DUMP_SOURCE.format(top_module=name, package_name="pytest")
+        result = subprocess.run(
+            [sys.executable, "-c", source],
+            cwd=root,
+            env={"PYTHONPATH": str(root), "PATH": ""},
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        return json.loads(result.stdout)
+
+    @pytest.mark.parametrize(
+        ("old", "new"),
+        [
+            ("Sequence[A]", "Sequence[Union[A, B]]"),
+            ("Iterable[A]", "Iterable[Union[A, B]]"),
+            ("Mapping[str, A]", "Mapping[str, Union[A, B]]"),
+        ],
+    )
+    def test_widened_snapshot_container_is_additive(self, cab, tmp_path, old, new):
+        # The snapshot writes bare ``Sequence[...]`` names, not hand-written
+        # ``collections.abc.*`` ones, so run the real dump on both sides.
+        old_snapshot = self._dump_models(cab, tmp_path / "old", [old])
+        new_snapshot = self._dump_models(cab, tmp_path / "new", [new])
+        old_type = old_snapshot["models"]["model_fixture.M0"]["fields"]["f"]["type"]
+        assert old_type.startswith(old.split("[")[0] + "[")
+        assert "collections.abc" not in old_type
+
+        def retarget(snapshot):
+            model = snapshot["models"]["model_fixture.M0"]
+            model["target"] = "alpaca.trading.requests.M"
+            return {"models": {"alpaca.trading.requests.M": model}}
+
+        breaking, additive = cab._compare_models(
+            retarget(old_snapshot), retarget(new_snapshot)
+        )
+        assert breaking == []
+        assert len(additive) == 1
+
 
 def _field(type_: str) -> dict:
     return {

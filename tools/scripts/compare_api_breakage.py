@@ -689,11 +689,71 @@ def _rewrite_moved(annotation: str, moved: dict[str, str]) -> str:
     return annotation
 
 
+# Generics whose element type can gain union members and still validate every
+# value the old annotation accepted (``list[A]`` -> ``list[A | B]``). Mapping
+# keys are excluded: a different key type changes which lookups succeed.
+_WIDENABLE_ELEMENT_GENERICS = frozenset(
+    {
+        "list",
+        "set",
+        "frozenset",
+        "collections.abc.Sequence",
+        "collections.abc.Iterable",
+    }
+)
+_WIDENABLE_VALUE_GENERICS = frozenset({"dict", "collections.abc.Mapping"})
+
+
+def _generic_member_covers(new_member: str, old_member: str) -> bool:
+    """True when generic ``new_member`` accepts all of generic ``old_member``."""
+    new_generic = _split_generic(new_member)
+    old_generic = _split_generic(old_member)
+    if new_generic is None or old_generic is None:
+        return False
+    (new_origin, new_args), (old_origin, old_args) = new_generic, old_generic
+    if new_origin != old_origin or len(new_args) != len(old_args):
+        return False
+    if new_origin in _WIDENABLE_ELEMENT_GENERICS:
+        return all(_union_covers(n, o) for n, o in zip(new_args, old_args))
+    if new_origin in _WIDENABLE_VALUE_GENERICS:
+        return (
+            len(new_args) == 2
+            and new_args[0] == old_args[0]
+            and _union_covers(new_args[1], old_args[1])
+        )
+    return False
+
+
+def _union_covers(new: str, old: str) -> bool:
+    """True when every member of normalized union ``old`` is accepted by ``new``.
+
+    A member is accepted when ``new`` lists it verbatim or lists a generic of
+    the same origin whose element type (recursively) covers it.
+    """
+    new_members = _split_top_level_union(new)
+    return all(
+        old_member in new_members
+        or any(_generic_member_covers(member, old_member) for member in new_members)
+        for old_member in _split_top_level_union(old)
+    )
+
+
 def _is_widening(old_type: str, new_type: str) -> bool:
-    """True when ``new_type`` accepts every union member ``old_type`` did."""
-    old_members = set(_split_top_level_union(_normalize_type_annotation(old_type)))
-    new_members = set(_split_top_level_union(_normalize_type_annotation(new_type)))
-    return old_members < new_members
+    """True when ``new_type`` accepts everything ``old_type`` did, and more.
+
+    Covers members added to the top-level union and to the element type of a
+    homogeneous container (``list[A]`` -> ``list[A | B]``), at any depth.
+
+    This judges what the annotation accepts. It does not model pydantic's smart
+    union routing, so an input that used to validate as ``A`` could in theory
+    land on a new member ``B``. Static type checkers may also flag callers that
+    pass a widened mutable container where the old element type is expected.
+    """
+    old_normalized = _normalize_type_annotation(old_type)
+    new_normalized = _normalize_type_annotation(new_type)
+    return old_normalized != new_normalized and _union_covers(
+        new_normalized, old_normalized
+    )
 
 
 def _compare_enums(old: dict, new: dict) -> tuple[Findings, Findings]:
@@ -749,9 +809,10 @@ def _compare_models(old: dict, new: dict) -> tuple[Findings, Findings]:
 
     A class that only moved (its old defining path still resolves to it, with the
     same bases) is not a target change, and field types are compared after
-    renaming moved classes. A field type that only gained union members is
-    additive: every value the old annotation accepted still validates, and the
-    attribute type is a supertype of the old one. A field using
+    renaming moved classes. A field type that only gained union members, at the
+    top level or in the element type of a list/set/sequence (or a mapping's
+    values), is additive: every value the old annotation accepted still
+    validates, and the attribute type is a supertype of the old one. A field using
     ``union_mode="left_to_right"`` stays order-sensitive, so a change there is
     still breaking.
 
@@ -886,22 +947,32 @@ _ANNOTATION_NAMES = {
     "typing.Type": "type",
     "typing.Optional": "Optional",
     "typing.Union": "Union",
-    "typing.Iterable": "collections.abc.Iterable",
-    "typing.Iterator": "collections.abc.Iterator",
-    "typing.Sequence": "collections.abc.Sequence",
-    "typing.Mapping": "collections.abc.Mapping",
-    "typing.MutableMapping": "collections.abc.MutableMapping",
-    "typing.MutableSequence": "collections.abc.MutableSequence",
-    "typing.Callable": "collections.abc.Callable",
-    "typing.Generator": "collections.abc.Generator",
-    "typing.Awaitable": "collections.abc.Awaitable",
-    "typing.Coroutine": "collections.abc.Coroutine",
-    "typing.AsyncIterator": "collections.abc.AsyncIterator",
-    "typing.AsyncIterable": "collections.abc.AsyncIterable",
     "NoneType": "None",
     "types.NoneType": "None",
     "builtins.NoneType": "None",
 }
+# Container ABCs. The snapshot writes the origin's bare ``__name__`` for these
+# (``Sequence[...]``), source strings may use ``typing.Sequence`` or the bare
+# name, and ``collections.abc.Sequence`` is the canonical form, so all three
+# spellings map to the canonical one.
+_ABC_NAMES = (
+    "Iterable",
+    "Iterator",
+    "Sequence",
+    "Mapping",
+    "MutableMapping",
+    "MutableSequence",
+    "Callable",
+    "Generator",
+    "Awaitable",
+    "Coroutine",
+    "AsyncIterator",
+    "AsyncIterable",
+)
+for _abc_name in _ABC_NAMES:
+    _ANNOTATION_NAMES[_abc_name] = f"collections.abc.{_abc_name}"
+    _ANNOTATION_NAMES[f"typing.{_abc_name}"] = f"collections.abc.{_abc_name}"
+del _abc_name
 _BUILTIN_NAMES = {
     "list",
     "dict",

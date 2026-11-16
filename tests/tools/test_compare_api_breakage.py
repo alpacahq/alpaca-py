@@ -2431,6 +2431,69 @@ class TestCallableSnapshotSource:
         assert callables["overload_fixture.helper"]["return"] == "str"
         assert "overload_fixture.Client._private" not in callables
 
+    @staticmethod
+    def _dump_models(cab, root, field_types):
+        """Snapshot a throwaway package with one model per field type."""
+        import subprocess
+        import sys
+        import textwrap
+
+        name = "model_fixture"
+        package = root / name
+        package.mkdir(parents=True)
+        body = "\n".join(
+            f"class M{index}(BaseModel):\n    f: {field_type}\n"
+            for index, field_type in enumerate(field_types)
+        )
+        (package / "__init__.py").write_text(textwrap.dedent("""
+                from typing import Iterable, Mapping, Optional, Sequence, Union
+
+                from pydantic import BaseModel
+
+                class A(BaseModel): ...
+
+                class B(BaseModel): ...
+
+                """) + body)
+        source = cab._PUBLIC_DUMP_SOURCE.format(top_module=name, package_name="pytest")
+        result = subprocess.run(
+            [sys.executable, "-c", source],
+            cwd=root,
+            env={"PYTHONPATH": str(root), "PATH": ""},
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        return json.loads(result.stdout)
+
+    @pytest.mark.parametrize(
+        ("old", "new"),
+        [
+            ("Sequence[A]", "Sequence[Union[A, B]]"),
+            ("Iterable[A]", "Iterable[Union[A, B]]"),
+            ("Mapping[str, A]", "Mapping[str, Union[A, B]]"),
+        ],
+    )
+    def test_widened_snapshot_container_is_additive(self, cab, tmp_path, old, new):
+        # The snapshot writes bare ``Sequence[...]`` names, not hand-written
+        # ``collections.abc.*`` ones, so run the real dump on both sides.
+        old_snapshot = self._dump_models(cab, tmp_path / "old", [old])
+        new_snapshot = self._dump_models(cab, tmp_path / "new", [new])
+        old_type = old_snapshot["models"]["model_fixture.M0"]["fields"]["f"]["type"]
+        assert old_type.startswith(old.split("[")[0] + "[")
+        assert "collections.abc" not in old_type
+
+        def retarget(snapshot):
+            model = snapshot["models"]["model_fixture.M0"]
+            model["target"] = "alpaca.trading.requests.M"
+            return {"models": {"alpaca.trading.requests.M": model}}
+
+        breaking, additive = cab._compare_models(
+            retarget(old_snapshot), retarget(new_snapshot)
+        )
+        assert breaking == []
+        assert len(additive) == 1
+
 
 def _field(type_: str) -> dict:
     return {
@@ -2591,6 +2654,143 @@ class TestMovedClasses:
             breaking, additive = self._widen(cab, target)
             assert breaking == []
             assert any("type changed" in msg for msg, _ in additive)
+
+    @staticmethod
+    def _compare_field(cab, old_type, new_type, **extra):
+        def models(field_type):
+            return {
+                "models": {
+                    "alpaca.trading.requests.M": {
+                        "target": "alpaca.trading.requests.M",
+                        "fields": {"f": {**_field(field_type), **extra}},
+                    }
+                }
+            }
+
+        return cab._compare_models(models(old_type), models(new_type))
+
+    @pytest.mark.parametrize(
+        ("old", "new"),
+        [
+            # The reported case: Optional[list[A]] gains a member in the list.
+            (
+                "Union[list[a.Leg], NoneType]",
+                "Union[list[Union[a.Leg, b.MLeg]], NoneType]",
+            ),
+            # Member order and typing-alias spelling do not matter.
+            ("Union[list[a.Leg], NoneType]", "Optional[List[Union[b.MLeg, a.Leg]]]"),
+            ("list[a.A]", "list[Union[a.A, b.B]]"),
+            ("list[list[a.A]]", "list[list[Union[a.A, b.B]]]"),
+            ("set[a.A]", "set[Union[a.A, b.B]]"),
+            ("frozenset[a.A]", "frozenset[Union[a.A, b.B]]"),
+            (
+                "collections.abc.Sequence[a.A]",
+                "collections.abc.Sequence[Union[a.A, b.B]]",
+            ),
+            (
+                "collections.abc.Iterable[a.A]",
+                "collections.abc.Iterable[Union[a.A, b.B]]",
+            ),
+            ("dict[str, a.A]", "dict[str, Union[a.A, b.B]]"),
+            (
+                "collections.abc.Mapping[str, a.A]",
+                "collections.abc.Mapping[str, Union[a.A, b.B]]",
+            ),
+            ("dict[str, list[a.A]]", "dict[str, list[Union[a.A, b.B]]]"),
+            # Nested and top-level widening in the same change.
+            ("Optional[list[a.A]]", "Union[list[Union[a.A, b.B]], str, None]"),
+            # Two old containers collapse into one wider container.
+            ("Union[list[a.A], list[b.B]]", "list[Union[a.A, b.B]]"),
+        ],
+    )
+    def test_widened_field_is_additive_only(self, cab, old, new):
+        breaking, additive = self._compare_field(cab, old, new)
+        assert breaking == []
+        assert [msg for msg, _ in additive] == [f"M.f type changed: {old} -> {new}"]
+
+    @pytest.mark.parametrize(
+        ("old", "new"),
+        [
+            # Narrowed or replaced element type.
+            ("list[Union[a.A, b.B]]", "list[a.A]"),
+            ("list[a.A]", "list[b.B]"),
+            ("list[a.A]", "list[Union[b.B, c.C]]"),
+            ("list[list[Union[a.A, b.B]]]", "list[list[a.A]]"),
+            ("dict[str, Union[a.A, b.B]]", "dict[str, a.A]"),
+            # A widened element must not hide a dropped sibling member.
+            ("Optional[list[a.A]]", "list[Union[a.A, b.B]]"),
+            ("Union[list[a.A], str]", "list[Union[a.A, b.B]]"),
+            ("Union[list[a.A], str]", "Union[list[Union[a.A, b.B]], int]"),
+            # Mapping keys are invariant.
+            ("dict[str, a.A]", "dict[Union[str, int], a.A]"),
+            ("dict[str, a.A]", "dict[int, a.A]"),
+            (
+                "collections.abc.Mapping[str, a.A]",
+                "collections.abc.Mapping[Union[str, int], a.A]",
+            ),
+            # A different container is never a widening of the old one.
+            ("list[a.A]", "tuple[Union[a.A, b.B], ...]"),
+            ("list[a.A]", "set[Union[a.A, b.B]]"),
+            ("set[a.A]", "list[Union[a.A, b.B]]"),
+            ("dict[str, a.A]", "list[Union[a.A, b.B]]"),
+            # Containers outside the safe set are compared exactly.
+            ("tuple[a.A, ...]", "tuple[Union[a.A, b.B], ...]"),
+            ("tuple[a.A, b.B]", "tuple[Union[a.A, c.C], b.B]"),
+            ("type[a.A]", "type[Union[a.A, b.B]]"),
+            # Different generic arity.
+            ("dict[str, a.A]", "dict[str, Union[a.A, b.B], int]"),
+            ("dict[str, a.A, int]", "dict[str, Union[a.A, b.B], int]"),
+            ("list[a.A]", "list[Union[a.A, b.B], int]"),
+            # A scalar change is not a widening.
+            ("Union[str, NoneType]", "Union[float, NoneType]"),
+            ("str", "list[str]"),
+            ("list[str]", "str"),
+            # Unparseable annotations fall back to an exact comparison.
+            ("list[a.A", "list[Union[a.A, b.B]"),
+        ],
+    )
+    def test_non_widening_field_change_is_breaking(self, cab, old, new):
+        breaking, additive = self._compare_field(cab, old, new)
+        assert [msg for msg, _ in breaking] == [f"M.f type changed: {old} -> {new}"]
+        assert additive == []
+
+    @pytest.mark.parametrize(
+        ("old", "new"),
+        [
+            ("list[a.A]", "list[Union[a.A, b.B]]"),
+            ("Union[a.A, b.B]", "Union[a.A, b.B, c.C]"),
+        ],
+    )
+    def test_widened_left_to_right_field_is_still_breaking(self, cab, old, new):
+        breaking, additive = self._compare_field(
+            cab, old, new, union_mode="left_to_right"
+        )
+        assert [msg for msg, _ in breaking] == [f"M.f type changed: {old} -> {new}"]
+        assert additive == []
+
+    @pytest.mark.parametrize(
+        ("old", "new"),
+        [
+            ("list[Union[a.A, b.B]]", "list[Union[b.B, a.A]]"),
+            ("Optional[list[a.A]]", "Union[list[a.A], NoneType]"),
+        ],
+    )
+    def test_reordered_or_respelled_field_is_not_reported(self, cab, old, new):
+        assert self._compare_field(cab, old, new) == ([], [])
+
+    @pytest.mark.parametrize(
+        ("old", "new", "expected"),
+        [
+            ("list[a.A]", "list[Union[a.A, b.B]]", True),
+            ("list[a.A]", "list[a.A]", False),
+            ("list[Union[a.A, b.B]]", "list[Union[b.B, a.A]]", False),
+            ("list[Union[a.A, b.B]]", "list[a.A]", False),
+            ("a.A", "Union[a.A, b.B]", True),
+            ("Union[a.A, b.B]", "a.A", False),
+        ],
+    )
+    def test_is_widening(self, cab, old, new, expected):
+        assert cab._is_widening(old, new) is expected
 
     def test_narrowed_field_is_still_breaking(self, cab):
         old = {

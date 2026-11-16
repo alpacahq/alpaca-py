@@ -21,29 +21,43 @@ from alpaca.trading.models import (
     Clock,
     ClosePositionResponse,
     CorporateActionAnnouncement,
+    CryptoTransfer,
+    CryptoWallet,
     OptionContract,
     OptionContractsResponse,
     Order,
     PortfolioHistory,
     Position,
+    SearchVASPsResponse,
+    TokenizationMintResponse,
+    TokenizationRequest,
     TradeAccount,
+    WalletFeeEstimateResponse,
     Watchlist,
+    WhitelistedAddress,
 )
 from alpaca.trading.requests import (
     CancelOrderResponse,
     ClosePositionRequest,
     CreateWatchlistRequest,
+    CreateWhitelistedAddressRequest,
     GetAssetsRequest,
     GetCalendarRequest,
     GetCorporateAnnouncementsRequest,
+    GetCryptoWalletsRequest,
     GetOptionContractsRequest,
     GetOrderByIdRequest,
     GetOrdersRequest,
     GetPortfolioHistoryRequest,
+    GetTokenizationRequestsRequest,
+    GetWalletFeeEstimateRequest,
     OrderRequest,
     PatchOrderRequest,
     ReplaceOrderRequest,
+    SearchVASPsRequest,
+    TokenizationMintRequest,
     UpdateWatchlistRequest,
+    UpdateWhitelistedAddressTravelRuleInfoRequest,
 )
 
 
@@ -335,7 +349,7 @@ class TradingClient(RESTClient):
         All available held shares of this option contract will be exercised.
         By default, Alpaca will automatically exercise in-the-money (ITM) contracts at expiry.
         Exercise requests will be processed immediately once received. Exercise requests submitted outside market hours will be rejected.
-        To cancel an exercise request or to submit a Do-not-exercise (DNE) instruction, please contact our support team.
+        To cancel an exercise request, contact support. To submit a do-not-exercise instruction, call :meth:`do_not_exercise_option`.
 
         Args:
             symbol_or_contract_id (Union[UUID, str]): Option contract symbol or ID.
@@ -793,3 +807,228 @@ class TradingClient(RESTClient):
             return response
 
         return TypeAdapter(OptionContract).validate_python(response)
+
+    # ############################## OPTIONS ################################# #
+
+    def do_not_exercise_option(self, symbol_or_contract_id: Union[UUID, str]) -> None:
+        """Submits a do-not-exercise instruction for a held option contract.
+
+        Args:
+            symbol_or_contract_id (Union[UUID, str]): Option contract symbol or id.
+        """
+        symbol_or_contract_id = validate_symbol_or_contract_id(symbol_or_contract_id)
+        self.post(f"/positions/{symbol_or_contract_id}/do-not-exercise")
+
+    # ############################## TOKENIZATION ################################# #
+
+    def tokenization_mint(
+        self, request: TokenizationMintRequest
+    ) -> Union[TokenizationMintResponse, RawData]:
+        """Submits a tokenization mint request.
+
+        Args:
+            request (TokenizationMintRequest): Issuer, network, quantity, symbol, and wallet.
+
+        Returns:
+            Union[TokenizationMintResponse, RawData]: The mint response.
+        """
+        response = self.post("/tokenization/mint", request.to_request_fields())
+        return self._parse(TokenizationMintResponse, response)
+
+    def get_tokenization_requests(
+        self, filter: Optional[GetTokenizationRequestsRequest] = None
+    ) -> Union[List[TokenizationRequest], RawData]:
+        """Returns tokenization requests.
+
+        Args:
+            filter (Optional[GetTokenizationRequestsRequest]): Type, status, issuer, and time filters.
+
+        Returns:
+            Union[List[TokenizationRequest], RawData]: Matching tokenization requests.
+        """
+        response = self.get("/tokenization/requests", self._query(filter))
+        return self._parse(List[TokenizationRequest], response)
+
+    def get_tokenization_request(
+        self, tokenization_request_id: Union[UUID, str]
+    ) -> Union[TokenizationRequest, RawData]:
+        """Returns one tokenization request by Alpaca id.
+
+        Args:
+            tokenization_request_id (Union[UUID, str]): Tokenization request id.
+
+        Returns:
+            Union[TokenizationRequest, RawData]: The tokenization request.
+        """
+        tokenization_request_id = validate_uuid_id_param(
+            tokenization_request_id, "tokenization_request_id"
+        )
+        response = self.get(f"/tokenization/requests/{tokenization_request_id}")
+        return self._parse(TokenizationRequest, response)
+
+    def get_tokenization_request_by_client_request_id(
+        self, client_request_id: str
+    ) -> Union[TokenizationRequest, RawData]:
+        """Returns one tokenization request by the caller's request id.
+
+        Args:
+            client_request_id (str): Authorized-participant request id.
+
+        Returns:
+            Union[TokenizationRequest, RawData]: The tokenization request.
+        """
+        response = self.get(
+            "/tokenization/requests:by_client_request_id",
+            {"client_request_id": client_request_id},
+        )
+        return self._parse(TokenizationRequest, response)
+
+    # ############################## CRYPTO WALLETS ################################# #
+
+    def list_crypto_funding_wallets(
+        self, filter: Optional[GetCryptoWalletsRequest] = None
+    ) -> Union[CryptoWallet, List[CryptoWallet], RawData]:
+        """Returns crypto funding wallets for the account.
+
+        Passing ``asset`` returns the wallet for that asset. If the account does
+        not already have one, this request creates it. Omitting ``asset`` lists
+        the wallets that already exist.
+
+        The specification describes one wallet when ``asset`` is set and an
+        array otherwise. Both JSON shapes are accepted.
+
+        Args:
+            filter (Optional[GetCryptoWalletsRequest]): Asset, chain, and network filters.
+
+        Returns:
+            Union[CryptoWallet, List[CryptoWallet], RawData]: One wallet, or the account's wallets.
+        """
+        response = self.get("/wallets", self._query(filter))
+        return self._parse_one_or_many(CryptoWallet, response)
+
+    def get_wallet_fee_estimate(
+        self, request: Optional[GetWalletFeeEstimateRequest] = None
+    ) -> Union[WalletFeeEstimateResponse, RawData]:
+        """Estimates the fee for a crypto withdrawal.
+
+        Args:
+            request (Optional[GetWalletFeeEstimateRequest]): Asset, addresses, and amount.
+
+        Returns:
+            Union[WalletFeeEstimateResponse, RawData]: Total fee and network fee.
+        """
+        response = self.get("/wallets/fees/estimate", self._query(request))
+        return self._parse(WalletFeeEstimateResponse, response)
+
+    def list_crypto_funding_transfers(
+        self,
+    ) -> Union[CryptoTransfer, List[CryptoTransfer], RawData]:
+        """Returns crypto funding transfers for the account.
+
+        The operation description is an array of transfers. The response schema
+        is one transfer, so both JSON shapes are accepted.
+
+        Returns:
+            Union[CryptoTransfer, List[CryptoTransfer], RawData]: The transfers.
+        """
+        response = self.get("/wallets/transfers")
+        return self._parse_one_or_many(CryptoTransfer, response)
+
+    def get_crypto_funding_transfer(
+        self, transfer_id: str
+    ) -> Union[CryptoTransfer, RawData]:
+        """Returns one crypto funding transfer.
+
+        Args:
+            transfer_id (str): Transfer id.
+
+        Returns:
+            Union[CryptoTransfer, RawData]: The transfer.
+        """
+        response = self.get(f"/wallets/transfers/{transfer_id}")
+        return self._parse(CryptoTransfer, response)
+
+    def search_vasps(
+        self, filter: Optional[SearchVASPsRequest] = None
+    ) -> Union[SearchVASPsResponse, RawData]:
+        """Searches the travel-rule VASP directory.
+
+        Args:
+            filter (Optional[SearchVASPsRequest]): Query, page, and ordering filters.
+
+        Returns:
+            Union[SearchVASPsResponse, RawData]: Matching VASPs.
+        """
+        response = self.get("/wallets/travel-rule/vasps", self._query(filter))
+        return self._parse(SearchVASPsResponse, response)
+
+    def list_whitelisted_addresses(
+        self,
+    ) -> Union[WhitelistedAddress, List[WhitelistedAddress], RawData]:
+        """Returns whitelisted withdrawal addresses for the account.
+
+        The operation description is an array of addresses. The response schema
+        is one address, so both JSON shapes are accepted.
+
+        Returns:
+            Union[WhitelistedAddress, List[WhitelistedAddress], RawData]: The whitelisted addresses.
+        """
+        response = self.get("/wallets/whitelists")
+        return self._parse_one_or_many(WhitelistedAddress, response)
+
+    def create_whitelisted_address(
+        self, request: CreateWhitelistedAddressRequest
+    ) -> Union[WhitelistedAddress, RawData]:
+        """Whitelists a crypto address.
+
+        Args:
+            request (CreateWhitelistedAddressRequest): Address, asset, chain, and travel-rule info.
+
+        Returns:
+            Union[WhitelistedAddress, RawData]: The whitelisted address.
+        """
+        response = self.post("/wallets/whitelists", request.to_request_fields())
+        return self._parse(WhitelistedAddress, response)
+
+    def delete_whitelisted_address(self, whitelisted_address_id: str) -> None:
+        """Deletes a whitelisted address.
+
+        Args:
+            whitelisted_address_id (str): Whitelisted address id.
+        """
+        self.delete(f"/wallets/whitelists/{whitelisted_address_id}")
+
+    def update_whitelisted_address_travel_rule_info(
+        self,
+        whitelisted_address_id: Union[UUID, str],
+        request: UpdateWhitelistedAddressTravelRuleInfoRequest,
+    ) -> None:
+        """Updates travel-rule information for a whitelisted address.
+
+        Args:
+            whitelisted_address_id (Union[UUID, str]): Whitelisted address id.
+            request (UpdateWhitelistedAddressTravelRuleInfoRequest): Travel-rule payload.
+        """
+        self.patch(
+            f"/wallets/whitelists/{whitelisted_address_id}/travel-rule-info",
+            request.to_request_fields(),
+        )
+
+    def _query(self, request: Optional[object]) -> dict:
+        if request is None:
+            return {}
+        return request.to_request_fields()
+
+    def _parse(self, annotation: object, response: RawData) -> Union[object, RawData]:
+        if self._use_raw_data:
+            return response
+        return TypeAdapter(annotation).validate_python(response)
+
+    def _parse_one_or_many(
+        self, item_type: object, response: RawData
+    ) -> Union[object, List[object], RawData]:
+        if self._use_raw_data:
+            return response
+        if isinstance(response, list):
+            return TypeAdapter(List[item_type]).validate_python(response)
+        return TypeAdapter(item_type).validate_python(response)

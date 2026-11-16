@@ -1190,7 +1190,7 @@ class CryptoTransfer(ModelWithID):
     )
 
 
-class CryptoWallet(ModelWithID):
+class CryptoWallet(ValidateBaseModel):
     """
     CryptoWallet
     """
@@ -3322,7 +3322,7 @@ class TenderOfferActivityV2(ValidateBaseModel):
     source_symbol: StrictStr = Field(description="Symbol of the parent security")
 
 
-class TokenizationMintResponse(ModelWithID):
+class TokenizationMintResponse(ValidateBaseModel):
     """
     TokenizationMintResponse
     """
@@ -3341,7 +3341,7 @@ class TokenizationMintResponse(ModelWithID):
     underlying_symbol: StrictStr = Field(description="The underlying asset symbol")
 
 
-class TokenizationRequest(ModelWithID):
+class TokenizationRequest(ValidateBaseModel):
     """
     TokenizationRequest
     """

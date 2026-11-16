@@ -469,3 +469,21 @@ def test_exercise_options_position_with_id(
     assert reqmock.called_once
     assert reqmock.request_history[0].qs == {}
     assert res is None
+
+
+def test_do_not_exercise_options_position(
+    reqmock: Mocker, trading_client: TradingClient
+) -> None:
+    contract_id = UUID("00000000-0000-4000-8000-000000000000")
+
+    reqmock.post(
+        f"{BaseURL.TRADING_PAPER.value}/v2/positions/{contract_id}/do-not-exercise",
+        text="",
+    )
+
+    res = trading_client.do_not_exercise_option(symbol_or_contract_id=contract_id)
+
+    assert reqmock.called_once
+    assert reqmock.request_history[0].method == "POST"
+    assert reqmock.request_history[0].qs == {}
+    assert res is None

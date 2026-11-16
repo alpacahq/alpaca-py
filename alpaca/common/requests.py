@@ -1,9 +1,19 @@
 from datetime import date, datetime, timezone
 from ipaddress import IPv4Address, IPv6Address
-from typing import Any
+from typing import Any, List, Union
 from uuid import UUID
 
 from alpaca.common.models import ValidateBaseModel as BaseModel
+
+
+def comma_separated(value: Union[str, List[Any]]) -> str:
+    """Render a query value as a comma-separated string.
+
+    Lists are joined on ``,``; a value that is already a string is passed through.
+    """
+    if isinstance(value, list):
+        return ",".join(str(item) for item in value)
+    return str(value)
 
 
 class NonEmptyRequest(BaseModel):

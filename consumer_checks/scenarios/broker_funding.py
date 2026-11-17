@@ -21,7 +21,7 @@ from alpaca.common.enums import PaginationType
 from alpaca.common.exceptions import APIError
 
 from . import Context, scenario
-from ._broker import fund_with_ach, opened_account
+from ._broker import fund_with_ach, opened_account, withdraw_remaining_cash
 
 BROKER = "broker"
 
@@ -101,6 +101,9 @@ def ach_bank_and_transfer(ctx: Context) -> Dict[str, Any]:
         assert any(item.id == bank.id for item in banks)
         ctx.broker.delete_bank_for_account(account_id, bank.id)
 
+        # A deposit that settled (cancel refused) is still cash, and
+        # close_account is refused while the account holds any.
+        withdraw_remaining_cash(ctx, account_id, relationship.id)
         ctx.broker.delete_ach_relationship_for_account(account_id, relationship.id)
         # BankAccountType is part of the ACH request built in fund_with_ach.
         assert relationship.bank_account_type == BankAccountType.CHECKING

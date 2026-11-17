@@ -36,7 +36,7 @@ import re
 import socket
 import time
 import warnings
-from contextlib import contextmanager, nullcontext
+from contextlib import ExitStack, contextmanager, nullcontext
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from datetime import time as dt_time
@@ -1229,13 +1229,28 @@ def _replay(
 
 
 @contextmanager
-def _transport(scenario: Scenario) -> Iterator[None]:
-    """Stubbed scenarios never reach the API; the rest call it for real."""
-    if scenario.stub_responses:
-        with _stubbed(scenario.stub_responses):
-            yield
-    else:
+def _transport(
+    scenario: Scenario, sockets: Optional[_WebsocketRecorder] = None
+) -> Iterator[None]:
+    """Stubbed scenarios never reach the API; the rest call it for real.
+
+    Shared by record and live, so both serve the same fixed websocket frames.
+    ``sockets`` lets record read back what the SDK sent.
+    """
+    with ExitStack() as stack:
+        if scenario.stub_responses:
+            stack.enter_context(_stubbed(scenario.stub_responses))
+        if scenario.stub_websocket:
+            sockets = sockets or _WebsocketRecorder(scenario.stub_websocket)
+            stack.enter_context(sockets.active())
         yield
+        # Only reached when the scenario succeeded, so this never hides its error.
+        if sockets is not None and scenario.stub_websocket and sockets.remaining:
+            raise AssertionError(
+                f"{sockets.remaining} of {len(scenario.stub_websocket)} stubbed "
+                "websocket frames were never received: the stub no longer "
+                "matches what the SDK reads"
+            )
 
 
 def _keys(settings: Settings, scenario: Scenario) -> tuple:
@@ -1255,16 +1270,9 @@ def _record(settings: Settings, scenario: Scenario, path: Path) -> None:
 
     recorder = Recorder()
     sockets = _WebsocketRecorder(scenario.stub_websocket)
-    websocket = sockets.active() if scenario.stub_websocket else nullcontext()
     ctx = Context(api_key, secret_key, sleep=time.sleep, unique_id=unique_id)
-    with _transport(scenario), recorder.active(), websocket:
+    with _transport(scenario, sockets), recorder.active():
         _run(scenario, ctx)
-    if scenario.stub_websocket and sockets.remaining:
-        raise AssertionError(
-            f"{sockets.remaining} of {len(scenario.stub_websocket)} stubbed "
-            "websocket frames were never received: the stub no longer matches "
-            "what the SDK reads"
-        )
 
     recording: Dict[str, Any] = {
         "format": FORMAT_VERSION,

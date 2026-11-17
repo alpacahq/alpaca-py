@@ -5,7 +5,9 @@ name: Consumer checks baseline bump
 # The PR diff shows what changed for users between the two releases.
 #
 # Uses the same dedicated paper account as the nightly live job (repository
-# secrets CONSUMER_TRADING_API_KEY_ID / CONSUMER_TRADING_API_SECRET_KEY). A PR
+# secrets CONSUMER_TRADING_API_KEY_ID / CONSUMER_TRADING_API_SECRET_KEY) and the
+# same Broker sandbox (CONSUMER_BROKER_API_KEY / CONSUMER_BROKER_API_SECRET).
+# Re-record fails for broker scenarios until those secrets exist. A PR
 # opened with GITHUB_TOKEN does not start other workflows: close and reopen it
 # (or push to it) to run CI.
 on:
@@ -74,6 +76,8 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
           CONSUMER_TRADING_API_KEY_ID: ${{ secrets.CONSUMER_TRADING_API_KEY_ID }}
           CONSUMER_TRADING_API_SECRET_KEY: ${{ secrets.CONSUMER_TRADING_API_SECRET_KEY }}
+          CONSUMER_BROKER_API_KEY: ${{ secrets.CONSUMER_BROKER_API_KEY }}
+          CONSUMER_BROKER_API_SECRET: ${{ secrets.CONSUMER_BROKER_API_SECRET }}
         run: |
           printf '%s\n' "$VERSION" > consumer_checks/BASELINE
           # The release's public surface: what check_surface.py compares against.

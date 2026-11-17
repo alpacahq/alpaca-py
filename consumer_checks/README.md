@@ -207,14 +207,55 @@ the account does not hold the contract, then that exercising it raises
 Paper account ids in responses are scrubbed (`account_number`, `account_id`,
 and the `id` returned by `/v2/account`), keeping UUIDs as valid UUIDs.
 
+## What scenarios do to the Broker sandbox
+
+Broker scenarios always construct `BrokerClient` with `sandbox=True`. Each
+account is created with a synthetic identity (`consumer-check-<id>@example.com`,
+555 phone, example street, tax id in the unissued 666 area) and closed before
+the scenario returns. Sandbox accounts can be closed, not deleted.
+`delete_account` is the deprecated name for close and is called on its own
+account.
+
+List and journal calls are filtered to an email or account id the scenario
+just created. Nothing calls an unfiltered `list_accounts`, and
+`get_all_accounts_positions` is not called live: that response is every
+account, so `broker_events.bulk_positions_are_not_fetched_live` stubs one page.
+The event streams do not end, so `broker_events.event_stream_requests` serves
+one SSE event per stream. The request (path, query, `Accept: text/event-stream`)
+is still the one the SDK builds.
+
+ACH uses the public test routing number `121000248`, a fake account number, and
+the owner name "Consumer Check". Journals move cash only between the two
+accounts that scenario created. The rebalancing portfolio name is unique to the
+run and is inactivated after the account is unsubscribed (there is no delete).
+Orders are 1-share AAPL limit buys at $1, so they cannot fill.
+
+Response fields that are personal data (`given_name`, `family_name`,
+`email_address`, `tax_id`, `date_of_birth`, street address, phone, bank
+numbers, and the transmitter fields on a journal) are replaced before the
+recording is written. UUIDs stay valid UUIDs; other strings become `SCRUBBED`.
+The account `id` is kept, because later requests use it. Later requests also
+use the email and city the scenario sent, not the scrubbed response. Request
+bodies are not scrubbed: replay compares them, so they must stay synthetic.
+
+`get_cip_data_for_account_by_id` and `upload_cip_data_for_account_by_id` send
+no HTTP today. Calling them records that. A later implementation that starts
+calling the API changes the recording.
+
 ## Recording
 
-`make consumer-record` and `make consumer-live` need `CONSUMER_TRADING_API_KEY_ID` and
-`CONSUMER_TRADING_API_SECRET_KEY` (see `.env.example`). Variables set in the environment
-come first; otherwise they are read from the repo's `.env` (or
-`CONSUMER_ENV_FILE`). The file is parsed, not executed, and only those two
+`make consumer-record` and `make consumer-live` need
+`CONSUMER_TRADING_API_KEY_ID` and `CONSUMER_TRADING_API_SECRET_KEY` for the paper
+account, and `CONSUMER_BROKER_API_KEY` and `CONSUMER_BROKER_API_SECRET` for a
+Broker sandbox (see `.env.example`). These are not the `APCA_*` or
+`ALPACA_BROKER_*` keys the SDK's live tests use. Variables set in the
+environment come first; otherwise they are read from the repo's `.env` (or
+`CONSUMER_ENV_FILE`). The file is parsed, not executed, and only those four
 variables are read. The pytest header shows where the keys came from, never
-their values.
+their values. A broker scenario that actually calls the sandbox fails when its
+keys are missing. The preflight still exits 0 in that case, so a trading-only
+re-record is not blocked; it prints that the broker keys were not found.
+Stubbed broker scenarios do not need keys.
 
 `make consumer-record` builds `.consumer-venv/` with the released SDK from
 `BASELINE` and the third-party versions pinned in `poetry.lock` (what CI
@@ -260,8 +301,8 @@ of dicts while typed as `List[Calendar] | dict`.
 `make consumer-coverage` counts a method as checked only when a scenario that
 covers it has a recording, since replay skips scenarios without one. It also
 shows how many have a scenario that is not recorded yet. Every method of
-`TradingClient` and of the market-data clients (stock, crypto, options, news,
-screener, corporate actions) has a scenario. Market-data scenarios
+`TradingClient`, of `BrokerClient`, and of the market-data clients (stock,
+crypto, options, news, screener, corporate actions) has a scenario. Market-data scenarios
 are read only and use the feeds every paper account has: IEX for stocks and
 `indicative` for options. Fixed past dates keep requests identical on replay.
 Where data has to be current (option contracts expire), the scenario picks it
@@ -277,6 +318,16 @@ from an earlier response, such as the option chain, which replay serves back.
 
 - Streaming (websocket) clients have no scenarios yet. They would need their own
   record and replay transport, so for now cover them in live mode only.
-- `BrokerClient` (78 methods) needs Broker sandbox keys and its own safety
-  rules, since sandbox accounts, transfers and journals can only be closed,
-  not deleted. Not wired in yet; allowlisted in `coverage_allowlist.txt`.
+- `BrokerClient` has a scenario for every public method. The event streams and
+  `get_all_accounts_positions` are stubbed and recorded. The rest call the
+  sandbox and are recorded with `make consumer-record` once
+  `CONSUMER_BROKER_API_KEY` / `CONSUMER_BROKER_API_SECRET` are accepted by
+  `https://broker-api.sandbox.alpaca.markets`. Until those recordings exist,
+  `BrokerClient` stays in `coverage_allowlist.txt` and the broker globs stay in
+  `surface_allowlist.txt`. CI's `--consumer-strict` replay fails on a scenario
+  that has no recording. After recording, remove the `BrokerClient` allowlist
+  line. Two fields new since BASELINE are still unused on purpose:
+  `CreateAccountRequest.cash_interest` (the tier name is correspondent-specific;
+  omitting it uses the default) and `Transfer.hold_until` (null unless the
+  correspondent places a hold). Replace the broker globs with those two exact
+  entries if a recording still does not set them.

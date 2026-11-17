@@ -8,4 +8,4 @@
 # One entry per line: a whole client (`BrokerClient`) or one method
 # (`TradingClient.get_foo`), then an optional `# reason`.
 
-BrokerClient  # needs Broker sandbox keys and its own safety rules; not wired in yet
+BrokerClient  # scenarios exist; remove once make consumer-record has written a recording for every method (needs CONSUMER_BROKER_* sandbox keys)

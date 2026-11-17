@@ -40,7 +40,8 @@ check-api-breakage: ## Compare public API vs a release (AGAINST=version) or ref 
 		--fail-on-breaking
 
 # Consumer checks (consumer_checks/README.md): SDK code written like user code,
-# replayed from recordings of the paper API made with the BASELINE release.
+# replayed from recordings made with the BASELINE release (paper trading API
+# and the Broker sandbox).
 .PHONY: consumer-check
 consumer-check: consumer-typecheck consumer-replay ## Type-check and replay the consumer scenarios (offline)
 
@@ -53,11 +54,11 @@ consumer-replay: ## Replay recorded scenarios: requests and outputs must match
 	poetry run pytest consumer_checks $(ARGS)
 
 .PHONY: consumer-live
-consumer-live: ## Run scenarios against the paper API (keys from env or .env)
+consumer-live: ## Run scenarios against the paper API and Broker sandbox (keys from env or .env)
 	poetry run pytest consumer_checks --consumer-mode=live $(ARGS)
 
 .PHONY: consumer-record
-consumer-record: ## Record scenarios that have no recording yet, with the BASELINE release on the paper API (ARGS="--consumer-rerecord -k name" to redo)
+consumer-record: ## Record scenarios that have no recording yet, with the BASELINE release (ARGS="--consumer-rerecord -k name" to redo)
 	consumer_checks/record_baseline.sh $(ARGS)
 
 .PHONY: consumer-migrate

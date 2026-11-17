@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
-"""Paper API keys for record and live modes.
+"""API keys for record and live modes.
 
-Only ``CONSUMER_TRADING_API_KEY_ID`` / ``CONSUMER_TRADING_API_SECRET_KEY`` are
-read, never the ``APCA_*`` keys the SDK's live tests use: these checks need a
-paper account of their own, because some scenarios cancel every open order and
-close every position on it. They cover the Trading API and market data, which
-authenticate with the same keys. Broker scenarios will get their own pair. Looks in the environment first, then in the repo's ``.env``
-(or the file named by ``CONSUMER_ENV_FILE``, relative to the repo root).
+Trading and market-data scenarios read ``CONSUMER_TRADING_API_KEY_ID`` /
+``CONSUMER_TRADING_API_SECRET_KEY``. Broker scenarios read
+``CONSUMER_BROKER_API_KEY`` / ``CONSUMER_BROKER_API_SECRET`` for a Broker
+sandbox used only by these checks. Neither pair is the ``APCA_*`` or
+``ALPACA_BROKER_*`` keys the SDK's live tests use: some trading scenarios
+cancel every open order and close every position, and broker scenarios open
+and close sandbox accounts.
 
-The file is parsed, never executed, and only those key variables are read from
-it. Key values are never printed.
+Looks in the environment first, then in the repo's ``.env`` (or the file
+named by ``CONSUMER_ENV_FILE``, relative to the repo root). The file is
+parsed, never executed, and only those key variables are read from it. Key
+values are never printed.
 
-  python consumer_checks/_dotenv.py   # exit 1 when no keys are found
+  python consumer_checks/_dotenv.py   # exit 1 when the trading keys are missing
 """
 
 from __future__ import annotations
@@ -23,7 +26,10 @@ from pathlib import Path
 from typing import Dict, Mapping, Optional
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-KEY_PAIRS = (("CONSUMER_TRADING_API_KEY_ID", "CONSUMER_TRADING_API_SECRET_KEY"),)
+TRADING_KEY_PAIRS = (
+    ("CONSUMER_TRADING_API_KEY_ID", "CONSUMER_TRADING_API_SECRET_KEY"),
+)
+BROKER_KEY_PAIRS = (("CONSUMER_BROKER_API_KEY", "CONSUMER_BROKER_API_SECRET"),)
 
 
 @dataclass(frozen=True)
@@ -68,8 +74,12 @@ def _parse_value(value: str) -> str:
     return value.rstrip()
 
 
-def _pair(values: Mapping[str, str], where: str) -> Optional[Keys]:
-    for api_name, secret_name in KEY_PAIRS:
+def _pair(
+    values: Mapping[str, str],
+    where: str,
+    pairs: tuple,
+) -> Optional[Keys]:
+    for api_name, secret_name in pairs:
         if values.get(api_name) and values.get(secret_name):
             return Keys(
                 values[api_name],
@@ -79,19 +89,30 @@ def _pair(values: Mapping[str, str], where: str) -> Optional[Keys]:
     return None
 
 
-def find_keys() -> Keys:
+def _find(pairs: tuple) -> Keys:
     path = env_file()
     return (
-        _pair(os.environ, "the environment")
-        or _pair(parse_env_file(path), str(path))
+        _pair(os.environ, "the environment", pairs)
+        or _pair(parse_env_file(path), str(path), pairs)
         or Keys(None, None, "none found")
     )
 
 
+def find_keys() -> Keys:
+    """Trading API and market data keys."""
+    return _find(TRADING_KEY_PAIRS)
+
+
+def find_broker_keys() -> Keys:
+    """Broker sandbox keys. Never the trading pair, and never production."""
+    return _find(BROKER_KEY_PAIRS)
+
+
 def main() -> int:
     keys = find_keys()
+    broker = find_broker_keys()
     if keys.api_key is None:
-        names = " or ".join(f"{api}/{secret}" for api, secret in KEY_PAIRS)
+        names = " or ".join(f"{api}/{secret}" for api, secret in TRADING_KEY_PAIRS)
         print(
             f"No paper keys: set {names} in the environment or in {env_file()}, "
             "for a paper account used only by these checks",
@@ -99,6 +120,14 @@ def main() -> int:
         )
         return 1
     print(f"Paper keys: {keys.source}")
+    print(f"Broker sandbox keys: {broker.source}")
+    if broker.api_key is None:
+        names = " or ".join(f"{api}/{secret}" for api, secret in BROKER_KEY_PAIRS)
+        print(
+            f"No broker sandbox keys: set {names} in the environment or in "
+            f"{env_file()} before recording or running broker scenarios",
+            file=sys.stderr,
+        )
     return 0
 
 

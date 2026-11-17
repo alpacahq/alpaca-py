@@ -23,25 +23,14 @@ def get_default_user_agent() -> str:
     return f"APCA-PY/{__version__} Python/{platform.python_version()}"
 
 
-_WS_HEADERS_KEY: Optional[str] = None
+_WS_HEADERS_KEY: Optional[str] = "additional_headers"
 
 
 def get_websocket_headers_key() -> str:
-    """Returns the header keyword argument name ('additional_headers' or 'extra_headers')
-    accepted by the installed version of websockets.connect."""
-    global _WS_HEADERS_KEY
-    if _WS_HEADERS_KEY is None:
-        try:
-            import inspect
-            import websockets
-
-            if "additional_headers" in inspect.signature(websockets.connect).parameters:
-                _WS_HEADERS_KEY = "additional_headers"
-            else:
-                _WS_HEADERS_KEY = "extra_headers"
-        except Exception:
-            _WS_HEADERS_KEY = "extra_headers"
-    return _WS_HEADERS_KEY
+    """Returns the header keyword argument name ('additional_headers')
+    accepted by websockets.connect. Retained for backward compatibility.
+    """
+    return "additional_headers"
 
 
 def reconnect_delay(

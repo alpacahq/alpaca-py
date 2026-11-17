@@ -13,7 +13,6 @@ from alpaca.common.enums import BaseURL
 from alpaca.common.utils import (
     RunState,
     get_default_user_agent,
-    get_websocket_headers_key,
     reconnect_delay,
 )
 from alpaca.trading import TradeUpdate
@@ -39,6 +38,19 @@ class TradingStream:
         url_override: str = None,
         websocket_params: Optional[Dict] = None,
     ):
+        """Instantiates a WebSocket client for streaming account and trade updates.
+
+        Args:
+            api_key (str): Alpaca API key.
+            secret_key (str): Alpaca API secret key.
+            paper (bool, optional): Whether to connect to paper trading or live. Defaults to True.
+            raw_data (bool, optional): Whether to return raw dicts instead of parsed models. Defaults to False.
+            url_override (Optional[str], optional): Override the stream URL for proxy/testing. Defaults to None.
+            websocket_params (Optional[Dict], optional): Any websocket connection configuration parameters
+                passed to ``websockets.connect()`` (e.g. ``additional_headers``, ``ping_interval``,
+                ``ping_timeout``, ``max_queue``, and ``proxy``). Legacy ``extra_headers`` is translated
+                automatically. Defaults to None.
+        """
         self._api_key = api_key
         self._secret_key = secret_key
         self._trade_updates_handler = None
@@ -105,9 +117,8 @@ class TradingStream:
             "User-Agent": get_default_user_agent(),
         }
 
-        header_key = get_websocket_headers_key()
         connect_kwargs = {
-            header_key: extra_headers,
+            "additional_headers": extra_headers,
             **params,
         }
 

@@ -1,14 +1,4 @@
-"""Local-server coverage for the modern websockets.connect migration (#743, #838).
-
-#838 kept ``websockets.connect`` (not the explicit asyncio client import) and
-picks the header kwarg name at runtime via ``get_websocket_headers_key``, so
-the existing mocked tests in tests/data/test_websockets.py and
-tests/trading/test_trading_stream.py only assert on the kwargs passed to the
-patched ``connect``. These tests instead run a real local handshake end to
-end, the same gap flagged in #795's review: connect, auth, and subscribe
-should actually round-trip through a socket, and the stream's event
-dispatch should actually deliver a message to a handler.
-"""
+"""Local-server coverage for modern websockets (>=14.2) connect and handshake."""
 
 import asyncio
 import json
@@ -16,25 +6,11 @@ import sys
 
 import msgpack
 import pytest
+from websockets.asyncio.server import serve
 
 from alpaca.common.utils import get_default_user_agent
 from alpaca.data.live.websocket import DataStream
 from alpaca.trading.stream import TradingStream
-
-# ``websockets.asyncio.server`` needs websockets>=13, but pyproject.toml still
-# allows websockets>=10.4. Import it defensively so only the two tests below
-# that need a local server are skipped on older versions -- not the whole
-# module (which would also drop the DeprecationWarning check that must run on
-# every supported websockets version).
-try:
-    from websockets.asyncio.server import serve
-except ImportError:
-    serve = None
-
-_requires_asyncio_server = pytest.mark.skipif(
-    serve is None,
-    reason="requires websockets>=13 for the asyncio server API used by these tests",
-)
 
 # Deadline for each client/server socket exchange below. Without this, a
 # regression that stops the client from sending an expected message (e.g.
@@ -96,7 +72,6 @@ def test_stream_modules_import_without_legacy_deprecation():
     assert result.returncode == 0, result.stderr
 
 
-@_requires_asyncio_server
 @pytest.mark.asyncio
 async def test_data_stream_local_handshake_auth_subscription_and_dispatch():
     """Connect, authenticate, subscribe, and dispatch one bar to a handler."""
@@ -168,7 +143,6 @@ async def test_data_stream_local_handshake_auth_subscription_and_dispatch():
     assert received["bar"].symbol == "SPY"
 
 
-@_requires_asyncio_server
 @pytest.mark.asyncio
 async def test_trading_stream_local_handshake_auth_subscription_and_dispatch():
     """Connect, authenticate, subscribe, and dispatch one trade update."""

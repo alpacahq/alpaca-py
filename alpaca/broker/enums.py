@@ -643,12 +643,16 @@ class DriftBandSubType(str, Enum):
     RELATIVE = "relative"
 
 
+# category=None keeps the deprecation static only. Disclosures.employment_status
+# tries this enum first, then DisclosuresEmploymentStatus. Pydantic calls this
+# class for the lowercase values, so a runtime warning would fire for callers
+# who already switched.
 @_deprecated(
     "EmploymentStatus is deprecated and will be removed in a future version. "
     "Please use `DisclosuresEmploymentStatus` instead. Its values are lowercase "
     "(employed) while this enum's are uppercase (EMPLOYED), so check that the API "
     "accepts them before switching.",
-    stacklevel=2,
+    category=None,
 )
 class EmploymentStatus(str, Enum):
     """

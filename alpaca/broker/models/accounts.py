@@ -20,6 +20,7 @@ from alpaca.broker.enums import (
     AccountType,
     AgreementType,
     ClearingBroker,
+    DisclosuresEmploymentStatus,
     EmploymentStatus,
     AccountConfigurationsTradeConfirmEmail,
     FundingSource,
@@ -282,7 +283,10 @@ class Disclosures(BaseModel):
         is_affiliated_exchange_or_finra (bool): If user is affiliated with any exchanges or FINRA
         is_politically_exposed (bool): If user is politically exposed
         immediate_family_exposed (bool): If user’s immediate family member is either politically exposed or holds a control position.
-        employment_status (EmploymentStatus): The employment status of the user
+        employment_status (Optional[Union[EmploymentStatus, DisclosuresEmploymentStatus]]):
+          The employment status of the user. ``EmploymentStatus`` is listed first, so
+          ``EMPLOYED`` parses as that enum. ``employed`` parses as
+          ``DisclosuresEmploymentStatus``.
         employer_name (str): The user's employer's name, if any
         employer_address (str): The user's employer's address, if any
         employment_position (str): The user's employment position, if any
@@ -292,7 +296,9 @@ class Disclosures(BaseModel):
     is_affiliated_exchange_or_finra: Optional[bool] = None
     is_politically_exposed: Optional[bool] = None
     immediate_family_exposed: bool
-    employment_status: Optional[EmploymentStatus] = None
+    employment_status: Optional[
+        Union[EmploymentStatus, DisclosuresEmploymentStatus]
+    ] = None
     employer_name: Optional[str] = None
     employer_address: Optional[str] = None
     employment_position: Optional[str] = None

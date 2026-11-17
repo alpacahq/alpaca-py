@@ -314,7 +314,6 @@ def test_compatibility_shape_warns_when_instantiated():
 def test_deprecated_enum_warns_when_constructed():
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always")
-        enums.EmploymentStatus("EMPLOYED")
         enums.RunType("full_rebalance")
         enums.RunStatus("QUEUED")
         enums.RunInitiatedFrom("api")
@@ -330,7 +329,6 @@ def test_deprecated_enum_warns_when_constructed():
         for warning in caught
         if warning.category is DeprecationWarning
     ]
-    assert any("DisclosuresEmploymentStatus" in message for message in messages)
     assert any("PortfolioRunType" in message for message in messages)
     assert any("PortfolioRunStatus" in message for message in messages)
     assert any("PortfolioRunInitiatedFrom" in message for message in messages)
@@ -489,6 +487,70 @@ def test_upload_document_request_accepts_the_generated_document_type():
             content="ZGF0YQ==",
             mime_type=enums.UploadDocumentMimeType.PDF,
         )
+
+
+def test_disclosures_accept_both_employment_status_enums():
+    # EmploymentStatus tells callers to switch to DisclosuresEmploymentStatus, but
+    # the replacement's values are lowercase. Both have to validate, with the
+    # legacy enum first so existing uppercase payloads keep their type.
+    # The old enum's runtime warning is off: Pydantic calls it while trying the
+    # lowercase values, which would warn callers who already switched.
+    assert "DisclosuresEmploymentStatus" in enums.EmploymentStatus.__deprecated__
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", DeprecationWarning)
+        enums.EmploymentStatus("EMPLOYED")
+
+    cases = (
+        (
+            enums.EmploymentStatus.EMPLOYED,
+            enums.EmploymentStatus,
+            "EMPLOYED",
+        ),
+        (
+            enums.DisclosuresEmploymentStatus.EMPLOYED,
+            enums.DisclosuresEmploymentStatus,
+            "employed",
+        ),
+        ("EMPLOYED", enums.EmploymentStatus, "EMPLOYED"),
+        ("employed", enums.DisclosuresEmploymentStatus, "employed"),
+    )
+    for status, expected_type, wire_value in cases:
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", DeprecationWarning)
+            disclosures = requests.UpdatableDisclosures(
+                immediate_family_exposed=False,
+                employment_status=status,
+            )
+        assert type(disclosures.employment_status) is expected_type
+        assert disclosures.employment_status == wire_value
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", DeprecationWarning)
+        legacy = models.Disclosures(
+            immediate_family_exposed=False,
+            employment_status=enums.EmploymentStatus.EMPLOYED,
+        )
+        generated = models.Disclosures(
+            immediate_family_exposed=False,
+            employment_status=enums.DisclosuresEmploymentStatus.EMPLOYED,
+        )
+    assert type(legacy.employment_status) is enums.EmploymentStatus
+    assert type(generated.employment_status) is enums.DisclosuresEmploymentStatus
+
+    sent = requests.UpdateAccountRequest(
+        disclosures=requests.UpdatableDisclosures(
+            employment_status=enums.DisclosuresEmploymentStatus.EMPLOYED,
+        )
+    ).to_request_fields()
+    assert sent["disclosures"]["employment_status"] == "employed"
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", DeprecationWarning)
+        parsed = build_from_response(
+            models.Disclosures,
+            {"immediate_family_exposed": False, "employment_status": "EMPLOYED"},
+        )
+    assert type(parsed.employment_status) is enums.EmploymentStatus
 
 
 def test_input_models_accept_the_replacement_enums():

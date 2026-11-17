@@ -384,7 +384,10 @@ class UpdatableDisclosures(Disclosures):
         is_affiliated_exchange_or_finra (Optional[bool]): If user is affiliated with any exchanges or FINRA
         is_politically_exposed (Optional[bool]): If user is politically exposed
         immediate_family_exposed (Optional[bool]): If user’s immediate family member is either politically exposed or holds a control position.
-        employment_status (Optional[EmploymentStatus]): The employment status of the user
+        employment_status (Optional[Union[EmploymentStatus, DisclosuresEmploymentStatus]]):
+          The employment status of the user. ``EmploymentStatus`` is listed first, so
+          ``EMPLOYED`` parses as that enum. ``employed`` parses as
+          ``DisclosuresEmploymentStatus``.
         employer_name (Optional[str]): The user's employer's name, if any
         employer_address (Optional[str]): The user's employer's address, if any
         employment_position (Optional[str]): The user's employment position, if any

@@ -35,9 +35,10 @@ import _surface  # noqa: E402
 
 
 def public_methods() -> Dict[str, List[str]]:
-    """Every public client (any public RESTClient subclass) and its methods.
+    """Every public REST client and market-data stream, and its methods.
 
     Discovered, not listed, so a new client is covered by the gate too.
+    ``TradingStream`` is not included: it has no replay transport yet.
     """
     return dict(sorted(_surface.collect().methods.items()))
 

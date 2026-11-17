@@ -29,6 +29,12 @@ from alpaca.data.historical import (
     StockHistoricalDataClient,
 )
 from alpaca.data.historical.corporate_actions import CorporateActionsClient
+from alpaca.data.live import (
+    CryptoDataStream,
+    NewsDataStream,
+    OptionDataStream,
+    StockDataStream,
+)
 from alpaca.trading.client import TradingClient
 
 ScenarioFn = Callable[["Context"], Mapping[str, Any]]
@@ -52,6 +58,11 @@ class Scenario:
             API, in every mode. For behavior the API cannot be made to show on
             demand (429, 5xx, non-JSON errors). Each is ``{"status": int}``
             plus ``"json": ...`` or ``"text": ...``.
+        stub_websocket: Fixed market-data websocket frames, served in order
+            instead of connecting, in every mode. Live ticks are not
+            deterministic, so stream scenarios use this. Each frame is one
+            ``recv`` (a list of messages). ``{"$timestamp": [seconds,
+            nanoseconds]}`` is packed as a msgpack timestamp.
     """
 
     name: str
@@ -59,6 +70,7 @@ class Scenario:
     covers: Tuple[str, ...]
     since: Optional[str] = None
     stub_responses: Tuple[Mapping[str, Any], ...] = ()
+    stub_websocket: Tuple[Tuple[Mapping[str, Any], ...], ...] = ()
 
 
 SCENARIOS: Dict[str, Scenario] = {}
@@ -69,6 +81,7 @@ def scenario(
     covers: Sequence[str],
     since: Optional[str] = None,
     stub_responses: Sequence[Mapping[str, Any]] = (),
+    stub_websocket: Sequence[Sequence[Mapping[str, Any]]] = (),
 ) -> Callable[[ScenarioFn], ScenarioFn]:
     """Register a scenario function and the client methods it exercises."""
 
@@ -82,6 +95,7 @@ def scenario(
             covers=tuple(covers),
             since=since,
             stub_responses=tuple(stub_responses),
+            stub_websocket=tuple(tuple(frame) for frame in stub_websocket),
         )
         return fn
 
@@ -135,6 +149,22 @@ class Context:
     @cached_property
     def corporate_actions(self) -> CorporateActionsClient:
         return CorporateActionsClient(self._api_key, self._secret_key)
+
+    @cached_property
+    def stock_stream(self) -> StockDataStream:
+        return StockDataStream(self._api_key, self._secret_key)
+
+    @cached_property
+    def crypto_stream(self) -> CryptoDataStream:
+        return CryptoDataStream(self._api_key, self._secret_key)
+
+    @cached_property
+    def option_stream(self) -> OptionDataStream:
+        return OptionDataStream(self._api_key, self._secret_key)
+
+    @cached_property
+    def news_stream(self) -> NewsDataStream:
+        return NewsDataStream(self._api_key, self._secret_key)
 
     # raw_data=True: methods return the API's JSON (dicts and lists) instead of
     # models. Users who opt in index those directly.

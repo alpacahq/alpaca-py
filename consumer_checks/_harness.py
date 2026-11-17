@@ -14,14 +14,17 @@ Modes:
   responses, re-captures the requests the baseline sends, and re-takes the
   snapshot. Only for scenarios unchanged since they were recorded.
 
-HTTP is intercepted at ``requests.adapters.HTTPAdapter.send``. Replay also
-blocks real network connections, so if the SDK stops sending HTTP through
-``requests`` the run fails loudly instead of reaching a real server. Update
-this module, not the scenarios, when that happens.
+HTTP is intercepted at ``requests.adapters.HTTPAdapter.send``. Market-data
+websockets are intercepted at ``alpaca.data.live.websocket.websockets.connect``.
+Replay also blocks real network connections, so if the SDK stops sending HTTP
+through ``requests`` or opens a socket some other way, the run fails loudly
+instead of reaching a real server. Update this module, not the scenarios, when
+that happens.
 """
 
 from __future__ import annotations
 
+import asyncio
 import base64
 import difflib
 import hashlib
@@ -45,8 +48,10 @@ from typing import Any, Callable, Dict, Iterator, List, Mapping, Optional, Set
 from urllib.parse import parse_qsl, urlsplit
 from uuid import UUID
 
+import msgpack
 import pytest
 import requests
+from msgpack.ext import Timestamp
 from packaging.version import Version
 from requests.adapters import HTTPAdapter
 from requests.structures import CaseInsensitiveDict
@@ -462,13 +467,194 @@ def _without_headers(request: Dict[str, Any]) -> Dict[str, Any]:
     return {key: value for key, value in request.items() if key != "headers"}
 
 
+# DataStream's run loop catches Exception and reconnects. A replay mismatch has
+# to leave that loop, or a wrong subscribe frame turns into a retry storm.
+class _StreamReplayAbort(BaseException):
+    """Replay mismatch raised on the market-data websocket thread."""
+
+
+def _ws_payload(message: Any) -> bytes:
+    """Bytes the SDK passed to ``WebSocket.send``, including a chunked frame."""
+    if isinstance(message, (bytes, bytearray, memoryview)):
+        return bytes(message)
+    if isinstance(message, str):
+        return message.encode("utf-8")
+    return b"".join(_ws_payload(chunk) for chunk in message)
+
+
+def _pack_ws(value: Any) -> Any:
+    if isinstance(value, dict):
+        if set(value) == {"$timestamp"}:
+            seconds, nanoseconds = value["$timestamp"]
+            return Timestamp(int(seconds), int(nanoseconds))
+        return {key: _pack_ws(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_pack_ws(item) for item in value]
+    return value
+
+
+def _pack_frame(frame: Any) -> bytes:
+    packed = msgpack.packb(_pack_ws(list(frame)), datetime=True)
+    if not isinstance(packed, bytes):
+        raise TypeError("msgpack.packb did not return bytes")
+    return packed
+
+
+def _redact_ws(value: Any) -> Any:
+    if isinstance(value, Timestamp):
+        return {"$timestamp": [value.seconds, value.nanoseconds]}
+    if isinstance(value, dict):
+        redacted = {str(key): _redact_ws(item) for key, item in value.items()}
+        if redacted.get("action") == "auth":
+            for secret in ("key", "secret"):
+                if secret in redacted:
+                    redacted[secret] = "<redacted>"
+        return redacted
+    if isinstance(value, list):
+        return [_redact_ws(item) for item in value]
+    if isinstance(value, (bytes, bytearray)):
+        return {"$base64": base64.b64encode(bytes(value)).decode("ascii")}
+    return value
+
+
+def _decode_client_frame(message: Any) -> Any:
+    return _redact_ws(msgpack.unpackb(_ws_payload(message)))
+
+
+def _normalize_ws_connect(uri: str, kwargs: Mapping[str, Any]) -> Dict[str, Any]:
+    """URL, headers and connect options, with secrets and versions masked."""
+    headers: Any = {}
+    options: Dict[str, Any] = {}
+    for key, value in kwargs.items():
+        if key in ("additional_headers", "extra_headers"):
+            headers = value
+        else:
+            options[key] = value
+    return {
+        "url": uri,
+        "headers": _request_headers(headers or {}),
+        "options": json.loads(json.dumps(options, sort_keys=True, default=str)),
+    }
+
+
+@contextmanager
+def _patched_data_connect(connect: Callable[..., Any]) -> Iterator[None]:
+    import alpaca.data.live.websocket as ws_mod
+
+    original = ws_mod.websockets.connect
+    ws_mod.websockets.connect = connect
+    try:
+        yield
+    finally:
+        ws_mod.websockets.connect = original
+
+
+class _RecordingSocket:
+    def __init__(self, session: Dict[str, Any], frames: List[Any]) -> None:
+        self._session = session
+        self._frames = frames
+
+    async def recv(self) -> bytes:
+        if not self._frames:
+            await asyncio.sleep(0)
+            raise asyncio.TimeoutError
+        frame = self._frames.pop(0)
+        self._session["events"].append({"recv": frame})
+        return _pack_frame(frame)
+
+    async def send(self, message: Any) -> None:
+        self._session["events"].append({"send": _decode_client_frame(message)})
+
+    async def close(self) -> None:
+        return None
+
+
+class _WebsocketRecorder:
+    """Serve ``stub_websocket`` frames and store what the SDK sends."""
+
+    def __init__(self, frames: Any) -> None:
+        # JSON-shaped copies: the scenario's tuples must stay intact for the digest.
+        self.frames = json.loads(json.dumps(list(frames)))
+        self.sessions: List[Dict[str, Any]] = []
+
+    @contextmanager
+    def active(self) -> Iterator[None]:
+        recorder = self
+
+        async def connect(uri: str, **kwargs: Any) -> _RecordingSocket:
+            session: Dict[str, Any] = {
+                "connect": _normalize_ws_connect(uri, kwargs),
+                "events": [],
+            }
+            recorder.sessions.append(session)
+            return _RecordingSocket(session, recorder.frames)
+
+        with _patched_data_connect(connect):
+            yield
+
+    @property
+    def remaining(self) -> int:
+        return len(self.frames)
+
+
+class _ReplaySocket:
+    def __init__(self, events: List[Dict[str, Any]], replayer: "Replayer") -> None:
+        self._events = events
+        self._replayer = replayer
+        self._cursor = 0
+
+    def unfinished(self) -> Optional[Dict[str, Any]]:
+        if self._cursor >= len(self._events):
+            return None
+        return self._events[self._cursor]
+
+    def _fail(self, message: str) -> None:
+        error = ReplayMismatch(message)
+        self._replayer.errors.append(error)
+        raise _StreamReplayAbort(message)
+
+    async def recv(self) -> bytes:
+        event = self.unfinished()
+        if event is None or "recv" not in event:
+            # The SDK polls while it waits for the scenario to stop or to send.
+            await asyncio.sleep(0)
+            raise asyncio.TimeoutError
+        self._cursor += 1
+        return _pack_frame(event["recv"])
+
+    async def send(self, message: Any) -> None:
+        actual = _decode_client_frame(message)
+        event = self.unfinished()
+        if event is None or "send" not in event:
+            self._fail(
+                "the SDK sent a websocket message the recording does not have "
+                f"next:\n{_pretty(actual)}"
+            )
+        if not _same(actual, event["send"]):
+            self._fail(
+                "websocket message differs from the recording:\n"
+                + _diff(event["send"], actual, "recorded", "sent now")
+            )
+        self._cursor += 1
+
+    async def close(self) -> None:
+        return None
+
+
 class Replayer:
     def __init__(
-        self, interactions: List[Dict[str, Any]], *, compare_headers: bool = True
+        self,
+        interactions: List[Dict[str, Any]],
+        *,
+        compare_headers: bool = True,
+        websockets: Optional[List[Dict[str, Any]]] = None,
     ) -> None:
         self.interactions = interactions
         self.compare_headers = compare_headers
+        self.websockets = list(websockets or [])
         self.cursor = 0
+        self.websocket_cursor = 0
+        self._sockets: List[_ReplaySocket] = []
         # What the SDK sent, as normalized now. Migration stores these.
         self.sent: List[Dict[str, Any]] = []
         # Kept even if the SDK or the scenario swallows the exception.
@@ -504,8 +690,39 @@ class Replayer:
             self.sent.append(actual)
             return build_response(recorded["response"], request)
 
-        with _network_blocked(), _no_sleep(), _patched_send(handle):
+        replayer = self
+
+        async def connect(uri: str, **kwargs: Any) -> _ReplaySocket:
+            number = replayer.websocket_cursor + 1
+            if replayer.websocket_cursor >= len(replayer.websockets):
+                replayer._ws_fail(
+                    f"the SDK opened websocket #{number}, but the recording has "
+                    f"only {len(replayer.websockets)}"
+                )
+            session = replayer.websockets[replayer.websocket_cursor]
+            replayer.websocket_cursor += 1
+            actual = _normalize_ws_connect(uri, kwargs)
+            if not _same(actual, session["connect"]):
+                replayer._ws_fail(
+                    f"websocket #{number} connection differs from the recording:\n"
+                    + _diff(session["connect"], actual, "recorded", "opened now")
+                )
+            sock = _ReplaySocket(session["events"], replayer)
+            replayer._sockets.append(sock)
+            return sock
+
+        with (
+            _network_blocked(),
+            _no_sleep(),
+            _patched_send(handle),
+            _patched_data_connect(connect),
+        ):
             yield
+
+    def _ws_fail(self, message: str) -> None:
+        error = ReplayMismatch(message)
+        self.errors.append(error)
+        raise _StreamReplayAbort(message)
 
     def check_complete(self) -> None:
         if self.errors:
@@ -516,6 +733,18 @@ class Replayer:
                 f"the SDK sent {self.cursor} of {len(self.interactions)} recorded "
                 f"requests. First one not sent:\n{_pretty(missing)}"
             )
+        if self.websocket_cursor != len(self.websockets):
+            raise ReplayMismatch(
+                f"the SDK opened {self.websocket_cursor} of {len(self.websockets)} "
+                "recorded websockets"
+            )
+        for number, sock in enumerate(self._sockets, start=1):
+            pending = sock.unfinished()
+            if pending is not None:
+                raise ReplayMismatch(
+                    f"websocket #{number}: the SDK stopped before this recorded "
+                    f"message:\n{_pretty(pending)}"
+                )
 
 
 # --------------------------------------------------------------------------
@@ -735,6 +964,8 @@ def source_digest(scenario: Scenario) -> str:
     visit(scenario.fn)
     if scenario.stub_responses:
         parts.append(json.dumps(list(scenario.stub_responses), sort_keys=True))
+    if scenario.stub_websocket:
+        parts.append(json.dumps(scenario.stub_websocket, sort_keys=True))
     return hashlib.sha256("\n".join(parts).encode("utf-8")).hexdigest()
 
 
@@ -904,7 +1135,11 @@ def _replay(
             pytrace=False,
         )
 
-    replayer = Replayer(recording["interactions"], compare_headers=not migrate)
+    replayer = Replayer(
+        recording["interactions"],
+        compare_headers=not migrate,
+        websockets=recording.get("websockets", []),
+    )
     ctx = Context(
         "replay-key-id",
         "replay-secret-key",
@@ -915,9 +1150,11 @@ def _replay(
     with replayer.active(), collecting:
         try:
             result = _run(scenario, ctx)
-        except Exception:
+        except BaseException as exc:
             # The SDK may wrap the mismatch, or the scenario may catch it.
-            if replayer.errors:
+            # Stream mismatches abort with BaseException so DataStream does not
+            # treat them as a dropped socket and reconnect.
+            if replayer.errors and not isinstance(exc, (KeyboardInterrupt, SystemExit)):
                 pytest.fail(f"{scenario.name}: {replayer.errors[0]}", pytrace=False)
             raise
     try:
@@ -1002,7 +1239,7 @@ def _transport(scenario: Scenario) -> Iterator[None]:
 
 
 def _keys(settings: Settings, scenario: Scenario) -> tuple:
-    if scenario.stub_responses:
+    if scenario.stub_responses or scenario.stub_websocket:
         return "stub-key-id", "stub-secret-key"
     _require_keys(settings)
     return settings.api_key or "", settings.secret_key or ""
@@ -1017,9 +1254,17 @@ def _record(settings: Settings, scenario: Scenario, path: Path) -> None:
         return variables.setdefault(label, new_unique_id())
 
     recorder = Recorder()
+    sockets = _WebsocketRecorder(scenario.stub_websocket)
+    websocket = sockets.active() if scenario.stub_websocket else nullcontext()
     ctx = Context(api_key, secret_key, sleep=time.sleep, unique_id=unique_id)
-    with _transport(scenario), recorder.active():
+    with _transport(scenario), recorder.active(), websocket:
         _run(scenario, ctx)
+    if scenario.stub_websocket and sockets.remaining:
+        raise AssertionError(
+            f"{sockets.remaining} of {len(scenario.stub_websocket)} stubbed "
+            "websocket frames were never received: the stub no longer matches "
+            "what the SDK reads"
+        )
 
     recording: Dict[str, Any] = {
         "format": FORMAT_VERSION,
@@ -1031,6 +1276,8 @@ def _record(settings: Settings, scenario: Scenario, path: Path) -> None:
         "vars": variables,
         "interactions": recorder.interactions,
     }
+    if scenario.stub_websocket:
+        recording["websockets"] = sockets.sessions
     # Take the snapshot by replaying the scrubbed recording, so the stored
     # output is exactly what later replays reproduce.
     _replay(settings, scenario, path, recording, update=True)

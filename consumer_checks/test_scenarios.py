@@ -18,7 +18,13 @@ def test_recording_allowlist(consumer_settings):
 
     A line stays only while its recording cannot be made. Once the file
     exists, delete the line (see recording_allowlist.txt).
+
+    Replay only. Record and live modes write recordings while they run, so
+    a line going stale there is expected: the baseline workflow removes it
+    afterwards, and the next replay checks that it did.
     """
+    if consumer_settings.mode != "replay":
+        pytest.skip("allowlist staleness is checked in replay mode")
     names = _harness.recording_allowlist()
     unknown = sorted(names - set(SCENARIOS))
     recorded = sorted(

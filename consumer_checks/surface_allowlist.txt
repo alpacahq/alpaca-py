@@ -5,7 +5,7 @@
 # `# reason`. Glob patterns are standing rules; an exact entry is for one item
 # and must be removed once that item is exercised (CI flags it).
 
-# Broker live scenarios are not recorded yet (see coverage_allowlist.txt).
+# Broker live scenarios are not recorded yet (see recording_allowlist.txt).
 # After they are, drop these globs. If still unexercised, allowlist exactly
 # request:alpaca.broker.CreateAccountRequest.cash_interest (tier is correspondent-specific)
 # and response:alpaca.broker.Transfer.hold_until (null unless a hold is placed).

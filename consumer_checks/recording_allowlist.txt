@@ -1,0 +1,27 @@
+# Scenarios allowed to run without a recording.
+#
+# `--consumer-strict` (CI, and check_surface.py) skips these instead of failing.
+# Remove a line once `make consumer-record` has written that scenario's
+# recording. Replay fails while a recorded scenario is still listed here.
+#
+# TODO: the broker sandbox rejected CONSUMER_BROKER_API_KEY /
+# CONSUMER_BROKER_API_SECRET (401 from
+# https://broker-api.sandbox.alpaca.markets), so these could not be recorded.
+# Once those keys are accepted, record the scenarios and delete every line
+# below. Then also drop BrokerClient from coverage_allowlist.txt and the
+# broker globs from surface_allowlist.txt (see consumer_checks/README.md).
+
+broker_accounts.account_lifecycle
+broker_accounts.close_via_delete_account
+broker_errors.broker_raw_responses
+broker_errors.unknown_account_raises_api_error
+broker_errors.unknown_asset_raises_api_error
+broker_funding.ach_bank_and_transfer
+broker_journals.cash_journal_between_two_accounts
+broker_rebalancing.portfolio_subscription_and_run
+broker_reference.active_crypto_assets
+broker_reference.dividend_announcements
+broker_reference.market_clock
+broker_reference.trading_calendar_for_a_week
+broker_trading.order_and_position_lifecycle
+broker_watchlists.watchlist_lifecycle

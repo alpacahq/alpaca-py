@@ -6,11 +6,13 @@ request, so a journal cannot move another customer's cash.
 
 from __future__ import annotations
 
+import warnings
 from datetime import date
-from typing import Any, Dict
+from decimal import ROUND_DOWN, Decimal
+from typing import Any, Dict, List
 
 from alpaca.broker.enums import JournalEntryType, JournalStatus
-from alpaca.broker.models import BatchJournalResponse, Journal
+from alpaca.broker.models import BatchJournalResponse, Journal, TradeAccount
 from alpaca.broker.requests import (
     BatchJournalRequestEntry,
     CreateBatchJournalRequest,
@@ -22,7 +24,12 @@ from alpaca.broker.requests import (
 from alpaca.common.exceptions import APIError
 
 from . import Context, scenario
-from ._broker import fund_with_ach, opened_account, wait_for_buying_power
+from ._broker import (
+    fund_with_ach,
+    opened_account,
+    wait_for_buying_power,
+    withdraw_quietly,
+)
 
 BROKER = "broker"
 DONE = (
@@ -46,6 +53,45 @@ def _wait(ctx: Context, journal_id: Any, attempts: int = 15) -> Journal:
     return last
 
 
+def _return_cash(
+    ctx: Context, from_account: Any, to_account: Any, in_flight: List[Any]
+) -> None:
+    """Journal everything transferable from one scenario account to the other.
+
+    Best effort, so it cannot replace the error of a failed scenario. If cash
+    stays behind, ``close_account`` fails and reports it.
+    """
+    try:
+        # Journals created by the scenario can still be in flight. Wait for
+        # them, or the balance read below would miss their cash.
+        for journal_id in in_flight:
+            _wait(ctx, journal_id)
+        held = ctx.broker.get_trade_account_by_id(from_account)
+        assert isinstance(held, TradeAccount)
+        amount = Decimal(held.cash_transferable or "0").quantize(
+            Decimal("0.01"), rounding=ROUND_DOWN
+        )
+        if amount <= 0:
+            return
+        journal = ctx.broker.create_journal(
+            CreateJournalRequest(
+                from_account=from_account,
+                to_account=to_account,
+                entry_type=JournalEntryType.CASH,
+                amount=float(amount),
+                description="consumer-check-return",
+            )
+        )
+        assert isinstance(journal, Journal)
+        _wait(ctx, journal.id)
+    except APIError as error:
+        warnings.warn(
+            f"could not return journaled cash from sandbox account {from_account}: "
+            f"{error.status_code}.",
+            stacklevel=2,
+        )
+
+
 @scenario(
     covers=[
         "BrokerClient.create_journal",
@@ -64,6 +110,7 @@ def cash_journal_between_two_accounts(ctx: Context) -> Dict[str, Any]:
         source.wait_until_ready()
         dest.wait_until_ready()
         relationship, _transfer = fund_with_ach(ctx, source.account.id, amount="100")
+        in_flight: List[Any] = []
         try:
             wait_for_buying_power(ctx, source.account.id, minimum="20")
 
@@ -77,6 +124,7 @@ def cash_journal_between_two_accounts(ctx: Context) -> Dict[str, Any]:
                 )
             )
             assert isinstance(journal, Journal)
+            in_flight.append(journal.id)
             assert journal.from_account == source.account.id
             assert journal.to_account == dest.account.id
             settled = _wait(ctx, journal.id)
@@ -93,6 +141,7 @@ def cash_journal_between_two_accounts(ctx: Context) -> Dict[str, Any]:
                 )
             )
             assert isinstance(cancel_target, Journal)
+            in_flight.append(cancel_target.id)
             try:
                 ctx.broker.cancel_journal_by_id(cancel_target.id)
                 cancel_status = None
@@ -116,6 +165,7 @@ def cash_journal_between_two_accounts(ctx: Context) -> Dict[str, Any]:
             )
             assert isinstance(batch, list)
             assert batch and isinstance(batch[0], BatchJournalResponse)
+            in_flight.extend(item.id for item in batch)
 
             reverse = ctx.broker.create_reverse_batch_journal(
                 CreateReverseBatchJournalRequest(
@@ -132,6 +182,7 @@ def cash_journal_between_two_accounts(ctx: Context) -> Dict[str, Any]:
             )
             assert isinstance(reverse, list)
             assert reverse and isinstance(reverse[0], BatchJournalResponse)
+            in_flight.extend(item.id for item in reverse)
 
             found = ctx.broker.get_journals(
                 GetJournalsRequest(
@@ -153,6 +204,10 @@ def cash_journal_between_two_accounts(ctx: Context) -> Dict[str, Any]:
                 for item in found
             )
         finally:
+            # close_account is refused while an account holds cash: bring the
+            # journaled cash back to the funded account and withdraw it there.
+            _return_cash(ctx, dest.account.id, source.account.id, in_flight)
+            withdraw_quietly(ctx, source.account.id, relationship.id)
             ctx.broker.delete_ach_relationship_for_account(
                 source.account.id, relationship.id
             )

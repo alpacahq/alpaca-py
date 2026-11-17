@@ -11,7 +11,13 @@ from typing import Any, Dict, cast
 from alpaca.broker.models import Order
 from alpaca.broker.requests import LimitOrderRequest, OrderRequest
 from alpaca.common.exceptions import APIError
-from alpaca.trading.enums import OrderSide, OrderType, QueryOrderStatus, TimeInForce
+from alpaca.trading.enums import (
+    OrderSide,
+    OrderStatus,
+    OrderType,
+    QueryOrderStatus,
+    TimeInForce,
+)
 from alpaca.trading.models import ClosePositionResponse, PortfolioHistory, Position
 from alpaca.trading.requests import (
     CancelOrderResponse,
@@ -28,6 +34,7 @@ from ._broker import (
     fund_with_ach,
     opened_account,
     wait_for_buying_power,
+    withdraw_quietly,
 )
 from ._errors import error_details
 
@@ -49,6 +56,21 @@ def _limit(client_order_id: str, price: float = UNFILLABLE_LIMIT_PRICE) -> Order
             client_order_id=client_order_id,
         ),
     )
+
+
+def _wait_until_accepted(
+    ctx: Context, account_id: Any, order: Order, attempts: int = 10
+) -> Order:
+    """An order still in pending_new cannot be replaced yet."""
+    current = order
+    for _ in range(attempts):
+        if current.status != OrderStatus.PENDING_NEW:
+            break
+        ctx.sleep(1)
+        fetched = ctx.broker.get_order_for_account_by_id(account_id, order.id)
+        assert isinstance(fetched, Order)
+        current = fetched
+    return current
 
 
 @scenario(
@@ -103,6 +125,7 @@ def order_and_position_lifecycle(ctx: Context) -> Dict[str, Any]:
             assert isinstance(open_orders, list)
             assert {order.id for order in open_orders} >= {first.id, second.id}
 
+            _wait_until_accepted(ctx, account_id, by_id)
             replaced = ctx.broker.replace_order_for_account_by_id(
                 account_id,
                 first.id,
@@ -156,6 +179,8 @@ def order_and_position_lifecycle(ctx: Context) -> Dict[str, Any]:
                 ctx.broker.cancel_orders_for_account(account_id)
             except APIError:
                 pass
+            # close_account is refused while the account still holds the deposit.
+            withdraw_quietly(ctx, account_id, relationship.id)
             ctx.broker.delete_ach_relationship_for_account(account_id, relationship.id)
 
     return {

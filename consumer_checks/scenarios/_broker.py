@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import warnings
 from contextlib import contextmanager
-from decimal import Decimal
+from decimal import ROUND_DOWN, Decimal
 from typing import Any, Callable, Iterator, Optional, Tuple
 from uuid import UUID
 
@@ -34,6 +34,7 @@ from alpaca.broker.models import (
     Identity,
     Transfer,
 )
+from alpaca.broker.models import TradeAccount as BrokerTradeAccount
 from alpaca.broker.requests import (
     CreateAccountRequest,
     CreateACHRelationshipRequest,
@@ -205,6 +206,60 @@ def wait_for_buying_power(
         ctx.sleep(1)
     cash = getattr(last, "cash", None)
     raise AssertionError(f"account was not funded: cash={cash}")
+
+
+def _whole_cents(value: Optional[str]) -> Decimal:
+    """A cash string rounded down to cents, so a request never overdraws."""
+    return Decimal(value or "0").quantize(Decimal("0.01"), rounding=ROUND_DOWN)
+
+
+def withdraw_remaining_cash(
+    ctx: Context, account_id: UUID, relationship_id: UUID, attempts: int = 20
+) -> Optional[Transfer]:
+    """Send the account's cash back over ACH, so ``close_account`` is allowed.
+
+    ``BrokerClient.close_account`` is refused while the account holds money.
+    Call this before the ACH relationship is deleted. A deposit that is still
+    pending is waited for first, and no transfer is made when there is no cash.
+    """
+    account: Optional[BrokerTradeAccount] = None
+    for _ in range(attempts):
+        fetched = ctx.broker.get_trade_account_by_id(account_id)
+        assert isinstance(fetched, BrokerTradeAccount)
+        account = fetched
+        if _whole_cents(account.pending_transfer_in) <= 0:
+            break
+        ctx.sleep(1)
+    assert account is not None
+    amount = _whole_cents(account.cash_withdrawable)
+    if amount <= 0:
+        return None
+    transfer = ctx.broker.create_transfer_for_account(
+        account_id,
+        CreateACHTransferRequest(
+            amount=str(amount),
+            direction=TransferDirection.OUTGOING,
+            relationship_id=relationship_id,
+        ),
+    )
+    assert isinstance(transfer, Transfer)
+    return transfer
+
+
+def withdraw_quietly(ctx: Context, account_id: UUID, relationship_id: UUID) -> None:
+    """``withdraw_remaining_cash`` for ``finally`` blocks.
+
+    It must not replace the error a failed scenario is already raising. If the
+    cash stays, ``close_account`` fails next, so the problem is still reported.
+    """
+    try:
+        withdraw_remaining_cash(ctx, account_id, relationship_id)
+    except APIError as error:
+        warnings.warn(
+            f"could not withdraw cash from sandbox account {account_id}: "
+            f"{error.status_code}. Withdraw it by hand before closing.",
+            stacklevel=2,
+        )
 
 
 def _close_quietly(ctx: Context, account_id: UUID) -> None:

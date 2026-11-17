@@ -72,7 +72,6 @@ class NewsSet(BaseDataSet, TimeSeriesMixin):
     """
 
     data: Dict[str, List[News]] = {}
-    next_page_token: Optional[str]
 
     def __init__(self, raw_data: RawData) -> None:
         """A collection of News articles.
@@ -88,6 +87,12 @@ class NewsSet(BaseDataSet, TimeSeriesMixin):
             articles.append(news)
 
         parsed_news["news"] = articles
-        next_page_token = raw_data.get("next_page_token")
 
-        super().__init__(data=parsed_news, next_page_token=next_page_token)
+        # Only mark the token as set when the response actually carries one, so
+        # an unset token stays omitted on serialization like every other data set.
+        if "next_page_token" in raw_data:
+            super().__init__(
+                data=parsed_news, next_page_token=raw_data["next_page_token"]
+            )
+        else:
+            super().__init__(data=parsed_news)

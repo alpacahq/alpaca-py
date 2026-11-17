@@ -822,6 +822,17 @@ def orphan_recordings(settings: Settings, scenario_names: Any) -> List[str]:
     return sorted(recorded - set(scenario_names))
 
 
+def recording_allowlist() -> Set[str]:
+    """Scenarios that may have no recording yet. See recording_allowlist.txt."""
+    path = Path(__file__).resolve().parent / "recording_allowlist.txt"
+    names = set()
+    for line in path.read_text(encoding="utf-8").splitlines():
+        name = line.partition("#")[0].strip()
+        if name:
+            names.add(name)
+    return names
+
+
 def sdk_location() -> Path:
     import alpaca
 
@@ -1125,6 +1136,13 @@ def check_scenario(scenario: Scenario, settings: Settings) -> None:
         _replay(settings, scenario, path, recording, update=True, migrate=True)
         return
     if recording is None:
+        if scenario.name in recording_allowlist():
+            pytest.skip(
+                f"no recording for {scenario.name}. Listed in "
+                "recording_allowlist.txt until the broker sandbox accepts "
+                "the consumer broker keys. Record it with `make consumer-record` "
+                "and remove the line."
+            )
         message = (
             f"no recording for {scenario.name} at {path}. Record it with "
             "`make consumer-record`."

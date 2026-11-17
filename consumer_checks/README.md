@@ -22,7 +22,8 @@ at runtime (concrete types, field values, DataFrame shapes, raised exceptions).
 | `make consumer-surface-baseline` | Writes `surface_baseline.json` from the `BASELINE` release | No | — |
 
 `make consumer-check` runs the typecheck and replay steps, like CI on every PR.
-CI adds `--consumer-strict`, so a scenario without a recording fails there.
+CI adds `--consumer-strict`, so a scenario without a recording fails there,
+unless it is listed in `recording_allowlist.txt`.
 
 Replay snapshots depend on pandas, numpy and pydantic, so your poetry env must
 match `poetry.lock`, as CI's does: run `poetry install` after pulling. When a
@@ -323,10 +324,11 @@ from an earlier response, such as the option chain, which replay serves back.
   sandbox and are recorded with `make consumer-record` once
   `CONSUMER_BROKER_API_KEY` / `CONSUMER_BROKER_API_SECRET` are accepted by
   `https://broker-api.sandbox.alpaca.markets`. Until those recordings exist,
-  `BrokerClient` stays in `coverage_allowlist.txt` and the broker globs stay in
-  `surface_allowlist.txt`. CI's `--consumer-strict` replay fails on a scenario
-  that has no recording. After recording, remove the `BrokerClient` allowlist
-  line. Two fields new since BASELINE are still unused on purpose:
+  `BrokerClient` stays in `coverage_allowlist.txt`, the broker globs stay in
+  `surface_allowlist.txt`, and each unrecorded scenario stays in
+  `recording_allowlist.txt` (strict replay skips those instead of failing).
+  After recording, remove the scenario's line, then the `BrokerClient`
+  allowlist line. Two fields new since BASELINE are still unused on purpose:
   `CreateAccountRequest.cash_interest` (the tier name is correspondent-specific;
   omitting it uses the default) and `Transfer.hold_until` (null unless the
   correspondent places a hold). Replace the broker globs with those two exact

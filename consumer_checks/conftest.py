@@ -52,7 +52,8 @@ def pytest_addoption(parser):
     group.addoption(
         "--consumer-strict",
         action="store_true",
-        help="Replay mode: fail, instead of skip, scenarios with no recording.",
+        help="Replay mode: fail, instead of skip, scenarios with no recording. "
+        "Scenarios listed in recording_allowlist.txt are still skipped.",
     )
 
 
@@ -101,9 +102,18 @@ def pytest_sessionfinish(session, exitstatus):
     from scenarios import SCENARIOS
 
     config = session.config
-    # Complete only if every scenario replayed and passed, without rewriting.
+    recordings_dir = Path(
+        os.environ.get("CONSUMER_RECORDINGS_DIR", HERE / "recordings")
+    )
+    # Allowlisted scenarios have no recording yet (recording_allowlist.txt).
+    # They are skipped on purpose, so a full replay is still complete.
+    excused = {
+        name
+        for name in _harness.recording_allowlist()
+        if name in SCENARIOS and not (recordings_dir / f"{name}.json").is_file()
+    }
     complete = (
-        len(_PASSED_SCENARIOS) == len(SCENARIOS)
+        len(_PASSED_SCENARIOS) + len(excused) == len(SCENARIOS)
         and session.testsfailed == 0
         and config.getoption("--consumer-mode") == "replay"
         and not config.getoption("--consumer-update-snapshots")

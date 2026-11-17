@@ -439,7 +439,7 @@ class TestCompareModels:
                     "alpaca.trading.models.Order",
                     {
                         "qty": {
-                            "type": "StrictStr | None",
+                            "type": "int | None",
                             "required": False,
                             "validation_aliases": [],
                             "serialization_alias": None,
@@ -2724,6 +2724,16 @@ class TestMovedClasses:
             # Mapping keys are invariant.
             ("dict[str, a.A]", "dict[Union[str, int], a.A]"),
             ("dict[str, a.A]", "dict[int, a.A]"),
+            # Strict str compares equal. Strict int/bool/float/bytes do not:
+            # they reject values the lax type accepts.
+            ("str", "Annotated[str, MinLen]"),
+            ("str", "Annotated[str, Strict(strict=False)]"),
+            ("int", "StrictInt"),
+            ("int", "pydantic.types.StrictInt"),
+            ("int", "Annotated[int, Strict(strict=True)]"),
+            ("bool", "StrictBool"),
+            ("float", "StrictFloat"),
+            ("bytes", "StrictBytes"),
             (
                 "collections.abc.Mapping[str, a.A]",
                 "collections.abc.Mapping[Union[str, int], a.A]",
@@ -2773,6 +2783,13 @@ class TestMovedClasses:
         [
             ("list[Union[a.A, b.B]]", "list[Union[b.B, a.A]]"),
             ("Optional[list[a.A]]", "Union[list[a.A], NoneType]"),
+            (
+                "Union[str, NoneType]",
+                "Union[Annotated[str, Strict(strict=True)], NoneType]",
+            ),
+            ("list[str]", "list[Annotated[str, Strict(strict=True)]]"),
+            ("str | None", "StrictStr | None"),
+            ("str", "typing.Annotated[str, Strict(strict=True)]"),
         ],
     )
     def test_reordered_or_respelled_field_is_not_reported(self, cab, old, new):
@@ -2833,3 +2850,168 @@ class TestPrivateAexpyEntries:
     def test_dunder_method_change_is_still_breaking(self, cab):
         entry = self._entry("alpaca.broker.client.BrokerClient.__init__")
         assert cab._effective_rank(entry) == 30
+
+    def test_annotate_helper_is_not_breaking(self, cab):
+        entry = {
+            "kind": "RemoveFunction",
+            "rank": 100,
+            "message": (
+                "Remove function (alpaca.broker.models.accounts.Contact): "
+                "__annotate__."
+            ),
+        }
+        assert cab._effective_rank(entry) == 0
+        assert cab._caller_compatible_entries([entry]) == [
+            {"rank": 100, "message": entry["message"]}
+        ]
+
+    def test_removed_public_method_is_still_breaking(self, cab):
+        entry = {
+            "rank": 100,
+            "message": (
+                "Remove function (alpaca.broker.models.accounts.Contact): "
+                "usa_state_has_value."
+            ),
+        }
+        assert cab._effective_rank(entry) == 100
+
+    def test_unknown_annotate_stays_unknown(self, cab):
+        entry = {
+            "rank": -1,
+            "message": (
+                "Remove function (alpaca.broker.models.accounts.Contact): "
+                "__annotate__."
+            ),
+        }
+        assert cab._effective_rank(entry) == -1
+        assert cab._summarize_changes([entry]) == (0, 0, 1)
+        assert cab._caller_compatible_entries([entry]) == []
+
+
+class TestAexpySnapshotFalsePositives:
+    def _journal(self, members: dict) -> dict:
+        entry = {
+            "target": "alpaca.broker.enums.JournalEntryType",
+            "bases": ["builtins.str", "enum.Enum"],
+            "members": members,
+        }
+        return {"enums": {"alpaca.broker.enums.JournalEntryType": entry}}
+
+    def test_enum_alias_removal_is_not_breaking(self, cab):
+        members = {"JNLC": "'JNLC'", "CASH": "'JNLC'"}
+        entry = {
+            "kind": "RemoveAttribute",
+            "rank": 100,
+            "message": "Remove attribute (alpaca.broker.enums.JournalEntryType): CASH.",
+        }
+        marked = cab._mark_sdk_compatible_aexpy_entries(
+            [entry], self._journal(members), self._journal(members)
+        )
+        assert marked[0]["_sdk_compatible"] is True
+        assert cab._effective_rank(marked[0]) == 0
+        assert cab._summarize_changes(marked) == (0, 1, 0)
+
+    def test_removed_enum_member_stays_breaking(self, cab):
+        entry = {
+            "rank": 100,
+            "message": "Remove attribute (alpaca.broker.enums.JournalEntryType): CASH.",
+        }
+        marked = cab._mark_sdk_compatible_aexpy_entries(
+            [entry],
+            self._journal({"CASH": "'JNLC'"}),
+            self._journal({"JNLC": "'JNLC'"}),
+        )
+        assert "_sdk_compatible" not in marked[0]
+        assert cab._effective_rank(marked[0]) == 100
+
+    def test_enum_member_value_change_is_not_treated_as_present(self, cab):
+        entry = {
+            "rank": 100,
+            "message": "Remove attribute (alpaca.broker.enums.JournalEntryType): CASH.",
+        }
+        marked = cab._mark_sdk_compatible_aexpy_entries(
+            [entry],
+            self._journal({"CASH": "'JNLC'"}),
+            self._journal({"CASH": "'CASH'"}),
+        )
+        assert cab._effective_rank(marked[0]) == 100
+
+    def test_unknown_rank_alias_stays_unknown(self, cab):
+        members = {"JNLC": "'JNLC'", "CASH": "'JNLC'"}
+        entry = {
+            "rank": -1,
+            "message": "Remove attribute (alpaca.broker.enums.JournalEntryType): CASH.",
+        }
+        marked = cab._mark_sdk_compatible_aexpy_entries(
+            [entry], self._journal(members), self._journal(members)
+        )
+        assert "_sdk_compatible" not in marked[0]
+        assert cab._effective_rank(marked[0]) == -1
+        assert cab._summarize_changes(marked) == (0, 0, 1)
+        assert cab._caller_compatible_entries(marked) == []
+
+    def _moved_enum(self):
+        bases = ["builtins.str", "enum.Enum"]
+        members = {"ACH": "'ach'", "WIRE": "'wire'"}
+        old_target = "alpaca.broker.enums.TransferType"
+        new_target = "alpaca.broker._generated.enums.TransferType"
+        old = {
+            "enums": {
+                old_target: {
+                    "target": old_target,
+                    "bases": bases,
+                    "members": members,
+                }
+            }
+        }
+        new = {
+            "enums": {
+                old_target: {
+                    "target": new_target,
+                    "bases": bases,
+                    "members": members,
+                }
+            }
+        }
+        return old, new, old_target, new_target
+
+    def test_parameter_type_move_is_not_breaking(self, cab):
+        old, new, old_target, new_target = self._moved_enum()
+        entry = {
+            "kind": "ChangeParameterType",
+            "rank": 60,
+            "message": (
+                "Change parameter type "
+                "(alpaca.broker.requests.CreateACHTransferRequest.transfer_type_must_be_ach): "
+                f"value: {old_target} => {new_target}"
+            ),
+        }
+        marked = cab._mark_sdk_compatible_aexpy_entries([entry], old, new)
+        assert cab._effective_rank(marked[0]) == 0
+
+    def test_return_type_move_is_not_breaking(self, cab):
+        old, new, old_target, new_target = self._moved_enum()
+        entry = {
+            "rank": 60,
+            "message": (
+                "Change return type "
+                "(alpaca.broker.client.BrokerClient.get_ach_relationships_for_account): "
+                f"[builtins.list<{old_target}> | none] => "
+                f"[builtins.list<{new_target}> | none]"
+            ),
+        }
+        marked = cab._mark_sdk_compatible_aexpy_entries([entry], old, new)
+        assert cab._summarize_changes(marked) == (0, 1, 0)
+
+    def test_parameter_type_move_with_a_real_change_stays_breaking(self, cab):
+        old, new, old_target, new_target = self._moved_enum()
+        entry = {
+            "rank": 60,
+            "message": (
+                "Change parameter type "
+                "(alpaca.broker.requests.CreateACHTransferRequest.transfer_type_must_be_ach): "
+                f"value: builtins.list<{old_target}> => {new_target}"
+            ),
+        }
+        marked = cab._mark_sdk_compatible_aexpy_entries([entry], old, new)
+        assert cab._effective_rank(marked[0]) == 60

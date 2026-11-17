@@ -1,0 +1,781 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "asof",
+            "2024-03-04"
+          ],
+          [
+            "currency",
+            "USD"
+          ],
+          [
+            "end",
+            "2024-03-09T00:00:00+00:00"
+          ],
+          [
+            "feed",
+            "sip"
+          ],
+          [
+            "limit",
+            "2"
+          ],
+          [
+            "sort",
+            "asc"
+          ],
+          [
+            "start",
+            "2024-03-04T00:00:00+00:00"
+          ],
+          [
+            "symbols",
+            "AAPL,MSFT"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v2/stocks/auctions"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "auctions": {
+              "AAPL": [
+                {
+                  "c": [
+                    {
+                      "c": "6",
+                      "p": 175.05,
+                      "s": 370,
+                      "t": "2024-03-04T21:00:00.062317351Z",
+                      "x": "P"
+                    },
+                    {
+                      "c": "M",
+                      "p": 175.05,
+                      "s": 370,
+                      "t": "2024-03-04T21:00:00.071079348Z",
+                      "x": "P"
+                    },
+                    {
+                      "c": "6",
+                      "p": 175.1,
+                      "s": 4540261,
+                      "t": "2024-03-04T21:00:00.341148024Z",
+                      "x": "Q"
+                    },
+                    {
+                      "c": "M",
+                      "p": 175.1,
+                      "s": 4540261,
+                      "t": "2024-03-04T21:00:00.341161755Z",
+                      "x": "Q"
+                    }
+                  ],
+                  "d": "2024-03-04",
+                  "o": [
+                    {
+                      "c": "Q",
+                      "p": 176.14,
+                      "s": 5,
+                      "t": "2024-03-04T14:30:00.09881706Z",
+                      "x": "P"
+                    },
+                    {
+                      "c": "O",
+                      "p": 175.84,
+                      "s": 1388664,
+                      "t": "2024-03-04T14:30:01.476759738Z",
+                      "x": "Q"
+                    },
+                    {
+                      "c": "Q",
+                      "p": 175.84,
+                      "s": 1388664,
+                      "t": "2024-03-04T14:30:01.477294502Z",
+                      "x": "Q"
+                    }
+                  ]
+                },
+                {
+                  "c": [
+                    {
+                      "c": "M",
+                      "p": 170.17,
+                      "s": 100,
+                      "t": "2024-03-05T21:00:00.076804011Z",
+                      "x": "P"
+                    },
+                    {
+                      "c": "6",
+                      "p": 170.12,
+                      "s": 9868172,
+                      "t": "2024-03-05T21:00:00.420499536Z",
+                      "x": "Q"
+                    },
+                    {
+                      "c": "M",
+                      "p": 170.12,
+                      "s": 9868172,
+                      "t": "2024-03-05T21:00:00.420540218Z",
+                      "x": "Q"
+                    }
+                  ],
+                  "d": "2024-03-05",
+                  "o": [
+                    {
+                      "c": "Q",
+                      "p": 170.81,
+                      "s": 1,
+                      "t": "2024-03-05T14:30:00.098673616Z",
+                      "x": "P"
+                    },
+                    {
+                      "c": "O",
+                      "p": 170.79,
+                      "s": 1749839,
+                      "t": "2024-03-05T14:30:00.510302155Z",
+                      "x": "Q"
+                    },
+                    {
+                      "c": "Q",
+                      "p": 170.79,
+                      "s": 1749839,
+                      "t": "2024-03-05T14:30:00.510872972Z",
+                      "x": "Q"
+                    }
+                  ]
+                }
+              ]
+            },
+            "next_page_token": "QUFQTHwxNzA5NzM1NDAwMDk1NTU2MjY2fFB8QFF8MTcxLjEz"
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Accept-Encoding",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "199",
+          "X-Ratelimit-Reset": "1794933993",
+          "X-Request-ID": "cd9009d45d4ed13832fdc582d46c28de"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "asof",
+            "2024-03-04"
+          ],
+          [
+            "currency",
+            "USD"
+          ],
+          [
+            "end",
+            "2024-03-09T00:00:00+00:00"
+          ],
+          [
+            "feed",
+            "sip"
+          ],
+          [
+            "limit",
+            "2"
+          ],
+          [
+            "page_token",
+            "QUFQTHwxNzA5NzM1NDAwMDk1NTU2MjY2fFB8QFF8MTcxLjEz"
+          ],
+          [
+            "sort",
+            "asc"
+          ],
+          [
+            "start",
+            "2024-03-04T00:00:00+00:00"
+          ],
+          [
+            "symbols",
+            "AAPL,MSFT"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v2/stocks/auctions"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "auctions": {
+              "AAPL": [
+                {
+                  "c": [
+                    {
+                      "c": "M",
+                      "p": 169.12,
+                      "s": 240,
+                      "t": "2024-03-06T21:00:00.07296311Z",
+                      "x": "P"
+                    },
+                    {
+                      "c": "6",
+                      "p": 169.12,
+                      "s": 5052088,
+                      "t": "2024-03-06T21:00:00.110724034Z",
+                      "x": "Q"
+                    },
+                    {
+                      "c": "M",
+                      "p": 169.12,
+                      "s": 5052088,
+                      "t": "2024-03-06T21:00:00.178730095Z",
+                      "x": "Q"
+                    }
+                  ],
+                  "d": "2024-03-06",
+                  "o": [
+                    {
+                      "c": "Q",
+                      "p": 171.13,
+                      "s": 1,
+                      "t": "2024-03-06T14:30:00.095556266Z",
+                      "x": "P"
+                    },
+                    {
+                      "c": "O",
+                      "p": 171,
+                      "s": 1259219,
+                      "t": "2024-03-06T14:30:00.626136613Z",
+                      "x": "Q"
+                    },
+                    {
+                      "c": "Q",
+                      "p": 171,
+                      "s": 1259219,
+                      "t": "2024-03-06T14:30:00.626481269Z",
+                      "x": "Q"
+                    }
+                  ]
+                },
+                {
+                  "c": [
+                    {
+                      "c": "M",
+                      "p": 168.98,
+                      "s": 100,
+                      "t": "2024-03-07T21:00:00.074359692Z",
+                      "x": "P"
+                    },
+                    {
+                      "c": "6",
+                      "p": 169,
+                      "s": 5555912,
+                      "t": "2024-03-07T21:00:00.308977998Z",
+                      "x": "Q"
+                    },
+                    {
+                      "c": "M",
+                      "p": 169,
+                      "s": 5555912,
+                      "t": "2024-03-07T21:00:01.273809174Z",
+                      "x": "Q"
+                    }
+                  ],
+                  "d": "2024-03-07",
+                  "o": [
+                    {
+                      "c": "Q",
+                      "p": 169.15,
+                      "s": 218,
+                      "t": "2024-03-07T14:30:00.097936942Z",
+                      "x": "P"
+                    },
+                    {
+                      "c": "O",
+                      "p": 169.09,
+                      "s": 1158689,
+                      "t": "2024-03-07T14:30:00.916581452Z",
+                      "x": "Q"
+                    },
+                    {
+                      "c": "Q",
+                      "p": 169.09,
+                      "s": 1158689,
+                      "t": "2024-03-07T14:30:00.917210639Z",
+                      "x": "Q"
+                    }
+                  ]
+                }
+              ]
+            },
+            "next_page_token": "QUFQTHwxNzA5OTA4MjAwMDk4MzQxNDAwfFB8QFF8MTY5LjAy"
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Accept-Encoding",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "198",
+          "X-Ratelimit-Reset": "1794933993",
+          "X-Request-ID": "d22314be1826ec149bf5710a020c0828"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_against": "checkout",
+  "recorded_with": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "first": {
+      "__type__": "StockAuctionsResp",
+      "fields": {
+        "auctions": {
+          "AAPL": [
+            {
+              "__type__": "StockDailyAuctions",
+              "fields": {
+                "c": [
+                  {
+                    "__type__": "StockAuction",
+                    "fields": {
+                      "c": "6",
+                      "p": 175.05,
+                      "s": 370,
+                      "t": {
+                        "__type__": "datetime",
+                        "value": "2024-03-04T21:00:00.062317+00:00"
+                      },
+                      "x": "P"
+                    }
+                  },
+                  {
+                    "__type__": "StockAuction",
+                    "fields": {
+                      "c": "M",
+                      "p": 175.05,
+                      "s": 370,
+                      "t": {
+                        "__type__": "datetime",
+                        "value": "2024-03-04T21:00:00.071079+00:00"
+                      },
+                      "x": "P"
+                    }
+                  },
+                  {
+                    "__type__": "StockAuction",
+                    "fields": {
+                      "c": "6",
+                      "p": 175.1,
+                      "s": 4540261,
+                      "t": {
+                        "__type__": "datetime",
+                        "value": "2024-03-04T21:00:00.341148+00:00"
+                      },
+                      "x": "Q"
+                    }
+                  },
+                  {
+                    "__type__": "StockAuction",
+                    "fields": {
+                      "c": "M",
+                      "p": 175.1,
+                      "s": 4540261,
+                      "t": {
+                        "__type__": "datetime",
+                        "value": "2024-03-04T21:00:00.341161+00:00"
+                      },
+                      "x": "Q"
+                    }
+                  }
+                ],
+                "d": {
+                  "__type__": "date",
+                  "value": "2024-03-04"
+                },
+                "o": [
+                  {
+                    "__type__": "StockAuction",
+                    "fields": {
+                      "c": "Q",
+                      "p": 176.14,
+                      "s": 5,
+                      "t": {
+                        "__type__": "datetime",
+                        "value": "2024-03-04T14:30:00.098817+00:00"
+                      },
+                      "x": "P"
+                    }
+                  },
+                  {
+                    "__type__": "StockAuction",
+                    "fields": {
+                      "c": "O",
+                      "p": 175.84,
+                      "s": 1388664,
+                      "t": {
+                        "__type__": "datetime",
+                        "value": "2024-03-04T14:30:01.476759+00:00"
+                      },
+                      "x": "Q"
+                    }
+                  },
+                  {
+                    "__type__": "StockAuction",
+                    "fields": {
+                      "c": "Q",
+                      "p": 175.84,
+                      "s": 1388664,
+                      "t": {
+                        "__type__": "datetime",
+                        "value": "2024-03-04T14:30:01.477294+00:00"
+                      },
+                      "x": "Q"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "__type__": "StockDailyAuctions",
+              "fields": {
+                "c": [
+                  {
+                    "__type__": "StockAuction",
+                    "fields": {
+                      "c": "M",
+                      "p": 170.17,
+                      "s": 100,
+                      "t": {
+                        "__type__": "datetime",
+                        "value": "2024-03-05T21:00:00.076804+00:00"
+                      },
+                      "x": "P"
+                    }
+                  },
+                  {
+                    "__type__": "StockAuction",
+                    "fields": {
+                      "c": "6",
+                      "p": 170.12,
+                      "s": 9868172,
+                      "t": {
+                        "__type__": "datetime",
+                        "value": "2024-03-05T21:00:00.420499+00:00"
+                      },
+                      "x": "Q"
+                    }
+                  },
+                  {
+                    "__type__": "StockAuction",
+                    "fields": {
+                      "c": "M",
+                      "p": 170.12,
+                      "s": 9868172,
+                      "t": {
+                        "__type__": "datetime",
+                        "value": "2024-03-05T21:00:00.420540+00:00"
+                      },
+                      "x": "Q"
+                    }
+                  }
+                ],
+                "d": {
+                  "__type__": "date",
+                  "value": "2024-03-05"
+                },
+                "o": [
+                  {
+                    "__type__": "StockAuction",
+                    "fields": {
+                      "c": "Q",
+                      "p": 170.81,
+                      "s": 1,
+                      "t": {
+                        "__type__": "datetime",
+                        "value": "2024-03-05T14:30:00.098673+00:00"
+                      },
+                      "x": "P"
+                    }
+                  },
+                  {
+                    "__type__": "StockAuction",
+                    "fields": {
+                      "c": "O",
+                      "p": 170.79,
+                      "s": 1749839,
+                      "t": {
+                        "__type__": "datetime",
+                        "value": "2024-03-05T14:30:00.510302+00:00"
+                      },
+                      "x": "Q"
+                    }
+                  },
+                  {
+                    "__type__": "StockAuction",
+                    "fields": {
+                      "c": "Q",
+                      "p": 170.79,
+                      "s": 1749839,
+                      "t": {
+                        "__type__": "datetime",
+                        "value": "2024-03-05T14:30:00.510872+00:00"
+                      },
+                      "x": "Q"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "currency": null,
+        "next_page_token": "QUFQTHwxNzA5NzM1NDAwMDk1NTU2MjY2fFB8QFF8MTcxLjEz"
+      }
+    },
+    "second": {
+      "__type__": "StockAuctionsResp",
+      "fields": {
+        "auctions": {
+          "AAPL": [
+            {
+              "__type__": "StockDailyAuctions",
+              "fields": {
+                "c": [
+                  {
+                    "__type__": "StockAuction",
+                    "fields": {
+                      "c": "M",
+                      "p": 169.12,
+                      "s": 240,
+                      "t": {
+                        "__type__": "datetime",
+                        "value": "2024-03-06T21:00:00.072963+00:00"
+                      },
+                      "x": "P"
+                    }
+                  },
+                  {
+                    "__type__": "StockAuction",
+                    "fields": {
+                      "c": "6",
+                      "p": 169.12,
+                      "s": 5052088,
+                      "t": {
+                        "__type__": "datetime",
+                        "value": "2024-03-06T21:00:00.110724+00:00"
+                      },
+                      "x": "Q"
+                    }
+                  },
+                  {
+                    "__type__": "StockAuction",
+                    "fields": {
+                      "c": "M",
+                      "p": 169.12,
+                      "s": 5052088,
+                      "t": {
+                        "__type__": "datetime",
+                        "value": "2024-03-06T21:00:00.178730+00:00"
+                      },
+                      "x": "Q"
+                    }
+                  }
+                ],
+                "d": {
+                  "__type__": "date",
+                  "value": "2024-03-06"
+                },
+                "o": [
+                  {
+                    "__type__": "StockAuction",
+                    "fields": {
+                      "c": "Q",
+                      "p": 171.13,
+                      "s": 1,
+                      "t": {
+                        "__type__": "datetime",
+                        "value": "2024-03-06T14:30:00.095556+00:00"
+                      },
+                      "x": "P"
+                    }
+                  },
+                  {
+                    "__type__": "StockAuction",
+                    "fields": {
+                      "c": "O",
+                      "p": 171,
+                      "s": 1259219,
+                      "t": {
+                        "__type__": "datetime",
+                        "value": "2024-03-06T14:30:00.626136+00:00"
+                      },
+                      "x": "Q"
+                    }
+                  },
+                  {
+                    "__type__": "StockAuction",
+                    "fields": {
+                      "c": "Q",
+                      "p": 171,
+                      "s": 1259219,
+                      "t": {
+                        "__type__": "datetime",
+                        "value": "2024-03-06T14:30:00.626481+00:00"
+                      },
+                      "x": "Q"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "__type__": "StockDailyAuctions",
+              "fields": {
+                "c": [
+                  {
+                    "__type__": "StockAuction",
+                    "fields": {
+                      "c": "M",
+                      "p": 168.98,
+                      "s": 100,
+                      "t": {
+                        "__type__": "datetime",
+                        "value": "2024-03-07T21:00:00.074359+00:00"
+                      },
+                      "x": "P"
+                    }
+                  },
+                  {
+                    "__type__": "StockAuction",
+                    "fields": {
+                      "c": "6",
+                      "p": 169,
+                      "s": 5555912,
+                      "t": {
+                        "__type__": "datetime",
+                        "value": "2024-03-07T21:00:00.308977+00:00"
+                      },
+                      "x": "Q"
+                    }
+                  },
+                  {
+                    "__type__": "StockAuction",
+                    "fields": {
+                      "c": "M",
+                      "p": 169,
+                      "s": 5555912,
+                      "t": {
+                        "__type__": "datetime",
+                        "value": "2024-03-07T21:00:01.273809+00:00"
+                      },
+                      "x": "Q"
+                    }
+                  }
+                ],
+                "d": {
+                  "__type__": "date",
+                  "value": "2024-03-07"
+                },
+                "o": [
+                  {
+                    "__type__": "StockAuction",
+                    "fields": {
+                      "c": "Q",
+                      "p": 169.15,
+                      "s": 218,
+                      "t": {
+                        "__type__": "datetime",
+                        "value": "2024-03-07T14:30:00.097936+00:00"
+                      },
+                      "x": "P"
+                    }
+                  },
+                  {
+                    "__type__": "StockAuction",
+                    "fields": {
+                      "c": "O",
+                      "p": 169.09,
+                      "s": 1158689,
+                      "t": {
+                        "__type__": "datetime",
+                        "value": "2024-03-07T14:30:00.916581+00:00"
+                      },
+                      "x": "Q"
+                    }
+                  },
+                  {
+                    "__type__": "StockAuction",
+                    "fields": {
+                      "c": "Q",
+                      "p": 169.09,
+                      "s": 1158689,
+                      "t": {
+                        "__type__": "datetime",
+                        "value": "2024-03-07T14:30:00.917210+00:00"
+                      },
+                      "x": "Q"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "currency": null,
+        "next_page_token": "QUFQTHwxNzA5OTA4MjAwMDk4MzQxNDAwfFB8QFF8MTY5LjAy"
+      }
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "stock_data_single_symbol.auctions_for_two_symbols",
+  "scenario_sha256": "d15c302ea1cefe45ec75e62b539479789ba8857ed9d39aea8496a6f5e014176e",
+  "vars": {}
+}

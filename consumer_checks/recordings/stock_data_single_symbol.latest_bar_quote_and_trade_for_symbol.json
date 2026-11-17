@@ -1,0 +1,278 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "currency",
+            "USD"
+          ],
+          [
+            "feed",
+            "iex"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v2/stocks/AAPL/bars/latest"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "bar": {
+              "c": 351.13,
+              "h": 351.17,
+              "l": 350.775,
+              "n": 33,
+              "o": 350.775,
+              "t": "2026-11-17T16:44:00Z",
+              "v": 959,
+              "vw": 351.009456
+            },
+            "symbol": "AAPL"
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "199",
+          "X-Ratelimit-Reset": "1794933959",
+          "X-Request-ID": "c5df6156d9537d39a8c7c51fa7632419"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "currency",
+            "USD"
+          ],
+          [
+            "feed",
+            "iex"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v2/stocks/AAPL/quotes/latest"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "quote": {
+              "ap": 351.43,
+              "as": 80,
+              "ax": "V",
+              "bp": 350.91,
+              "bs": 40,
+              "bx": "V",
+              "c": [
+                "R"
+              ],
+              "t": "2026-11-17T16:45:58.950873624Z",
+              "z": "C"
+            },
+            "symbol": "AAPL"
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "198",
+          "X-Ratelimit-Reset": "1794933959",
+          "X-Request-ID": "b8bf88260ebe48932a322755228000d7"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "currency",
+            "USD"
+          ],
+          [
+            "feed",
+            "iex"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v2/stocks/AAPL/trades/latest"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "symbol": "AAPL",
+            "trade": {
+              "c": [
+                "@"
+              ],
+              "i": 10998,
+              "p": 350.93,
+              "s": 40,
+              "t": "2026-11-17T16:45:55.135041945Z",
+              "x": "V",
+              "z": "C"
+            }
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "197",
+          "X-Ratelimit-Reset": "1794933960",
+          "X-Request-ID": "c7f85af8354a2b1035a8d63cd0b1c7a5"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_against": "checkout",
+  "recorded_with": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "bar": {
+      "__type__": "StockLatestBarsRespSingle",
+      "fields": {
+        "bar": {
+          "__type__": "StockBar",
+          "fields": {
+            "c": 351.13,
+            "h": 351.17,
+            "l": 350.775,
+            "n": 33,
+            "o": 350.775,
+            "t": {
+              "__type__": "datetime",
+              "value": "2026-11-17T16:44:00+00:00"
+            },
+            "v": 959,
+            "vw": 351.009456
+          }
+        },
+        "currency": null,
+        "symbol": "AAPL"
+      }
+    },
+    "quote": {
+      "__type__": "StockLatestQuotesRespSingle",
+      "fields": {
+        "currency": null,
+        "quote": {
+          "__type__": "StockQuote",
+          "fields": {
+            "ap": 351.43,
+            "ax": "V",
+            "bp": 350.91,
+            "bs": 40,
+            "bx": "V",
+            "c": [
+              "R"
+            ],
+            "t": {
+              "__type__": "datetime",
+              "value": "2026-11-17T16:45:58.950873+00:00"
+            },
+            "var_as": 80,
+            "z": {
+              "__type__": "StockTape",
+              "name": "C",
+              "value": "C"
+            }
+          }
+        },
+        "symbol": "AAPL"
+      }
+    },
+    "trade": {
+      "__type__": "StockLatestTradesRespSingle",
+      "fields": {
+        "currency": null,
+        "symbol": "AAPL",
+        "trade": {
+          "__type__": "StockTrade",
+          "fields": {
+            "c": [
+              "@"
+            ],
+            "i": 10998,
+            "p": 350.93,
+            "s": 40,
+            "t": {
+              "__type__": "datetime",
+              "value": "2026-11-17T16:45:55.135041+00:00"
+            },
+            "u": null,
+            "x": "V",
+            "z": {
+              "__type__": "StockTape",
+              "name": "C",
+              "value": "C"
+            }
+          }
+        }
+      }
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "stock_data_single_symbol.latest_bar_quote_and_trade_for_symbol",
+  "scenario_sha256": "b550b257ff4672c80019c993e3aacb4bbec5addd87213c821d7c85cd9213feb3",
+  "vars": {}
+}

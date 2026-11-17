@@ -1,0 +1,191 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "tape",
+            "A"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v2/stocks/meta/conditions/trade"
+      },
+      "response": {
+        "body": {
+          "json": {
+            " ": "Regular Sale",
+            "4": "Derivatively Priced",
+            "5": "Market Center Reopening Trade",
+            "6": "Market Center Closing Trade",
+            "7": "Qualified Contingent Trade",
+            "8": "Reserved",
+            "9": "Corrected Consolidated Close Price as per Listing Market",
+            "B": "Average Price Trade",
+            "C": "Cash Trade (Same Day Clearing)",
+            "E": "Automatic Execution",
+            "F": "Inter-market Sweep Order",
+            "H": "Price Variation Trade",
+            "I": "Odd Lot Trade",
+            "K": "Rule 127 (NYSE only) or Rule 155 (NYSE MKT only)",
+            "L": "Sold Last (Late Reporting)",
+            "M": "Market Center Official Close",
+            "N": "Next Day Trade (Next Day Clearing)",
+            "O": "Market Center Opening Trade",
+            "P": "Prior Reference Price",
+            "Q": "Market Center Official Open",
+            "R": "Seller",
+            "T": "Extended Hours Trade",
+            "U": "Extended Hours Sold (Out Of Sequence)",
+            "V": "Contingent Trade",
+            "X": "Cross Trade",
+            "Z": "Sold (Out Of Sequence)"
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Accept-Encoding",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "199",
+          "X-Ratelimit-Reset": "1794933961",
+          "X-Request-ID": "f52e8c99df0044ff1219d6057155f42b"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "tape",
+            "A"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v2/stocks/meta/conditions/quote"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "4": "On Demand Intra Day Auction",
+            "A": "Slow Quote Offer Side",
+            "B": "Slow Quote Bid Side",
+            "C": "Closing Quote",
+            "E": "Slow Quote LRP Bid Side",
+            "F": "Slow Quote LRP Offer Side",
+            "H": "Slow Quote Bid And Offer Side",
+            "L": "Market Maker Quotes Closed",
+            "N": "Non Firm Quote",
+            "O": "Opening Quote",
+            "R": "Regular Market Maker Open",
+            "U": "Slow Quote LRP Bid And Offer",
+            "W": "Slow Quote Set Slow List"
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Accept-Encoding",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "198",
+          "X-Ratelimit-Reset": "1794933962",
+          "X-Request-ID": "74200cc6a28798943ec3fa798b3b7791"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_against": "checkout",
+  "recorded_with": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "quote_codes": {
+      "4": "On Demand Intra Day Auction",
+      "A": "Slow Quote Offer Side",
+      "B": "Slow Quote Bid Side",
+      "C": "Closing Quote",
+      "E": "Slow Quote LRP Bid Side",
+      "F": "Slow Quote LRP Offer Side",
+      "H": "Slow Quote Bid And Offer Side",
+      "L": "Market Maker Quotes Closed",
+      "N": "Non Firm Quote",
+      "O": "Opening Quote",
+      "R": "Regular Market Maker Open",
+      "U": "Slow Quote LRP Bid And Offer",
+      "W": "Slow Quote Set Slow List"
+    },
+    "trade_codes": {
+      " ": "Regular Sale",
+      "4": "Derivatively Priced",
+      "5": "Market Center Reopening Trade",
+      "6": "Market Center Closing Trade",
+      "7": "Qualified Contingent Trade",
+      "8": "Reserved",
+      "9": "Corrected Consolidated Close Price as per Listing Market",
+      "B": "Average Price Trade",
+      "C": "Cash Trade (Same Day Clearing)",
+      "E": "Automatic Execution",
+      "F": "Inter-market Sweep Order",
+      "H": "Price Variation Trade",
+      "I": "Odd Lot Trade",
+      "K": "Rule 127 (NYSE only) or Rule 155 (NYSE MKT only)",
+      "L": "Sold Last (Late Reporting)",
+      "M": "Market Center Official Close",
+      "N": "Next Day Trade (Next Day Clearing)",
+      "O": "Market Center Opening Trade",
+      "P": "Prior Reference Price",
+      "Q": "Market Center Official Open",
+      "R": "Seller",
+      "T": "Extended Hours Trade",
+      "U": "Extended Hours Sold (Out Of Sequence)",
+      "V": "Contingent Trade",
+      "X": "Cross Trade",
+      "Z": "Sold (Out Of Sequence)"
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "stock_data_single_symbol.trade_and_quote_condition_codes",
+  "scenario_sha256": "b3c036100bfcd4d733a38785b0e733fd492e771133ddb74d17023d1c816c060e",
+  "vars": {}
+}

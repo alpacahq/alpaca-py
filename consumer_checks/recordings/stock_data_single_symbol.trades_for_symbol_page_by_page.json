@@ -1,0 +1,411 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "asof",
+            "2024-03-04"
+          ],
+          [
+            "currency",
+            "USD"
+          ],
+          [
+            "end",
+            "2024-03-09T00:00:00+00:00"
+          ],
+          [
+            "feed",
+            "iex"
+          ],
+          [
+            "limit",
+            "3"
+          ],
+          [
+            "sort",
+            "asc"
+          ],
+          [
+            "start",
+            "2024-03-04T00:00:00+00:00"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v2/stocks/AAPL/trades"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "next_page_token": "QUFQTHwxNzA5NTU3NDk1OTQzMDE1ODMwfFZ8NA==",
+            "symbol": "AAPL",
+            "trades": [
+              {
+                "c": [
+                  "@",
+                  "T",
+                  "I"
+                ],
+                "i": 1,
+                "p": 176.69,
+                "s": 50,
+                "t": "2024-03-04T13:00:10.399108166Z",
+                "x": "V",
+                "z": "C"
+              },
+              {
+                "c": [
+                  "@",
+                  "T",
+                  "I"
+                ],
+                "i": 2,
+                "p": 176.69,
+                "s": 50,
+                "t": "2024-03-04T13:00:10.399210814Z",
+                "x": "V",
+                "z": "C"
+              },
+              {
+                "c": [
+                  "@",
+                  "T",
+                  "I"
+                ],
+                "i": 3,
+                "p": 176.73,
+                "s": 50,
+                "t": "2024-03-04T13:04:55.942982106Z",
+                "x": "V",
+                "z": "C"
+              }
+            ]
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Accept-Encoding",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "199",
+          "X-Ratelimit-Reset": "1794933962",
+          "X-Request-ID": "92df38b62b7c45c9766101d6edd78cf8"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "asof",
+            "2024-03-04"
+          ],
+          [
+            "currency",
+            "USD"
+          ],
+          [
+            "end",
+            "2024-03-09T00:00:00+00:00"
+          ],
+          [
+            "feed",
+            "iex"
+          ],
+          [
+            "limit",
+            "3"
+          ],
+          [
+            "page_token",
+            "QUFQTHwxNzA5NTU3NDk1OTQzMDE1ODMwfFZ8NA=="
+          ],
+          [
+            "sort",
+            "asc"
+          ],
+          [
+            "start",
+            "2024-03-04T00:00:00+00:00"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v2/stocks/AAPL/trades"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "next_page_token": "QUFQTHwxNzA5NTU3NjI3MTM3ODAyOTAwfFZ8Nw==",
+            "symbol": "AAPL",
+            "trades": [
+              {
+                "c": [
+                  "@",
+                  "T",
+                  "I"
+                ],
+                "i": 4,
+                "p": 176.73,
+                "s": 50,
+                "t": "2024-03-04T13:04:55.94301583Z",
+                "x": "V",
+                "z": "C"
+              },
+              {
+                "c": [
+                  "@",
+                  "T",
+                  "I"
+                ],
+                "i": 5,
+                "p": 176.73,
+                "s": 50,
+                "t": "2024-03-04T13:04:55.943893439Z",
+                "x": "V",
+                "z": "C"
+              },
+              {
+                "c": [
+                  "@",
+                  "T",
+                  "I"
+                ],
+                "i": 6,
+                "p": 177.09,
+                "s": 50,
+                "t": "2024-03-04T13:06:14.691178689Z",
+                "x": "V",
+                "z": "C"
+              }
+            ]
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Accept-Encoding",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "198",
+          "X-Ratelimit-Reset": "1794933962",
+          "X-Request-ID": "2379f585c2e79ea0c24f39bbf24029a0"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_against": "checkout",
+  "recorded_with": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "first": {
+      "__type__": "StockTradesRespSingle",
+      "fields": {
+        "currency": null,
+        "next_page_token": "QUFQTHwxNzA5NTU3NDk1OTQzMDE1ODMwfFZ8NA==",
+        "symbol": "AAPL",
+        "trades": [
+          {
+            "__type__": "StockTrade",
+            "fields": {
+              "c": [
+                "@",
+                "T",
+                "I"
+              ],
+              "i": 1,
+              "p": 176.69,
+              "s": 50,
+              "t": {
+                "__type__": "datetime",
+                "value": "2024-03-04T13:00:10.399108+00:00"
+              },
+              "u": null,
+              "x": "V",
+              "z": {
+                "__type__": "StockTape",
+                "name": "C",
+                "value": "C"
+              }
+            }
+          },
+          {
+            "__type__": "StockTrade",
+            "fields": {
+              "c": [
+                "@",
+                "T",
+                "I"
+              ],
+              "i": 2,
+              "p": 176.69,
+              "s": 50,
+              "t": {
+                "__type__": "datetime",
+                "value": "2024-03-04T13:00:10.399210+00:00"
+              },
+              "u": null,
+              "x": "V",
+              "z": {
+                "__type__": "StockTape",
+                "name": "C",
+                "value": "C"
+              }
+            }
+          },
+          {
+            "__type__": "StockTrade",
+            "fields": {
+              "c": [
+                "@",
+                "T",
+                "I"
+              ],
+              "i": 3,
+              "p": 176.73,
+              "s": 50,
+              "t": {
+                "__type__": "datetime",
+                "value": "2024-03-04T13:04:55.942982+00:00"
+              },
+              "u": null,
+              "x": "V",
+              "z": {
+                "__type__": "StockTape",
+                "name": "C",
+                "value": "C"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "second": {
+      "__type__": "StockTradesRespSingle",
+      "fields": {
+        "currency": null,
+        "next_page_token": "QUFQTHwxNzA5NTU3NjI3MTM3ODAyOTAwfFZ8Nw==",
+        "symbol": "AAPL",
+        "trades": [
+          {
+            "__type__": "StockTrade",
+            "fields": {
+              "c": [
+                "@",
+                "T",
+                "I"
+              ],
+              "i": 4,
+              "p": 176.73,
+              "s": 50,
+              "t": {
+                "__type__": "datetime",
+                "value": "2024-03-04T13:04:55.943015+00:00"
+              },
+              "u": null,
+              "x": "V",
+              "z": {
+                "__type__": "StockTape",
+                "name": "C",
+                "value": "C"
+              }
+            }
+          },
+          {
+            "__type__": "StockTrade",
+            "fields": {
+              "c": [
+                "@",
+                "T",
+                "I"
+              ],
+              "i": 5,
+              "p": 176.73,
+              "s": 50,
+              "t": {
+                "__type__": "datetime",
+                "value": "2024-03-04T13:04:55.943893+00:00"
+              },
+              "u": null,
+              "x": "V",
+              "z": {
+                "__type__": "StockTape",
+                "name": "C",
+                "value": "C"
+              }
+            }
+          },
+          {
+            "__type__": "StockTrade",
+            "fields": {
+              "c": [
+                "@",
+                "T",
+                "I"
+              ],
+              "i": 6,
+              "p": 177.09,
+              "s": 50,
+              "t": {
+                "__type__": "datetime",
+                "value": "2024-03-04T13:06:14.691178+00:00"
+              },
+              "u": null,
+              "x": "V",
+              "z": {
+                "__type__": "StockTape",
+                "name": "C",
+                "value": "C"
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "stock_data_single_symbol.trades_for_symbol_page_by_page",
+  "scenario_sha256": "959710301e9f803895b9324a1faa9a9bedb1773ef5a4ea5037369d99e5e0551e",
+  "vars": {}
+}

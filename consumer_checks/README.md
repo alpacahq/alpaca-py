@@ -327,8 +327,10 @@ from an earlier response, such as the option chain, which replay serves back.
   `BrokerClient` stays in `coverage_allowlist.txt`, the broker globs stay in
   `surface_allowlist.txt`, and each unrecorded scenario stays in
   `recording_allowlist.txt` (strict replay skips those instead of failing).
-  After recording, remove the scenario's line, then the `BrokerClient`
-  allowlist line. Two fields new since BASELINE are still unused on purpose:
+  After recording, remove the scenario's line (the baseline workflow does this
+  for the scenarios it records; replay fails on a stale line), then the
+  `BrokerClient` allowlist line. Two fields new since BASELINE are still unused
+  on purpose:
   `CreateAccountRequest.cash_interest` (the tier name is correspondent-specific;
   omitting it uses the default) and `Transfer.hold_until` (null unless the
   correspondent places a hold). Replace the broker globs with those two exact

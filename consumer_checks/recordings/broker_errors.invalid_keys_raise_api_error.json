@@ -1,0 +1,64 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "authorization": "Basic <redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [],
+        "url": "https://broker-api.sandbox.alpaca.markets/v1/clock"
+      },
+      "response": {
+        "body": {
+          "text": "<html>\r\n<head><title>401 Authorization Required</title></head>\r\n<body>\r\n<center><h1>401 Authorization Required</h1></center>\r\n<hr><center>nginx</center>\r\n</body>\r\n</html>\r\n"
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "text/html",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "X-Request-ID": "20fae382018f66f1e8428d8fc7ea31ca"
+        },
+        "reason": "Unauthorized",
+        "status": 401
+      }
+    }
+  ],
+  "recorded_against": "baseline",
+  "recorded_with": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "code_raises": "JSONDecodeError",
+    "error": {
+      "__type__": "APIError",
+      "status_code": 401
+    },
+    "message_raises": "JSONDecodeError",
+    "text": "<html>\r\n<head><title>401 Authorization Required</title></head>\r\n<body>\r\n<center><h1>401 Authorization Required</h1></center>\r\n<hr><center>nginx</center>\r\n</body>\r\n</html>\r\n"
+  },
+  "result_from": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "broker_errors.invalid_keys_raise_api_error",
+  "scenario_sha256": "8ec20701b3d1951861d156a2b73dc95a6695677bf6614de7f848a681e66a9aec",
+  "vars": {}
+}

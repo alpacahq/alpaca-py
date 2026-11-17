@@ -60,6 +60,7 @@ def pytest_addoption(parser):
 def consumer_settings(pytestconfig):
     recordings_dir = os.environ.get("CONSUMER_RECORDINGS_DIR")
     keys = _dotenv.find_keys()
+    broker_keys = _dotenv.find_broker_keys()
     return _harness.Settings(
         mode=pytestconfig.getoption("--consumer-mode"),
         update_snapshots=pytestconfig.getoption("--consumer-update-snapshots"),
@@ -72,6 +73,8 @@ def consumer_settings(pytestconfig):
         match_sdk=pytestconfig.getoption("--consumer-match-sdk"),
         api_key=keys.api_key,
         secret_key=keys.secret_key,
+        broker_api_key=broker_keys.api_key,
+        broker_secret_key=broker_keys.secret_key,
     )
 
 
@@ -128,4 +131,7 @@ def pytest_report_header(config):
     ]
     if mode in ("record", "live"):
         lines.append(f"consumer checks: paper keys {_dotenv.find_keys().source}")
+        lines.append(
+            f"consumer checks: broker sandbox keys {_dotenv.find_broker_keys().source}"
+        )
     return lines

@@ -1,0 +1,204 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "text/event-stream",
+          "authorization": "Basic <redacted>",
+          "cache-control": "no-cache",
+          "content-type": "text/event-stream",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "since",
+            "2024-03-01"
+          ],
+          [
+            "until",
+            "2024-03-08"
+          ]
+        ],
+        "url": "https://broker-api.sandbox.alpaca.markets/v1/events/accounts/status"
+      },
+      "response": {
+        "body": {
+          "text": "id: evt-1\ndata: {\"status\": \"ACTIVE\"}\n\n"
+        },
+        "headers": {
+          "Content-Type": "text/html"
+        },
+        "reason": "",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "text/event-stream",
+          "authorization": "Basic <redacted>",
+          "cache-control": "no-cache",
+          "content-type": "text/event-stream",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "since",
+            "2024-03-01"
+          ],
+          [
+            "until",
+            "2024-03-08"
+          ]
+        ],
+        "url": "https://broker-api.sandbox.alpaca.markets/v1/events/trades"
+      },
+      "response": {
+        "body": {
+          "text": "id: evt-1\ndata: {\"status\": \"ACTIVE\"}\n\n"
+        },
+        "headers": {
+          "Content-Type": "text/html"
+        },
+        "reason": "",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "text/event-stream",
+          "authorization": "Basic <redacted>",
+          "cache-control": "no-cache",
+          "content-type": "text/event-stream",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "since",
+            "2024-03-01"
+          ],
+          [
+            "until",
+            "2024-03-08"
+          ]
+        ],
+        "url": "https://broker-api.sandbox.alpaca.markets/v1/events/journals/status"
+      },
+      "response": {
+        "body": {
+          "text": "id: evt-1\ndata: {\"status\": \"ACTIVE\"}\n\n"
+        },
+        "headers": {
+          "Content-Type": "text/html"
+        },
+        "reason": "",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "text/event-stream",
+          "authorization": "Basic <redacted>",
+          "cache-control": "no-cache",
+          "content-type": "text/event-stream",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "since",
+            "2024-03-01"
+          ],
+          [
+            "until",
+            "2024-03-08"
+          ]
+        ],
+        "url": "https://broker-api.sandbox.alpaca.markets/v1/events/transfers/status"
+      },
+      "response": {
+        "body": {
+          "text": "id: evt-1\ndata: {\"status\": \"ACTIVE\"}\n\n"
+        },
+        "headers": {
+          "Content-Type": "text/html"
+        },
+        "reason": "",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "text/event-stream",
+          "authorization": "Basic <redacted>",
+          "cache-control": "no-cache",
+          "content-type": "text/event-stream",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "since",
+            "2024-03-01"
+          ],
+          [
+            "until",
+            "2024-03-08"
+          ]
+        ],
+        "url": "https://broker-api.sandbox.alpaca.markets/v1/events/nta"
+      },
+      "response": {
+        "body": {
+          "text": "id: evt-1\ndata: {\"status\": \"ACTIVE\"}\n\n"
+        },
+        "headers": {
+          "Content-Type": "text/html"
+        },
+        "reason": "",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_against": "baseline",
+  "recorded_with": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "events": [
+      "{\"status\": \"ACTIVE\"}",
+      "{\"status\": \"ACTIVE\"}",
+      "{\"status\": \"ACTIVE\"}",
+      "{\"status\": \"ACTIVE\"}",
+      "{\"status\": \"ACTIVE\"}"
+    ]
+  },
+  "result_from": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "broker_events.event_stream_requests",
+  "scenario_sha256": "401851418c386e06747c520853a15b680a6873b803e4f5f95691734d1adf2689",
+  "vars": {}
+}

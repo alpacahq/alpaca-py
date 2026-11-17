@@ -22,11 +22,22 @@
     "CryptoSnapshots": "get_crypto_snapshot",
     "CryptoTrades": "get_crypto_trades",
     "StockBars": "get_stock_bars",
+    "StockBarSingle": "get_stock_bars_for_symbol",
     "StockLatestBars": "get_stock_latest_bar",
+    "StockLatestBarSingle": "get_stock_latest_bar_for_symbol",
     "StockQuotes": "get_stock_quotes",
+    "StockQuoteSingle": "get_stock_quotes_for_symbol",
     "StockLatestQuotes": "get_stock_latest_quote",
+    "StockLatestQuoteSingle": "get_stock_latest_quote_for_symbol",
     "StockSnapshots": "get_stock_snapshot",
+    "StockSnapshotSingle": "get_stock_snapshot_for_symbol",
     "StockTrades": "get_stock_trades",
-    "StockLatestTrades": "get_stock_latest_trade"
+    "StockTradeSingle": "get_stock_trades_for_symbol",
+    "StockLatestTrades": "get_stock_latest_trade",
+    "StockLatestTradeSingle": "get_stock_latest_trade_for_symbol",
+    "StockAuctions": "get_stock_auctions",
+    "StockAuctionSingle": "get_stock_auctions_for_symbol",
+    "StockMetaConditions": "get_stock_condition_codes",
+    "StockMetaExchanges": "get_stock_exchange_codes"
   }
 }

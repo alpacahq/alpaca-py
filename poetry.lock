@@ -2300,13 +2300,14 @@ test = ["pytest"]
 
 [[package]]
 name = "sseclient-py"
-version = "1.9.0"
-description = "SSE client for Python"
+version = "2.1.0"
+description = "Server-Sent Events client for Python"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.11"
 groups = ["main"]
 files = [
-    {file = "sseclient_py-1.9.0-py3-none-any.whl", hash = "sha256:340062b1587fc2880892811e2ab5b176d98ef3eee98b3672ff3a3ba1e8ed0f6f"},
+    {file = "sseclient_py-2.1.0-py3-none-any.whl", hash = "sha256:32a76b209f9fde6a7f01d5e993a5a3db8cc0fe22b700b9246898d6e3af9d159e"},
+    {file = "sseclient_py-2.1.0.tar.gz", hash = "sha256:aa133479a27ab6f83054674acd716a0e822c612a7764c5c89360fbbcf0297447"},
 ]
 
 [[package]]
@@ -2612,4 +2613,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11.0"
-content-hash = "cda5dc428d185ff07bce89247760b3517a623d56579cfc7050e404cf27b415aa"
+content-hash = "987bbc978b3cda1d4eb7ffa16dc4caf3a974014fcc0e9846800e4f936884f8fb"

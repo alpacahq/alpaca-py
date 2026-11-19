@@ -9,6 +9,7 @@ from alpaca.data.models.corporate_actions import (
     CorporateActionsSet,
     ForwardSplit,
     ReverseSplit,
+    RightsDistribution,
     StockDividend,
     UnitSplit,
 )
@@ -328,3 +329,32 @@ def test_get_corporate_actions(
     assert res.df.index[0] == "reverse_splits"
 
     assert reqmock.call_count == 2
+
+
+def test_rights_distribution_payable_date_is_optional():
+    # The API omits payable_date for some rights distributions. The model
+    # annotates it as Optional[date], so an omitted value must stay None and a
+    # caller must be able to (re)assign None under validate_assignment.
+    raw = {
+        "id": "a7932b15-f816-4f83-921e-998b524487c2",
+        "source_cusip": "SOURCECUSIP1",
+        "source_symbol": "IFN",
+        "new_cusip": "NEWCUSIP1",
+        "new_symbol": "IFN.RTWI",
+        "rate": 1,
+        "ex_date": "2024-04-17",
+        "record_date": "2024-04-18",
+        "process_date": "2024-04-19",
+        "expiration_date": "2024-05-14",
+    }
+
+    rights_distribution = RightsDistribution(
+        corporate_action_type="rights_distributions", **raw
+    )
+
+    assert rights_distribution.payable_date is None
+
+    # Assignment validation must accept None for an optional date field.
+    rights_distribution.payable_date = date(2024, 4, 19)
+    rights_distribution.payable_date = None
+    assert rights_distribution.payable_date is None

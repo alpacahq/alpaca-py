@@ -45,9 +45,9 @@ generate-openapi: ## Generate SDK code from pinned OpenAPI specifications
 check-openapi: ## Verify generated OpenAPI artifacts are current
 	npm ci --ignore-scripts
 	poetry install
-	poetry run python tools/scripts/openapi/check_generated.py trading
-	poetry run python tools/scripts/openapi/check_generated.py market-data
-	poetry run python tools/scripts/openapi/check_generated.py broker
+	poetry run python -m tools.scripts.openapi.check_generated trading
+	poetry run python -m tools.scripts.openapi.check_generated market-data
+	poetry run python -m tools.scripts.openapi.check_generated broker
 
 # Compare the current tree's public API against a published PyPI release, or
 # against a git ref (e.g. origin/master) with BASELINE_REF.

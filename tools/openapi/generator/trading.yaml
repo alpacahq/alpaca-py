@@ -7,6 +7,7 @@ generatorName: python
 templateDir: tools/openapi/templates/python
 additionalProperties:
   packageName: alpaca.trading._generated
+  # Placeholder. No template reads packageVersion, and the SDK version comes from pyproject.toml.
   packageVersion: 0.0.0
   # alpaca-py keeps its own transport, so only schemas and operation metadata are needed.
   generateSourceCodeOnly: "true"

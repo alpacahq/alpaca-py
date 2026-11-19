@@ -11,11 +11,8 @@ import sys
 import tempfile
 from pathlib import Path
 
-REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
-if str(REPOSITORY_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPOSITORY_ROOT))
-
-from tools.scripts.openapi.generate import (  # noqa: E402
+from .generate import (
+    REPOSITORY_ROOT,
     TARGETS,
     ToolchainError,
     dotted_name,
@@ -24,6 +21,10 @@ from tools.scripts.openapi.generate import (  # noqa: E402
     reject_dropped_reexports,
 )
 
+# Importing the generated package for the re-export check writes bytecode next to
+# the artifacts. Only those directories are skipped; any other extra file is drift.
+_IGNORED_PARTS = frozenset({"__pycache__"})
+
 
 def _files(root: Path) -> dict[str, bytes]:
     if not root.is_dir():
@@ -31,7 +32,7 @@ def _files(root: Path) -> dict[str, bytes]:
     return {
         str(path.relative_to(root)): path.read_bytes()
         for path in root.rglob("*")
-        if path.is_file() and "__pycache__" not in path.parts
+        if path.is_file() and _IGNORED_PARTS.isdisjoint(path.parts)
     }
 
 

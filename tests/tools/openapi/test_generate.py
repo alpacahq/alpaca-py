@@ -784,3 +784,447 @@ def test_missing_reexports_treat_hand_written_overrides_as_bound(tmp_path):
     missing = generate.missing_reexports({"models": public}, generated, tmp_path)
 
     assert missing == {public: ["Added"]}
+
+
+# Pipeline stages of `generate()`. Each test below pins one stage on its own; the
+# stubbed pipeline replaces OpenAPI Generator so they run without Node or Java.
+
+
+def _write_surface(root: Path, documents: dict[str, dict]) -> Path:
+    root.mkdir(exist_ok=True)
+    for name, document in documents.items():
+        (root / name).write_text(json.dumps(document))
+    return root
+
+
+def test_load_surface_merges_the_files_of_a_surface_directory(tmp_path):
+    surface = _write_surface(tmp_path / "surface", FIXTURE_SURFACE)
+
+    merged = generate.load_surface(surface)
+
+    assert set(merged) == {
+        *FIXTURE_SURFACE["manifest.json"],
+        *FIXTURE_SURFACE["sdk.json"],
+    }
+    assert merged["manualSchemas"] == ["TradeUpdate"]
+    assert merged["operationMethods"] == {"getAllOrders": "get_orders"}
+
+
+def test_load_surface_accepts_a_single_combined_file(tmp_path):
+    combined = tmp_path / "surface.json"
+    combined.write_text(json.dumps({"requests": ["A"], "specPatches": []}))
+
+    assert generate.load_surface(combined) == {"requests": ["A"], "specPatches": []}
+
+
+def test_load_surface_rejects_a_directory_missing_one_of_its_files(tmp_path):
+    documents = {
+        name: document
+        for name, document in FIXTURE_SURFACE.items()
+        if name != "sdk.json"
+    }
+    surface = _write_surface(tmp_path / "surface", documents)
+
+    with pytest.raises(ValueError, match="missing sdk.json"):
+        generate.load_surface(surface)
+
+
+def test_load_surface_rejects_keys_that_belong_to_another_file(tmp_path):
+    documents = json.loads(json.dumps(FIXTURE_SURFACE))
+    documents["manifest.json"]["baseClasses"] = {}
+    surface = _write_surface(tmp_path / "surface", documents)
+
+    with pytest.raises(ValueError, match="manifest.json has unsupported keys: base"):
+        generate.load_surface(surface)
+
+
+def test_load_surface_rejects_a_missing_path_and_non_object_files(tmp_path):
+    with pytest.raises(ValueError, match="does not exist"):
+        generate.load_surface(tmp_path / "absent")
+
+    combined = tmp_path / "surface.json"
+    combined.write_text("[]")
+    with pytest.raises(ValueError, match="must be a JSON object"):
+        generate.load_surface(combined)
+
+
+def _stub_model(name: str) -> generate.Fragment:
+    return generate.Fragment(
+        kind="model",
+        name=name,
+        enum_type="",
+        package="alpaca.trading._generated",
+        references=(),
+        imports=("from pydantic import StrictStr",),
+        body=f'    """\n    {name}\n    """\n\n    symbol: StrictStr\n',
+    )
+
+
+def _stub_enum(name: str) -> generate.Fragment:
+    return generate.Fragment(
+        kind="enum",
+        name=name,
+        enum_type="str",
+        package="alpaca.trading._generated",
+        references=(),
+        imports=(),
+        body=f'    """\n    {name}\n    """\n\n    BUY = "buy"\n',
+    )
+
+
+def _stub_union(name: str, *members: str) -> generate.Fragment:
+    return generate.Fragment(
+        kind="union",
+        name=name,
+        enum_type="",
+        package="alpaca.trading._generated",
+        references=members,
+        imports=("from typing import Union",),
+        body=f"Union[{', '.join(members)}]",
+    )
+
+
+STUB_SPEC = {
+    "openapi": "3.0.0",
+    "paths": {
+        "/v2/orders": {
+            "get": {"operationId": "getAllOrders"},
+            "post": {"operationId": "postOrder"},
+        }
+    },
+    "components": {"schemas": {}},
+}
+
+
+class _StubPipeline:
+    """Replaces OpenAPI Generator and fragment reading, recording what generate sent."""
+
+    def __init__(self, monkeypatch, fragments: list[generate.Fragment]):
+        self.fragments = fragments
+        self.spec: dict | None = None
+        self.mappings: dict[str, str] | None = None
+        monkeypatch.setattr(generate, "_run_generator", self._run_generator)
+        monkeypatch.setattr(generate, "_read_fragments", lambda root: self.fragments)
+
+    def _run_generator(self, spec, config, output, mappings):
+        self.spec = json.loads(spec.read_text())
+        self.mappings = mappings
+
+
+def _route(method: str, path: str = "/v2/orders", **types: list[str]) -> dict:
+    return {
+        "httpMethod": method,
+        "path": path,
+        "requestTypes": types.get("request", []),
+        "responseTypes": types.get("response", []),
+    }
+
+
+def _operations_fragment(*routes: dict) -> generate.Fragment:
+    return generate.Fragment(
+        kind="operations",
+        name="OrdersApi",
+        enum_type="",
+        package="alpaca.trading._generated",
+        references=(),
+        imports=(),
+        body=json.dumps(list(routes)),
+    )
+
+
+def _stub_surface(tmp_path: Path, **overrides: dict) -> Path:
+    documents = {
+        "manifest.json": {
+            "requests": [],
+            "responses": ["Order"],
+            "manualSchemas": [],
+        },
+        "sdk.json": {"operationMethods": {"getAllOrders": "get_orders"}},
+        "patches.json": {},
+    }
+    documents.update(overrides)
+    return _write_surface(tmp_path / "surface", documents)
+
+
+def _stub_generate(tmp_path: Path, **kwargs) -> Path:
+    spec = tmp_path / "spec.json"
+    spec.write_text(json.dumps(kwargs.pop("spec", STUB_SPEC)))
+    output = tmp_path / "_generated"
+    generate.generate(
+        spec=spec,
+        output=output,
+        surface=kwargs.pop("surface", None) or _stub_surface(tmp_path),
+        **kwargs,
+    )
+    return output
+
+
+def test_generation_sends_the_patched_specification_and_field_aliases(
+    tmp_path, monkeypatch
+):
+    pipeline = _StubPipeline(monkeypatch, [_stub_model("Order")])
+    surface = _stub_surface(
+        tmp_path,
+        **{
+            "patches.json": {
+                "specPatches": [
+                    {
+                        "op": "add",
+                        "path": ["components", "schemas", "Added"],
+                        "value": {"type": "object"},
+                        "reason": "the API returns it but the specification omits it",
+                    }
+                ]
+            },
+            "sdk.json": {"fieldAliases": {"Order": {"class": "order_class"}}},
+        },
+    )
+    spec = tmp_path / "spec.json"
+    spec.write_text(json.dumps(STUB_SPEC))
+
+    generate.generate(spec=spec, output=tmp_path / "_generated", surface=surface)
+
+    assert pipeline.spec["components"]["schemas"] == {"Added": {"type": "object"}}
+    assert pipeline.mappings == {"class": "order_class"}
+    # The pinned specification on disk stays untouched.
+    assert json.loads(spec.read_text()) == STUB_SPEC
+
+
+def test_generation_requires_exactly_one_generated_package(tmp_path, monkeypatch):
+    other = generate.Fragment(
+        kind="model",
+        name="Other",
+        enum_type="",
+        package="alpaca.other._generated",
+        references=(),
+        imports=(),
+        body="    symbol: str\n",
+    )
+    _StubPipeline(monkeypatch, [_stub_model("Order"), other])
+
+    with pytest.raises(ValueError, match="exactly one generated package"):
+        _stub_generate(tmp_path)
+
+
+def test_generation_assembles_every_module_from_fragments(tmp_path, monkeypatch):
+    _StubPipeline(
+        monkeypatch,
+        [
+            _stub_model("Order"),
+            _stub_model("Leg"),
+            _stub_model("TradeUpdate"),
+            _stub_enum("OrderSide"),
+            _stub_union("OrderLike", "Order", "Leg"),
+            _operations_fragment(_route("GET", response=["Order"])),
+        ],
+    )
+    surface = _stub_surface(
+        tmp_path,
+        **{
+            "manifest.json": {
+                "requests": [],
+                "responses": ["Leg", "Order", "OrderLike"],
+                "manualSchemas": ["TradeUpdate"],
+            }
+        },
+    )
+
+    output = _stub_generate(tmp_path, surface=surface)
+
+    assert sorted(path.name for path in output.iterdir()) == [
+        "__init__.py",
+        "enums.py",
+        "models.py",
+        "operations.json",
+        "requests.py",
+    ]
+    models = (output / "models.py").read_text()
+    assert "class Order(ValidateBaseModel):" in models
+    assert "OrderLike = Union[Order, Leg]" in models
+    assert "TradeUpdate" not in "".join(
+        path.read_text() for path in output.glob("*.py")
+    )
+    assert "class OrderSide(str, Enum):" in (output / "enums.py").read_text()
+    package = (output / "__init__.py").read_text()
+    assert (
+        "from alpaca.trading._generated.models import Leg, Order, OrderLike" in package
+    )
+    assert '"OrderSide",' in package
+    operations = json.loads((output / "operations.json").read_text())["operations"]
+    assert operations == [
+        {
+            "operationId": "getAllOrders",
+            "httpMethod": "GET",
+            "path": "/v2/orders",
+            "methodName": "get_orders",
+        }
+    ]
+
+
+def test_generation_formats_the_assembled_modules(tmp_path, monkeypatch):
+    _StubPipeline(monkeypatch, [_stub_model("Order")])
+
+    output = _stub_generate(tmp_path)
+
+    formatted = generate.subprocess.run(
+        [generate.sys.executable, "-m", generate.FORMATTER, "--check", str(output)],
+        capture_output=True,
+        text=True,
+    )
+    assert formatted.returncode == 0, formatted.stderr
+
+
+def test_a_failed_stage_publishes_nothing(tmp_path, monkeypatch):
+    _StubPipeline(monkeypatch, [_stub_model("Order"), _stub_model("Unclassified")])
+
+    with pytest.raises(ValueError, match="Unclassified"):
+        _stub_generate(tmp_path)
+
+    assert not (tmp_path / "_generated").exists()
+    assert json.loads((tmp_path / "surface" / "manifest.json").read_text()) == {
+        "requests": [],
+        "responses": ["Order"],
+        "manualSchemas": [],
+    }
+
+
+def test_generation_rejects_dropped_reexports_before_publishing(tmp_path, monkeypatch):
+    _StubPipeline(monkeypatch, [_stub_model("Order")])
+    public = tmp_path / "models.py"
+    public.write_text(
+        "from alpaca.trading._generated.models import (\n    Gone,\n    Order,\n)\n"
+    )
+
+    with pytest.raises(ValueError, match="models.py: Gone"):
+        _stub_generate(tmp_path, public={"models": public})
+
+    assert not (tmp_path / "_generated").exists()
+
+
+def test_base_classes_default_by_category_and_honour_overrides():
+    categories = {
+        "Order": "response",
+        "Leg": "response",
+        "PlaceOrder": "request",
+        "OrderSide": "enum",
+        "OrderLike": "response",
+        "TradeUpdate": "manual",
+    }
+    surface = {"baseClasses": {"Order": "ModelWithID"}}
+
+    bases = generate._base_classes(categories, surface, aliases=["OrderLike"])
+
+    assert bases == {
+        "Order": "ModelWithID",
+        "Leg": "ValidateBaseModel",
+        "PlaceOrder": "NonEmptyRequest",
+    }
+
+
+@pytest.mark.parametrize(
+    ("base_classes", "message"),
+    [
+        ({"OrderLike": "ModelWithID"}, "cannot apply to union OrderLike"),
+        ({"OrderSide": "ModelWithID"}, "cannot apply to enum schema OrderSide"),
+        ({"Order": "Unknown"}, "unsupported base class Unknown for Order"),
+    ],
+)
+def test_base_classes_reject_overrides_that_cannot_apply(base_classes, message):
+    categories = {"Order": "response", "OrderSide": "enum", "OrderLike": "response"}
+
+    with pytest.raises(ValueError, match=message):
+        generate._base_classes(
+            categories, {"baseClasses": base_classes}, aliases=["OrderLike"]
+        )
+
+
+def test_operations_resolve_ids_and_keep_one_entry_per_route():
+    fragment = _operations_fragment(
+        _route("GET"), _route("GET"), _route("POST", response=["Order"])
+    )
+
+    rendered = json.loads(
+        generate._render_operations(
+            STUB_SPEC, [fragment], {"operationMethods": {"getAllOrders": "get_orders"}}
+        )
+    )
+
+    assert rendered["generatedBy"] == generate.BANNER_SOURCE
+    assert [
+        (item["httpMethod"], item["operationId"], item["methodName"])
+        for item in rendered["operations"]
+    ] == [("GET", "getAllOrders", "get_orders"), ("POST", "postOrder", None)]
+
+
+def test_operations_reject_routes_the_specification_lacks():
+    fragment = _operations_fragment(_route("GET", "/v2/missing"))
+
+    with pytest.raises(ValueError, match="absent from the specification"):
+        generate._render_operations(STUB_SPEC, [fragment], {})
+
+
+def test_operations_reject_method_names_for_unknown_operations():
+    with pytest.raises(ValueError, match="unknown operations: ghost"):
+        generate._render_operations(STUB_SPEC, [], {"operationMethods": {"ghost": "x"}})
+
+
+def test_operations_reject_repeated_operation_ids():
+    spec = json.loads(json.dumps(STUB_SPEC))
+    spec["paths"]["/v2/orders"]["post"]["operationId"] = "getAllOrders"
+    fragment = _operations_fragment(_route("GET"), _route("POST"))
+
+    with pytest.raises(ValueError, match="repeats operationIds: getAllOrders"):
+        generate._render_operations(spec, [fragment], {})
+
+
+def test_package_init_re_exports_every_assembled_name_in_sorted_order():
+    rendered = generate._render_package_init(
+        "pkg._generated",
+        {"Order": "models", "OrderSide": "enums", "PlaceOrder": "requests"},
+    )
+
+    assert rendered.startswith(generate.BANNER)
+    assert "from pkg._generated.enums import OrderSide" in rendered
+    assert "from pkg._generated.models import Order" in rendered
+    assert (
+        '__all__ = [\n    "Order",\n    "OrderSide",\n    "PlaceOrder",\n]' in rendered
+    )
+
+
+def test_publish_replaces_the_output_and_leaves_no_scratch_directories(tmp_path):
+    output = tmp_path / "pkg" / "_generated"
+    output.mkdir(parents=True)
+    (output / "old.py").write_text("old")
+    assembled = tmp_path / "assembled"
+    assembled.mkdir()
+    (assembled / "new.py").write_text("new")
+
+    generate._publish(assembled, output)
+
+    assert sorted(path.name for path in output.iterdir()) == ["new.py"]
+    assert sorted(path.name for path in output.parent.iterdir()) == ["_generated"]
+
+
+def test_publish_restores_the_previous_output_when_the_swap_fails(
+    tmp_path, monkeypatch
+):
+    output = tmp_path / "pkg" / "_generated"
+    output.mkdir(parents=True)
+    (output / "old.py").write_text("old")
+    assembled = tmp_path / "assembled"
+    assembled.mkdir()
+    (assembled / "new.py").write_text("new")
+    real_replace = generate.Path.replace
+
+    def failing_replace(self, target):
+        if self.name.endswith(".staging"):
+            raise OSError("disk full")
+        return real_replace(self, target)
+
+    monkeypatch.setattr(generate.Path, "replace", failing_replace)
+
+    with pytest.raises(OSError, match="disk full"):
+        generate._publish(assembled, output)
+
+    assert (output / "old.py").read_text() == "old"
+    assert sorted(path.name for path in output.parent.iterdir()) == ["_generated"]

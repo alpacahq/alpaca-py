@@ -52,18 +52,16 @@ PYTHON_CONFIG = REPOSITORY_ROOT / "tools/openapi/generator/trading.yaml"
 FIRST_PARTY_PACKAGE = "alpaca"
 FORMATTER = "black"
 HTTP_METHODS = ("delete", "get", "head", "options", "patch", "post", "put", "trace")
-SURFACE_FILES = ("manifest.json", "sdk.json", "patches.json")
-MANIFEST_KEYS = frozenset({"requests", "responses", "manualSchemas"})
-SDK_KEYS = frozenset(
-    {"baseClasses", "fieldAliases", "ignoredOperations", "operationMethods"}
-)
-PATCH_KEYS = frozenset({"specPatches"})
-SURFACE_KEYS = MANIFEST_KEYS | SDK_KEYS | PATCH_KEYS
+# The files of a surface directory, in load order, and the keys each may hold.
 FILE_KEYS = {
-    "manifest.json": MANIFEST_KEYS,
-    "sdk.json": SDK_KEYS,
-    "patches.json": PATCH_KEYS,
+    "manifest.json": frozenset({"requests", "responses", "manualSchemas"}),
+    "sdk.json": frozenset(
+        {"baseClasses", "fieldAliases", "ignoredOperations", "operationMethods"}
+    ),
+    "patches.json": frozenset({"specPatches"}),
 }
+# A single combined surface file may hold the keys of every file above.
+SURFACE_KEYS = frozenset().union(*FILE_KEYS.values())
 CATEGORY_KEYS = (("request", "requests"), ("response", "responses"))
 TYPE_NAME = re.compile(r"[A-Za-z_]\w*")
 UNION_ALIAS = re.compile(r"Union\[[A-Za-z_]\w*(?:, [A-Za-z_]\w*)+\]\Z")
@@ -198,17 +196,17 @@ def _load_surface_file(path: Path, allowed: frozenset[str]) -> dict:
 def load_surface(path: Path) -> dict:
     """Load and merge surface settings from a directory or a single JSON file.
 
-    Production surfaces live under ``tools/openapi/surfaces/<name>/`` as three
-    files (``manifest.json``, ``sdk.json``, ``patches.json``). Tests may pass a
-    single combined JSON file with the same keys.
+    Production surfaces live under ``tools/openapi/surfaces/<name>/`` as one file per
+    entry of ``FILE_KEYS``. Tests may pass a single combined JSON file with the keys
+    of ``SURFACE_KEYS``.
     """
     if path.is_dir():
         merged: dict = {}
-        for name in SURFACE_FILES:
+        for name, keys in FILE_KEYS.items():
             file_path = path / name
             if not file_path.is_file():
                 raise ValueError(f"surface directory is missing {name}: {path}")
-            section = _load_surface_file(file_path, FILE_KEYS[name])
+            section = _load_surface_file(file_path, keys)
             overlap = sorted(set(merged) & set(section))
             if overlap:
                 raise ValueError(

@@ -138,6 +138,7 @@ class DataStream:
         self._handlers = {channel: {} for channel in _CHANNEL_TYPES.values()}
         self._name = "data"
         self._max_frame_size = 32768
+        self._subscription_tasks: set[asyncio.Task] = set()
 
         self._websocket_params = {
             "ping_interval": 10,
@@ -231,6 +232,11 @@ class DataStream:
 
     async def close(self) -> None:
         """Closes the websocket connection."""
+        tasks = tuple(self._subscription_tasks)
+        for task in tasks:
+            task.cancel()
+        if tasks:
+            await asyncio.gather(*tasks, return_exceptions=True)
         if self._ws:
             try:
                 await self._ws.close()
@@ -405,9 +411,25 @@ class DataStream:
             handlers[symbol] = handler
         self._wake_subscription_wait()
         if self._running:
-            asyncio.run_coroutine_threadsafe(
-                self._send_subscribe_msg(), self._loop
-            ).result()
+            self._send_subscription(self._send_subscribe_msg())
+
+    def _send_subscription(self, coroutine: Coroutine[Any, Any, None]) -> None:
+        try:
+            current_loop = asyncio.get_running_loop()
+        except RuntimeError:
+            current_loop = None
+        if current_loop is not None and current_loop is self._loop:
+            # A handler runs on this loop; waiting for its own future deadlocks it.
+            task = self._loop.create_task(coroutine)
+            self._subscription_tasks.add(task)
+            task.add_done_callback(self._subscription_done)
+        else:
+            asyncio.run_coroutine_threadsafe(coroutine, self._loop).result()
+
+    def _subscription_done(self, task: asyncio.Task) -> None:
+        self._subscription_tasks.discard(task)
+        if not task.cancelled() and task.exception() is not None:
+            log.error("subscription update failed", exc_info=task.exception())
 
     async def _send_subscribe_msg(self) -> None:
         msg = defaultdict(list)
@@ -425,9 +447,7 @@ class DataStream:
 
     def _unsubscribe(self, channel: str, symbols: List[str]) -> None:
         if self._running:
-            asyncio.run_coroutine_threadsafe(
-                self._send_unsubscribe_msg(channel, symbols), self._loop
-            ).result()
+            self._send_subscription(self._send_unsubscribe_msg(channel, symbols))
         for symbol in symbols:
             del self._handlers[channel][symbol]
 

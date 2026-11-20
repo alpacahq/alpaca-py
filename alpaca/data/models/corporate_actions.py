@@ -162,7 +162,7 @@ class RightsDistribution(BaseModel):
     rate: float
     process_date: date
     ex_date: date
-    payable_date: date = None
+    payable_date: Optional[date] = None
     record_date: Optional[date] = None
     expiration_date: Optional[date] = None
 

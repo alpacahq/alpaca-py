@@ -418,7 +418,7 @@ class DataStream:
             current_loop = asyncio.get_running_loop()
         except RuntimeError:
             current_loop = None
-        if current_loop is self._loop:
+        if current_loop is not None and current_loop is self._loop:
             # A handler runs on this loop; waiting for its own future deadlocks it.
             task = self._loop.create_task(coroutine)
             self._subscription_tasks.add(task)

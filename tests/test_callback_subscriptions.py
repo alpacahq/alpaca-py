@@ -6,12 +6,16 @@ regression into a quick failure rather than a hung test run.
 """
 
 import asyncio
+import concurrent.futures
+import inspect
 import json
+import logging
 import threading
 
 import msgpack
 import pytest
 
+from alpaca.common._streaming import send_subscription
 from alpaca.data.live import CryptoDataStream
 from alpaca.trading.stream import TradingStream
 
@@ -119,7 +123,8 @@ def test_trade_update_subscription_from_trade_update_callback():
 
 
 @pytest.mark.parametrize("make_stream, subscribe", _STREAMS)
-def test_close_cancels_pending_subscription_sends(make_stream, subscribe):
+@pytest.mark.parametrize("from_thread", [False, True], ids=["callback", "thread"])
+def test_close_cancels_pending_subscription_sends(make_stream, subscribe, from_thread):
     async def scenario():
         stream = make_stream()
         entered, cancelled, closed = asyncio.Event(), asyncio.Event(), asyncio.Event()
@@ -138,9 +143,19 @@ def test_close_cancels_pending_subscription_sends(make_stream, subscribe):
         stream._loop = asyncio.get_running_loop()
         stream._running = True
         stream._ws = Socket()
-        subscribe(stream)
+        if from_thread:
+
+            def subscribe_until_cancelled():
+                with pytest.raises(concurrent.futures.CancelledError):
+                    subscribe(stream)
+
+            caller = asyncio.create_task(asyncio.to_thread(subscribe_until_cancelled))
+        else:
+            subscribe(stream)
         await asyncio.wait_for(entered.wait(), 1)
         await asyncio.wait_for(stream.close(), 1)
+        if from_thread:
+            await asyncio.wait_for(caller, 1)
         assert cancelled.is_set()
         assert closed.is_set()
         assert not stream._subscription_tasks
@@ -169,3 +184,81 @@ def test_callback_subscription_errors_are_logged(make_stream, subscribe, caplog)
     _run_bounded(scenario)
     assert "subscription update failed" in caplog.text
     assert "send failed" in caplog.text
+
+
+@pytest.mark.parametrize("make_stream, subscribe", _STREAMS)
+def test_cross_thread_subscription_errors_propagate(make_stream, subscribe, caplog):
+    async def scenario():
+        stream = make_stream()
+
+        class Socket:
+            async def send(self, frames):
+                raise OSError("send failed")
+
+        stream._loop = asyncio.get_running_loop()
+        stream._running = True
+        stream._ws = Socket()
+        with pytest.raises(OSError, match="send failed"):
+            await asyncio.wait_for(asyncio.to_thread(subscribe, stream), 1)
+        assert not stream._subscription_tasks
+
+    _run_bounded(scenario)
+    assert "subscription update failed" not in caplog.text
+
+
+@pytest.mark.parametrize("closed_loop", [False, True], ids=["missing", "closed"])
+def test_failed_subscription_scheduling_closes_coroutine(closed_loop):
+    loop = asyncio.new_event_loop() if closed_loop else None
+    if loop is not None:
+        loop.close()
+    coroutine = _noop(None)
+    tasks = set()
+    try:
+        with pytest.raises((AttributeError, RuntimeError)):
+            send_subscription(coroutine, loop, tasks, logging.getLogger(__name__))
+        assert inspect.getcoroutinestate(coroutine) == inspect.CORO_CLOSED
+        assert not tasks
+    finally:
+        coroutine.close()
+
+
+def test_shutdown_before_subscription_starts_closes_coroutine(monkeypatch):
+    queued = threading.Event()
+    errors = []
+    callers = []
+    tasks = set()
+    coroutine = _noop(None)
+
+    def subscribe(loop):
+        try:
+            send_subscription(coroutine, loop, tasks, logging.getLogger(__name__))
+        except BaseException as exc:
+            errors.append(exc)
+
+    async def scenario():
+        loop = asyncio.get_running_loop()
+        schedule = loop.call_soon_threadsafe
+
+        def notify_queued(*args, **kwargs):
+            handle = schedule(*args, **kwargs)
+            queued.set()
+            return handle
+
+        monkeypatch.setattr(loop, "call_soon_threadsafe", notify_queued)
+        caller = threading.Thread(target=subscribe, args=(loop,), daemon=True)
+        callers.append(caller)
+        caller.start()
+        # Keep the loop busy until the send is queued, then return immediately.
+        # asyncio.run cancels the queued task before its coroutine can start.
+        assert queued.wait(1)
+
+    try:
+        _run_bounded(scenario)
+        callers[0].join(1)
+        assert not callers[0].is_alive()
+        assert len(errors) == 1
+        assert isinstance(errors[0], concurrent.futures.CancelledError)
+        assert inspect.getcoroutinestate(coroutine) == inspect.CORO_CLOSED
+        assert not tasks
+    finally:
+        coroutine.close()

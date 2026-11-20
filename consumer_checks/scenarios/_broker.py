@@ -103,7 +103,11 @@ def create_account_request(ctx: Context, label: str) -> CreateAccountRequest:
 
 
 class AccountSession:
-    """An account this scenario created. Closed on the way out."""
+    """An account this scenario created. Closed on the way out.
+
+    Funded callers must withdraw cash in ``finally`` before deleting their
+    ACH relationship and leaving this session. Closing does not withdraw.
+    """
 
     def __init__(self, ctx: Context, label: str) -> None:
         self.ctx = ctx

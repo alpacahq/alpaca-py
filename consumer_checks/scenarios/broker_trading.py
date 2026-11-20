@@ -70,6 +70,8 @@ def _wait_until_accepted(
         fetched = ctx.broker.get_order_for_account_by_id(account_id, order.id)
         assert isinstance(fetched, Order)
         current = fetched
+    if current.status == OrderStatus.PENDING_NEW:
+        raise AssertionError(f"order stayed {current.status} after {attempts} polls")
     return current
 
 

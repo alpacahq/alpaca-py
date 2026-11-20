@@ -412,12 +412,14 @@ class Recorder:
 def _stub_response(spec: Mapping[str, Any]) -> Dict[str, Any]:
     if "json" in spec:
         body, content_type = {"json": spec["json"]}, "application/json"
+    elif "base64" in spec:
+        body, content_type = {"base64": spec["base64"]}, "application/octet-stream"
     else:
         body, content_type = {"text": spec.get("text", "")}, "text/html"
     return {
         "status": spec["status"],
         "reason": spec.get("reason", ""),
-        "headers": {"Content-Type": content_type},
+        "headers": {"Content-Type": content_type, **spec.get("headers", {})},
         "body": body,
     }
 

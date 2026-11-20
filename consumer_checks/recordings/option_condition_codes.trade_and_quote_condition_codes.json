@@ -1,0 +1,191 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [],
+        "url": "https://data.alpaca.markets/v1beta1/options/meta/conditions/trade"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "A": "CANC - Transaction previously reported",
+            "B": "OSEQ - Transaction is being reported late and is out of sequence",
+            "C": "CNCL - Transaction is the last reported for the particular option contract and is now cancelled",
+            "D": "LATE - Transaction is being reported late, but is in the correct sequence",
+            "E": "CNCO - Transaction was the first one (opening) reported this day for the particular option contract and is now cancelled",
+            "F": "OPEN - Transaction is a late report of the opening trade and is out of sequence",
+            "G": "CNOL - Transaction was the only one reported this day for the particular option contract and is now to be cancelled",
+            "H": "OPNL - Transaction is a late report of the opening trade, but is in the correct sequence",
+            "I": "AUTO - Transaction was executed electronically",
+            "J": "REOP - Transaction is a reopening of an option contract in which trading has been previously halted",
+            "S": "ISOI - Transaction was the execution of an order identified as an Intermarket Sweep Order",
+            "a": "SLAN - Single Leg Auction Non ISO",
+            "b": "SLAI - Single Leg Auction ISO",
+            "c": "SLCN - Single Leg Cross Non ISO",
+            "d": "SCLI - Single Leg Cross ISO",
+            "e": "SLFT - Single Leg Floor Trade",
+            "f": "MLET - Multi Leg autoelectronic trade",
+            "g": "MLAT - Multi Leg Auction",
+            "h": "MLCT - Multi Leg Cross",
+            "i": "MLFT - Multi Leg floor trade",
+            "j": "MESL - Multi Leg autoelectronic trade against single leg(s)",
+            "k": "TLAT - Stock Options Auction",
+            "l": "MASL - Multi Leg Auction against single leg(s)",
+            "m": "MFSL - Multi Leg floor trade against single leg(s)",
+            "n": "TLET - Stock Options autoelectronic trade",
+            "o": "TLCT - Stock Options Cross",
+            "p": "TLFT - Stock Options floor trade",
+            "q": "TESL - Stock Options autoelectronic trade against single leg(s)",
+            "r": "TASL - Stock Options Auction against single leg(s)",
+            "s": "TFSL - Stock Options floor trade against single leg(s)",
+            "t": "CBMO - Multi Leg Floor Trade of Proprietary Products",
+            "u": "MCTP - Multilateral Compression Trade of Proprietary Products",
+            "v": "EXHT - Extended Hours Trade"
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Accept-Encoding",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "199",
+          "X-Ratelimit-Reset": "1795180472",
+          "X-Request-ID": "a33a0be42b9f434178bbf9af1662f707"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [],
+        "url": "https://data.alpaca.markets/v1beta1/options/meta/conditions/quote"
+      },
+      "response": {
+        "body": {
+          "json": {
+            " ": "Regular Trading",
+            "A": "Eligible for Automatic Execution",
+            "B": "Bid contains Customer Trading Interest",
+            "C": "Both Bid and Offer contain Customer Trading Interest",
+            "F": "Non-Firm Quote",
+            "I": "Indicative Value",
+            "O": "Offer contains Customer Trading Interest",
+            "R": "Rotation",
+            "T": "Trading Halted",
+            "X": "Offer side of Quote Not Firm; Bid Side Firm",
+            "Y": "Bid Side of Quote Not Firm; Offer Side Firm"
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Accept-Encoding",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "198",
+          "X-Ratelimit-Reset": "1795180472",
+          "X-Request-ID": "87f1963d9facd6b832670757dd5997ad"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_against": "checkout",
+  "recorded_with": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "quote_codes": {
+      " ": "Regular Trading",
+      "A": "Eligible for Automatic Execution",
+      "B": "Bid contains Customer Trading Interest",
+      "C": "Both Bid and Offer contain Customer Trading Interest",
+      "F": "Non-Firm Quote",
+      "I": "Indicative Value",
+      "O": "Offer contains Customer Trading Interest",
+      "R": "Rotation",
+      "T": "Trading Halted",
+      "X": "Offer side of Quote Not Firm; Bid Side Firm",
+      "Y": "Bid Side of Quote Not Firm; Offer Side Firm"
+    },
+    "trade_codes": {
+      "A": "CANC - Transaction previously reported",
+      "B": "OSEQ - Transaction is being reported late and is out of sequence",
+      "C": "CNCL - Transaction is the last reported for the particular option contract and is now cancelled",
+      "D": "LATE - Transaction is being reported late, but is in the correct sequence",
+      "E": "CNCO - Transaction was the first one (opening) reported this day for the particular option contract and is now cancelled",
+      "F": "OPEN - Transaction is a late report of the opening trade and is out of sequence",
+      "G": "CNOL - Transaction was the only one reported this day for the particular option contract and is now to be cancelled",
+      "H": "OPNL - Transaction is a late report of the opening trade, but is in the correct sequence",
+      "I": "AUTO - Transaction was executed electronically",
+      "J": "REOP - Transaction is a reopening of an option contract in which trading has been previously halted",
+      "S": "ISOI - Transaction was the execution of an order identified as an Intermarket Sweep Order",
+      "a": "SLAN - Single Leg Auction Non ISO",
+      "b": "SLAI - Single Leg Auction ISO",
+      "c": "SLCN - Single Leg Cross Non ISO",
+      "d": "SCLI - Single Leg Cross ISO",
+      "e": "SLFT - Single Leg Floor Trade",
+      "f": "MLET - Multi Leg autoelectronic trade",
+      "g": "MLAT - Multi Leg Auction",
+      "h": "MLCT - Multi Leg Cross",
+      "i": "MLFT - Multi Leg floor trade",
+      "j": "MESL - Multi Leg autoelectronic trade against single leg(s)",
+      "k": "TLAT - Stock Options Auction",
+      "l": "MASL - Multi Leg Auction against single leg(s)",
+      "m": "MFSL - Multi Leg floor trade against single leg(s)",
+      "n": "TLET - Stock Options autoelectronic trade",
+      "o": "TLCT - Stock Options Cross",
+      "p": "TLFT - Stock Options floor trade",
+      "q": "TESL - Stock Options autoelectronic trade against single leg(s)",
+      "r": "TASL - Stock Options Auction against single leg(s)",
+      "s": "TFSL - Stock Options floor trade against single leg(s)",
+      "t": "CBMO - Multi Leg Floor Trade of Proprietary Products",
+      "u": "MCTP - Multilateral Compression Trade of Proprietary Products",
+      "v": "EXHT - Extended Hours Trade"
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "option_condition_codes.trade_and_quote_condition_codes",
+  "scenario_sha256": "94cf8fa0cdc6bb55dcb9f1cfea267d2b57021bee9db1b91a9f6d0d12d778f351",
+  "vars": {}
+}

@@ -59,10 +59,34 @@ FORMAT_VERSION = 2
 HERE = Path(__file__).resolve().parent
 REPO_ROOT = HERE.parent
 
-# Paper-account identifiers replaced in recorded response bodies. Request
+# Identifiers and personal data replaced in recorded response bodies. Request
 # headers (API keys) are never recorded. Replacements keep the value's shape
-# (a UUID stays a UUID) so the SDK models still validate on replay.
-SCRUBBED_RESPONSE_KEYS = frozenset({"account_number", "account_id"})
+# (a UUID stays a UUID) so the SDK models still validate on replay. Request
+# bodies are not scrubbed: replay compares them to what the scenario sends, so
+# scenarios put synthetic values there (example.com, 666-xx-xxxx, 192.0.2.1).
+# Account ids are not in this set. Broker scenarios pass them back in the next
+# request's URL, and scrubbing them would make that URL differ on replay.
+SCRUBBED_RESPONSE_KEYS = frozenset(
+    {
+        "account_id",
+        "account_number",
+        "account_owner_name",
+        "bank_account_number",
+        "bank_routing_number",
+        "date_of_birth",
+        "email_address",
+        "family_name",
+        "given_name",
+        "ip_address",
+        "middle_name",
+        "phone_number",
+        "street_address",
+        "tax_id",
+        "transmitter_account_number",
+        "transmitter_address",
+        "transmitter_name",
+    }
+)
 # Endpoints whose top-level "id" is the paper account's own id.
 SCRUBBED_ID_PATHS = frozenset({"/v2/account"})
 SCRUBBED_VALUE = "SCRUBBED"
@@ -119,6 +143,8 @@ class Settings:
     # Left out of repr: pytest prints fixture values when a test fails.
     api_key: Optional[str] = field(default=None, repr=False)
     secret_key: Optional[str] = field(default=None, repr=False)
+    broker_api_key: Optional[str] = field(default=None, repr=False)
+    broker_secret_key: Optional[str] = field(default=None, repr=False)
 
 
 # --------------------------------------------------------------------------
@@ -197,10 +223,23 @@ def _scrubbed(value: Any) -> Any:
     return SCRUBBED_UUID
 
 
+def _redact(value: Any) -> Any:
+    """Replace a personal-data field, including when the value is a list or object."""
+    if isinstance(value, str):
+        return _scrubbed(value)
+    if isinstance(value, list):
+        return [_redact(item) for item in value]
+    if isinstance(value, dict):
+        return {key: _redact(item) for key, item in value.items()}
+    if value is None:
+        return None
+    return SCRUBBED_VALUE
+
+
 def _scrub(value: Any) -> Any:
     if isinstance(value, dict):
         return {
-            key: _scrubbed(item) if key in SCRUBBED_RESPONSE_KEYS else _scrub(item)
+            key: _redact(item) if key in SCRUBBED_RESPONSE_KEYS else _scrub(item)
             for key, item in value.items()
         }
     if isinstance(value, list):
@@ -783,6 +822,17 @@ def orphan_recordings(settings: Settings, scenario_names: Any) -> List[str]:
     return sorted(recorded - set(scenario_names))
 
 
+def recording_allowlist() -> Set[str]:
+    """Scenarios that may have no recording yet. See recording_allowlist.txt."""
+    path = Path(__file__).resolve().parent / "recording_allowlist.txt"
+    names = set()
+    for line in path.read_text(encoding="utf-8").splitlines():
+        name = line.partition("#")[0].strip()
+        if name:
+            names.add(name)
+    return names
+
+
 def sdk_location() -> Path:
     import alpaca
 
@@ -800,6 +850,17 @@ def _require_keys(settings: Settings) -> None:
             "CONSUMER_TRADING_API_SECRET_KEY, in the environment or the repo's "
             ".env, for a paper account used only by these checks (see "
             ".env.example)",
+            pytrace=False,
+        )
+
+
+def _require_broker_keys(settings: Settings) -> None:
+    if not (settings.broker_api_key and settings.broker_secret_key):
+        pytest.fail(
+            f"{settings.mode} mode needs CONSUMER_BROKER_API_KEY and "
+            "CONSUMER_BROKER_API_SECRET, in the environment or the repo's .env, "
+            "for a Broker sandbox used only by these checks (see .env.example). "
+            "Scenarios always pass sandbox=True.",
             pytrace=False,
         )
 
@@ -1004,6 +1065,9 @@ def _transport(scenario: Scenario) -> Iterator[None]:
 def _keys(settings: Settings, scenario: Scenario) -> tuple:
     if scenario.stub_responses:
         return "stub-key-id", "stub-secret-key"
+    if scenario.credentials == "broker":
+        _require_broker_keys(settings)
+        return settings.broker_api_key or "", settings.broker_secret_key or ""
     _require_keys(settings)
     return settings.api_key or "", settings.secret_key or ""
 
@@ -1072,6 +1136,13 @@ def check_scenario(scenario: Scenario, settings: Settings) -> None:
         _replay(settings, scenario, path, recording, update=True, migrate=True)
         return
     if recording is None:
+        if scenario.name in recording_allowlist():
+            pytest.skip(
+                f"no recording for {scenario.name}. Listed in "
+                "recording_allowlist.txt until the broker sandbox accepts "
+                "the consumer broker keys. Record it with `make consumer-record` "
+                "and remove the line."
+            )
         message = (
             f"no recording for {scenario.name} at {path}. Record it with "
             "`make consumer-record`."

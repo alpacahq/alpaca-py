@@ -18,7 +18,11 @@ name: Consumer checks (live paper API)
 # Needs repository secrets CONSUMER_TRADING_API_KEY_ID and
 # CONSUMER_TRADING_API_SECRET_KEY for a paper account used only for these
 # checks: some scenarios cancel every open order and close every position on
-# it. See consumer_checks/README.md.
+# it. Broker scenarios also need CONSUMER_BROKER_API_KEY and
+# CONSUMER_BROKER_API_SECRET for a Broker sandbox used only for these checks
+# (they open accounts and close them; sandbox accounts cannot be deleted).
+# Until those two secrets exist, the broker scenarios fail this job.
+# See consumer_checks/README.md.
 on:
   schedule:
     - cron: "17 15 * * 1-5" # 15:17 UTC on weekdays, inside US market hours all year
@@ -61,6 +65,8 @@ jobs:
         env:
           CONSUMER_TRADING_API_KEY_ID: ${{ secrets.CONSUMER_TRADING_API_KEY_ID }}
           CONSUMER_TRADING_API_SECRET_KEY: ${{ secrets.CONSUMER_TRADING_API_SECRET_KEY }}
+          CONSUMER_BROKER_API_KEY: ${{ secrets.CONSUMER_BROKER_API_KEY }}
+          CONSUMER_BROKER_API_SECRET: ${{ secrets.CONSUMER_BROKER_API_SECRET }}
         run: poetry run pytest consumer_checks --consumer-mode=live -rf 2>&1 | tee live.log
       - name: write summary
         if: always()

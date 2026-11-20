@@ -52,7 +52,8 @@ def pytest_addoption(parser):
     group.addoption(
         "--consumer-strict",
         action="store_true",
-        help="Replay mode: fail, instead of skip, scenarios with no recording.",
+        help="Replay mode: fail, instead of skip, scenarios with no recording. "
+        "Scenarios listed in recording_allowlist.txt are still skipped.",
     )
 
 
@@ -60,6 +61,7 @@ def pytest_addoption(parser):
 def consumer_settings(pytestconfig):
     recordings_dir = os.environ.get("CONSUMER_RECORDINGS_DIR")
     keys = _dotenv.find_keys()
+    broker_keys = _dotenv.find_broker_keys()
     return _harness.Settings(
         mode=pytestconfig.getoption("--consumer-mode"),
         update_snapshots=pytestconfig.getoption("--consumer-update-snapshots"),
@@ -72,6 +74,8 @@ def consumer_settings(pytestconfig):
         match_sdk=pytestconfig.getoption("--consumer-match-sdk"),
         api_key=keys.api_key,
         secret_key=keys.secret_key,
+        broker_api_key=broker_keys.api_key,
+        broker_secret_key=broker_keys.secret_key,
     )
 
 
@@ -98,9 +102,18 @@ def pytest_sessionfinish(session, exitstatus):
     from scenarios import SCENARIOS
 
     config = session.config
-    # Complete only if every scenario replayed and passed, without rewriting.
+    recordings_dir = Path(
+        os.environ.get("CONSUMER_RECORDINGS_DIR", HERE / "recordings")
+    )
+    # Allowlisted scenarios have no recording yet (recording_allowlist.txt).
+    # They are skipped on purpose, so a full replay is still complete.
+    excused = {
+        name
+        for name in _harness.recording_allowlist()
+        if name in SCENARIOS and not (recordings_dir / f"{name}.json").is_file()
+    }
     complete = (
-        len(_PASSED_SCENARIOS) == len(SCENARIOS)
+        len(_PASSED_SCENARIOS) + len(excused) == len(SCENARIOS)
         and session.testsfailed == 0
         and config.getoption("--consumer-mode") == "replay"
         and not config.getoption("--consumer-update-snapshots")
@@ -128,4 +141,7 @@ def pytest_report_header(config):
     ]
     if mode in ("record", "live"):
         lines.append(f"consumer checks: paper keys {_dotenv.find_keys().source}")
+        lines.append(
+            f"consumer checks: broker sandbox keys {_dotenv.find_broker_keys().source}"
+        )
     return lines

@@ -260,8 +260,10 @@ of dicts while typed as `List[Calendar] | dict`.
 `make consumer-coverage` counts a method as checked only when a scenario that
 covers it has a recording, since replay skips scenarios without one. It also
 shows how many have a scenario that is not recorded yet. Every method of
-`TradingClient` and of the market-data clients (stock, crypto, options, news,
-screener, corporate actions) has a scenario. Market-data scenarios
+`TradingClient` and of the stock, crypto, options, news and screener clients
+has a scenario, as does `CorporateActionsClient.get_corporate_actions`.
+The exceptions below have explicit reasons in `coverage_allowlist.txt`.
+Market-data scenarios
 are read only and use the feeds every paper account has: IEX for stocks and
 `indicative` for options. Fixed past dates keep requests identical on replay.
 Where data has to be current (option contracts expire), the scenario picks it
@@ -277,6 +279,12 @@ from an earlier response, such as the option chain, which replay serves back.
 
 - Streaming (websocket) clients have no scenarios yet. They would need their own
   record and replay transport, so for now cover them in live mode only.
+- `CorporateActionsClient.get_corporate_action_events` is a long-lived SSE
+  stream. The recorder buffers complete responses, so it needs bounded stream
+  recording and replay support before this method can have a scenario.
+- Fixed-income latest prices and quotes, and company logos, require subscriptions
+  the consumer account does not have (the API returns 403). Record scenarios with
+  entitled keys before removing their method-specific coverage allowlist entries.
 - `BrokerClient` (78 methods) needs Broker sandbox keys and its own safety
   rules, since sandbox accounts, transfers and journals can only be closed,
   not deleted. Not wired in yet; allowlisted in `coverage_allowlist.txt`.

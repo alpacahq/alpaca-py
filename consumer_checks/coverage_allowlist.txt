@@ -9,3 +9,7 @@
 # (`TradingClient.get_foo`), then an optional `# reason`.
 
 BrokerClient  # needs Broker sandbox keys and its own safety rules; not wired in yet
+CorporateActionsClient.get_corporate_action_events  # long-lived SSE stream; the recorder buffers the whole response and needs bounded stream recording/replay support
+FixedIncomeClient.get_fixed_income_latest_prices  # consumer account lacks the fixed-income subscription (403); record with entitled keys before removing
+FixedIncomeClient.get_fixed_income_latest_quotes  # consumer account lacks the fixed-income subscription (403); record with entitled keys before removing
+LogoClient.get_logo  # consumer account lacks the logos subscription (403); record with entitled keys before removing

@@ -1,0 +1,84 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "isins",
+            "US912797KJ59,US912797SX61"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v1beta1/fixed_income/latest/prices"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "prices": {
+              "US912797KJ59": {
+                "p": 99.6459,
+                "t": "2025-02-14T20:58:00.648Z",
+                "ytm": 4.249,
+                "ytw": 4.249
+              }
+            }
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_against": "checkout",
+  "recorded_with": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "prices": {
+      "__type__": "FixedIncomeLatestPricesResp",
+      "fields": {
+        "prices": {
+          "US912797KJ59": {
+            "__type__": "FixedIncomePrice",
+            "fields": {
+              "p": 99.6459,
+              "t": {
+                "__type__": "datetime",
+                "value": "2025-02-14T20:58:00.648000+00:00"
+              },
+              "ytm": 4.249,
+              "ytw": 4.249
+            }
+          }
+        }
+      }
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "other_market_data.fixed_income_latest_prices",
+  "scenario_sha256": "25b5e3a3caedc997c1baa99d64f0c90d8e49435c4cfb7555e952c74d9b4c4b60",
+  "vars": {}
+}

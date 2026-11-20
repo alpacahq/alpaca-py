@@ -19,7 +19,16 @@ import pkgutil
 import uuid
 from dataclasses import dataclass
 from functools import cached_property
-from typing import Any, Callable, Dict, Mapping, Optional, Sequence, Tuple
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+)
 
 from alpaca.data.historical import (
     CryptoHistoricalDataClient,
@@ -30,6 +39,10 @@ from alpaca.data.historical import (
 )
 from alpaca.data.historical.corporate_actions import CorporateActionsClient
 from alpaca.trading.client import TradingClient
+
+if TYPE_CHECKING:
+    from alpaca.data.historical.fixed_income import FixedIncomeClient
+    from alpaca.data.historical.logo import LogoClient
 
 ScenarioFn = Callable[["Context"], Mapping[str, Any]]
 
@@ -51,7 +64,8 @@ class Scenario:
         stub_responses: Fixed responses served in order instead of calling the
             API, in every mode. For behavior the API cannot be made to show on
             demand (429, 5xx, non-JSON errors). Each is ``{"status": int}``
-            plus ``"json": ...`` or ``"text": ...``.
+            plus ``"json": ...``, ``"text": ...`` or ``"base64": ...``.
+            Optional ``"headers"`` override the default response headers.
     """
 
     name: str
@@ -135,6 +149,19 @@ class Context:
     @cached_property
     def corporate_actions(self) -> CorporateActionsClient:
         return CorporateActionsClient(self._api_key, self._secret_key)
+
+    @cached_property
+    def fixed_income(self) -> FixedIncomeClient:
+        # Imported lazily: the BASELINE release does not have this client yet.
+        from alpaca.data.historical.fixed_income import FixedIncomeClient
+
+        return FixedIncomeClient(self._api_key, self._secret_key)
+
+    @cached_property
+    def logos(self) -> LogoClient:
+        from alpaca.data.historical.logo import LogoClient
+
+        return LogoClient(self._api_key, self._secret_key)
 
     # raw_data=True: methods return the API's JSON (dicts and lists) instead of
     # models. Users who opt in index those directly.

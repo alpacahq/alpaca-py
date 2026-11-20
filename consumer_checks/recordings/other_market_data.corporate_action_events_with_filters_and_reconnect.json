@@ -1,0 +1,82 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "text/event-stream",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "cache-control": "no-cache",
+          "last-event-id": "01J9RPMV5TKB8WX3M4F1KZ7QH2",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "region",
+            "us"
+          ],
+          [
+            "since",
+            "2026-03-20T00:00:00+00:00"
+          ],
+          [
+            "since_id",
+            "01J9RPMV5TKB8WX3M4F1KZ7QH2"
+          ],
+          [
+            "type",
+            "cash_dividend_corporateaction_event,stock_dividend_corporateaction_event"
+          ],
+          [
+            "until",
+            "2026-03-21T00:00:00+00:00"
+          ],
+          [
+            "until_id",
+            "01J9RVB6Y4ZK8M3N7QD2WX1RFP"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v1beta1/events/corporate-actions"
+      },
+      "response": {
+        "body": {
+          "text": ": heartbeat\n\nid: 01J9RPMV5TKB8WX3M4F1KZ7QH2\ndata: {\"action\": \"insert\", \"event_id\": \"01J9RPMV5TKB8WX3M4F1KZ7QH2\", \"event_type\": \"cash_dividend_corporateaction_event\", \"region\": \"us\", \"at\": \"2026-03-20T12:24:58.807230Z\", \"ca\": {\"id\": \"1dbc7685-9517-4a77-a236-8527d49cefdc\", \"symbol\": \"AAPL\", \"cusip\": \"037833100\", \"currency\": \"USD\", \"ex_date\": \"2026-05-09\", \"payable_date\": \"2026-05-15\", \"process_date\": \"2026-05-15\", \"record_date\": \"2026-05-12\", \"rate\": \"0.24\", \"foreign\": false, \"special\": false}}\n\nid: 01J9RVB6Y4ZK8M3N7QD2WX1RFP\ndata: {\"action\": \"update\", \"event_id\": \"01J9RVB6Y4ZK8M3N7QD2WX1RFP\", \"event_type\": \"cash_dividend_corporateaction_event\", \"region\": \"us\", \"at\": \"2026-03-20T12:24:58.807230Z\", \"ca\": {\"id\": \"1dbc7685-9517-4a77-a236-8527d49cefdc\", \"symbol\": \"AAPL\", \"cusip\": \"037833100\", \"currency\": \"USD\", \"ex_date\": \"2026-05-09\", \"payable_date\": \"2026-05-15\", \"process_date\": \"2026-05-15\", \"record_date\": \"2026-05-12\", \"rate\": \"0.24\", \"foreign\": false, \"special\": false}}\n\n"
+        },
+        "headers": {
+          "Content-Type": "text/event-stream"
+        },
+        "reason": "",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_against": "checkout",
+  "recorded_with": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "events": [
+      "{\"action\": \"insert\", \"event_id\": \"01J9RPMV5TKB8WX3M4F1KZ7QH2\", \"event_type\": \"cash_dividend_corporateaction_event\", \"region\": \"us\", \"at\": \"2026-03-20T12:24:58.807230Z\", \"ca\": {\"id\": \"1dbc7685-9517-4a77-a236-8527d49cefdc\", \"symbol\": \"AAPL\", \"cusip\": \"037833100\", \"currency\": \"USD\", \"ex_date\": \"2026-05-09\", \"payable_date\": \"2026-05-15\", \"process_date\": \"2026-05-15\", \"record_date\": \"2026-05-12\", \"rate\": \"0.24\", \"foreign\": false, \"special\": false}}",
+      "{\"action\": \"update\", \"event_id\": \"01J9RVB6Y4ZK8M3N7QD2WX1RFP\", \"event_type\": \"cash_dividend_corporateaction_event\", \"region\": \"us\", \"at\": \"2026-03-20T12:24:58.807230Z\", \"ca\": {\"id\": \"1dbc7685-9517-4a77-a236-8527d49cefdc\", \"symbol\": \"AAPL\", \"cusip\": \"037833100\", \"currency\": \"USD\", \"ex_date\": \"2026-05-09\", \"payable_date\": \"2026-05-15\", \"process_date\": \"2026-05-15\", \"record_date\": \"2026-05-12\", \"rate\": \"0.24\", \"foreign\": false, \"special\": false}}"
+    ]
+  },
+  "result_from": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "other_market_data.corporate_action_events_with_filters_and_reconnect",
+  "scenario_sha256": "dca3691fa04dffe0726573855707c4b52286dc4436d8a0014a84c9718652923a",
+  "vars": {}
+}

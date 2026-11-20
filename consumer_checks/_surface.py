@@ -3,7 +3,7 @@
 
 Items (one id each):
 
-* ``client:<Client>``: a public ``RESTClient`` subclass
+* ``client:<Client>``: a public ``RESTClient`` or market-data ``DataStream`` subclass
 * ``method:<Client>.<method>``: a public method of it
 * ``param:<Client>.<method>(<name>)``: a parameter of that method
 * ``request:<public path>.<field>``: a field of a request model
@@ -39,7 +39,7 @@ ROOT = "alpaca"
 class Surface:
     items: Set[str] = field(default_factory=set)
     clients: Dict[str, type] = field(default_factory=dict)
-    # Client name -> public method names (not inherited from RESTClient).
+    # Client name -> public method names (not inherited from the base client).
     methods: Dict[str, List[str]] = field(default_factory=dict)
     # Model class -> public path, for requests and responses.
     requests: Dict[type, str] = field(default_factory=dict)
@@ -100,35 +100,41 @@ def _model_fields(cls: Type[Any]) -> List[str]:
     return names
 
 
+def _add_client(surface: Surface, cls: type, inherited: Set[str]) -> None:
+    client = cls.__name__
+    surface.clients[client] = cls
+    surface.items.add(f"client:{client}")
+    names = sorted(
+        name
+        for name, member in inspect.getmembers(cls, inspect.isfunction)
+        if not name.startswith("_") and name not in inherited
+    )
+    surface.methods[client] = names
+    for name in names:
+        surface.items.add(f"method:{client}.{name}")
+        for parameter in inspect.signature(getattr(cls, name)).parameters.values():
+            if parameter.name == "self" or parameter.kind in (
+                parameter.VAR_POSITIONAL,
+                parameter.VAR_KEYWORD,
+            ):
+                continue
+            surface.items.add(f"param:{client}.{name}({parameter.name})")
+
+
 def collect() -> Surface:
     from pydantic import BaseModel
 
     from alpaca.common.rest import RESTClient
+    from alpaca.data.live.websocket import DataStream
 
     surface = Surface()
-    inherited = set(dir(RESTClient))
+    rest_inherited = set(dir(RESTClient))
+    stream_inherited = set(dir(DataStream))
     for cls, path in sorted(_public_classes().items(), key=lambda item: item[1]):
         if issubclass(cls, RESTClient) and cls is not RESTClient:
-            client = cls.__name__
-            surface.clients[client] = cls
-            surface.items.add(f"client:{client}")
-            names = sorted(
-                name
-                for name, member in inspect.getmembers(cls, inspect.isfunction)
-                if not name.startswith("_") and name not in inherited
-            )
-            surface.methods[client] = names
-            for name in names:
-                surface.items.add(f"method:{client}.{name}")
-                for parameter in inspect.signature(
-                    getattr(cls, name)
-                ).parameters.values():
-                    if parameter.name == "self" or parameter.kind in (
-                        parameter.VAR_POSITIONAL,
-                        parameter.VAR_KEYWORD,
-                    ):
-                        continue
-                    surface.items.add(f"param:{client}.{name}({parameter.name})")
+            _add_client(surface, cls, rest_inherited)
+        elif issubclass(cls, DataStream) and cls is not DataStream:
+            _add_client(surface, cls, stream_inherited)
         elif issubclass(cls, BaseModel):
             kind = "request" if _is_request(cls) else "response"
             (surface.requests if kind == "request" else surface.responses)[cls] = path

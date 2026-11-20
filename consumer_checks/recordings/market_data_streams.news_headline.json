@@ -1,0 +1,136 @@
+{
+  "format": 2,
+  "interactions": [],
+  "recorded_against": "baseline",
+  "recorded_with": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "news": {
+      "__type__": "News",
+      "fields": {
+        "author": "Benzinga Newsdesk",
+        "content": "",
+        "created_at": {
+          "__type__": "datetime",
+          "value": "2024-03-09T16:00:00+00:00"
+        },
+        "headline": "Example headline",
+        "id": 39358670,
+        "images": null,
+        "source": "benzinga",
+        "summary": "",
+        "symbols": [
+          "AVGO"
+        ],
+        "updated_at": {
+          "__type__": "datetime",
+          "value": "2024-03-09T16:00:00+00:00"
+        },
+        "url": "https://example.test/news/39358670"
+      }
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pydantic": "2.14.2",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "market_data_streams.news_headline",
+  "scenario_sha256": "7007d8a29490dbfdf2f1df43351770f273abe546e0f53c96dc66131b52f48cad",
+  "vars": {},
+  "websockets": [
+    {
+      "connect": {
+        "headers": {
+          "content-type": "application/msgpack",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "options": {
+          "max_queue": 1024,
+          "ping_interval": 10,
+          "ping_timeout": 180
+        },
+        "url": "wss://stream.data.alpaca.markets/v1beta1/news"
+      },
+      "events": [
+        {
+          "recv": [
+            {
+              "T": "success",
+              "msg": "connected"
+            }
+          ]
+        },
+        {
+          "send": {
+            "action": "auth",
+            "key": "<redacted>",
+            "secret": "<redacted>"
+          }
+        },
+        {
+          "recv": [
+            {
+              "T": "success",
+              "msg": "authenticated"
+            }
+          ]
+        },
+        {
+          "send": {
+            "action": "subscribe",
+            "news": [
+              "AVGO"
+            ]
+          }
+        },
+        {
+          "recv": [
+            {
+              "T": "n",
+              "author": "Benzinga Newsdesk",
+              "content": "",
+              "created_at": {
+                "$timestamp": [
+                  1710000000,
+                  0
+                ]
+              },
+              "headline": "Example headline",
+              "id": 39358670,
+              "source": "benzinga",
+              "summary": "",
+              "symbols": [
+                "AVGO"
+              ],
+              "updated_at": {
+                "$timestamp": [
+                  1710000000,
+                  0
+                ]
+              },
+              "url": "https://example.test/news/39358670"
+            }
+          ]
+        },
+        {
+          "send": {
+            "action": "unsubscribe",
+            "news": [
+              "AVGO"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

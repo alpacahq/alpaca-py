@@ -64,6 +64,9 @@ class Collector:
             collector._depth += 1
             try:
                 collector._record_call(client, name, signature, instance, args, kwargs)
+                args, kwargs = collector._watch_callbacks(
+                    signature, instance, args, kwargs
+                )
                 result = original(instance, *args, **kwargs)
             finally:
                 collector._depth -= 1
@@ -83,6 +86,48 @@ class Collector:
                 continue
             self.exercised.add(f"param:{client}.{name}({parameter})")
             self._walk_request(value, set())
+
+    def _watch_callbacks(self, signature, instance, args, kwargs) -> Tuple[Any, Any]:
+        """Wrap callbacks passed in, so the models they receive are observed.
+
+        Stream methods (``subscribe_*``) return ``None``: their models reach
+        the handler instead.
+        """
+        try:
+            bound = signature.bind(instance, *args, **kwargs)
+        except TypeError:
+            return args, kwargs
+        changed = False
+        for parameter, value in list(bound.arguments.items()):
+            if parameter != "self" and self._is_callback(value):
+                bound.arguments[parameter] = self._observing(value)
+                changed = True
+        if not changed:
+            return args, kwargs
+        return bound.args[1:], bound.kwargs
+
+    @staticmethod
+    def _is_callback(value: Any) -> bool:
+        return callable(value) and not isinstance(value, (type, BaseModel))
+
+    def _observing(self, handler: Any) -> Any:
+        collector = self
+
+        if inspect.iscoroutinefunction(handler):
+
+            @functools.wraps(handler)
+            async def async_wrapper(message, *args, **kwargs):
+                collector._walk_response(message, set())
+                return await handler(message, *args, **kwargs)
+
+            return async_wrapper
+
+        @functools.wraps(handler)
+        def wrapper(message, *args, **kwargs):
+            collector._walk_response(message, set())
+            return handler(message, *args, **kwargs)
+
+        return wrapper
 
     def _walk_request(self, value: Any, seen: Set[int]) -> None:
         if id(value) in seen:

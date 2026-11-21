@@ -117,3 +117,27 @@ def test_get_news(reqmock, news_client: NewsClient):
     assert newsset.df.index.nlevels == 1
 
     assert reqmock.call_count == 2
+
+
+def test_news_set_dump_omits_unset_page_token():
+    article = {
+        "author": "John",
+        "content": "",
+        "created_at": "2024-08-18T20:15:44Z",
+        "headline": "headline",
+        "id": 40432158,
+        "source": "source",
+        "summary": "summary",
+        "symbols": ["AAPL"],
+        "updated_at": "2024-08-18T20:15:44Z",
+        "url": "https://",
+    }
+
+    # A response without a page token must serialize like every other data set
+    # (see BaseDataSet._serialize): the field is absent, not explicitly None.
+    news_set = NewsSet({"news": [article]})
+    assert "next_page_token" not in news_set.model_dump()
+
+    # A token supplied by the API response is still serialized.
+    paged = NewsSet({"news": [article], "next_page_token": "p1"})
+    assert paged.model_dump()["next_page_token"] == "p1"

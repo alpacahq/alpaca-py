@@ -56,6 +56,9 @@ from packaging.version import Version
 from requests.adapters import HTTPAdapter
 from requests.structures import CaseInsensitiveDict
 
+from alpaca.broker.client import BrokerClient
+from alpaca.common.exceptions import APIError
+from alpaca.trading.client import TradingClient
 from scenarios import Context, Scenario, new_unique_id
 
 # 2: request and response headers recorded, snapshots keyed by attribute name,
@@ -69,8 +72,9 @@ REPO_ROOT = HERE.parent
 # (a UUID stays a UUID) so the SDK models still validate on replay. Request
 # bodies are not scrubbed: replay compares them to what the scenario sends, so
 # scenarios put synthetic values there (example.com, 666-xx-xxxx, 192.0.2.1).
-# Account ids are not in this set. Broker scenarios pass them back in the next
-# request's URL, and scrubbing them would make that URL differ on replay.
+# A broker account's own ``id`` is kept (``account_id`` fields elsewhere are
+# scrubbed). Scenarios pass that id back in the next request's URL, and
+# scrubbing it would make the URL differ on replay.
 SCRUBBED_RESPONSE_KEYS = frozenset(
     {
         "account_id",
@@ -1355,6 +1359,56 @@ def _record(settings: Settings, scenario: Scenario, path: Path) -> None:
     _replay(settings, scenario, path, recording, update=True)
 
 
+@contextmanager
+def _unrecorded_until_keys_work(
+    settings: Settings, scenario: Scenario
+) -> Iterator[None]:
+    """Record and live: skip a recording_allowlist.txt scenario whose keys do not work.
+
+    Replay already skips these. Without this, the weekday live job and the
+    baseline re-record fail on scenarios that cannot be recorded yet. An
+    uncaught 401 or 403 only skips when a separate ``get_clock`` with the same
+    keys is rejected too: the broker API also answers 401 for an unknown
+    account, and that must still fail the scenario. Scenarios with a
+    recording are not listed, so they still fail on missing or rejected keys.
+    """
+    if scenario.name not in recording_allowlist():
+        yield
+        return
+    reason = (
+        f"{scenario.name} is listed in recording_allowlist.txt and the "
+        f"{scenario.credentials} keys"
+    )
+    if scenario.credentials == "broker" and not (
+        settings.broker_api_key and settings.broker_secret_key
+    ):
+        pytest.skip(f"{reason} are not set")
+    if scenario.credentials == "trading" and not (
+        settings.api_key and settings.secret_key
+    ):
+        pytest.skip(f"{reason} are not set")
+    try:
+        yield
+    except APIError as error:
+        if error.status_code in (401, 403) and _keys_rejected(settings, scenario):
+            pytest.skip(f"{reason} were rejected ({error.status_code})")
+        raise
+
+
+def _keys_rejected(settings: Settings, scenario: Scenario) -> bool:
+    """Whether the API refuses this scenario's keys on a call that needs nothing else."""
+    try:
+        if scenario.credentials == "broker":
+            BrokerClient(
+                settings.broker_api_key, settings.broker_secret_key, sandbox=True
+            ).get_clock()
+        else:
+            TradingClient(settings.api_key, settings.secret_key, paper=True).get_clock()
+    except APIError as error:
+        return error.status_code in (401, 403)
+    return False
+
+
 def _live(settings: Settings, scenario: Scenario) -> None:
     api_key, secret_key = _keys(settings, scenario)
     ctx = Context(
@@ -1375,10 +1429,12 @@ def check_scenario(scenario: Scenario, settings: Settings) -> None:
                 f"{scenario.name} is already recorded. Pass --consumer-rerecord to "
                 "record it again (that changes its recording: sdk-breaking label)."
             )
-        _record(settings, scenario, path)
+        with _unrecorded_until_keys_work(settings, scenario):
+            _record(settings, scenario, path)
         return
     if settings.mode == "live":
-        _live(settings, scenario)
+        with _unrecorded_until_keys_work(settings, scenario):
+            _live(settings, scenario)
         return
 
     recording = load_recording(path)

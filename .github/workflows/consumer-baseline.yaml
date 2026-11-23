@@ -7,7 +7,8 @@ name: Consumer checks baseline bump
 # Uses the same dedicated paper account as the nightly live job (repository
 # secrets CONSUMER_TRADING_API_KEY_ID / CONSUMER_TRADING_API_SECRET_KEY) and the
 # same Broker sandbox (CONSUMER_BROKER_API_KEY / CONSUMER_BROKER_API_SECRET).
-# Re-record fails for broker scenarios until those secrets exist. A PR
+# Broker scenarios still in recording_allowlist.txt are skipped while those keys
+# are missing or rejected; recorded ones fail. A PR
 # opened with GITHUB_TOKEN does not start other workflows: close and reopen it
 # (or push to it) to run CI.
 on:

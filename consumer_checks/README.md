@@ -263,7 +263,10 @@ variables are read. The pytest header shows where the keys came from, never
 their values. A broker scenario that actually calls the sandbox fails when its
 keys are missing. The preflight still exits 0 in that case, so a trading-only
 re-record is not blocked; it prints that the broker keys were not found.
-Stubbed broker scenarios do not need keys.
+Stubbed broker scenarios do not need keys. A scenario still listed in
+`recording_allowlist.txt` is skipped instead, in record and live mode, when its
+keys are missing or the API rejects them (an uncaught 401 or 403). Once it is
+recorded and its line is removed, the same problem fails it.
 
 `make consumer-record` builds `.consumer-venv/` with the released SDK from
 `BASELINE` and the third-party versions pinned in `poetry.lock` (what CI
@@ -334,7 +337,8 @@ from an earlier response, such as the option chain, which replay serves back.
   `https://broker-api.sandbox.alpaca.markets`. Until those recordings exist,
   `BrokerClient` stays in `coverage_allowlist.txt`, the broker globs stay in
   `surface_allowlist.txt`, and each unrecorded scenario stays in
-  `recording_allowlist.txt` (strict replay skips those instead of failing).
+  `recording_allowlist.txt` (strict replay skips those instead of failing, and
+  record and live skip them while the broker keys are missing or rejected).
   After recording, remove the scenario's line (the baseline workflow does this
   for the scenarios it records; replay fails on a stale line), then the
   `BrokerClient` allowlist line. Two fields new since BASELINE are still unused

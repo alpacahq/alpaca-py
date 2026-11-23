@@ -1,6 +1,7 @@
 # Scenarios allowed to run without a recording.
 #
 # `--consumer-strict` (CI, and check_surface.py) skips these instead of failing.
+# Record and live mode skip them while their keys are missing or rejected.
 # Remove a line once `make consumer-record` has written that scenario's
 # recording. Replay fails while a recorded scenario is still listed here.
 #

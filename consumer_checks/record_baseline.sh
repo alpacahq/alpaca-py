@@ -22,8 +22,9 @@
 # for a paper account used only by these checks, in the environment or the
 # repo's .env (CONSUMER_ENV_FILE=path for another file). Broker scenarios that
 # call the sandbox also need CONSUMER_BROKER_API_KEY / CONSUMER_BROKER_API_SECRET
-# (sandbox=True always). Missing broker keys do not fail this preflight; the
-# broker scenario fails when it records. See _dotenv.py and .env.example.
+# (sandbox=True always). Missing broker keys do not fail this preflight; a
+# broker scenario fails when it records, unless it is still in
+# recording_allowlist.txt (then it is skipped). See _dotenv.py and .env.example.
 # Optional: CONSUMER_VENV=path (defaults to .consumer-venv).
 set -euo pipefail
 

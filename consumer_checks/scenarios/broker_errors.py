@@ -44,8 +44,12 @@ def unknown_account_raises_api_error(ctx: Context) -> Dict[str, Any]:
     raise AssertionError("an unknown account id should raise APIError")
 
 
-@scenario(covers=["BrokerClient.get_asset"], credentials=BROKER)
+@scenario(
+    covers=["BrokerClient.get_asset", "BrokerClient.get_clock"], credentials=BROKER
+)
 def unknown_asset_raises_api_error(ctx: Context) -> Dict[str, Any]:
+    # A call that must succeed first proves the keys work.
+    ctx.broker.get_clock()
     try:
         ctx.broker.get_asset("NOT-A-REAL-SYMBOL")
     except APIError as error:

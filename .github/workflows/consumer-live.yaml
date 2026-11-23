@@ -21,7 +21,8 @@ name: Consumer checks (live paper API)
 # it. Broker scenarios also need CONSUMER_BROKER_API_KEY and
 # CONSUMER_BROKER_API_SECRET for a Broker sandbox used only for these checks
 # (they open accounts and close them; sandbox accounts cannot be deleted).
-# Until those two secrets exist, the broker scenarios fail this job.
+# Broker scenarios still in consumer_checks/recording_allowlist.txt are skipped
+# while those keys are missing or rejected (401/403). Recorded ones still fail.
 # See consumer_checks/README.md.
 on:
   schedule:

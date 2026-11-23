@@ -21,7 +21,7 @@ from alpaca.common.enums import PaginationType
 from alpaca.common.exceptions import APIError
 
 from . import Context, scenario
-from ._broker import fund_with_ach, opened_account, withdraw_quietly
+from ._broker import fund_with_ach, opened_account, release_ach_quietly
 
 BROKER = "broker"
 
@@ -106,8 +106,7 @@ def ach_bank_and_transfer(ctx: Context) -> Dict[str, Any]:
             assert relationship.bank_account_type == BankAccountType.CHECKING
         finally:
             # Withdraw even when an assertion or API call above fails.
-            withdraw_quietly(ctx, account_id, relationship.id)
-            ctx.broker.delete_ach_relationship_for_account(account_id, relationship.id)
+            release_ach_quietly(ctx, account_id, relationship.id)
 
     return {
         "relationship_status": relationship.status,

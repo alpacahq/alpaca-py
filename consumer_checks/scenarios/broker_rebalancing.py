@@ -7,6 +7,7 @@ the API has no delete.
 
 from __future__ import annotations
 
+import warnings
 from typing import Any, Dict, List
 
 from alpaca.broker.enums import (
@@ -51,6 +52,17 @@ def _weights() -> List[Weight]:
     ]
 
 
+def _quietly(step: str, call: Any, *args: Any) -> None:
+    """Cleanup that cannot replace the error a failed scenario is raising.
+
+    On success the checks after cleanup still fail if it did not work.
+    """
+    try:
+        call(*args)
+    except Exception as error:
+        warnings.warn(f"could not {step}: {error}", stacklevel=2)
+
+
 @scenario(
     covers=[
         "BrokerClient.create_portfolio",
@@ -89,7 +101,6 @@ def portfolio_subscription_and_run(ctx: Context) -> Dict[str, Any]:
         )
     )
     assert isinstance(portfolio, Portfolio)
-    subscription_id = None
     try:
         with opened_account(ctx, "rebalance") as session:
             session.wait_until_ready()
@@ -124,85 +135,92 @@ def portfolio_subscription_and_run(ctx: Context) -> Dict[str, Any]:
                 )
             )
             assert isinstance(subscription, Subscription)
-            subscription_id = subscription.id
-            by_id = ctx.broker.get_subscription_by_id(subscription.id)
-            assert isinstance(by_id, Subscription)
-            assert by_id.id == subscription.id
+            subscribed = True
+            try:
+                by_id = ctx.broker.get_subscription_by_id(subscription.id)
+                assert isinstance(by_id, Subscription)
+                assert by_id.id == subscription.id
 
-            page = ctx.broker.get_subscriptions(
-                GetSubscriptionsRequest(account_id=account_id, limit=10),
-                handle_pagination=PaginationType.NONE,
-            )
-            assert isinstance(page, SubscriptionPage)
-            assert page.subscriptions
-            # account_id is scrubbed in recordings; compare the id we created.
-            assert all(item.id == subscription.id for item in page.subscriptions)
-            listed = ctx.broker.get_subscriptions(
-                GetSubscriptionsRequest(account_id=account_id),
-                max_items_limit=10,
-            )
-            deprecated = ctx.broker.get_all_subscriptions(
-                GetSubscriptionsRequest(account_id=account_id),
-                max_items_limit=10,
-            )
-            # Correspondent-wide endpoint filtered by a query parameter: every
-            # row must be the subscription we created.
-            for rows in (listed, deprecated):
-                assert isinstance(rows, list) and rows
+                page = ctx.broker.get_subscriptions(
+                    GetSubscriptionsRequest(account_id=account_id, limit=10),
+                    handle_pagination=PaginationType.NONE,
+                )
+                assert isinstance(page, SubscriptionPage)
+                assert page.subscriptions
+                # account_id is scrubbed in recordings; compare the id we created.
+                assert all(item.id == subscription.id for item in page.subscriptions)
+                listed = ctx.broker.get_subscriptions(
+                    GetSubscriptionsRequest(account_id=account_id),
+                    max_items_limit=10,
+                )
+                deprecated = ctx.broker.get_all_subscriptions(
+                    GetSubscriptionsRequest(account_id=account_id),
+                    max_items_limit=10,
+                )
+                # Correspondent-wide endpoint filtered by a query parameter:
+                # every row must be the subscription we created.
+                for rows in (listed, deprecated):
+                    assert isinstance(rows, list) and rows
+                    assert all(
+                        isinstance(item, Subscription) and item.id == subscription.id
+                        for item in rows
+                    )
+
+                run = ctx.broker.create_manual_run(
+                    CreateRunRequest(
+                        account_id=account_id,
+                        type=RunType.FULL_REBALANCE,
+                        weights=_weights(),
+                    )
+                )
+                assert isinstance(run, RebalancingRun)
+                run_by_id = ctx.broker.get_run_by_id(run.id)
+                assert isinstance(run_by_id, RebalancingRun)
+                assert run_by_id.id == run.id
+                # A run that has already left the cancelable statuses returns
+                # 4xx. Replay follows whichever response was recorded.
+                try:
+                    ctx.broker.cancel_run_by_id(run.id)
+                    cancel_status = None
+                except APIError as error:
+                    assert isinstance(error.status_code, int)
+                    assert 400 <= error.status_code < 500
+                    cancel_status = error.status_code
+
+                runs = ctx.broker.get_runs(
+                    GetRunsRequest(account_id=account_id, limit=10),
+                    handle_pagination=PaginationType.NONE,
+                )
+                assert isinstance(runs, RebalancingRunPage)
+                assert runs.runs
+                assert all(item.id == run.id for item in runs.runs)
+                all_runs = ctx.broker.get_all_runs(
+                    GetRunsRequest(account_id=account_id),
+                    max_items_limit=10,
+                )
+                assert isinstance(all_runs, list) and all_runs
                 assert all(
-                    isinstance(item, Subscription) and item.id == subscription.id
-                    for item in rows
+                    isinstance(item, RebalancingRun) and item.id == run.id
+                    for item in all_runs
                 )
 
-            run = ctx.broker.create_manual_run(
-                CreateRunRequest(
-                    account_id=account_id,
-                    type=RunType.FULL_REBALANCE,
-                    weights=_weights(),
-                )
-            )
-            assert isinstance(run, RebalancingRun)
-            run_by_id = ctx.broker.get_run_by_id(run.id)
-            assert isinstance(run_by_id, RebalancingRun)
-            assert run_by_id.id == run.id
-            # A run that has already left the cancelable statuses returns 4xx.
-            # Replay follows whichever response was recorded.
-            try:
-                ctx.broker.cancel_run_by_id(run.id)
-                cancel_status = None
-            except APIError as error:
-                assert isinstance(error.status_code, int)
-                assert 400 <= error.status_code < 500
-                cancel_status = error.status_code
-
-            runs = ctx.broker.get_runs(
-                GetRunsRequest(account_id=account_id, limit=10),
-                handle_pagination=PaginationType.NONE,
-            )
-            assert isinstance(runs, RebalancingRunPage)
-            assert runs.runs
-            assert all(item.id == run.id for item in runs.runs)
-            all_runs = ctx.broker.get_all_runs(
-                GetRunsRequest(account_id=account_id),
-                max_items_limit=10,
-            )
-            assert isinstance(all_runs, list) and all_runs
-            assert all(
-                isinstance(item, RebalancingRun) and item.id == run.id
-                for item in all_runs
-            )
-
-            ctx.broker.unsubscribe_account(subscription.id)
-            subscription_id = None
+                ctx.broker.unsubscribe_account(subscription.id)
+                subscribed = False
+            finally:
+                # Still inside the account session: closing the account and
+                # inactivating the portfolio both fail while it is subscribed.
+                if subscribed:
+                    _quietly(
+                        f"unsubscribe sandbox subscription {subscription.id}",
+                        ctx.broker.unsubscribe_account,
+                        subscription.id,
+                    )
     finally:
-        # Inactivate fails while a subscription remains, including when the body
-        # raised before unsubscribe.
-        if subscription_id is not None:
-            try:
-                ctx.broker.unsubscribe_account(subscription_id)
-            except APIError:
-                pass
-        ctx.broker.inactivate_portfolio_by_id(portfolio.id)
+        _quietly(
+            f"inactivate sandbox portfolio {portfolio.id}",
+            ctx.broker.inactivate_portfolio_by_id,
+            portfolio.id,
+        )
 
     inactive = ctx.broker.get_portfolio_by_id(portfolio.id)
     assert isinstance(inactive, Portfolio)

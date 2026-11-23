@@ -33,8 +33,8 @@ from ._broker import (
     expect_client_error,
     fund_with_ach,
     opened_account,
+    release_ach_quietly,
     wait_for_buying_power,
-    withdraw_quietly,
 )
 from ._errors import error_details
 
@@ -182,8 +182,7 @@ def order_and_position_lifecycle(ctx: Context) -> Dict[str, Any]:
             except APIError:
                 pass
             # close_account is refused while the account still holds the deposit.
-            withdraw_quietly(ctx, account_id, relationship.id)
-            ctx.broker.delete_ach_relationship_for_account(account_id, relationship.id)
+            release_ach_quietly(ctx, account_id, relationship.id)
 
     return {
         "replaced": replaced,

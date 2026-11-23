@@ -27,8 +27,8 @@ from . import Context, scenario
 from ._broker import (
     fund_with_ach,
     opened_account,
+    release_ach_quietly,
     wait_for_buying_power,
-    withdraw_quietly,
 )
 
 BROKER = "broker"
@@ -84,10 +84,15 @@ def _return_cash(
         )
         assert isinstance(journal, Journal)
         _wait(ctx, journal.id)
-    except APIError as error:
+    except Exception as error:
+        detail = (
+            error.status_code
+            if isinstance(error, APIError)
+            else f"{type(error).__name__}: {error}"
+        )
         warnings.warn(
             f"could not return journaled cash from sandbox account {from_account}: "
-            f"{error.status_code}.",
+            f"{detail}.",
             stacklevel=2,
         )
 
@@ -207,10 +212,7 @@ def cash_journal_between_two_accounts(ctx: Context) -> Dict[str, Any]:
             # close_account is refused while an account holds cash: bring the
             # journaled cash back to the funded account and withdraw it there.
             _return_cash(ctx, dest.account.id, source.account.id, in_flight)
-            withdraw_quietly(ctx, source.account.id, relationship.id)
-            ctx.broker.delete_ach_relationship_for_account(
-                source.account.id, relationship.id
-            )
+            release_ach_quietly(ctx, source.account.id, relationship.id)
 
     return {
         "journal_status": settled.status,

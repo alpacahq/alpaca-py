@@ -171,7 +171,11 @@ def expect_client_error(call: Callable[[], Any]) -> APIError:
 def fund_with_ach(
     ctx: Context, account_id: UUID, amount: str = "1000"
 ) -> Tuple[ACHRelationship, Transfer]:
-    """Incoming sandbox ACH. The caller deletes the relationship."""
+    """Incoming sandbox ACH. The caller releases it with ``release_ach_quietly``.
+
+    If the deposit cannot be made, the relationship is deleted here, because
+    the caller's cleanup only starts once this returns.
+    """
     relationship = ctx.broker.create_ach_relationship_for_account(
         account_id,
         CreateACHRelationshipRequest(
@@ -183,15 +187,19 @@ def fund_with_ach(
         ),
     )
     assert isinstance(relationship, ACHRelationship)
-    transfer = ctx.broker.create_transfer_for_account(
-        account_id,
-        CreateACHTransferRequest(
-            amount=amount,
-            direction=TransferDirection.INCOMING,
-            relationship_id=relationship.id,
-        ),
-    )
-    assert isinstance(transfer, Transfer)
+    try:
+        transfer = ctx.broker.create_transfer_for_account(
+            account_id,
+            CreateACHTransferRequest(
+                amount=amount,
+                direction=TransferDirection.INCOMING,
+                relationship_id=relationship.id,
+            ),
+        )
+        assert isinstance(transfer, Transfer)
+    except Exception:
+        _delete_ach_quietly(ctx, account_id, relationship.id)
+        raise
     return relationship, transfer
 
 
@@ -250,20 +258,47 @@ def withdraw_remaining_cash(
     return transfer
 
 
+def _describe(error: Exception) -> str:
+    if isinstance(error, APIError):
+        return str(error.status_code)
+    return f"{type(error).__name__}: {error}"
+
+
 def withdraw_quietly(ctx: Context, account_id: UUID, relationship_id: UUID) -> None:
     """``withdraw_remaining_cash`` for ``finally`` blocks.
 
     It must not replace the error a failed scenario is already raising. If the
     cash stays, ``close_account`` fails next, so the problem is still reported.
+    Replay keeps request mismatches and fails on them even when caught here.
     """
     try:
         withdraw_remaining_cash(ctx, account_id, relationship_id)
-    except APIError as error:
+    except Exception as error:
         warnings.warn(
             f"could not withdraw cash from sandbox account {account_id}: "
-            f"{error.status_code}. Withdraw it by hand before closing.",
+            f"{_describe(error)}. Withdraw it by hand before closing.",
             stacklevel=2,
         )
+
+
+def _delete_ach_quietly(ctx: Context, account_id: UUID, relationship_id: UUID) -> None:
+    try:
+        ctx.broker.delete_ach_relationship_for_account(account_id, relationship_id)
+    except Exception as error:
+        warnings.warn(
+            f"could not delete ACH relationship {relationship_id} of sandbox "
+            f"account {account_id}: {_describe(error)}.",
+            stacklevel=3,
+        )
+
+
+def release_ach_quietly(ctx: Context, account_id: UUID, relationship_id: UUID) -> None:
+    """``finally`` cleanup for ``fund_with_ach``: withdraw, then delete the ACH.
+
+    Neither step replaces the error a failed scenario is already raising.
+    """
+    withdraw_quietly(ctx, account_id, relationship_id)
+    _delete_ach_quietly(ctx, account_id, relationship_id)
 
 
 def _close_quietly(ctx: Context, account_id: UUID) -> None:

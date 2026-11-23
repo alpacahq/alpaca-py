@@ -431,15 +431,19 @@ class DataStream:
         await self._ws.send(frames)
 
     def _unsubscribe(self, channel: str, symbols: List[str]) -> None:
-        if self._running:
-            send_subscription(
-                self._send_unsubscribe_msg(channel, symbols),
-                self._loop,
-                self._subscription_tasks,
-                log,
-            )
-        for symbol in symbols:
-            del self._handlers[channel][symbol]
+        # Remove handlers even when close() cancels this send. Leaving them
+        # would make the next connect subscribe to symbols the caller dropped.
+        try:
+            if self._running:
+                send_subscription(
+                    self._send_unsubscribe_msg(channel, symbols),
+                    self._loop,
+                    self._subscription_tasks,
+                    log,
+                )
+        finally:
+            for symbol in symbols:
+                del self._handlers[channel][symbol]
 
     async def _send_unsubscribe_msg(self, channel: str, symbols: List[str]) -> None:
         if symbols:

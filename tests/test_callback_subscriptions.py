@@ -222,6 +222,91 @@ def test_failed_subscription_scheduling_closes_coroutine(closed_loop):
         coroutine.close()
 
 
+def test_cross_thread_subscription_is_tracked_before_it_runs(monkeypatch):
+    async def scenario():
+        loop = asyncio.get_running_loop()
+        tasks: set[asyncio.Task] = set()
+        ran = []
+        release = asyncio.Event()
+
+        async def send():
+            ran.append(asyncio.current_task() in tasks)
+            await release.wait()
+
+        queued = threading.Event()
+        errors = []
+
+        def subscribe():
+            try:
+                send_subscription(send(), loop, tasks, logging.getLogger(__name__))
+            except BaseException as exc:
+                errors.append(exc)
+
+        call_soon_threadsafe = loop.call_soon_threadsafe
+
+        def notify_queued(*args, **kwargs):
+            handle = call_soon_threadsafe(*args, **kwargs)
+            queued.set()
+            return handle
+
+        monkeypatch.setattr(loop, "call_soon_threadsafe", notify_queued)
+        caller = threading.Thread(target=subscribe, daemon=True)
+        caller.start()
+        # Block this loop until the send is queued. The schedule callback is
+        # ahead of the snapshot below, so the task is registered first and the
+        # coroutine has not run.
+        assert queued.wait(1)
+        seen = {}
+
+        def snapshot():
+            seen["tasks"] = tuple(tasks)
+            seen["ran"] = list(ran)
+
+        loop.call_soon(snapshot)
+        await asyncio.sleep(0)
+        assert seen["tasks"]
+        assert seen["ran"] == []
+        release.set()
+        await asyncio.wait_for(asyncio.to_thread(caller.join, 1), 1)
+        assert not caller.is_alive()
+        assert errors == []
+        assert ran == [True]
+        assert not tasks
+
+    _run_bounded(scenario)
+
+
+def test_cancelled_cross_thread_unsubscribe_drops_handler():
+    async def scenario():
+        stream = CryptoDataStream("test-key", "test-secret")
+        entered = asyncio.Event()
+
+        class Socket:
+            async def send(self, frames):
+                entered.set()
+                await asyncio.Event().wait()
+
+            async def close(self):
+                pass
+
+        stream._loop = asyncio.get_running_loop()
+        stream._running = True
+        stream._ws = Socket()
+        stream._handlers["quotes"]["BTC/USD"] = _noop
+
+        def unsubscribe():
+            with pytest.raises(concurrent.futures.CancelledError):
+                stream.unsubscribe_quotes("BTC/USD")
+
+        caller = asyncio.create_task(asyncio.to_thread(unsubscribe))
+        await asyncio.wait_for(entered.wait(), 1)
+        await asyncio.wait_for(stream.close(), 1)
+        await asyncio.wait_for(caller, 1)
+        assert "BTC/USD" not in stream._handlers["quotes"]
+
+    _run_bounded(scenario)
+
+
 def test_shutdown_before_subscription_starts_closes_coroutine(monkeypatch):
     queued = threading.Event()
     errors = []

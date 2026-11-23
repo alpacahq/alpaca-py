@@ -1,4 +1,5 @@
 import asyncio
+import concurrent.futures
 import logging
 from typing import Any, Coroutine
 
@@ -9,48 +10,80 @@ def send_subscription(
     tasks: set[asyncio.Task],
     logger: logging.Logger,
 ) -> None:
-    """Schedule a stream-loop send, or wait for it when called from another thread."""
+    """Schedule a stream-loop send, or wait for it when called from another thread.
+
+    The task is registered on the stream loop before its coroutine runs, so a
+    later ``close()`` can cancel it. Callers already running on that loop return
+    immediately; waiting on their own task would deadlock it.
+    """
     try:
         current_loop = asyncio.get_running_loop()
     except RuntimeError:
         current_loop = None
     if current_loop is not None and current_loop is loop:
         # A handler runs on this loop; waiting for its own future deadlocks it.
+        _track_subscription(coroutine, loop, tasks, logger)
+        return
+
+    waiter: concurrent.futures.Future[None] = concurrent.futures.Future()
+
+    def schedule() -> None:
+        # This callback is the turn that creates the task. Register it before
+        # returning so close(), which snapshots the set synchronously, cannot
+        # start in between and miss the send.
         try:
-            task = loop.create_task(coroutine)
-        except BaseException:
-            coroutine.close()
-            raise
-        tasks.add(task)
+            task = _track_subscription(coroutine, loop, tasks, None)
+        except BaseException as exc:
+            _reject_waiter(waiter, exc)
+            return
+        task.add_done_callback(lambda done: _relay_result(waiter, done))
 
-        def subscription_done(task: asyncio.Task) -> None:
-            tasks.discard(task)
-            if not task.cancelled() and task.exception() is not None:
-                logger.error("subscription update failed", exc_info=task.exception())
+    try:
+        loop.call_soon_threadsafe(schedule)
+    except BaseException:
+        coroutine.close()
+        raise
+    waiter.result()
 
-        task.add_done_callback(subscription_done)
+
+def _track_subscription(
+    coroutine: Coroutine[Any, Any, None],
+    loop: asyncio.AbstractEventLoop,
+    tasks: set[asyncio.Task],
+    logger: logging.Logger | None,
+) -> asyncio.Task:
+    try:
+        task = loop.create_task(coroutine)
+    except BaseException:
+        coroutine.close()
+        raise
+    tasks.add(task)
+
+    def subscription_done(done: asyncio.Task) -> None:
+        tasks.discard(done)
+        if logger is None or done.cancelled():
+            return
+        error = done.exception()
+        if error is not None:
+            logger.error("subscription update failed", exc_info=error)
+
+    task.add_done_callback(subscription_done)
+    return task
+
+
+def _reject_waiter(waiter: concurrent.futures.Future[None], exc: BaseException) -> None:
+    if not waiter.done():
+        waiter.set_exception(exc)
+
+
+def _relay_result(waiter: concurrent.futures.Future[None], done: asyncio.Task) -> None:
+    if waiter.done():
+        return
+    if done.cancelled():
+        waiter.cancel()
+        return
+    error = done.exception()
+    if error is None:
+        waiter.set_result(None)
     else:
-
-        async def tracked_send() -> None:
-            # Register on the stream loop so close() can cancel cross-thread
-            # sends too, without mutating its task set from another thread.
-            task = asyncio.current_task()
-            assert task is not None
-            tasks.add(task)
-            try:
-                await coroutine
-            finally:
-                tasks.discard(task)
-
-        send = tracked_send()
-        try:
-            future = asyncio.run_coroutine_threadsafe(send, loop)
-        except BaseException:
-            send.close()
-            coroutine.close()
-            raise
-        # Cancellation before tracked_send starts never reaches its await.
-        # This private future completes after the scheduled task is done, so
-        # closing the original coroutine here is safe even on that path.
-        future.add_done_callback(lambda _: coroutine.close())
-        future.result()
+        waiter.set_exception(error)

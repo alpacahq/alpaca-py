@@ -4,10 +4,6 @@ from uuid import UUID
 
 from pydantic import Field, field_serializer, field_validator, model_validator
 
-# Explicit rather than `import *`: the hand-written overrides bound below (same
-# names: compatibility shapes or SDK subclasses) are left out, so static analysis
-# (type checkers, AexPy) sees the same classes as runtime. The generated-
-# compatibility tests fail when a new generated name is missing here.
 from alpaca.broker._generated.requests import (
     AcatsCashBalance,
     AcatsContraAccountDetails,

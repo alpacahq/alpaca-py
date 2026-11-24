@@ -183,10 +183,9 @@ class Contact(_GeneratedContact):
         """Accept the state as given; the Broker API enforces when it is required.
 
         The API requires contact.state on account creation when
-        identity.country_of_tax_residence is the United States (not when
-        contact.country is USA), and never checks its presence on partial updates.
-        This validator therefore does not reject anything, matching the behavior of
-        earlier releases, and keeps its signature for compatibility.
+        identity.country_of_tax_residence is the United States, and does not
+        check for it on partial updates. This validator therefore never raises,
+        matching earlier releases, and keeps its signature for compatibility.
 
         Returns:
             str: The value of the state field

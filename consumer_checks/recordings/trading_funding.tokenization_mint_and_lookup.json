@@ -1,0 +1,430 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": {
+          "json": {
+            "issuer": "xstocks",
+            "network": "solana",
+            "qty": "10",
+            "underlying_symbol": "AAPL",
+            "wallet_address": "5dXY1aH2tQpV3wXmJg6Z7c8B4nKvF9bA1pQrSt2uVwYxXz"
+          }
+        },
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "content-type": "application/json",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "POST",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/tokenization/mint"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "client_account_id": "06b9d76e-1733-460c-844e-48d1ae0f10c3",
+            "client_external_account_id": "AP-EXT-001",
+            "client_request_id": "ap-request-2025-11-04-001",
+            "created_at": "2026-01-02T15:04:05Z",
+            "fees": "0.01",
+            "issuer": "xstocks",
+            "issuer_request_id": "issuer-req-1",
+            "network": "solana",
+            "qty": "10",
+            "status": "pending",
+            "token_symbol": "AAPLx",
+            "tokenization_request_id": "5b1d6a3e-7f0a-4d2c-b8e1-9e6f1c0d2c4a",
+            "transfer_status": "pending",
+            "tx_hash": "5KJw8f1d2c4a9e6f1c0d2c4a7f0a4d2cb8e19e6f1c0d2c4a",
+            "type": "mint",
+            "underlying_symbol": "AAPL",
+            "updated_at": "2026-01-02T16:04:05Z",
+            "wallet_address": "5dXY1aH2tQpV3wXmJg6Z7c8B4nKvF9bA1pQrSt2uVwYxXz"
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "after",
+            "2026-01-01T00:00:00+00:00"
+          ],
+          [
+            "before",
+            "2026-02-01T00:00:00+00:00"
+          ],
+          [
+            "issuer",
+            "xstocks"
+          ],
+          [
+            "network",
+            "solana"
+          ],
+          [
+            "status",
+            "pending"
+          ],
+          [
+            "type",
+            "mint"
+          ],
+          [
+            "underlying_symbol",
+            "AAPL"
+          ]
+        ],
+        "url": "https://paper-api.alpaca.markets/v2/tokenization/requests"
+      },
+      "response": {
+        "body": {
+          "json": [
+            {
+              "client_account_id": "06b9d76e-1733-460c-844e-48d1ae0f10c3",
+              "client_external_account_id": "AP-EXT-001",
+              "client_request_id": "ap-request-2025-11-04-001",
+              "created_at": "2026-01-02T15:04:05Z",
+              "fees": "0.01",
+              "issuer": "xstocks",
+              "issuer_request_id": "issuer-req-1",
+              "network": "solana",
+              "qty": "10",
+              "status": "pending",
+              "token_symbol": "AAPLx",
+              "tokenization_request_id": "5b1d6a3e-7f0a-4d2c-b8e1-9e6f1c0d2c4a",
+              "transfer_status": "pending",
+              "tx_hash": "5KJw8f1d2c4a9e6f1c0d2c4a7f0a4d2cb8e19e6f1c0d2c4a",
+              "type": "mint",
+              "underlying_symbol": "AAPL",
+              "updated_at": "2026-01-02T16:04:05Z",
+              "wallet_address": "5dXY1aH2tQpV3wXmJg6Z7c8B4nKvF9bA1pQrSt2uVwYxXz"
+            }
+          ]
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/tokenization/requests/5b1d6a3e-7f0a-4d2c-b8e1-9e6f1c0d2c4a"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "client_account_id": "06b9d76e-1733-460c-844e-48d1ae0f10c3",
+            "client_external_account_id": "AP-EXT-001",
+            "client_request_id": "ap-request-2025-11-04-001",
+            "created_at": "2026-01-02T15:04:05Z",
+            "fees": "0.01",
+            "issuer": "xstocks",
+            "issuer_request_id": "issuer-req-1",
+            "network": "solana",
+            "qty": "10",
+            "status": "pending",
+            "token_symbol": "AAPLx",
+            "tokenization_request_id": "5b1d6a3e-7f0a-4d2c-b8e1-9e6f1c0d2c4a",
+            "transfer_status": "pending",
+            "tx_hash": "5KJw8f1d2c4a9e6f1c0d2c4a7f0a4d2cb8e19e6f1c0d2c4a",
+            "type": "mint",
+            "underlying_symbol": "AAPL",
+            "updated_at": "2026-01-02T16:04:05Z",
+            "wallet_address": "5dXY1aH2tQpV3wXmJg6Z7c8B4nKvF9bA1pQrSt2uVwYxXz"
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "client_request_id",
+            "ap-request-2025-11-04-001"
+          ]
+        ],
+        "url": "https://paper-api.alpaca.markets/v2/tokenization/requests:by_client_request_id"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "client_account_id": "06b9d76e-1733-460c-844e-48d1ae0f10c3",
+            "client_external_account_id": "AP-EXT-001",
+            "client_request_id": "ap-request-2025-11-04-001",
+            "created_at": "2026-01-02T15:04:05Z",
+            "fees": "0.01",
+            "issuer": "xstocks",
+            "issuer_request_id": "issuer-req-1",
+            "network": "solana",
+            "qty": "10",
+            "status": "pending",
+            "token_symbol": "AAPLx",
+            "tokenization_request_id": "5b1d6a3e-7f0a-4d2c-b8e1-9e6f1c0d2c4a",
+            "transfer_status": "pending",
+            "tx_hash": "5KJw8f1d2c4a9e6f1c0d2c4a7f0a4d2cb8e19e6f1c0d2c4a",
+            "type": "mint",
+            "underlying_symbol": "AAPL",
+            "updated_at": "2026-01-02T16:04:05Z",
+            "wallet_address": "5dXY1aH2tQpV3wXmJg6Z7c8B4nKvF9bA1pQrSt2uVwYxXz"
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_against": "checkout",
+  "recorded_with": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "by_client": {
+      "__type__": "TokenizationRequest",
+      "fields": {
+        "client_account_id": {
+          "__type__": "UUID",
+          "value": "06b9d76e-1733-460c-844e-48d1ae0f10c3"
+        },
+        "client_external_account_id": "AP-EXT-001",
+        "client_request_id": "ap-request-2025-11-04-001",
+        "created_at": {
+          "__type__": "datetime",
+          "value": "2026-01-02T15:04:05+00:00"
+        },
+        "fees": "0.01",
+        "issuer": {
+          "__type__": "TokenizationIssuer",
+          "name": "XSTOCKS",
+          "value": "xstocks"
+        },
+        "issuer_request_id": "issuer-req-1",
+        "network": {
+          "__type__": "TokenizationNetwork",
+          "name": "SOLANA",
+          "value": "solana"
+        },
+        "qty": "10",
+        "status": {
+          "__type__": "TokenizationRequestStatus",
+          "name": "PENDING",
+          "value": "pending"
+        },
+        "token_symbol": "AAPLx",
+        "tokenization_request_id": "5b1d6a3e-7f0a-4d2c-b8e1-9e6f1c0d2c4a",
+        "transfer_status": {
+          "__type__": "TokenizationTransferStatus",
+          "name": "PENDING",
+          "value": "pending"
+        },
+        "tx_hash": "5KJw8f1d2c4a9e6f1c0d2c4a7f0a4d2cb8e19e6f1c0d2c4a",
+        "type": {
+          "__type__": "TokenizationRequestType",
+          "name": "MINT",
+          "value": "mint"
+        },
+        "underlying_symbol": "AAPL",
+        "updated_at": {
+          "__type__": "datetime",
+          "value": "2026-01-02T16:04:05+00:00"
+        },
+        "wallet_address": "5dXY1aH2tQpV3wXmJg6Z7c8B4nKvF9bA1pQrSt2uVwYxXz"
+      }
+    },
+    "fetched": {
+      "__type__": "TokenizationRequest",
+      "fields": {
+        "client_account_id": {
+          "__type__": "UUID",
+          "value": "06b9d76e-1733-460c-844e-48d1ae0f10c3"
+        },
+        "client_external_account_id": "AP-EXT-001",
+        "client_request_id": "ap-request-2025-11-04-001",
+        "created_at": {
+          "__type__": "datetime",
+          "value": "2026-01-02T15:04:05+00:00"
+        },
+        "fees": "0.01",
+        "issuer": {
+          "__type__": "TokenizationIssuer",
+          "name": "XSTOCKS",
+          "value": "xstocks"
+        },
+        "issuer_request_id": "issuer-req-1",
+        "network": {
+          "__type__": "TokenizationNetwork",
+          "name": "SOLANA",
+          "value": "solana"
+        },
+        "qty": "10",
+        "status": {
+          "__type__": "TokenizationRequestStatus",
+          "name": "PENDING",
+          "value": "pending"
+        },
+        "token_symbol": "AAPLx",
+        "tokenization_request_id": "5b1d6a3e-7f0a-4d2c-b8e1-9e6f1c0d2c4a",
+        "transfer_status": {
+          "__type__": "TokenizationTransferStatus",
+          "name": "PENDING",
+          "value": "pending"
+        },
+        "tx_hash": "5KJw8f1d2c4a9e6f1c0d2c4a7f0a4d2cb8e19e6f1c0d2c4a",
+        "type": {
+          "__type__": "TokenizationRequestType",
+          "name": "MINT",
+          "value": "mint"
+        },
+        "underlying_symbol": "AAPL",
+        "updated_at": {
+          "__type__": "datetime",
+          "value": "2026-01-02T16:04:05+00:00"
+        },
+        "wallet_address": "5dXY1aH2tQpV3wXmJg6Z7c8B4nKvF9bA1pQrSt2uVwYxXz"
+      }
+    },
+    "listed": [
+      {
+        "__type__": "TokenizationRequest",
+        "fields": {
+          "client_account_id": {
+            "__type__": "UUID",
+            "value": "06b9d76e-1733-460c-844e-48d1ae0f10c3"
+          },
+          "client_external_account_id": "AP-EXT-001",
+          "client_request_id": "ap-request-2025-11-04-001",
+          "created_at": {
+            "__type__": "datetime",
+            "value": "2026-01-02T15:04:05+00:00"
+          },
+          "fees": "0.01",
+          "issuer": {
+            "__type__": "TokenizationIssuer",
+            "name": "XSTOCKS",
+            "value": "xstocks"
+          },
+          "issuer_request_id": "issuer-req-1",
+          "network": {
+            "__type__": "TokenizationNetwork",
+            "name": "SOLANA",
+            "value": "solana"
+          },
+          "qty": "10",
+          "status": {
+            "__type__": "TokenizationRequestStatus",
+            "name": "PENDING",
+            "value": "pending"
+          },
+          "token_symbol": "AAPLx",
+          "tokenization_request_id": "5b1d6a3e-7f0a-4d2c-b8e1-9e6f1c0d2c4a",
+          "transfer_status": {
+            "__type__": "TokenizationTransferStatus",
+            "name": "PENDING",
+            "value": "pending"
+          },
+          "tx_hash": "5KJw8f1d2c4a9e6f1c0d2c4a7f0a4d2cb8e19e6f1c0d2c4a",
+          "type": {
+            "__type__": "TokenizationRequestType",
+            "name": "MINT",
+            "value": "mint"
+          },
+          "underlying_symbol": "AAPL",
+          "updated_at": {
+            "__type__": "datetime",
+            "value": "2026-01-02T16:04:05+00:00"
+          },
+          "wallet_address": "5dXY1aH2tQpV3wXmJg6Z7c8B4nKvF9bA1pQrSt2uVwYxXz"
+        }
+      }
+    ],
+    "minted": {
+      "__type__": "TokenizationMintResponse",
+      "fields": {
+        "created_at": {
+          "__type__": "datetime",
+          "value": "2026-01-02T15:04:05+00:00"
+        },
+        "issuer": {
+          "__type__": "TokenizationIssuer",
+          "name": "XSTOCKS",
+          "value": "xstocks"
+        },
+        "network": {
+          "__type__": "TokenizationNetwork",
+          "name": "SOLANA",
+          "value": "solana"
+        },
+        "qty": "10",
+        "status": {
+          "__type__": "TokenizationRequestStatus",
+          "name": "PENDING",
+          "value": "pending"
+        },
+        "token_symbol": "AAPLx",
+        "tokenization_request_id": "5b1d6a3e-7f0a-4d2c-b8e1-9e6f1c0d2c4a",
+        "underlying_symbol": "AAPL"
+      }
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "trading_funding.tokenization_mint_and_lookup",
+  "scenario_sha256": "76f4fa4637a344a169f236e7d037236d2a9b6e2eedd0f162fff6dbae8f88ea94",
+  "vars": {}
+}

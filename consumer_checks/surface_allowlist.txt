@@ -23,11 +23,6 @@ request:alpaca.trading.CreateOrderRequestTakeProfit.*  # as CreateOrderRequest
 request:alpaca.trading.MLegOrderLeg.*  # only inside CreateOrderRequest.legs
 request:alpaca.trading.AddAssetToWatchlistRequest.*  # add_asset_to_watchlist_by_id still takes a symbol, not this request
 request:alpaca.trading.CreateLocateRequest.*  # no TradingClient method creates locates yet
-request:alpaca.trading.CreateWhitelistedAddressRequest.*  # no TradingClient method for crypto whitelisted addresses yet
-request:alpaca.trading.UpdateWhitelistedAddressTravelRuleInfoRequest.*  # as CreateWhitelistedAddressRequest
-request:alpaca.trading.TravelRuleInfo.*  # only inside the whitelisted-address requests
-request:alpaca.trading.TravelRuleManualEntry.*  # only inside TravelRuleInfo
-request:alpaca.trading.TokenizationMintRequest.*  # no TradingClient method for tokenization yet
 
 # Responses of TradingClient methods that still build the hand-written model
 # (Order, TradeAccount, Asset, Clock, Calendar, ...), not the generated one.
@@ -49,24 +44,18 @@ response:alpaca.trading.WatchlistWithoutAsset.*  # watchlist methods return Watc
 response:alpaca.trading.Error.*  # errors reach users as APIError
 response:alpaca.trading.ErrorResponse.*  # as Error
 
+# Returned as APIError, or not returned, by the crypto-funding methods.
+response:alpaca.trading.WalletError.*  # wallet failures reach users as APIError, not WalletError
+response:alpaca.trading.TravelRule*  # validation and next-action models; the client methods take TravelRuleInfo and do not return these
+
 # Responses of endpoints TradingClient has no method for yet.
 response:alpaca.trading.*ActivityV2.*  # account activities (V2) have no client method yet
 response:alpaca.trading.ActivityEventV2*  # as above
 response:alpaca.trading.ActivityV2Detail*  # as above
 response:alpaca.trading.NonTradeActivities.*  # as above
 response:alpaca.trading.TradingActivities.*  # as above
-response:alpaca.trading.CryptoTransfer.*  # crypto wallets and transfers have no client method yet
-response:alpaca.trading.CryptoWallet.*  # as above
-response:alpaca.trading.WalletError.*  # as above
-response:alpaca.trading.WalletFeeEstimateResponse.*  # as above
-response:alpaca.trading.WhitelistedAddress.*  # as above
-response:alpaca.trading.SearchVASPsResponse.*  # as above
-response:alpaca.trading.VASP.*  # as above
-response:alpaca.trading.TravelRule*  # as above
 response:alpaca.trading.Locate*  # locates have no client method yet
 response:alpaca.trading.ListLocate*  # as above
-response:alpaca.trading.TokenizationMintResponse.*  # tokenization has no client method yet
-response:alpaca.trading.TokenizationRequest.*  # as above
 
 # Corporate action stream models: the SSE client yields raw strings, not these models.
 response:alpaca.data.CaEventBase.*  # stream event models, not returned by any client method

@@ -1071,9 +1071,27 @@ class GetAccountActivitiesByTypeRequest(NonEmptyRequest):
         return values
 
 
+def _reject_conflicting_activity_event_filters(values: dict) -> None:
+    """Time filters and id filters are separate replay modes."""
+
+    if values.get("since") is not None and values.get("since_id") is not None:
+        raise ValueError("Cannot set since and since_id at the same time")
+
+    if values.get("until") is not None and values.get("since") is None:
+        raise ValueError("Cannot set until without since")
+
+    if values.get("until_id") is not None and values.get("since_id") is None:
+        raise ValueError("Cannot set until_id without since_id")
+
+
 class ActivityEventsRequest(NonEmptyRequest):
     """
     Query filters for the account-activities SSE stream.
+
+    ``since`` cannot be combined with ``since_id``. ``until`` is the end
+    filter for a time range, and ``until_id`` is the end filter for an id
+    range. If ``until`` is set, ``since`` is required. If ``until_id`` is set,
+    ``since_id`` is required.
 
     Attributes:
         since (Optional[datetime]): Replay events at or after this time.
@@ -1086,6 +1104,14 @@ class ActivityEventsRequest(NonEmptyRequest):
     until: Optional[datetime] = None
     since_id: Optional[str] = None
     until_id: Optional[str] = None
+
+    @model_validator(mode="before")
+    def reject_conflicting_filters(cls, values: dict) -> dict:
+        if not isinstance(values, dict):
+            return values
+
+        _reject_conflicting_activity_event_filters(values)
+        return values
 
 
 class GetTokenizationRequestsRequest(NonEmptyRequest):

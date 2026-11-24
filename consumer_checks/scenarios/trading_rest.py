@@ -220,6 +220,11 @@ def locates_and_quotes(ctx: Context) -> Dict[str, Any]:
             "text": SSE_BODY,
             "headers": {"Content-Type": "text/event-stream"},
         },
+        {
+            "status": 200,
+            "text": SSE_BODY,
+            "headers": {"Content-Type": "text/event-stream"},
+        },
     ],
 )
 def account_activities_and_stream(ctx: Context) -> Dict[str, Any]:
@@ -270,11 +275,16 @@ def account_activities_and_stream(ctx: Context) -> Dict[str, Any]:
             date=datetime(2019, 8, 1, tzinfo=timezone.utc)
         ),
     )
-    events = list(
+    # ``since`` cannot be combined with ``since_id``. Each request uses its
+    # matching end filter.
+    events_by_time = list(
+        ctx.trading.subscribe_to_activities_sse(
+            ActivityEventsRequest(since=SINCE_AT, until=UNTIL_AT)
+        )
+    )
+    events_by_id = list(
         ctx.trading.subscribe_to_activities_sse(
             ActivityEventsRequest(
-                since=SINCE_AT,
-                until=UNTIL_AT,
                 since_id="01ARZ3NDEKTSV4RRFFQ69G5FAV",
                 until_id="01ARZ3NDEKTSV4RRFFQ69G5FB0",
             )
@@ -289,13 +299,15 @@ def account_activities_and_stream(ctx: Context) -> Dict[str, Any]:
     assert isinstance(fills, list) and isinstance(fills[0], TradingActivities)
     assert isinstance(dividends, list) and isinstance(dividends[0], NonTradeActivities)
     assert dividends[0].symbol == "T"
-    assert events == ['{"activity_type":"FILL","qty":"1"}']
+    assert events_by_time == ['{"activity_type":"FILL","qty":"1"}']
+    assert events_by_id == events_by_time
     return {
         "ranged": ranged,
         "for_day": for_day,
         "fills": fills,
         "dividends": dividends,
-        "events": events,
+        "events_by_time": events_by_time,
+        "events_by_id": events_by_id,
     }
 
 

@@ -52,32 +52,51 @@ def test_subscribe_to_activities_sse_uses_v2beta1(
     reqmock, trading_client: TradingClient
 ):
     payload = '{"activity_type":"FILL"}'
-    reqmock.get(
-        f"{_PAPER}/v2beta1/events/activities",
-        text=f"data: {payload}\n\n",
-        headers={"Content-Type": "text/event-stream"},
-    )
+    stream = {
+        "text": f"data: {payload}\n\n",
+        "headers": {"Content-Type": "text/event-stream"},
+    }
+    # ``since`` cannot be combined with ``since_id``. Each request uses its
+    # matching end filter.
+    reqmock.get(f"{_PAPER}/v2beta1/events/activities", [stream, stream])
 
-    events = list(
+    by_time = list(
         trading_client.subscribe_to_activities_sse(
             ActivityEventsRequest(
                 since="2026-01-01T00:00:00Z",
-                until="2026-01-01T00:00:00Z",
+                until="2026-01-02T00:00:00Z",
+            )
+        )
+    )
+    by_id = list(
+        trading_client.subscribe_to_activities_sse(
+            ActivityEventsRequest(
                 since_id="01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                until_id="01ARZ3NDEKTSV4RRFFQ69G5FB0",
             )
         )
     )
 
-    sent = reqmock.request_history[0]
-    assert events == [payload]
-    assert sent.method == "GET"
-    assert urlparse(sent.url).path == "/v2beta1/events/activities"
-    assert "/v2/events/activities" not in sent.url
-    assert sent.headers["Accept"] == "text/event-stream"
-    query = parse_qs(urlparse(sent.url).query)
-    assert "since" in query
-    assert "until" in query
-    assert query["since_id"] == ["01ARZ3NDEKTSV4RRFFQ69G5FAV"]
+    assert by_time == [payload]
+    assert by_id == [payload]
+    time_sent, id_sent = reqmock.request_history
+    for sent in (time_sent, id_sent):
+        assert sent.method == "GET"
+        assert urlparse(sent.url).path == "/v2beta1/events/activities"
+        assert "/v2/events/activities" not in sent.url
+        assert sent.headers["Accept"] == "text/event-stream"
+
+    time_query = parse_qs(urlparse(time_sent.url).query)
+    assert time_query["since"] == ["2026-01-01T00:00:00+00:00"]
+    assert time_query["until"] == ["2026-01-02T00:00:00+00:00"]
+    assert "since_id" not in time_query
+    assert "until_id" not in time_query
+
+    id_query = parse_qs(urlparse(id_sent.url).query)
+    assert id_query["since_id"] == ["01ARZ3NDEKTSV4RRFFQ69G5FAV"]
+    assert id_query["until_id"] == ["01ARZ3NDEKTSV4RRFFQ69G5FB0"]
+    assert "since" not in id_query
+    assert "until" not in id_query
 
 
 def test_subscribe_to_activities_sse_keeps_error_body(
@@ -206,6 +225,18 @@ def test_account_activity_requests_reject_conflicting_filters():
 
     with pytest.raises(ValueError, match="date and until"):
         GetAccountActivitiesByTypeRequest(date="2022-02-02", until="2022-02-03")
+
+    with pytest.raises(ValueError, match="since and since_id"):
+        ActivityEventsRequest(
+            since="2026-01-01T00:00:00Z",
+            since_id="01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        )
+
+    with pytest.raises(ValueError, match="until without since"):
+        ActivityEventsRequest(until="2026-01-02T00:00:00Z")
+
+    with pytest.raises(ValueError, match="until_id without since_id"):
+        ActivityEventsRequest(until_id="01ARZ3NDEKTSV4RRFFQ69G5FB0")
 
 
 def test_get_account_activities_requires_activity_type(

@@ -258,12 +258,38 @@
             "2026-01-01T00:00:00+00:00"
           ],
           [
-            "since_id",
-            "01ARZ3NDEKTSV4RRFFQ69G5FAV"
-          ],
-          [
             "until",
             "2026-01-02T00:00:00+00:00"
+          ]
+        ],
+        "url": "https://paper-api.alpaca.markets/v2beta1/events/activities"
+      },
+      "response": {
+        "body": {
+          "text": "data: {\"activity_type\":\"FILL\",\"qty\":\"1\"}\n\n"
+        },
+        "headers": {
+          "Content-Type": "text/event-stream"
+        },
+        "reason": "",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "text/event-stream",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "cache-control": "no-cache",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "since_id",
+            "01ARZ3NDEKTSV4RRFFQ69G5FAV"
           ],
           [
             "until_id",
@@ -328,7 +354,10 @@
         }
       }
     ],
-    "events": [
+    "events_by_id": [
+      "{\"activity_type\":\"FILL\",\"qty\":\"1\"}"
+    ],
+    "events_by_time": [
       "{\"activity_type\":\"FILL\",\"qty\":\"1\"}"
     ],
     "fills": [
@@ -484,6 +513,6 @@
     "requests": "2.34.2"
   },
   "scenario": "trading_rest.account_activities_and_stream",
-  "scenario_sha256": "54ca3d32f42103ab9ca9399f239b08ef1e49cd087e78f3a2ea54140b7ae9c966",
+  "scenario_sha256": "2ebe881a4873487da66f3de90d03575ca685bdf94c0b38b8d47ae21e1a906e30",
   "vars": {}
 }

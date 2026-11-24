@@ -950,7 +950,8 @@ class TradingClient(RESTClient):
         so the request URL is ``/v2beta1/events/activities``.
 
         Args:
-            request_params: Optional ``since``, ``until``, ``since_id``, and ``until_id`` filters.
+            request_params: Optional time filters (``since`` with ``until``) or id
+                filters (``since_id`` with ``until_id``). The two kinds cannot be combined.
 
         Returns:
             Iterator: Yields event payloads as they arrive.

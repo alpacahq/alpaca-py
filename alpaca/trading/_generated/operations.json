@@ -3,25 +3,25 @@
   "operations": [
     {
       "httpMethod": "GET",
-      "methodName": null,
+      "methodName": "get_locates",
       "operationId": "listLocates",
       "path": "/v1/locates"
     },
     {
       "httpMethod": "POST",
-      "methodName": null,
+      "methodName": "create_locate",
       "operationId": "createLocates",
       "path": "/v1/locates"
     },
     {
       "httpMethod": "GET",
-      "methodName": null,
+      "methodName": "get_locate_quotes",
       "operationId": "listLocateQuotes",
       "path": "/v1/locates/quotes"
     },
     {
       "httpMethod": "GET",
-      "methodName": null,
+      "methodName": "get_locate",
       "operationId": "getLocate",
       "path": "/v1/locates/{locate_id}"
     },
@@ -33,13 +33,13 @@
     },
     {
       "httpMethod": "GET",
-      "methodName": null,
+      "methodName": "get_account_activities",
       "operationId": "getAccountActivities",
       "path": "/v2/account/activities"
     },
     {
       "httpMethod": "GET",
-      "methodName": null,
+      "methodName": "get_account_activities_by_type",
       "operationId": "getAccountActivitiesByActivityType",
       "path": "/v2/account/activities/{activity_type}"
     },
@@ -309,43 +309,43 @@
     },
     {
       "httpMethod": "DELETE",
-      "methodName": null,
+      "methodName": "delete_watchlist_by_name",
       "operationId": "deleteWatchlistByName",
       "path": "/v2/watchlists:by_name"
     },
     {
       "httpMethod": "GET",
-      "methodName": null,
+      "methodName": "get_watchlist_by_name",
       "operationId": "getWatchlistByName",
       "path": "/v2/watchlists:by_name"
     },
     {
       "httpMethod": "POST",
-      "methodName": null,
+      "methodName": "add_asset_to_watchlist_by_name",
       "operationId": "addAssetToWatchlistByName",
       "path": "/v2/watchlists:by_name"
     },
     {
       "httpMethod": "PUT",
-      "methodName": null,
+      "methodName": "update_watchlist_by_name",
       "operationId": "updateWatchlistByName",
       "path": "/v2/watchlists:by_name"
     },
     {
       "httpMethod": "GET",
-      "methodName": null,
+      "methodName": "subscribe_to_activities_sse",
       "operationId": "subscribeToActivitiesSSE",
       "path": "/v2beta1/events/activities"
     },
     {
       "httpMethod": "GET",
-      "methodName": null,
+      "methodName": "get_v3_calendar",
       "operationId": "Calendar",
       "path": "/v3/calendar/{market}"
     },
     {
       "httpMethod": "GET",
-      "methodName": null,
+      "methodName": "get_v3_clock",
       "operationId": "Clock",
       "path": "/v3/clock"
     }

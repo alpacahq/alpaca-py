@@ -1,0 +1,352 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "end",
+            "2026-01-31"
+          ],
+          [
+            "limit",
+            "1000"
+          ],
+          [
+            "page_token",
+            "next-page"
+          ],
+          [
+            "start",
+            "2026-01-01"
+          ],
+          [
+            "status",
+            "active"
+          ],
+          [
+            "symbol",
+            "TSLA"
+          ]
+        ],
+        "url": "https://paper-api.alpaca.markets/v1/locates"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "locates": [
+              {
+                "all_or_none": false,
+                "created_at": "2026-01-02T15:04:05Z",
+                "expires_at": "2026-01-03T01:00:00Z",
+                "id": "550e8400-e29b-41d4-a716-446655440000",
+                "limit_price": "0.05",
+                "located_price": "0.05",
+                "located_qty": 100,
+                "rejection_reason": "inventory_unavailable",
+                "requested_qty": 100,
+                "status": "active",
+                "symbol": "TSLA",
+                "total_fee": "5.00"
+              }
+            ],
+            "next_page_token": "next-page"
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": {
+          "json": {
+            "all_or_none": false,
+            "limit_price": "0.05",
+            "qty": 100,
+            "symbol": "TSLA"
+          }
+        },
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "content-type": "application/json",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "POST",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v1/locates"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "all_or_none": false,
+            "created_at": "2026-01-02T15:04:05Z",
+            "expires_at": "2026-01-03T01:00:00Z",
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "limit_price": "0.05",
+            "located_price": "0.05",
+            "located_qty": 100,
+            "rejection_reason": "inventory_unavailable",
+            "requested_qty": 100,
+            "status": "active",
+            "symbol": "TSLA",
+            "total_fee": "5.00"
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v1/locates/550e8400-e29b-41d4-a716-446655440000"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "all_or_none": false,
+            "created_at": "2026-01-02T15:04:05Z",
+            "expires_at": "2026-01-03T01:00:00Z",
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "limit_price": "0.05",
+            "located_price": "0.05",
+            "located_qty": 100,
+            "rejection_reason": "inventory_unavailable",
+            "requested_qty": 100,
+            "status": "active",
+            "symbol": "TSLA",
+            "total_fee": "5.00"
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "symbols",
+            "TSLA,AAPL"
+          ]
+        ],
+        "url": "https://paper-api.alpaca.markets/v1/locates/quotes"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "errors": [
+              {
+                "code": "symbol_not_found",
+                "message": "symbol not found",
+                "symbol": "FB"
+              }
+            ],
+            "quotes": [
+              {
+                "available_qty": 1000,
+                "price": "0.0123",
+                "quoted_at": "2026-01-02T15:04:05Z",
+                "symbol": "TSLA"
+              }
+            ]
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_against": "checkout",
+  "recorded_with": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "created": {
+      "__type__": "Locate",
+      "fields": {
+        "all_or_none": false,
+        "created_at": {
+          "__type__": "datetime",
+          "value": "2026-01-02T15:04:05+00:00"
+        },
+        "expires_at": {
+          "__type__": "datetime",
+          "value": "2026-01-03T01:00:00+00:00"
+        },
+        "id": {
+          "__type__": "UUID",
+          "value": "550e8400-e29b-41d4-a716-446655440000"
+        },
+        "limit_price": "0.05",
+        "located_price": "0.05",
+        "located_qty": 100,
+        "rejection_reason": "inventory_unavailable",
+        "requested_qty": 100,
+        "status": {
+          "__type__": "LocateStatus",
+          "name": "ACTIVE",
+          "value": "active"
+        },
+        "symbol": "TSLA",
+        "total_fee": "5.00"
+      }
+    },
+    "fetched": {
+      "__type__": "Locate",
+      "fields": {
+        "all_or_none": false,
+        "created_at": {
+          "__type__": "datetime",
+          "value": "2026-01-02T15:04:05+00:00"
+        },
+        "expires_at": {
+          "__type__": "datetime",
+          "value": "2026-01-03T01:00:00+00:00"
+        },
+        "id": {
+          "__type__": "UUID",
+          "value": "550e8400-e29b-41d4-a716-446655440000"
+        },
+        "limit_price": "0.05",
+        "located_price": "0.05",
+        "located_qty": 100,
+        "rejection_reason": "inventory_unavailable",
+        "requested_qty": 100,
+        "status": {
+          "__type__": "LocateStatus",
+          "name": "ACTIVE",
+          "value": "active"
+        },
+        "symbol": "TSLA",
+        "total_fee": "5.00"
+      }
+    },
+    "page": {
+      "__type__": "ListLocatesResponse",
+      "fields": {
+        "locates": [
+          {
+            "__type__": "Locate",
+            "fields": {
+              "all_or_none": false,
+              "created_at": {
+                "__type__": "datetime",
+                "value": "2026-01-02T15:04:05+00:00"
+              },
+              "expires_at": {
+                "__type__": "datetime",
+                "value": "2026-01-03T01:00:00+00:00"
+              },
+              "id": {
+                "__type__": "UUID",
+                "value": "550e8400-e29b-41d4-a716-446655440000"
+              },
+              "limit_price": "0.05",
+              "located_price": "0.05",
+              "located_qty": 100,
+              "rejection_reason": "inventory_unavailable",
+              "requested_qty": 100,
+              "status": {
+                "__type__": "LocateStatus",
+                "name": "ACTIVE",
+                "value": "active"
+              },
+              "symbol": "TSLA",
+              "total_fee": "5.00"
+            }
+          }
+        ],
+        "next_page_token": "next-page"
+      }
+    },
+    "quotes": {
+      "__type__": "ListLocateQuotesResponse",
+      "fields": {
+        "errors": [
+          {
+            "__type__": "LocateQuoteError",
+            "fields": {
+              "code": {
+                "__type__": "LocateQuoteErrorCode",
+                "name": "SYMBOL_NOT_FOUND",
+                "value": "symbol_not_found"
+              },
+              "message": "symbol not found",
+              "symbol": "FB"
+            }
+          }
+        ],
+        "quotes": [
+          {
+            "__type__": "LocateQuote",
+            "fields": {
+              "available_qty": 1000,
+              "price": "0.0123",
+              "quoted_at": {
+                "__type__": "datetime",
+                "value": "2026-01-02T15:04:05+00:00"
+              },
+              "symbol": "TSLA"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "trading_rest.locates_and_quotes",
+  "scenario_sha256": "a89373e3d80e024156d4337bc8fa551028ffd074aef7e55259ded01c9ab508dd",
+  "vars": {}
+}

@@ -1,9 +1,27 @@
 from datetime import date, datetime, timezone
+from enum import Enum
 from ipaddress import IPv4Address, IPv6Address
-from typing import Any
+from typing import Any, List, Union
 from uuid import UUID
 
 from alpaca.common.models import ValidateBaseModel as BaseModel
+
+
+def _query_value(item: Any) -> str:
+    # str() on a ``(str, Enum)`` member yields ``ClassName.MEMBER``, not the value.
+    if isinstance(item, Enum):
+        return str(item.value)
+    return str(item)
+
+
+def comma_separated(value: Union[str, List[Any]]) -> str:
+    """Render a query value as a comma-separated string.
+
+    Lists are joined on ``,``. Enum members are sent as their values.
+    """
+    if isinstance(value, list):
+        return ",".join(_query_value(item) for item in value)
+    return _query_value(value)
 
 
 class NonEmptyRequest(BaseModel):

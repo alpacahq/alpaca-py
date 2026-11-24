@@ -105,6 +105,23 @@ def test_request_raises_after_exhausting_retries(
     assert reqmock.call_count == DEFAULT_RETRY_ATTEMPTS + 1
 
 
+def test_request_raw_refuses_redirects(reqmock: Mocker, trading_client: TradingClient):
+    captured = {}
+    real_request = trading_client._session.request
+
+    def record_request(method, url, **kwargs):
+        captured.update(kwargs)
+        return real_request(method, url, **kwargs)
+
+    trading_client._session.request = record_request
+    reqmock.get("https://example.test/stream", text="ok")
+
+    response = trading_client._request_raw("GET", "https://example.test/stream")
+
+    response.close()
+    assert captured["allow_redirects"] is False
+
+
 def test_zero_retries_raise_on_first_rate_limit(reqmock: Mocker, monkeypatch):
     sleeps = []
     monkeypatch.setattr("alpaca.common.rest.time.sleep", sleeps.append)

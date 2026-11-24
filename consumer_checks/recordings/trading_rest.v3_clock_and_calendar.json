@@ -1,0 +1,243 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "markets",
+            "NYSE,LSE"
+          ],
+          [
+            "time",
+            "2026-01-01T00:00:00+00:00"
+          ]
+        ],
+        "url": "https://paper-api.alpaca.markets/v3/clock"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "clocks": [
+              {
+                "is_market_day": true,
+                "market": {
+                  "acronym": "NYSE",
+                  "bic": "IRVTUS3NXXX",
+                  "mic": "XNYS",
+                  "name": "New York Stock Exchange",
+                  "timezone": "America/New_York"
+                },
+                "next_market_close": "2026-01-02T21:00:00Z",
+                "next_market_open": "2026-01-02T14:30:00Z",
+                "phase": "closed",
+                "phase_until": "2026-01-02T14:30:00Z",
+                "timestamp": "2026-01-01T00:00:00Z"
+              }
+            ]
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "end",
+            "2026-07-31"
+          ],
+          [
+            "start",
+            "2026-07-01"
+          ],
+          [
+            "timezone",
+            "UTC"
+          ]
+        ],
+        "url": "https://paper-api.alpaca.markets/v3/calendar/BMO"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "calendar": [
+              {
+                "core_end": "2026-07-01T16:00:00-04:00",
+                "core_start": "2026-07-01T09:30:00-04:00",
+                "date": "2026-07-01",
+                "lunch_end": "2026-07-01T13:00:00-04:00",
+                "lunch_start": "2026-07-01T12:00:00-04:00",
+                "post_end": "2026-07-01T20:00:00-04:00",
+                "post_start": "2026-07-01T16:00:00-04:00",
+                "pre_end": "2026-07-01T09:30:00-04:00",
+                "pre_start": "2026-07-01T04:00:00-04:00",
+                "settlement_date": "2026-07-02"
+              }
+            ],
+            "market": {
+              "acronym": "BMO",
+              "bic": "IRVTUS3NXXX",
+              "mic": "XNYS",
+              "name": "BMO",
+              "timezone": "America/Toronto"
+            }
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_against": "checkout",
+  "recorded_with": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "calendar": {
+      "__type__": "PublicCalendarResp",
+      "fields": {
+        "calendar": [
+          {
+            "__type__": "CalendarDay",
+            "fields": {
+              "core_end": {
+                "__type__": "datetime",
+                "value": "2026-07-01T16:00:00-04:00"
+              },
+              "core_start": {
+                "__type__": "datetime",
+                "value": "2026-07-01T09:30:00-04:00"
+              },
+              "lunch_end": {
+                "__type__": "datetime",
+                "value": "2026-07-01T13:00:00-04:00"
+              },
+              "lunch_start": {
+                "__type__": "datetime",
+                "value": "2026-07-01T12:00:00-04:00"
+              },
+              "post_end": {
+                "__type__": "datetime",
+                "value": "2026-07-01T20:00:00-04:00"
+              },
+              "post_start": {
+                "__type__": "datetime",
+                "value": "2026-07-01T16:00:00-04:00"
+              },
+              "pre_end": {
+                "__type__": "datetime",
+                "value": "2026-07-01T09:30:00-04:00"
+              },
+              "pre_start": {
+                "__type__": "datetime",
+                "value": "2026-07-01T04:00:00-04:00"
+              },
+              "settlement_date": {
+                "__type__": "date",
+                "value": "2026-07-02"
+              },
+              "var_date": {
+                "__type__": "date",
+                "value": "2026-07-01"
+              }
+            }
+          }
+        ],
+        "market": {
+          "__type__": "PublicMarket",
+          "fields": {
+            "acronym": "BMO",
+            "bic": "IRVTUS3NXXX",
+            "mic": "XNYS",
+            "name": "BMO",
+            "timezone": "America/Toronto"
+          }
+        }
+      }
+    },
+    "clock": {
+      "__type__": "ClockResp",
+      "fields": {
+        "clocks": [
+          {
+            "__type__": "Clock",
+            "fields": {
+              "is_market_day": true,
+              "market": {
+                "__type__": "PublicMarket",
+                "fields": {
+                  "acronym": "NYSE",
+                  "bic": "IRVTUS3NXXX",
+                  "mic": "XNYS",
+                  "name": "New York Stock Exchange",
+                  "timezone": "America/New_York"
+                }
+              },
+              "next_market_close": {
+                "__type__": "datetime",
+                "value": "2026-01-02T21:00:00+00:00"
+              },
+              "next_market_open": {
+                "__type__": "datetime",
+                "value": "2026-01-02T14:30:00+00:00"
+              },
+              "phase": {
+                "__type__": "Phase",
+                "name": "CLOSED",
+                "value": "closed"
+              },
+              "phase_until": {
+                "__type__": "datetime",
+                "value": "2026-01-02T14:30:00+00:00"
+              },
+              "timestamp": {
+                "__type__": "datetime",
+                "value": "2026-01-01T00:00:00+00:00"
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "trading_rest.v3_clock_and_calendar",
+  "scenario_sha256": "b7be87c7897051037453a1afc5bdfba024a69aaf35056e16e973393cc01cb2da",
+  "vars": {}
+}

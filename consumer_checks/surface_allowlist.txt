@@ -21,20 +21,14 @@ request:alpaca.trading.CreateOrderRequest.*  # submit_order is still typed Order
 request:alpaca.trading.CreateOrderRequestStopLoss.*  # as CreateOrderRequest
 request:alpaca.trading.CreateOrderRequestTakeProfit.*  # as CreateOrderRequest
 request:alpaca.trading.MLegOrderLeg.*  # only inside CreateOrderRequest.legs
-request:alpaca.trading.AddAssetToWatchlistRequest.*  # add_asset_to_watchlist_by_id still takes a symbol, not this request
-request:alpaca.trading.CreateLocateRequest.*  # no TradingClient method creates locates yet
 
 # Responses of TradingClient methods that still build the hand-written model
 # (Order, TradeAccount, Asset, Clock, Calendar, ...), not the generated one.
 response:alpaca.trading.Account.*  # get_account returns TradeAccount
 response:alpaca.trading.AccountConfigurations.*  # get_account_configurations returns AccountConfiguration
 response:alpaca.trading.Assets.*  # get_asset and get_all_assets return Asset
-response:alpaca.trading.CalendarDay.*  # get_calendar returns Calendar
-response:alpaca.trading.LegacyCalendarDay.*  # as CalendarDay
-response:alpaca.trading.PublicCalendarResp.*  # as CalendarDay
-response:alpaca.trading.PublicMarket.*  # as CalendarDay
-response:alpaca.trading.ClockResp.*  # get_clock returns Clock
-response:alpaca.trading.LegacyClock.*  # as ClockResp
+response:alpaca.trading.LegacyCalendarDay.*  # get_calendar returns Calendar; get_v3_calendar returns PublicCalendarResp
+response:alpaca.trading.LegacyClock.*  # get_clock returns Clock; get_v3_clock returns ClockResp
 response:alpaca.trading.CorporateAnnouncement.*  # get_corporate_announcements returns CorporateActionAnnouncement
 response:alpaca.trading.OrderLeg.*  # orders and their legs are returned as Order
 response:alpaca.trading.CanceledOrderResponse.*  # cancel_orders returns CancelOrderResponse
@@ -48,14 +42,12 @@ response:alpaca.trading.ErrorResponse.*  # as Error
 response:alpaca.trading.WalletError.*  # wallet failures reach users as APIError, not WalletError
 response:alpaca.trading.TravelRule*  # validation and next-action models; the client methods take TravelRuleInfo and do not return these
 
-# Responses of endpoints TradingClient has no method for yet.
-response:alpaca.trading.*ActivityV2.*  # account activities (V2) have no client method yet
-response:alpaca.trading.ActivityEventV2*  # as above
-response:alpaca.trading.ActivityV2Detail*  # as above
-response:alpaca.trading.NonTradeActivities.*  # as above
-response:alpaca.trading.TradingActivities.*  # as above
-response:alpaca.trading.Locate*  # locates have no client method yet
-response:alpaca.trading.ListLocate*  # as above
+# Activity V2 models are not what the client returns. List and get-by-type
+# return TradingActivities and NonTradeActivities; the SSE stream yields raw strings.
+response:alpaca.trading.*ActivityV2.*  # per-type V2 activity models, not returned by the client
+response:alpaca.trading.ActivityEventV2*  # the activities stream yields raw event strings
+response:alpaca.trading.ActivityV2Detail*  # nested in ActivityEventV2, which the stream does not parse
+response:alpaca.trading.LocateError.*  # locate failures reach users as APIError, not LocateError
 
 # Corporate action stream models: the SSE client yields raw strings, not these models.
 response:alpaca.data.CaEventBase.*  # stream event models, not returned by any client method

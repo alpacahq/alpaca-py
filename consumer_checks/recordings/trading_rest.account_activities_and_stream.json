@@ -1,0 +1,489 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "activity_types",
+            "FILL,DIV"
+          ],
+          [
+            "after",
+            "2026-01-01T00:00:00+00:00"
+          ],
+          [
+            "direction",
+            "desc"
+          ],
+          [
+            "order_id",
+            "b5abe576-6a8a-49f3-a353-46b72c1ccae9"
+          ],
+          [
+            "page_size",
+            "100"
+          ],
+          [
+            "page_token",
+            "20220202135509981::2d7be4ff-d1f3-43e9-856a-0f5cf5c5088e"
+          ],
+          [
+            "until",
+            "2026-01-02T00:00:00+00:00"
+          ]
+        ],
+        "url": "https://paper-api.alpaca.markets/v2/account/activities"
+      },
+      "response": {
+        "body": {
+          "json": [
+            {
+              "activity_type": "FILL",
+              "cum_qty": "2",
+              "id": "20220202135509981::2d7be4ff-d1f3-43e9-856a-0f5cf5c5088e",
+              "leaves_qty": "0",
+              "order_id": "b5abe576-6a8a-49f3-a353-46b72c1ccae9",
+              "order_status": "filled",
+              "price": "174.78",
+              "qty": "2",
+              "side": "buy",
+              "symbol": "AAPL",
+              "transaction_time": "2022-02-02T18:55:09.981482Z",
+              "type": "fill"
+            },
+            {
+              "activity_sub_type": "SDIV",
+              "activity_type": "DIV",
+              "created_at": "2021-05-10T14:01:04.650275Z",
+              "currency": "USD",
+              "cusip": "90130A101",
+              "date": "2019-08-01",
+              "group_id": "group-1",
+              "id": "20190801011955195::5f596936-6f23-4cef-bdf1-3806aae57dbf",
+              "net_amount": "1.02",
+              "per_share_amount": "0.51",
+              "qty": "2",
+              "status": "executed",
+              "symbol": "T"
+            }
+          ]
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "category",
+            "trade_activity"
+          ],
+          [
+            "date",
+            "2022-02-02T00:00:00+00:00"
+          ]
+        ],
+        "url": "https://paper-api.alpaca.markets/v2/account/activities"
+      },
+      "response": {
+        "body": {
+          "json": [
+            {
+              "activity_type": "FILL",
+              "cum_qty": "2",
+              "id": "20220202135509981::2d7be4ff-d1f3-43e9-856a-0f5cf5c5088e",
+              "leaves_qty": "0",
+              "order_id": "b5abe576-6a8a-49f3-a353-46b72c1ccae9",
+              "order_status": "filled",
+              "price": "174.78",
+              "qty": "2",
+              "side": "buy",
+              "symbol": "AAPL",
+              "transaction_time": "2022-02-02T18:55:09.981482Z",
+              "type": "fill"
+            }
+          ]
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "after",
+            "2026-01-01T00:00:00+00:00"
+          ],
+          [
+            "direction",
+            "desc"
+          ],
+          [
+            "order_id",
+            "b5abe576-6a8a-49f3-a353-46b72c1ccae9"
+          ],
+          [
+            "page_size",
+            "100"
+          ],
+          [
+            "page_token",
+            "20220202135509981::2d7be4ff-d1f3-43e9-856a-0f5cf5c5088e"
+          ],
+          [
+            "until",
+            "2026-01-02T00:00:00+00:00"
+          ]
+        ],
+        "url": "https://paper-api.alpaca.markets/v2/account/activities/FILL"
+      },
+      "response": {
+        "body": {
+          "json": [
+            {
+              "activity_type": "FILL",
+              "cum_qty": "2",
+              "id": "20220202135509981::2d7be4ff-d1f3-43e9-856a-0f5cf5c5088e",
+              "leaves_qty": "0",
+              "order_id": "b5abe576-6a8a-49f3-a353-46b72c1ccae9",
+              "order_status": "filled",
+              "price": "174.78",
+              "qty": "2",
+              "side": "buy",
+              "symbol": "AAPL",
+              "transaction_time": "2022-02-02T18:55:09.981482Z",
+              "type": "fill"
+            }
+          ]
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "date",
+            "2019-08-01T00:00:00+00:00"
+          ]
+        ],
+        "url": "https://paper-api.alpaca.markets/v2/account/activities/DIV"
+      },
+      "response": {
+        "body": {
+          "json": [
+            {
+              "activity_sub_type": "SDIV",
+              "activity_type": "DIV",
+              "created_at": "2021-05-10T14:01:04.650275Z",
+              "currency": "USD",
+              "cusip": "90130A101",
+              "date": "2019-08-01",
+              "group_id": "group-1",
+              "id": "20190801011955195::5f596936-6f23-4cef-bdf1-3806aae57dbf",
+              "net_amount": "1.02",
+              "per_share_amount": "0.51",
+              "qty": "2",
+              "status": "executed",
+              "symbol": "T"
+            }
+          ]
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "text/event-stream",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "cache-control": "no-cache",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "since",
+            "2026-01-01T00:00:00+00:00"
+          ],
+          [
+            "since_id",
+            "01ARZ3NDEKTSV4RRFFQ69G5FAV"
+          ],
+          [
+            "until",
+            "2026-01-02T00:00:00+00:00"
+          ],
+          [
+            "until_id",
+            "01ARZ3NDEKTSV4RRFFQ69G5FB0"
+          ]
+        ],
+        "url": "https://paper-api.alpaca.markets/v2beta1/events/activities"
+      },
+      "response": {
+        "body": {
+          "text": "data: {\"activity_type\":\"FILL\",\"qty\":\"1\"}\n\n"
+        },
+        "headers": {
+          "Content-Type": "text/event-stream"
+        },
+        "reason": "",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_against": "checkout",
+  "recorded_with": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "dividends": [
+      {
+        "__type__": "NonTradeActivities",
+        "fields": {
+          "activity_sub_type": "SDIV",
+          "activity_type": {
+            "__type__": "ActivityType",
+            "name": "DIV",
+            "value": "DIV"
+          },
+          "created_at": {
+            "__type__": "datetime",
+            "value": "2021-05-10T14:01:04.650275+00:00"
+          },
+          "currency": "USD",
+          "cusip": "90130A101",
+          "group_id": "group-1",
+          "id": "20190801011955195::5f596936-6f23-4cef-bdf1-3806aae57dbf",
+          "net_amount": "1.02",
+          "per_share_amount": "0.51",
+          "qty": "2",
+          "status": {
+            "__type__": "NonTradeActivitiesStatus",
+            "name": "EXECUTED",
+            "value": "executed"
+          },
+          "symbol": "T",
+          "var_date": {
+            "__type__": "datetime",
+            "value": "2019-08-01T00:00:00"
+          }
+        }
+      }
+    ],
+    "events": [
+      "{\"activity_type\":\"FILL\",\"qty\":\"1\"}"
+    ],
+    "fills": [
+      {
+        "__type__": "TradingActivities",
+        "fields": {
+          "activity_type": {
+            "__type__": "ActivityType",
+            "name": "FILL",
+            "value": "FILL"
+          },
+          "cum_qty": "2",
+          "id": "20220202135509981::2d7be4ff-d1f3-43e9-856a-0f5cf5c5088e",
+          "leaves_qty": "0",
+          "order_id": {
+            "__type__": "UUID",
+            "value": "b5abe576-6a8a-49f3-a353-46b72c1ccae9"
+          },
+          "order_status": {
+            "__type__": "OrderStatus",
+            "name": "FILLED",
+            "value": "filled"
+          },
+          "price": "174.78",
+          "qty": "2",
+          "side": "buy",
+          "symbol": "AAPL",
+          "transaction_time": {
+            "__type__": "datetime",
+            "value": "2022-02-02T18:55:09.981482+00:00"
+          },
+          "type": {
+            "__type__": "TradingActivitiesType",
+            "name": "FILL",
+            "value": "fill"
+          }
+        }
+      }
+    ],
+    "for_day": [
+      {
+        "__type__": "TradingActivities",
+        "fields": {
+          "activity_type": {
+            "__type__": "ActivityType",
+            "name": "FILL",
+            "value": "FILL"
+          },
+          "cum_qty": "2",
+          "id": "20220202135509981::2d7be4ff-d1f3-43e9-856a-0f5cf5c5088e",
+          "leaves_qty": "0",
+          "order_id": {
+            "__type__": "UUID",
+            "value": "b5abe576-6a8a-49f3-a353-46b72c1ccae9"
+          },
+          "order_status": {
+            "__type__": "OrderStatus",
+            "name": "FILLED",
+            "value": "filled"
+          },
+          "price": "174.78",
+          "qty": "2",
+          "side": "buy",
+          "symbol": "AAPL",
+          "transaction_time": {
+            "__type__": "datetime",
+            "value": "2022-02-02T18:55:09.981482+00:00"
+          },
+          "type": {
+            "__type__": "TradingActivitiesType",
+            "name": "FILL",
+            "value": "fill"
+          }
+        }
+      }
+    ],
+    "ranged": [
+      {
+        "__type__": "TradingActivities",
+        "fields": {
+          "activity_type": {
+            "__type__": "ActivityType",
+            "name": "FILL",
+            "value": "FILL"
+          },
+          "cum_qty": "2",
+          "id": "20220202135509981::2d7be4ff-d1f3-43e9-856a-0f5cf5c5088e",
+          "leaves_qty": "0",
+          "order_id": {
+            "__type__": "UUID",
+            "value": "b5abe576-6a8a-49f3-a353-46b72c1ccae9"
+          },
+          "order_status": {
+            "__type__": "OrderStatus",
+            "name": "FILLED",
+            "value": "filled"
+          },
+          "price": "174.78",
+          "qty": "2",
+          "side": "buy",
+          "symbol": "AAPL",
+          "transaction_time": {
+            "__type__": "datetime",
+            "value": "2022-02-02T18:55:09.981482+00:00"
+          },
+          "type": {
+            "__type__": "TradingActivitiesType",
+            "name": "FILL",
+            "value": "fill"
+          }
+        }
+      },
+      {
+        "__type__": "NonTradeActivities",
+        "fields": {
+          "activity_sub_type": "SDIV",
+          "activity_type": {
+            "__type__": "ActivityType",
+            "name": "DIV",
+            "value": "DIV"
+          },
+          "created_at": {
+            "__type__": "datetime",
+            "value": "2021-05-10T14:01:04.650275+00:00"
+          },
+          "currency": "USD",
+          "cusip": "90130A101",
+          "group_id": "group-1",
+          "id": "20190801011955195::5f596936-6f23-4cef-bdf1-3806aae57dbf",
+          "net_amount": "1.02",
+          "per_share_amount": "0.51",
+          "qty": "2",
+          "status": {
+            "__type__": "NonTradeActivitiesStatus",
+            "name": "EXECUTED",
+            "value": "executed"
+          },
+          "symbol": "T",
+          "var_date": {
+            "__type__": "datetime",
+            "value": "2019-08-01T00:00:00"
+          }
+        }
+      }
+    ]
+  },
+  "result_from": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "trading_rest.account_activities_and_stream",
+  "scenario_sha256": "54ca3d32f42103ab9ca9399f239b08ef1e49cd087e78f3a2ea54140b7ae9c966",
+  "vars": {}
+}

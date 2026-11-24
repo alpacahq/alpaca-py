@@ -1,0 +1,241 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "name",
+            "Tech"
+          ]
+        ],
+        "url": "https://paper-api.alpaca.markets/v2/watchlists:by_name"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "account_id": "00000000-0000-0000-0000-000000000000",
+            "created_at": "2026-01-02T15:04:05Z",
+            "id": "00000000-0000-4000-8000-000000000002",
+            "name": "Tech",
+            "updated_at": "2026-01-02T15:04:05Z"
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": {
+          "json": {
+            "symbol": "AAPL"
+          }
+        },
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "content-type": "application/json",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "POST",
+        "query": [
+          [
+            "name",
+            "Tech"
+          ]
+        ],
+        "url": "https://paper-api.alpaca.markets/v2/watchlists:by_name"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "account_id": "00000000-0000-0000-0000-000000000000",
+            "created_at": "2026-01-02T15:04:05Z",
+            "id": "00000000-0000-4000-8000-000000000002",
+            "name": "Tech",
+            "updated_at": "2026-01-02T15:04:05Z"
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": {
+          "json": {
+            "name": "Tech",
+            "symbols": [
+              "AAPL"
+            ]
+          }
+        },
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "content-type": "application/json",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "PUT",
+        "query": [
+          [
+            "name",
+            "Tech"
+          ]
+        ],
+        "url": "https://paper-api.alpaca.markets/v2/watchlists:by_name"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "account_id": "00000000-0000-0000-0000-000000000000",
+            "created_at": "2026-01-02T15:04:05Z",
+            "id": "00000000-0000-4000-8000-000000000002",
+            "name": "Tech",
+            "updated_at": "2026-01-02T15:04:05Z"
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "DELETE",
+        "query": [
+          [
+            "name",
+            "Tech"
+          ]
+        ],
+        "url": "https://paper-api.alpaca.markets/v2/watchlists:by_name"
+      },
+      "response": {
+        "body": null,
+        "headers": {
+          "Content-Type": "text/html"
+        },
+        "reason": "",
+        "status": 204
+      }
+    }
+  ],
+  "recorded_against": "checkout",
+  "recorded_with": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "added": {
+      "__type__": "Watchlist",
+      "fields": {
+        "account_id": {
+          "__type__": "UUID",
+          "value": "00000000-0000-0000-0000-000000000000"
+        },
+        "assets": null,
+        "created_at": {
+          "__type__": "datetime",
+          "value": "2026-01-02T15:04:05+00:00"
+        },
+        "id": {
+          "__type__": "UUID",
+          "value": "00000000-0000-4000-8000-000000000002"
+        },
+        "name": "Tech",
+        "updated_at": {
+          "__type__": "datetime",
+          "value": "2026-01-02T15:04:05+00:00"
+        }
+      }
+    },
+    "fetched": {
+      "__type__": "Watchlist",
+      "fields": {
+        "account_id": {
+          "__type__": "UUID",
+          "value": "00000000-0000-0000-0000-000000000000"
+        },
+        "assets": null,
+        "created_at": {
+          "__type__": "datetime",
+          "value": "2026-01-02T15:04:05+00:00"
+        },
+        "id": {
+          "__type__": "UUID",
+          "value": "00000000-0000-4000-8000-000000000002"
+        },
+        "name": "Tech",
+        "updated_at": {
+          "__type__": "datetime",
+          "value": "2026-01-02T15:04:05+00:00"
+        }
+      }
+    },
+    "updated": {
+      "__type__": "Watchlist",
+      "fields": {
+        "account_id": {
+          "__type__": "UUID",
+          "value": "00000000-0000-0000-0000-000000000000"
+        },
+        "assets": null,
+        "created_at": {
+          "__type__": "datetime",
+          "value": "2026-01-02T15:04:05+00:00"
+        },
+        "id": {
+          "__type__": "UUID",
+          "value": "00000000-0000-4000-8000-000000000002"
+        },
+        "name": "Tech",
+        "updated_at": {
+          "__type__": "datetime",
+          "value": "2026-01-02T15:04:05+00:00"
+        }
+      }
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "trading_rest.watchlists_by_name",
+  "scenario_sha256": "0b2dbc2c858efd48dba7c49f179d2db65bae2b077328b047ac247544fd1869be",
+  "vars": {}
+}

@@ -6926,7 +6926,7 @@ class TokenizationMintCallback(ValidateBaseModel):
     )
 
 
-class TokenizationMintResponse(ModelWithID):
+class TokenizationMintResponse(ValidateBaseModel):
     """
     TokenizationMintResponse
     """

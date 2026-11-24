@@ -1,0 +1,113 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [],
+        "url": "https://data.alpaca.markets/v2/stocks/meta/exchanges"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "A": "NYSE American (AMEX)",
+            "B": "NASDAQ OMX BX",
+            "C": "National Stock Exchange",
+            "D": "FINRA ADF",
+            "E": "Market Independent",
+            "F": "Texas Stock Exchange",
+            "G": "24X",
+            "H": "MIAX",
+            "I": "International Securities Exchange",
+            "J": "Cboe EDGA",
+            "K": "Cboe EDGX",
+            "L": "Long Term Stock Exchange",
+            "M": "Chicago Stock Exchange",
+            "N": "New York Stock Exchange",
+            "P": "NYSE Arca",
+            "Q": "NASDAQ OMX",
+            "S": "NASDAQ Small Cap",
+            "T": "NASDAQ Int",
+            "U": "Members Exchange",
+            "V": "IEX",
+            "W": "CBOE",
+            "X": "NASDAQ OMX PSX",
+            "Y": "Cboe BYX",
+            "Z": "Cboe BZ"
+          }
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Max-Age": "1728000",
+          "Content-Type": "application/json",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Vary": "Accept-Encoding",
+          "X-Ratelimit-Limit": "200",
+          "X-Ratelimit-Remaining": "199",
+          "X-Ratelimit-Reset": "1794933958",
+          "X-Request-ID": "8ebccaf3691d5f4ee1c07564dfd57bdc"
+        },
+        "reason": "OK",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_against": "checkout",
+  "recorded_with": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "codes": {
+      "A": "NYSE American (AMEX)",
+      "B": "NASDAQ OMX BX",
+      "C": "National Stock Exchange",
+      "D": "FINRA ADF",
+      "E": "Market Independent",
+      "F": "Texas Stock Exchange",
+      "G": "24X",
+      "H": "MIAX",
+      "I": "International Securities Exchange",
+      "J": "Cboe EDGA",
+      "K": "Cboe EDGX",
+      "L": "Long Term Stock Exchange",
+      "M": "Chicago Stock Exchange",
+      "N": "New York Stock Exchange",
+      "P": "NYSE Arca",
+      "Q": "NASDAQ OMX",
+      "S": "NASDAQ Small Cap",
+      "T": "NASDAQ Int",
+      "U": "Members Exchange",
+      "V": "IEX",
+      "W": "CBOE",
+      "X": "NASDAQ OMX PSX",
+      "Y": "Cboe BYX",
+      "Z": "Cboe BZ"
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "stock_data_single_symbol.exchange_codes",
+  "scenario_sha256": "1514d71340296c3690c415c4d7a2a3c38f40ae63734b6195af2d659708760693",
+  "vars": {}
+}

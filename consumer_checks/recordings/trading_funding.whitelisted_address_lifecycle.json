@@ -1,0 +1,298 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/wallets/whitelists"
+      },
+      "response": {
+        "body": {
+          "json": [
+            {
+              "address": "5dXY1aH2tQpV3wXmJg6Z7c8B4nKvF9bA1pQrSt2uVwYxXz",
+              "asset": "USDT",
+              "chain": "ETH",
+              "created_at": "2026-01-02T15:04:05Z",
+              "id": "00000000-0000-4000-8000-000000000020",
+              "status": "PENDING",
+              "travel_rule_info": {
+                "beneficiary_country_of_residence": "US",
+                "beneficiary_entity_name": "Alpaca Crypto LLC",
+                "beneficiary_family_name": "Doe",
+                "beneficiary_geographic_address_building_number": "1",
+                "beneficiary_geographic_address_country": "US",
+                "beneficiary_geographic_address_post_code": "10001",
+                "beneficiary_geographic_address_street_name": "Main Street",
+                "beneficiary_geographic_address_town_name": "New York",
+                "beneficiary_given_name": "John",
+                "beneficiary_is_self_hosted": true,
+                "beneficiary_manual_entry": {
+                  "vasp_name": "Alpaca",
+                  "vasp_website": "https://alpaca.markets"
+                },
+                "beneficiary_vasp_id": "did:ethr:0xf1c002f9e7ca88018d6dcf1e86403fb2f5f055f4"
+              }
+            }
+          ]
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": {
+          "json": {
+            "address": "5dXY1aH2tQpV3wXmJg6Z7c8B4nKvF9bA1pQrSt2uVwYxXz",
+            "asset": "USDT",
+            "chain": "ETH",
+            "travel_rule_info": {
+              "beneficiary_country_of_residence": "US",
+              "beneficiary_entity_name": "Alpaca Crypto LLC",
+              "beneficiary_family_name": "Doe",
+              "beneficiary_geographic_address_building_number": "1",
+              "beneficiary_geographic_address_country": "US",
+              "beneficiary_geographic_address_post_code": "10001",
+              "beneficiary_geographic_address_street_name": "Main Street",
+              "beneficiary_geographic_address_town_name": "New York",
+              "beneficiary_given_name": "John",
+              "beneficiary_is_self_hosted": true,
+              "beneficiary_manual_entry": {
+                "vasp_name": "Alpaca",
+                "vasp_website": "https://alpaca.markets"
+              },
+              "beneficiary_vasp_id": "did:ethr:0xf1c002f9e7ca88018d6dcf1e86403fb2f5f055f4"
+            }
+          }
+        },
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "content-type": "application/json",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "POST",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/wallets/whitelists"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "address": "5dXY1aH2tQpV3wXmJg6Z7c8B4nKvF9bA1pQrSt2uVwYxXz",
+            "asset": "USDT",
+            "chain": "ETH",
+            "created_at": "2026-01-02T15:04:05Z",
+            "id": "00000000-0000-4000-8000-000000000020",
+            "status": "PENDING",
+            "travel_rule_info": {
+              "beneficiary_country_of_residence": "US",
+              "beneficiary_entity_name": "Alpaca Crypto LLC",
+              "beneficiary_family_name": "Doe",
+              "beneficiary_geographic_address_building_number": "1",
+              "beneficiary_geographic_address_country": "US",
+              "beneficiary_geographic_address_post_code": "10001",
+              "beneficiary_geographic_address_street_name": "Main Street",
+              "beneficiary_geographic_address_town_name": "New York",
+              "beneficiary_given_name": "John",
+              "beneficiary_is_self_hosted": true,
+              "beneficiary_manual_entry": {
+                "vasp_name": "Alpaca",
+                "vasp_website": "https://alpaca.markets"
+              },
+              "beneficiary_vasp_id": "did:ethr:0xf1c002f9e7ca88018d6dcf1e86403fb2f5f055f4"
+            }
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "DELETE",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/wallets/whitelists/00000000-0000-4000-8000-000000000020"
+      },
+      "response": {
+        "body": null,
+        "headers": {
+          "Content-Type": "text/html"
+        },
+        "reason": "",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": {
+          "json": {
+            "travel_rule_info": {
+              "beneficiary_country_of_residence": "US",
+              "beneficiary_entity_name": "Alpaca Crypto LLC",
+              "beneficiary_family_name": "Doe",
+              "beneficiary_geographic_address_building_number": "1",
+              "beneficiary_geographic_address_country": "US",
+              "beneficiary_geographic_address_post_code": "10001",
+              "beneficiary_geographic_address_street_name": "Main Street",
+              "beneficiary_geographic_address_town_name": "New York",
+              "beneficiary_given_name": "John",
+              "beneficiary_is_self_hosted": true,
+              "beneficiary_manual_entry": {
+                "vasp_name": "Alpaca",
+                "vasp_website": "https://alpaca.markets"
+              },
+              "beneficiary_vasp_id": "did:ethr:0xf1c002f9e7ca88018d6dcf1e86403fb2f5f055f4"
+            }
+          }
+        },
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "content-type": "application/json",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "PATCH",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/wallets/whitelists/00000000-0000-4000-8000-000000000020/travel-rule-info"
+      },
+      "response": {
+        "body": null,
+        "headers": {
+          "Content-Type": "text/html"
+        },
+        "reason": "",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_against": "checkout",
+  "recorded_with": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "created": {
+      "__type__": "WhitelistedAddress",
+      "fields": {
+        "address": "5dXY1aH2tQpV3wXmJg6Z7c8B4nKvF9bA1pQrSt2uVwYxXz",
+        "asset": "USDT",
+        "chain": "ETH",
+        "created_at": {
+          "__type__": "datetime",
+          "value": "2026-01-02T15:04:05+00:00"
+        },
+        "id": "00000000-0000-4000-8000-000000000020",
+        "status": {
+          "__type__": "WhitelistedAddressStatus",
+          "name": "PENDING",
+          "value": "PENDING"
+        },
+        "travel_rule_info": {
+          "__type__": "TravelRuleInfo",
+          "fields": {
+            "beneficiary_country_of_residence": "US",
+            "beneficiary_entity_name": "Alpaca Crypto LLC",
+            "beneficiary_family_name": "Doe",
+            "beneficiary_geographic_address_building_number": "1",
+            "beneficiary_geographic_address_country": "US",
+            "beneficiary_geographic_address_post_code": "10001",
+            "beneficiary_geographic_address_street_name": "Main Street",
+            "beneficiary_geographic_address_town_name": "New York",
+            "beneficiary_given_name": "John",
+            "beneficiary_is_self_hosted": true,
+            "beneficiary_manual_entry": {
+              "__type__": "TravelRuleManualEntry",
+              "fields": {
+                "vasp_name": "Alpaca",
+                "vasp_website": "https://alpaca.markets"
+              }
+            },
+            "beneficiary_vasp_id": "did:ethr:0xf1c002f9e7ca88018d6dcf1e86403fb2f5f055f4"
+          }
+        }
+      }
+    },
+    "listed": [
+      {
+        "__type__": "WhitelistedAddress",
+        "fields": {
+          "address": "5dXY1aH2tQpV3wXmJg6Z7c8B4nKvF9bA1pQrSt2uVwYxXz",
+          "asset": "USDT",
+          "chain": "ETH",
+          "created_at": {
+            "__type__": "datetime",
+            "value": "2026-01-02T15:04:05+00:00"
+          },
+          "id": "00000000-0000-4000-8000-000000000020",
+          "status": {
+            "__type__": "WhitelistedAddressStatus",
+            "name": "PENDING",
+            "value": "PENDING"
+          },
+          "travel_rule_info": {
+            "__type__": "TravelRuleInfo",
+            "fields": {
+              "beneficiary_country_of_residence": "US",
+              "beneficiary_entity_name": "Alpaca Crypto LLC",
+              "beneficiary_family_name": "Doe",
+              "beneficiary_geographic_address_building_number": "1",
+              "beneficiary_geographic_address_country": "US",
+              "beneficiary_geographic_address_post_code": "10001",
+              "beneficiary_geographic_address_street_name": "Main Street",
+              "beneficiary_geographic_address_town_name": "New York",
+              "beneficiary_given_name": "John",
+              "beneficiary_is_self_hosted": true,
+              "beneficiary_manual_entry": {
+                "__type__": "TravelRuleManualEntry",
+                "fields": {
+                  "vasp_name": "Alpaca",
+                  "vasp_website": "https://alpaca.markets"
+                }
+              },
+              "beneficiary_vasp_id": "did:ethr:0xf1c002f9e7ca88018d6dcf1e86403fb2f5f055f4"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "result_from": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "trading_funding.whitelisted_address_lifecycle",
+  "scenario_sha256": "ef4164f670f2ef51e16ecdde7deaf76dfe4fc79e9310581b8580f843c7ba528b",
+  "vars": {}
+}

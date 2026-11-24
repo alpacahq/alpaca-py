@@ -1,0 +1,317 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "asset",
+            "USDC"
+          ],
+          [
+            "chain",
+            "ETH"
+          ],
+          [
+            "network",
+            "ethereum"
+          ]
+        ],
+        "url": "https://paper-api.alpaca.markets/v2/wallets"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "address": "0x1111111111111111111111111111111111111111",
+            "chain": "ETH",
+            "created_at": "2026-01-02T15:04:05Z"
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/wallets"
+      },
+      "response": {
+        "body": {
+          "json": [
+            {
+              "address": "0x1111111111111111111111111111111111111111",
+              "chain": "ETH",
+              "created_at": "2026-01-02T15:04:05Z"
+            }
+          ]
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "amount",
+            "10"
+          ],
+          [
+            "asset",
+            "USDC"
+          ],
+          [
+            "from_address",
+            "0x2222222222222222222222222222222222222222"
+          ],
+          [
+            "to_address",
+            "5dXY1aH2tQpV3wXmJg6Z7c8B4nKvF9bA1pQrSt2uVwYxXz"
+          ]
+        ],
+        "url": "https://paper-api.alpaca.markets/v2/wallets/fees/estimate"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "fee": "0.0505",
+            "network_fee": "0.0825"
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/wallets/transfers"
+      },
+      "response": {
+        "body": {
+          "json": [
+            {
+              "amount": "1",
+              "asset": "USDC",
+              "chain": "ETH",
+              "created_at": "2026-01-02T15:04:05Z",
+              "direction": "OUTGOING",
+              "fees": "0.01",
+              "from_address": "0x2222222222222222222222222222222222222222",
+              "id": "00000000-0000-4000-8000-000000000010",
+              "network_fee": "0.02",
+              "status": "PROCESSING",
+              "to_address": "5dXY1aH2tQpV3wXmJg6Z7c8B4nKvF9bA1pQrSt2uVwYxXz",
+              "tx_hash": "0xabc",
+              "usd_value": "1.00"
+            }
+          ]
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [],
+        "url": "https://paper-api.alpaca.markets/v2/wallets/transfers/00000000-0000-4000-8000-000000000010"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "amount": "1",
+            "asset": "USDC",
+            "chain": "ETH",
+            "created_at": "2026-01-02T15:04:05Z",
+            "direction": "OUTGOING",
+            "fees": "0.01",
+            "from_address": "0x2222222222222222222222222222222222222222",
+            "id": "00000000-0000-4000-8000-000000000010",
+            "network_fee": "0.02",
+            "status": "PROCESSING",
+            "to_address": "5dXY1aH2tQpV3wXmJg6Z7c8B4nKvF9bA1pQrSt2uVwYxXz",
+            "tx_hash": "0xabc",
+            "usd_value": "1.00"
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_against": "checkout",
+  "recorded_with": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "estimate": {
+      "__type__": "WalletFeeEstimateResponse",
+      "fields": {
+        "fee": "0.0505",
+        "network_fee": "0.0825"
+      }
+    },
+    "transfer": {
+      "__type__": "CryptoTransfer",
+      "fields": {
+        "amount": "1",
+        "asset": "USDC",
+        "chain": "ETH",
+        "created_at": {
+          "__type__": "datetime",
+          "value": "2026-01-02T15:04:05+00:00"
+        },
+        "direction": {
+          "__type__": "TransferDirection",
+          "name": "OUTGOING",
+          "value": "OUTGOING"
+        },
+        "fees": "0.01",
+        "from_address": "0x2222222222222222222222222222222222222222",
+        "id": {
+          "__type__": "UUID",
+          "value": "00000000-0000-4000-8000-000000000010"
+        },
+        "network_fee": "0.02",
+        "status": {
+          "__type__": "CryptoTransferStatus",
+          "name": "PROCESSING",
+          "value": "PROCESSING"
+        },
+        "to_address": "5dXY1aH2tQpV3wXmJg6Z7c8B4nKvF9bA1pQrSt2uVwYxXz",
+        "tx_hash": "0xabc",
+        "usd_value": "1.00"
+      }
+    },
+    "transfers": [
+      {
+        "__type__": "CryptoTransfer",
+        "fields": {
+          "amount": "1",
+          "asset": "USDC",
+          "chain": "ETH",
+          "created_at": {
+            "__type__": "datetime",
+            "value": "2026-01-02T15:04:05+00:00"
+          },
+          "direction": {
+            "__type__": "TransferDirection",
+            "name": "OUTGOING",
+            "value": "OUTGOING"
+          },
+          "fees": "0.01",
+          "from_address": "0x2222222222222222222222222222222222222222",
+          "id": {
+            "__type__": "UUID",
+            "value": "00000000-0000-4000-8000-000000000010"
+          },
+          "network_fee": "0.02",
+          "status": {
+            "__type__": "CryptoTransferStatus",
+            "name": "PROCESSING",
+            "value": "PROCESSING"
+          },
+          "to_address": "5dXY1aH2tQpV3wXmJg6Z7c8B4nKvF9bA1pQrSt2uVwYxXz",
+          "tx_hash": "0xabc",
+          "usd_value": "1.00"
+        }
+      }
+    ],
+    "wallet": {
+      "__type__": "CryptoWallet",
+      "fields": {
+        "address": "0x1111111111111111111111111111111111111111",
+        "chain": "ETH",
+        "created_at": {
+          "__type__": "datetime",
+          "value": "2026-01-02T15:04:05+00:00"
+        }
+      }
+    },
+    "wallets": [
+      {
+        "__type__": "CryptoWallet",
+        "fields": {
+          "address": "0x1111111111111111111111111111111111111111",
+          "chain": "ETH",
+          "created_at": {
+            "__type__": "datetime",
+            "value": "2026-01-02T15:04:05+00:00"
+          }
+        }
+      }
+    ]
+  },
+  "result_from": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "trading_funding.crypto_funding_wallets_transfers_and_fees",
+  "scenario_sha256": "14a3c8d80a236692b1de6cabb4358f4e8acc3a638ed9ae63fe3e8adb11c74205",
+  "vars": {}
+}

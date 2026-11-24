@@ -1,9 +1,6 @@
 from typing import Optional
 
-from requests.exceptions import HTTPError
-
 from alpaca.common.enums import BaseURL
-from alpaca.common.exceptions import APIError
 from alpaca.common.rest import RESTClient
 
 
@@ -62,14 +59,8 @@ class LogoClient(RESTClient):
             params = {"placeholder": str(placeholder).lower()}
 
         url = self._base_url + "/" + self._api_version + "/logos/" + symbol
-        response = self._session.get(
-            url=url,
-            params=params,
-            headers=self._get_default_headers(),
-        )
+        response = self._request_raw("GET", url, params=params)
         try:
-            response.raise_for_status()
-        except HTTPError as http_error:
-            raise APIError(response.text, http_error)
-
-        return response.content
+            return response.content
+        finally:
+            response.close()

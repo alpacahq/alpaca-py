@@ -1,4 +1,5 @@
 from datetime import date, datetime, timezone
+from enum import Enum
 from typing import Any, List, Optional, Union
 
 from pydantic import ConfigDict, Field
@@ -737,10 +738,17 @@ class CorporateActionsRequest(NonEmptyRequest):
     sort: Optional[Sort] = Sort.ASC
 
 
+def _query_value(item: Any) -> str:
+    # str() on a ``(str, Enum)`` member yields ``ClassName.MEMBER``, not the value.
+    if isinstance(item, Enum):
+        return str(item.value)
+    return str(item)
+
+
 def _comma_separated(value: Union[str, List[Any]]) -> str:
     if isinstance(value, list):
-        return ",".join(str(item) for item in value)
-    return str(value)
+        return ",".join(_query_value(item) for item in value)
+    return _query_value(value)
 
 
 class FixedIncomeLatestPricesRequest(NonEmptyRequest):

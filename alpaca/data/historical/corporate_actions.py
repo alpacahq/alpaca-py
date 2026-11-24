@@ -1,10 +1,8 @@
 from typing import Iterator, Optional, Union
 
 import sseclient
-from requests.exceptions import HTTPError
 
 from alpaca.common.enums import BaseURL
-from alpaca.common.exceptions import APIError
 from alpaca.common.rest import RESTClient
 from alpaca.common.types import RawData
 from alpaca.data.models.corporate_actions import CorporateActionsSet
@@ -104,17 +102,9 @@ class CorporateActionsClient(RESTClient):
                 headers["Last-Event-Id"] = request_params.last_event_id
 
         url = self._base_url + "/v1beta1/events/corporate-actions"
-        response = self._session.get(
-            url=url,
-            params=params,
-            stream=True,
-            headers=headers,
+        response = self._request_raw(
+            "GET", url, params=params, headers=headers, stream=True
         )
-        try:
-            response.raise_for_status()
-        except HTTPError as http_error:
-            response.close()
-            raise APIError(response.text, http_error)
 
         client = sseclient.SSEClient(response)
         try:

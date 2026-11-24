@@ -3,7 +3,10 @@ from datetime import date, datetime, timezone
 from urllib.parse import parse_qs, urlparse
 from uuid import UUID
 
-from alpaca.data.enums import CorporateActionsType
+import pytest
+
+from alpaca.common.exceptions import APIError
+from alpaca.data.enums import CorporateActionEventType, CorporateActionsType
 from alpaca.data.historical.corporate_actions import CorporateActionsClient
 from alpaca.data.models import CapitalGainsDistribution, PartialCall, Reorganization
 from alpaca.data.models.corporate_actions import (
@@ -439,3 +442,57 @@ def test_get_corporate_action_events(
     assert query["until_id"] == ["01J9RVB6Y4ZK8M3N7QD2WX1RFP"]
     assert "since" in query
     assert "until" in query
+
+
+def test_corporate_action_events_request_converts_enums_to_values():
+    request = CorporateActionEventsRequest(
+        type=[
+            CorporateActionEventType.CASH_DIVIDEND_CORPORATEACTION_EVENT,
+            CorporateActionEventType.STOCK_DIVIDEND_CORPORATEACTION_EVENT,
+        ]
+    )
+
+    assert request.to_request_fields()["type"] == (
+        "cash_dividend_corporateaction_event,stock_dividend_corporateaction_event"
+    )
+    assert (
+        CorporateActionEventsRequest(
+            type=CorporateActionEventType.CASH_DIVIDEND_CORPORATEACTION_EVENT
+        ).to_request_fields()["type"]
+        == "cash_dividend_corporateaction_event"
+    )
+
+
+def test_get_corporate_action_events_keeps_error_body(
+    reqmock, corporate_actions_client: CorporateActionsClient
+):
+    reqmock.get(
+        "https://data.alpaca.markets/v1beta1/events/corporate-actions",
+        status_code=403,
+        text='{"message": "forbidden"}',
+    )
+
+    with pytest.raises(APIError, match="forbidden"):
+        list(corporate_actions_client.get_corporate_action_events())
+
+
+def test_get_corporate_action_events_retries_temporary_error(
+    reqmock, corporate_actions_client: CorporateActionsClient, monkeypatch
+):
+    monkeypatch.setattr("alpaca.common.rest.time.sleep", lambda _: None)
+    payload = '{"action":"insert","event_id":"01J9RPMV5TKB8WX3M4F1KZ7QH2"}'
+    reqmock.get(
+        "https://data.alpaca.markets/v1beta1/events/corporate-actions",
+        [
+            {"status_code": 504, "text": "gateway timeout"},
+            {
+                "text": f"data: {payload}\n\n",
+                "headers": {"Content-Type": "text/event-stream"},
+            },
+        ],
+    )
+
+    events = list(corporate_actions_client.get_corporate_action_events())
+
+    assert events == [payload]
+    assert reqmock.call_count == 2

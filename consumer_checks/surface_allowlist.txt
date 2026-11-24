@@ -68,7 +68,7 @@ response:alpaca.trading.ListLocate*  # as above
 response:alpaca.trading.TokenizationMintResponse.*  # tokenization has no client method yet
 response:alpaca.trading.TokenizationRequest.*  # as above
 
-# Corporate action stream events: the live streams deliver them, and no scenario drives a stream (see README, Known gaps).
+# Corporate action stream models: the SSE client yields raw strings, not these models.
 response:alpaca.data.CaEventBase.*  # stream event models, not returned by any client method
 response:alpaca.data.CaEventCapitalGainsDistribution.*  # stream event models, not returned by any client method
 response:alpaca.data.CaEventCashDividend.*  # stream event models, not returned by any client method
@@ -124,10 +124,6 @@ response:alpaca.data.CryptoSnapshot.*  # the client still returns the hand-writt
 response:alpaca.data.CryptoSnapshotsResp.*  # the client still returns the hand-written model
 response:alpaca.data.CryptoTrade.*  # the client still returns the hand-written model
 response:alpaca.data.CryptoTradesResp.*  # the client still returns the hand-written model
-response:alpaca.data.FixedIncomeLatestPricesResp.*  # the client still returns the hand-written model
-response:alpaca.data.FixedIncomeLatestQuotesResp.*  # the client still returns the hand-written model
-response:alpaca.data.FixedIncomePrice.*  # the client still returns the hand-written model
-response:alpaca.data.FixedIncomeQuote.*  # the client still returns the hand-written model
 response:alpaca.data.MostActive.*  # the client still returns the hand-written model
 response:alpaca.data.MostActivesResp.*  # the client still returns the hand-written model
 response:alpaca.data.MoversResp.*  # the client still returns the hand-written model

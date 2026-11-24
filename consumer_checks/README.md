@@ -106,6 +106,14 @@ in every mode, and recording needs no keys. The requests the SDK sends,
 including how many times it retries, are still frozen. See
 `scenarios/errors_stubbed.py`.
 
+Fixed responses also cover subscription-gated fixed-income and logo success
+paths, and a finite corporate-action SSE stream (`scenarios/other_market_data.py`).
+For a binary response, use `{"status": 200, "base64": "..."}`. Optional
+`"headers": {"Content-Type": "image/png"}` (or `"text/event-stream"` for SSE)
+overrides the default response headers. These scenarios remain stubbed in every
+mode, including live mode; they check SDK behavior without verifying live API
+access or delivery.
+
 ## API that is not released yet: `since`
 
 A scenario for API that only exists on `master` sets the first release that
@@ -260,8 +268,9 @@ of dicts while typed as `List[Calendar] | dict`.
 `make consumer-coverage` counts a method as checked only when a scenario that
 covers it has a recording, since replay skips scenarios without one. It also
 shows how many have a scenario that is not recorded yet. Every method of
-`TradingClient` and of the market-data clients (stock, crypto, options, news,
-screener, corporate actions) has a scenario. Market-data scenarios
+`TradingClient` and of the stock, crypto, options, news, screener, corporate
+actions, fixed-income and logo clients has a scenario.
+Market-data scenarios
 are read only and use the feeds every paper account has: IEX for stocks and
 `indicative` for options. Fixed past dates keep requests identical on replay.
 Where data has to be current (option contracts expire), the scenario picks it
@@ -277,6 +286,12 @@ from an earlier response, such as the option chain, which replay serves back.
 
 - Streaming (websocket) clients have no scenarios yet. They would need their own
   record and replay transport, so for now cover them in live mode only.
+- Corporate-action SSE has a finite stubbed scenario covering filters, the
+  reconnect header and event payloads. The recorder buffers complete responses;
+  live stream delivery and reconnect behavior still need live validation.
+- Fixed-income latest prices and quotes, and company logos, use stubbed success
+  responses because the consumer account lacks the required subscriptions (403).
+  Live API access is not checked for these endpoints.
 - `BrokerClient` (78 methods) needs Broker sandbox keys and its own safety
   rules, since sandbox accounts, transfers and journals can only be closed,
   not deleted. Not wired in yet; allowlisted in `coverage_allowlist.txt`.

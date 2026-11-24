@@ -16,7 +16,7 @@ from typing import (
 )
 
 from pydantic import BaseModel
-from requests import Session
+from requests import Response, Session
 from requests.exceptions import HTTPError
 from itertools import chain
 
@@ -225,6 +225,69 @@ class RESTClient(ABC):
 
         if response.text != "":
             return response.json()
+
+    def _request_raw(
+        self,
+        method: str,
+        url: str,
+        params: Optional[dict] = None,
+        headers: Optional[dict] = None,
+        stream: bool = False,
+    ) -> Response:
+        """Submits an HTTP request to a full URL and returns the unparsed response,
+        with the same retry behavior as ``_request``. Use for non-JSON (bytes) or
+        streamed responses. When ``stream`` is true the caller must close the response.
+
+        Args:
+            method (str): The HTTP method
+            url (str): The full request URL
+            params (Optional[dict]): Query parameters
+            headers (Optional[dict]): Request headers. Defaults to the default headers.
+            stream (bool): Whether to stream the response body.
+
+        Raises:
+            APIError: Raised if the API returns an error (after retries are exhausted)
+
+        Returns:
+            Response: The successful response
+        """
+        opts = {
+            "headers": headers if headers is not None else self._get_default_headers(),
+            "params": params,
+            "stream": stream,
+        }
+
+        retry = self._retry
+
+        while retry >= 0:
+            try:
+                return self._one_raw_request(method, url, opts, retry)
+            except RetryException:
+                time.sleep(self._retry_wait)
+                retry -= 1
+
+    def _one_raw_request(
+        self, method: str, url: str, opts: dict, retry: int
+    ) -> Response:
+        """Performs one request, raising RetryException for retryable status codes
+        while retries remain, and APIError for any other error. The error body is
+        read before the (possibly streamed) response is closed.
+        """
+        response = self._session.request(method, url, **opts)
+
+        try:
+            response.raise_for_status()
+        except HTTPError as http_error:
+            try:
+                if response.status_code in self._retry_codes and retry > 0:
+                    raise RetryException()
+
+                error = response.text
+                raise APIError(error, http_error)
+            finally:
+                response.close()
+
+        return response
 
     def get(
         self, path: str, data: Optional[Union[dict, str]] = None, **kwargs

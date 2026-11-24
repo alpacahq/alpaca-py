@@ -1,0 +1,102 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "isins",
+            "US912797SX61"
+          ],
+          [
+            "trade_size",
+            "1000"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v1beta1/fixed_income/latest/quotes"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "quotes": {
+              "US912797SX61": {
+                "ams": 1000,
+                "ap": 99.91958333,
+                "as": 1000000,
+                "aytm": 2.226923,
+                "aytw": 2.226923,
+                "bms": 1000,
+                "bp": 99.81091667,
+                "bs": 1000000,
+                "bytm": 5.236154,
+                "bytw": 5.236154,
+                "t": "2026-05-21T06:56:01.882466873Z"
+              }
+            }
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_against": "checkout",
+  "recorded_with": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "quotes": {
+      "__type__": "FixedIncomeLatestQuotesResp",
+      "fields": {
+        "quotes": {
+          "US912797SX61": {
+            "__type__": "FixedIncomeQuote",
+            "fields": {
+              "ams": 1000,
+              "ap": 99.91958333,
+              "aytm": 2.226923,
+              "aytw": 2.226923,
+              "bms": 1000,
+              "bp": 99.81091667,
+              "bs": 1000000,
+              "bytm": 5.236154,
+              "bytw": 5.236154,
+              "t": {
+                "__type__": "datetime",
+                "value": "2026-05-21T06:56:01.882466+00:00"
+              },
+              "var_as": 1000000
+            }
+          }
+        }
+      }
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "other_market_data.fixed_income_latest_quotes",
+  "scenario_sha256": "f515d3f635165f0d113de57c3cfce9b1cb680ce3a538b231197e0ae1b8574502",
+  "vars": {}
+}

@@ -1,0 +1,121 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [],
+        "url": "https://data.alpaca.markets/v1beta1/logos/AAPL"
+      },
+      "response": {
+        "body": {
+          "base64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
+        },
+        "headers": {
+          "Content-Type": "image/png"
+        },
+        "reason": "",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "placeholder",
+            "false"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v1beta1/logos/MSFT"
+      },
+      "response": {
+        "body": {
+          "base64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
+        },
+        "headers": {
+          "Content-Type": "image/png"
+        },
+        "reason": "",
+        "status": 200
+      }
+    },
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "apca-api-key-id": "<redacted>",
+          "apca-api-secret-key": "<redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "placeholder",
+            "true"
+          ]
+        ],
+        "url": "https://data.alpaca.markets/v1beta1/logos/UNKNOWN"
+      },
+      "response": {
+        "body": {
+          "base64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
+        },
+        "headers": {
+          "Content-Type": "image/png"
+        },
+        "reason": "",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_against": "checkout",
+  "recorded_with": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "default": {
+      "__type__": "bytes",
+      "repr": "b\"\\x89PNG\\r\\n\\x1a\\n\\x00\\x00\\x00\\rIHDR\\x00\\x00\\x00\\x01\\x00\\x00\\x00\\x01\\x08\\x04\\x00\\x00\\x00\\xb5\\x1c\\x0c\\x02\\x00\\x00\\x00\\x0bIDATx\\xdacd\\xf8\\x0f\\x00\\x01\\x05\\x01\\x01'\\x18\\xe3f\\x00\\x00\\x00\\x00IEND\\xaeB`\\x82\""
+    },
+    "with_placeholder": {
+      "__type__": "bytes",
+      "repr": "b\"\\x89PNG\\r\\n\\x1a\\n\\x00\\x00\\x00\\rIHDR\\x00\\x00\\x00\\x01\\x00\\x00\\x00\\x01\\x08\\x04\\x00\\x00\\x00\\xb5\\x1c\\x0c\\x02\\x00\\x00\\x00\\x0bIDATx\\xdacd\\xf8\\x0f\\x00\\x01\\x05\\x01\\x01'\\x18\\xe3f\\x00\\x00\\x00\\x00IEND\\xaeB`\\x82\""
+    },
+    "without_placeholder": {
+      "__type__": "bytes",
+      "repr": "b\"\\x89PNG\\r\\n\\x1a\\n\\x00\\x00\\x00\\rIHDR\\x00\\x00\\x00\\x01\\x00\\x00\\x00\\x01\\x08\\x04\\x00\\x00\\x00\\xb5\\x1c\\x0c\\x02\\x00\\x00\\x00\\x0bIDATx\\xdacd\\xf8\\x0f\\x00\\x01\\x05\\x01\\x01'\\x18\\xe3f\\x00\\x00\\x00\\x00IEND\\xaeB`\\x82\""
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.0.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "other_market_data.logo_png_and_placeholder",
+  "scenario_sha256": "de4842b5927b7814376aa5ccdef06d69a5fcf2814c53e10e1f2a8d6a90983a50",
+  "vars": {}
+}

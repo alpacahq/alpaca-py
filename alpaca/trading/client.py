@@ -4,13 +4,11 @@ from uuid import UUID
 
 import sseclient
 from pydantic import TypeAdapter
-from requests.exceptions import HTTPError
 from typing_extensions import deprecated as _deprecated
 
 from alpaca.common import RawData
 from alpaca.common._deprecation import build_from_response as _build_from_response
 from alpaca.common.enums import BaseURL
-from alpaca.common.exceptions import APIError
 from alpaca.common.rest import RESTClient
 from alpaca.common.utils import (
     validate_symbol_or_asset_id,
@@ -959,20 +957,15 @@ class TradingClient(RESTClient):
         """
         params = self._query(request_params)
         url = self._base_url + "/v2beta1/events/activities"
-        response = self._session.get(
-            url=url,
+        # ``_request_raw`` retries 429/504 and reads an error body before closing
+        # the streamed response. It also refuses redirects.
+        response = self._request_raw(
+            "GET",
+            url,
             params=params,
-            stream=True,
             headers=self._sse_headers(),
-            # Match RESTClient._request: the endpoint URL is user-configurable,
-            # so refuse redirects rather than leak auth headers across hosts.
-            allow_redirects=False,
+            stream=True,
         )
-        try:
-            response.raise_for_status()
-        except HTTPError as http_error:
-            response.close()
-            raise APIError(response.text, http_error)
 
         client = sseclient.SSEClient(response)
         try:

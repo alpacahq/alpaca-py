@@ -259,6 +259,9 @@ class RESTClient(ABC):
             "headers": headers if headers is not None else self._get_default_headers(),
             "params": params,
             "stream": stream,
+            # Same reason as ``_request``: a user-configured base URL must not
+            # follow a redirect that would send auth headers to another host.
+            "allow_redirects": False,
         }
 
         retry = self._retry

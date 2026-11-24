@@ -4,6 +4,7 @@ from urllib.parse import parse_qs, urlparse
 import pytest
 
 from alpaca.common.enums import BaseURL
+from alpaca.common.exceptions import APIError
 from alpaca.trading.client import TradingClient
 from alpaca.trading.models import NonTradeActivities, TradingActivities
 from alpaca.trading.requests import (
@@ -77,6 +78,41 @@ def test_subscribe_to_activities_sse_uses_v2beta1(
     assert "since" in query
     assert "until" in query
     assert query["since_id"] == ["01ARZ3NDEKTSV4RRFFQ69G5FAV"]
+
+
+def test_subscribe_to_activities_sse_keeps_error_body(
+    reqmock, trading_client: TradingClient
+):
+    reqmock.get(
+        f"{_PAPER}/v2beta1/events/activities",
+        status_code=403,
+        text='{"message": "forbidden"}',
+    )
+
+    with pytest.raises(APIError, match="forbidden"):
+        list(trading_client.subscribe_to_activities_sse())
+
+
+def test_subscribe_to_activities_sse_retries_temporary_error(
+    reqmock, trading_client: TradingClient, monkeypatch
+):
+    monkeypatch.setattr("alpaca.common.rest.time.sleep", lambda _: None)
+    payload = '{"activity_type":"FILL"}'
+    reqmock.get(
+        f"{_PAPER}/v2beta1/events/activities",
+        [
+            {"status_code": 504, "text": "gateway timeout"},
+            {
+                "text": f"data: {payload}\n\n",
+                "headers": {"Content-Type": "text/event-stream"},
+            },
+        ],
+    )
+
+    events = list(trading_client.subscribe_to_activities_sse())
+
+    assert events == [payload]
+    assert reqmock.call_count == 2
 
 
 # Documented Trading API examples. Fills have no account_id, and this dividend

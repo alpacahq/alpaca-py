@@ -98,6 +98,7 @@ from alpaca.broker.requests import UpdateOrderRequest as _BrokerUpdateOrderReque
 from alpaca.broker.requests import UpdatePortfolioRequest, UploadDocumentRequest
 from alpaca.common import RawData
 from alpaca.common._deprecation import build_from_response as _build_from_response
+from alpaca.common._deprecation import parse_from_response as _parse_from_response
 from alpaca.common.constants import (
     ACCOUNT_ACTIVITIES_DEFAULT_PAGE_SIZE,
     BROKER_DOCUMENT_UPLOAD_LIMIT,
@@ -280,7 +281,7 @@ class BrokerClient(BrokerOperations, RESTClient):
             if self._use_raw_data:
                 yield result
             else:
-                yield TypeAdapter(type=List[base_model_type]).validate_python(result)
+                yield _parse_from_response(List[base_model_type], result)
 
             if max_items_limit is not None and total_items >= max_items_limit:
                 break
@@ -306,7 +307,7 @@ class BrokerClient(BrokerOperations, RESTClient):
         # Any other non-dict body is left for validation to reject.
         if response is None:
             response = {}
-        return TypeAdapter(page_model).validate_python(response)
+        return _parse_from_response(page_model, response)
 
     # ############################## ACCOUNTS/TRADING ACCOUNTS ################################# #
 
@@ -462,7 +463,7 @@ class BrokerClient(BrokerOperations, RESTClient):
 
         if self._use_raw_data:
             return response
-        return TypeAdapter(List[AccountExtended]).validate_python(response)
+        return _parse_from_response(List[AccountExtended], response)
 
     def get_trade_account_by_id(
         self,
@@ -732,9 +733,9 @@ class BrokerClient(BrokerOperations, RESTClient):
             )
 
         if ActivityType.is_str_trade_activity(data["activity_type"]):
-            return TypeAdapter(TradeActivity).validate_python(data)
+            return _parse_from_response(TradeActivity, data)
         else:
-            return TypeAdapter(NonTradeActivity).validate_python(data)
+            return _parse_from_response(NonTradeActivity, data)
 
     # ############################## TRADE ACCOUNT DOCUMENTS ################################# #
 
@@ -929,7 +930,7 @@ class BrokerClient(BrokerOperations, RESTClient):
         if self._use_raw_data:
             return response
 
-        return TypeAdapter(List[ACHRelationship]).validate_python(response)
+        return _parse_from_response(List[ACHRelationship], response)
 
     def delete_ach_relationship_for_account(
         self,
@@ -1007,7 +1008,7 @@ class BrokerClient(BrokerOperations, RESTClient):
         if self._use_raw_data:
             return response
 
-        return TypeAdapter(List[Bank]).validate_python(response)
+        return _parse_from_response(List[Bank], response)
 
     def delete_bank_for_account(
         self,
@@ -1135,7 +1136,7 @@ class BrokerClient(BrokerOperations, RESTClient):
             if self._use_raw_data:
                 yield result
             else:
-                yield TypeAdapter(List[Transfer]).validate_python(result)
+                yield _parse_from_response(List[Transfer], result)
 
             if max_items_limit is not None and total_items >= max_items_limit:
                 break
@@ -1179,7 +1180,7 @@ class BrokerClient(BrokerOperations, RESTClient):
 
         if self._use_raw_data:
             return response
-        return TypeAdapter(List[Position]).validate_python(response)
+        return _parse_from_response(List[Position], response)
 
     @_deprecated(
         "get_all_accounts_positions is deprecated and will be removed in a future version. "
@@ -1262,7 +1263,7 @@ class BrokerClient(BrokerOperations, RESTClient):
 
         if self._use_raw_data:
             return response
-        return TypeAdapter(List[ClosePositionResponse]).validate_python(response)
+        return _parse_from_response(List[ClosePositionResponse], response)
 
     def close_position_for_account(
         self,
@@ -1415,7 +1416,7 @@ class BrokerClient(BrokerOperations, RESTClient):
 
         if generated:
             return TypeAdapter(List[_BrokerLegacyCalendarDay]).validate_python(result)
-        return TypeAdapter(List[Calendar]).validate_python(result)
+        return _parse_from_response(List[Calendar], result)
 
     # ############################## WATCHLISTS ################################# #
 
@@ -1439,7 +1440,7 @@ class BrokerClient(BrokerOperations, RESTClient):
         if self._use_raw_data:
             return result
 
-        return TypeAdapter(List[Watchlist]).validate_python(result)
+        return _parse_from_response(List[Watchlist], result)
 
     def get_watchlist_for_account_by_id(
         self,
@@ -1652,7 +1653,7 @@ class BrokerClient(BrokerOperations, RESTClient):
         if self._use_raw_data:
             return response
 
-        return TypeAdapter(List[BatchJournalResponse]).validate_python(response)
+        return _parse_from_response(List[BatchJournalResponse], response)
 
     def create_reverse_batch_journal(
         self,
@@ -1676,7 +1677,7 @@ class BrokerClient(BrokerOperations, RESTClient):
         if self._use_raw_data:
             return response
 
-        return TypeAdapter(List[BatchJournalResponse]).validate_python(response)
+        return _parse_from_response(List[BatchJournalResponse], response)
 
     def get_journals(
         self, journal_filter: Optional[GetJournalsRequest] = None
@@ -1697,7 +1698,7 @@ class BrokerClient(BrokerOperations, RESTClient):
         if self._use_raw_data:
             return response
 
-        return TypeAdapter(List[Journal]).validate_python(response)
+        return _parse_from_response(List[Journal], response)
 
     def get_journal_by_id(
         self, journal_id: Union[UUID, str] = None
@@ -1783,9 +1784,7 @@ class BrokerClient(BrokerOperations, RESTClient):
 
         if generated:
             return TypeAdapter(List[_BrokerAsset]).validate_python(response)
-        return TypeAdapter(
-            List[Asset],
-        ).validate_python(response)
+        return _parse_from_response(List[Asset], response)
 
     @overload
     def get_asset(
@@ -1878,9 +1877,7 @@ class BrokerClient(BrokerOperations, RESTClient):
         if self._use_raw_data:
             return response
 
-        return TypeAdapter(
-            List[Order],
-        ).validate_python(response)
+        return _parse_from_response(List[Order], response)
 
     def get_order_for_account_by_id(
         self,
@@ -1991,9 +1988,7 @@ class BrokerClient(BrokerOperations, RESTClient):
         if self._use_raw_data:
             return response
 
-        return TypeAdapter(
-            List[CancelOrderResponse],
-        ).validate_python(response)
+        return _parse_from_response(List[CancelOrderResponse], response)
 
     def cancel_order_for_account_by_id(
         self, account_id: Union[UUID, str], order_id: Union[UUID, str]
@@ -2047,9 +2042,7 @@ class BrokerClient(BrokerOperations, RESTClient):
         if self._use_raw_data:
             return response
 
-        return TypeAdapter(
-            List[CorporateActionAnnouncement],
-        ).validate_python(response)
+        return _parse_from_response(List[CorporateActionAnnouncement], response)
 
     @_deprecated(
         "get_corporate_announcement_by_id is deprecated and will be removed in a future version. "
@@ -2213,9 +2206,7 @@ class BrokerClient(BrokerOperations, RESTClient):
         if self._use_raw_data:
             return response
 
-        return TypeAdapter(
-            List[Portfolio],
-        ).validate_python(response)
+        return _parse_from_response(List[Portfolio], response)
 
     def get_portfolio_by_id(
         self, portfolio_id: Union[UUID, str]

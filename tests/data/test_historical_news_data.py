@@ -115,6 +115,9 @@ def test_get_news(reqmock, news_client: NewsClient):
     assert newsset["news"][1].id == 41799100
 
     assert newsset.df.index.nlevels == 1
+    index = newsset.df.index
+    assert index.name == "id"
+    assert index.tolist() == [40432158, 41799100]
 
     assert reqmock.call_count == 2
 

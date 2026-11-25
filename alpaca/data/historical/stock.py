@@ -5,7 +5,7 @@ from typing import Dict, Iterator, List, Literal, Optional, Union, overload
 from alpaca.common.constants import DATA_V2_MAX_LIMIT
 from alpaca.common.enums import BaseURL, PaginationType
 from alpaca.common.rest import RESTClient
-from alpaca.common.types import RawData
+from alpaca.common.types import RawData, RequestTimeout
 from alpaca.data import Bar, Quote, Snapshot, Trade
 from alpaca.data.historical.utils import (
     parse_obj_as_symbol_dict,
@@ -38,6 +38,7 @@ class StockHistoricalDataClient(RESTClient):
         raw_data: bool = False,
         url_override: Optional[str] = None,
         sandbox: bool = False,
+        timeout: Optional[RequestTimeout] = None,
     ) -> None:
         """
         Instantiates a Historical Data Client.
@@ -53,6 +54,8 @@ class StockHistoricalDataClient(RESTClient):
             url_override (Optional[str], optional): If specified allows you to override the base url the client points
               to for proxy/testing.
             sandbox (bool): True if using sandbox mode. Defaults to False.
+            timeout: Connect and read timeout in seconds for each HTTP request. Pass a
+              (connect, read) pair to set them separately. Defaults to no timeout.
         """
 
         base_url = (
@@ -70,6 +73,7 @@ class StockHistoricalDataClient(RESTClient):
             base_url=base_url,
             sandbox=sandbox,
             raw_data=raw_data,
+            timeout=timeout,
         )
 
     @overload

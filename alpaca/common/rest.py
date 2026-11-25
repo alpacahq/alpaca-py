@@ -27,7 +27,7 @@ from alpaca.common.constants import (
 )
 
 from alpaca.common.exceptions import APIError, RetryException
-from alpaca.common.types import RawData, HTTPResult, Credentials
+from alpaca.common.types import RawData, HTTPResult, Credentials, RequestTimeout
 from alpaca.common.utils import get_default_user_agent
 from .constants import PageItem
 from .enums import PaginationType, BaseURL
@@ -52,6 +52,7 @@ class RESTClient(ABC):
         retry_attempts: Optional[int] = None,
         retry_wait_seconds: Optional[int] = None,
         retry_exception_codes: Optional[List[int]] = None,
+        timeout: Optional[RequestTimeout] = None,
     ) -> None:
         """Abstract base class for REST clients. Handles submitting HTTP requests to
         Alpaca API endpoints.
@@ -70,6 +71,7 @@ class RESTClient(ABC):
               Set to 0 to disable retries.
             retry_wait_seconds (Optional[int]): The number of seconds to wait between requests before retrying.
             retry_exception_codes (Optional[List[int]]): The API exception codes to retry a request on.
+            timeout: Connect and read timeout in seconds, or a pair of separate timeouts.
         """
 
         self._api_key, self._secret_key, self._oauth_token = self._validate_credentials(
@@ -81,6 +83,7 @@ class RESTClient(ABC):
         self._use_basic_auth: bool = use_basic_auth
         self._use_raw_data: bool = raw_data
         self._session: Session = Session()
+        self._timeout = timeout
 
         # setting up request retry configurations
         self._retry: int = DEFAULT_RETRY_ATTEMPTS
@@ -137,6 +140,9 @@ class RESTClient(ABC):
             opts["params"] = data
         else:
             opts["json"] = data
+
+        if self._timeout is not None:
+            opts["timeout"] = self._timeout
 
         retry = self._retry
 

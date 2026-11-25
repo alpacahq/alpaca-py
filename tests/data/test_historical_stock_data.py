@@ -2,6 +2,8 @@ import urllib.parse
 from datetime import datetime, timezone
 from typing import Dict
 
+import pytest
+
 from alpaca.common.enums import Sort
 from alpaca.data import Bar, Quote, Snapshot, Trade
 from alpaca.data.enums import DataFeed, Exchange
@@ -17,6 +19,19 @@ from alpaca.data.requests import (
     StockTradesRequest,
 )
 from alpaca.data.timeframe import TimeFrame
+
+
+@pytest.mark.parametrize("timeout", [2.5, (1.0, 3.0)])
+def test_stock_bars_request_timeout(reqmock, timeout):
+    configured = StockHistoricalDataClient("key-id", "secret-key", timeout=timeout)
+    default = StockHistoricalDataClient("key-id", "secret-key")
+    reqmock.get("https://data.alpaca.markets/v2/stocks/bars", json={"bars": {}})
+    request = StockBarsRequest(symbol_or_symbols="AAPL", timeframe=TimeFrame.Day)
+
+    configured.get_stock_bars(request)
+    default.get_stock_bars(request)
+
+    assert [call.timeout for call in reqmock.request_history] == [timeout, None]
 
 
 def test_get_bars(reqmock, stock_client: StockHistoricalDataClient):

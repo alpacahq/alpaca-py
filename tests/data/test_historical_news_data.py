@@ -117,3 +117,15 @@ def test_get_news(reqmock, news_client: NewsClient):
     assert newsset.df.index.nlevels == 1
 
     assert reqmock.call_count == 2
+
+
+def test_get_news_empty_df(reqmock, news_client: NewsClient):
+    reqmock.get(
+        "https://data.alpaca.markets/v1beta1/news?symbols=AAPL&limit=50",
+        text='{"news": [], "next_page_token": null}',
+    )
+    newsset = news_client.get_news(request_params=NewsRequest(symbols="AAPL"))
+
+    assert isinstance(newsset, NewsSet)
+    assert newsset["news"] == []
+    assert newsset.df.empty

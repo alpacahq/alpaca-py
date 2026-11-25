@@ -526,15 +526,36 @@ class BrokerClient(BrokerOperations, RESTClient):
             [document.to_request_fields() for document in document_data],
         )
 
+    @overload
     def get_trade_configuration_for_account(
         self,
         account_id: Union[UUID, str],
-    ) -> Union[TradeAccountConfiguration, RawData]:
+        *,
+        generated: Literal[False] = False,
+    ) -> Union[TradeAccountConfiguration, RawData]: ...
+
+    @overload
+    def get_trade_configuration_for_account(
+        self,
+        account_id: Union[UUID, str],
+        *,
+        generated: Literal[True],
+    ) -> Union[_BrokerAccountConfigurations, RawData]: ...
+
+    def get_trade_configuration_for_account(
+        self,
+        account_id: Union[UUID, str],
+        *,
+        generated: bool = False,
+    ) -> Union[TradeAccountConfiguration, _BrokerAccountConfigurations, RawData]:
         """
         Gets the TradeAccountConfiguration for a given Account.
 
         Args:
             account_id (Union[UUID, str]): The id of the Account you wish to get the TradeAccountConfiguration for
+            generated (bool): Return the Broker API's OpenAPI-generated ``alpaca.broker.models.AccountConfigurations``
+              instead of the deprecated TradeAccountConfiguration. The spec documents this class for the PATCH of
+              the same route. Defaults to False.
 
         Returns:
             TradeAccountConfiguration: The resulting TradeAccountConfiguration for the Account
@@ -547,7 +568,35 @@ class BrokerClient(BrokerOperations, RESTClient):
         if self._use_raw_data:
             return resp
 
+        if generated:
+            return _BrokerAccountConfigurations.model_validate(resp)
         return _build_from_response(TradeAccountConfiguration, resp)
+
+    @overload
+    def update_trade_configuration_for_account(
+        self,
+        account_id: Union[UUID, str],
+        config: Union[
+            TradeAccountConfiguration,
+            _TradingAccountConfigurations,
+            _BrokerAccountConfigurations,
+        ],
+        *,
+        generated: Literal[False] = False,
+    ) -> Union[TradeAccountConfiguration, RawData]: ...
+
+    @overload
+    def update_trade_configuration_for_account(
+        self,
+        account_id: Union[UUID, str],
+        config: Union[
+            TradeAccountConfiguration,
+            _TradingAccountConfigurations,
+            _BrokerAccountConfigurations,
+        ],
+        *,
+        generated: Literal[True],
+    ) -> Union[_BrokerAccountConfigurations, RawData]: ...
 
     def update_trade_configuration_for_account(
         self,
@@ -557,7 +606,9 @@ class BrokerClient(BrokerOperations, RESTClient):
             _TradingAccountConfigurations,
             _BrokerAccountConfigurations,
         ],
-    ) -> Union[TradeAccountConfiguration, RawData]:
+        *,
+        generated: bool = False,
+    ) -> Union[TradeAccountConfiguration, _BrokerAccountConfigurations, RawData]:
         """
         Updates an Account with new TradeAccountConfiguration information.
 
@@ -566,6 +617,8 @@ class BrokerClient(BrokerOperations, RESTClient):
             config (Union[TradeAccountConfiguration, AccountConfigurations]): The Updated Options you wish to set on
               the Account. The Trading and Broker AccountConfigurations are both accepted; with them, only the fields
               you set are sent.
+            generated (bool): Return the Broker API's OpenAPI-generated ``alpaca.broker.models.AccountConfigurations``
+              instead of the deprecated TradeAccountConfiguration. Defaults to False.
 
         Returns:
             TradeAccountConfiguration: The resulting TradeAccountConfiguration with updates.
@@ -580,6 +633,8 @@ class BrokerClient(BrokerOperations, RESTClient):
         if self._use_raw_data:
             return result
 
+        if generated:
+            return _BrokerAccountConfigurations.model_validate(result)
         return _build_from_response(TradeAccountConfiguration, result)
 
     # ############################## ACCOUNT ACTIVITIES ################################# #

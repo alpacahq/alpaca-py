@@ -824,19 +824,22 @@ class TradeActivity(BaseActivity):
 
 @_deprecated(
     "TradeAccount is deprecated and will be removed in a future version. Please use "
-    "`Account` instead.",
+    "`Account` instead: pass generated=True to the client methods that return "
+    "TradeAccount.",
     category=None,
 )
 @_warn_on_direct_instantiation(
     "TradeAccount is deprecated and will be removed in a future version. Please use "
-    "`Account` instead."
+    "`Account` instead: pass generated=True to the client methods that return "
+    "TradeAccount."
 )
 class TradeAccount(ModelWithID):
     """
     Represents trading account information for an Account.
 
     .. deprecated:: 0.45.0
-        Please use `Account` instead.
+        Please use `Account` instead. ``TradingClient.get_account`` returns it with
+        ``generated=True``.
 
     Attributes:
         id (UUID): The account ID
@@ -957,19 +960,24 @@ class TradeAccount(ModelWithID):
 
 @_deprecated(
     "AccountConfiguration is deprecated and will be removed in a future version. "
-    "Please use `AccountConfigurations` instead.",
+    "Please use `AccountConfigurations` instead: pass generated=True to the client "
+    "methods that return AccountConfiguration.",
     category=None,
 )
 @_warn_on_direct_instantiation(
     "AccountConfiguration is deprecated and will be removed in a future version. "
-    "Please use `AccountConfigurations` instead."
+    "Please use `AccountConfigurations` instead: pass generated=True to the client "
+    "methods that return AccountConfiguration."
 )
 class AccountConfiguration(BaseModel):
     """
     Represents configuration options for a TradeAccount.
 
     .. deprecated:: 0.45.0
-        Please use `AccountConfigurations` instead.
+        Please use `AccountConfigurations` instead. ``TradingClient.get_account_configurations``
+        and ``set_account_configurations`` return it with ``generated=True``; the
+        ``BrokerClient`` configuration methods return the Broker API's
+        ``alpaca.broker.models.AccountConfigurations``.
 
     Attributes:
         dtbp_check (Optional[DTBPCheck]): Day Trade Buying Power Check. Controls Day Trading Margin Call (DTMC) checks.

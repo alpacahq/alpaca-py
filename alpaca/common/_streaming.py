@@ -28,9 +28,10 @@ def send_subscription(
     waiter: concurrent.futures.Future[None] = concurrent.futures.Future()
 
     def schedule() -> None:
-        # This callback is the turn that creates the task. Register it before
-        # returning so close(), which snapshots the set synchronously, cannot
-        # start in between and miss the send.
+        # Register the task before this callback returns. The loop runs nothing
+        # else until then, including the new coroutine and close(), which copies
+        # the set as soon as it starts. A close() that begins afterwards always
+        # sees this send.
         try:
             task = _track_subscription(coroutine, loop, tasks, None)
         except BaseException as exc:

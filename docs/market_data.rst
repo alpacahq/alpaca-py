@@ -56,15 +56,10 @@ For crypto, latest orderbook data is also available.
 Retrieving Latest Quote Data
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The latest quote data is available through the historical data clients.
-The method will return a dictionary of Trade objects that are keyed by the corresponding
-symbol. We will need to use the ``StockLatestQuoteRequest`` model to prepare the request parameters.
-
-.. attention::
-    Models that are returned by both historical data clients are agnostic of the number of
-    symbols that were passed in. This means that you must use the symbol as a key to access
-    the data regardless of whether a single symbol or multiple symbols were queried. Below is an example
-    of this in action.
+The examples below use ``StockLatestQuoteRequest`` for stocks and ``CryptoLatestQuoteRequest``
+for crypto. By default, both methods return a dictionary of ``Quote`` objects keyed by symbol,
+even when you request a single symbol. Use the symbol to look up the quote and access fields
+such as ``ask_price`` and ``bid_price``.
 
 **Multi Symbol**
 

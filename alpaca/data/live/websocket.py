@@ -10,6 +10,7 @@ import msgpack
 import websockets
 from pydantic import BaseModel
 
+from alpaca.common._streaming import send_subscription
 from alpaca.common.types import RawData
 from alpaca.common.utils import (
     RunState,
@@ -411,25 +412,9 @@ class DataStream:
             handlers[symbol] = handler
         self._wake_subscription_wait()
         if self._running:
-            self._send_subscription(self._send_subscribe_msg())
-
-    def _send_subscription(self, coroutine: Coroutine[Any, Any, None]) -> None:
-        try:
-            current_loop = asyncio.get_running_loop()
-        except RuntimeError:
-            current_loop = None
-        if current_loop is not None and current_loop is self._loop:
-            # A handler runs on this loop; waiting for its own future deadlocks it.
-            task = self._loop.create_task(coroutine)
-            self._subscription_tasks.add(task)
-            task.add_done_callback(self._subscription_done)
-        else:
-            asyncio.run_coroutine_threadsafe(coroutine, self._loop).result()
-
-    def _subscription_done(self, task: asyncio.Task) -> None:
-        self._subscription_tasks.discard(task)
-        if not task.cancelled() and task.exception() is not None:
-            log.error("subscription update failed", exc_info=task.exception())
+            send_subscription(
+                self._send_subscribe_msg(), self._loop, self._subscription_tasks, log
+            )
 
     async def _send_subscribe_msg(self) -> None:
         msg = defaultdict(list)
@@ -446,10 +431,19 @@ class DataStream:
         await self._ws.send(frames)
 
     def _unsubscribe(self, channel: str, symbols: List[str]) -> None:
-        if self._running:
-            self._send_subscription(self._send_unsubscribe_msg(channel, symbols))
-        for symbol in symbols:
-            del self._handlers[channel][symbol]
+        # Remove handlers even when close() cancels this send. Leaving them
+        # would make the next connect subscribe to symbols the caller dropped.
+        try:
+            if self._running:
+                send_subscription(
+                    self._send_unsubscribe_msg(channel, symbols),
+                    self._loop,
+                    self._subscription_tasks,
+                    log,
+                )
+        finally:
+            for symbol in symbols:
+                del self._handlers[channel][symbol]
 
     async def _send_unsubscribe_msg(self, channel: str, symbols: List[str]) -> None:
         if symbols:

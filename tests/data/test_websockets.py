@@ -483,3 +483,20 @@ def test_run_forever_stops_cleanly_cross_thread_when_no_subscriptions(
         if thread.is_alive():
             thread.join(timeout=1.0)
         loop.close()
+
+
+def test_unsubscribe_ignores_missing_symbols_and_clears_subscribed(
+    ws_client: DataStream,
+):
+    """Unsubscribing an unsubscribed symbol should not raise KeyError or skip later symbols."""
+
+    async def dummy_handler(data):
+        pass
+
+    ws_client._handlers["trades"]["MSFT"] = dummy_handler
+    ws_client._unsubscribe("trades", ("AAPL", "MSFT"))
+    assert "MSFT" not in ws_client._handlers["trades"]
+
+    # Idempotent when called again on already-unsubscribed symbols.
+    ws_client._unsubscribe("trades", ("AAPL", "MSFT"))
+    assert ws_client._handlers["trades"] == {}

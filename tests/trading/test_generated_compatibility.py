@@ -260,6 +260,41 @@ def test_compatibility_shape_warns_when_instantiated():
     )
 
 
+def test_option_deliverable_warns_only_when_instantiated_directly():
+    deliverable = {
+        "type": "equity",
+        "symbol": "AAPL",
+        "allocation_percentage": "100",
+        "settlement_type": "T+1",
+        "settlement_method": "CCC",
+        "delayed_settlement": False,
+    }
+    with pytest.warns(DeprecationWarning, match="OpenAPI-generated OptionDeliverable"):
+        models.OptionDeliverable(**deliverable)
+
+    # Parsed as part of a contract the client builds, it stays silent.
+    contract = {
+        "id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+        "symbol": "AAPL250620C00100000",
+        "name": "AAPL call",
+        "status": "active",
+        "tradable": True,
+        "expiration_date": "2025-06-20",
+        "root_symbol": "AAPL",
+        "underlying_symbol": "AAPL",
+        "underlying_asset_id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+        "type": "call",
+        "style": "american",
+        "strike_price": "100",
+        "size": "100",
+        "deliverables": [deliverable],
+    }
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", DeprecationWarning)
+        built = build_from_response(models.OptionContract, contract)
+    assert type(built.deliverables[0]) is models.OptionDeliverable
+
+
 def test_deprecated_enum_warns_when_constructed():
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always")

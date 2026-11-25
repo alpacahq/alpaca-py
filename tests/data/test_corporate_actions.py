@@ -1,6 +1,9 @@
 import urllib
+import warnings
 from datetime import date
 from uuid import UUID
+
+import pytest
 
 from alpaca.data.enums import CorporateActionsType
 from alpaca.data.historical.corporate_actions import CorporateActionsClient
@@ -331,12 +334,10 @@ def test_get_corporate_actions(
     assert reqmock.call_count == 2
 
 
-def test_rights_distribution_payable_date_is_optional():
-    # The API omits payable_date for some rights distributions. The model
-    # annotates it as Optional[date], so an omitted value must stay None and a
-    # caller must be able to (re)assign None under validate_assignment.
-    raw = {
+def _rights_distribution_payload(**overrides):
+    payload = {
         "id": "a7932b15-f816-4f83-921e-998b524487c2",
+        "corporate_action_type": "rights_distributions",
         "source_cusip": "SOURCECUSIP1",
         "source_symbol": "IFN",
         "new_cusip": "NEWCUSIP1",
@@ -347,14 +348,25 @@ def test_rights_distribution_payable_date_is_optional():
         "process_date": "2024-04-19",
         "expiration_date": "2024-05-14",
     }
+    payload.update(overrides)
+    return payload
 
-    rights_distribution = RightsDistribution(
-        corporate_action_type="rights_distributions", **raw
-    )
 
-    assert rights_distribution.payable_date is None
+def test_rights_distribution_with_payable_date_no_warning():
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always", DeprecationWarning)
+        rights_distribution = RightsDistribution(
+            **_rights_distribution_payload(payable_date="2024-04-22")
+        )
 
-    # Assignment validation must accept None for an optional date field.
-    rights_distribution.payable_date = date(2024, 4, 19)
-    rights_distribution.payable_date = None
+    assert not caught
+    assert rights_distribution.payable_date == date(2024, 4, 22)
+
+
+def test_rights_distribution_missing_payable_date_warns():
+    with pytest.warns(
+        DeprecationWarning, match="RightsDistribution.payable_date is required"
+    ):
+        rights_distribution = RightsDistribution(**_rights_distribution_payload())
+
     assert rights_distribution.payable_date is None

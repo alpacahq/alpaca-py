@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 
 from alpaca.common.exceptions import APIError
 from alpaca.trading.models import Asset, Watchlist
@@ -11,8 +11,11 @@ from alpaca.trading.requests import CreateWatchlistRequest, UpdateWatchlistReque
 from . import Context, scenario
 
 
-def _symbols(assets: Optional[List[Asset]]) -> List[str]:
-    return sorted(asset.symbol for asset in assets or [])
+def _symbols(watchlist: Watchlist) -> list[str]:
+    # assets is Asset | Assets. Callers read symbol; payloads still parse as Asset.
+    assets = watchlist.assets or []
+    assert all(isinstance(asset, Asset) for asset in assets)
+    return sorted(asset.symbol for asset in assets)
 
 
 @scenario(
@@ -34,7 +37,7 @@ def watchlist_lifecycle(ctx: Context) -> Dict[str, Any]:
     assert isinstance(created, Watchlist)
     try:
         assert created.name == name
-        assert _symbols(created.assets) == ["AAPL"]
+        assert _symbols(created) == ["AAPL"]
 
         all_lists = ctx.trading.get_watchlists()
         assert isinstance(all_lists, list)
@@ -44,7 +47,7 @@ def watchlist_lifecycle(ctx: Context) -> Dict[str, Any]:
 
         fetched = ctx.trading.get_watchlist_by_id(created.id)
         assert isinstance(fetched, Watchlist)
-        assert _symbols(fetched.assets) == ["AAPL"]
+        assert _symbols(fetched) == ["AAPL"]
 
         updated = ctx.trading.update_watchlist_by_id(
             created.id,
@@ -52,15 +55,15 @@ def watchlist_lifecycle(ctx: Context) -> Dict[str, Any]:
         )
         assert isinstance(updated, Watchlist)
         assert updated.name == f"{name}-renamed"
-        assert _symbols(updated.assets) == ["AAPL", "MSFT"]
+        assert _symbols(updated) == ["AAPL", "MSFT"]
 
         added = ctx.trading.add_asset_to_watchlist_by_id(created.id, "GOOGL")
         assert isinstance(added, Watchlist)
-        assert _symbols(added.assets) == ["AAPL", "GOOGL", "MSFT"]
+        assert _symbols(added) == ["AAPL", "GOOGL", "MSFT"]
 
         removed = ctx.trading.remove_asset_from_watchlist_by_id(created.id, "AAPL")
         assert isinstance(removed, Watchlist)
-        assert _symbols(removed.assets) == ["GOOGL", "MSFT"]
+        assert _symbols(removed) == ["GOOGL", "MSFT"]
     finally:
         ctx.trading.delete_watchlist_by_id(created.id)
 

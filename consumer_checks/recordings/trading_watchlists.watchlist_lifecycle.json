@@ -1024,7 +1024,7 @@
     "requests": "2.34.2"
   },
   "scenario": "trading_watchlists.watchlist_lifecycle",
-  "scenario_sha256": "584499751a968839cce9285548a5e45d4791fb4663cf008acbc5d217f256bd10",
+  "scenario_sha256": "186fccac134bd2683530c99ea38d6f0bd9e07ab83d0e6c0611487f0bdb6af9af",
   "vars": {
     "watchlist": "ee5a8c96d57044079f1fd3a23ef3b20c"
   }

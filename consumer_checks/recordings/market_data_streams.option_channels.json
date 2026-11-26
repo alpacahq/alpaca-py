@@ -1,0 +1,167 @@
+{
+  "format": 2,
+  "interactions": [],
+  "recorded_against": "baseline",
+  "recorded_with": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "quote": {
+      "__type__": "Quote",
+      "fields": {
+        "ask_exchange": "I",
+        "ask_price": 142.05,
+        "ask_size": 17.0,
+        "bid_exchange": "X",
+        "bid_price": 140.28,
+        "bid_size": 175.0,
+        "conditions": " ",
+        "symbol": "SPY240119C00500000",
+        "tape": null,
+        "timestamp": {
+          "__type__": "datetime",
+          "value": "2024-03-09T16:00:00+00:00"
+        }
+      }
+    },
+    "trade": {
+      "__type__": "Trade",
+      "fields": {
+        "conditions": "f",
+        "exchange": "I",
+        "id": null,
+        "price": 132.38,
+        "size": 6.0,
+        "symbol": "SPY240119C00500000",
+        "tape": null,
+        "timestamp": {
+          "__type__": "datetime",
+          "value": "2024-03-09T16:00:00+00:00"
+        }
+      }
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "market_data_streams.option_channels",
+  "scenario_sha256": "afc5617c46339de26fec15aa91e936fe589c73afe62c4789a181c54b3dfcda9b",
+  "vars": {},
+  "websockets": [
+    {
+      "connect": {
+        "headers": {
+          "content-type": "application/msgpack",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "options": {
+          "max_queue": 1024,
+          "ping_interval": 10,
+          "ping_timeout": 180
+        },
+        "url": "wss://stream.data.alpaca.markets/v1beta1/indicative"
+      },
+      "events": [
+        {
+          "recv": [
+            {
+              "T": "success",
+              "msg": "connected"
+            }
+          ]
+        },
+        {
+          "send": {
+            "action": "auth",
+            "key": "<redacted>",
+            "secret": "<redacted>"
+          }
+        },
+        {
+          "recv": [
+            {
+              "T": "success",
+              "msg": "authenticated"
+            }
+          ]
+        },
+        {
+          "send": {
+            "action": "subscribe",
+            "quotes": [
+              "SPY240119C00500000"
+            ],
+            "trades": [
+              "SPY240119C00500000"
+            ]
+          }
+        },
+        {
+          "recv": [
+            {
+              "S": "SPY240119C00500000",
+              "T": "t",
+              "c": "f",
+              "p": 132.38,
+              "s": 6,
+              "t": {
+                "$timestamp": [
+                  1710000000,
+                  0
+                ]
+              },
+              "x": "I"
+            }
+          ]
+        },
+        {
+          "recv": [
+            {
+              "S": "SPY240119C00500000",
+              "T": "q",
+              "ap": 142.05,
+              "as": 17,
+              "ax": "I",
+              "bp": 140.28,
+              "bs": 175,
+              "bx": "X",
+              "c": " ",
+              "t": {
+                "$timestamp": [
+                  1710000000,
+                  0
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "send": {
+            "action": "unsubscribe",
+            "trades": [
+              "SPY240119C00500000"
+            ]
+          }
+        },
+        {
+          "send": {
+            "action": "unsubscribe",
+            "quotes": [
+              "SPY240119C00500000"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

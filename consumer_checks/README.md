@@ -21,8 +21,9 @@ at runtime (concrete types, field values, DataFrame shapes, raised exceptions).
 | `make consumer-surface` | Public surface new since `BASELINE` that no recorded scenario exercises | No | New parameters, request or response fields nothing exercises |
 | `make consumer-surface-baseline` | Writes `surface_baseline.json` from the `BASELINE` release | No | — |
 
-`make consumer-check` runs the typecheck and replay steps, like CI on every PR.
-CI adds `--consumer-strict`, so a scenario without a recording fails there.
+`make consumer-check` runs the typecheck, replay, and strict coverage steps.
+CI runs the same checks (coverage in the lint job, replay with `--consumer-strict`
+in the test job). A scenario without a recording fails there.
 
 Replay snapshots depend on pandas, numpy and pydantic, so your poetry env must
 match `poetry.lock`, as CI's does: run `poetry install` after pulling. When a
@@ -105,6 +106,12 @@ error page), pass `stub_responses=[{"status": 429, "json": {...}}, ...]` to
 in every mode, and recording needs no keys. The requests the SDK sends,
 including how many times it retries, are still frozen. See
 `scenarios/errors_stubbed.py`.
+
+Market-data websocket scenarios pass `stub_websocket` instead: a list of
+frames, each a list of messages, served in order in every mode. Live ticks are
+not deterministic, so the frames are fixed rather than captured from the paper
+API. A `{"$timestamp": [seconds, nanoseconds]}` value is packed as a msgpack
+timestamp. See `scenarios/market_data_streams.py`.
 
 ## API that is not released yet: `since`
 
@@ -260,10 +267,12 @@ of dicts while typed as `List[Calendar] | dict`.
 `make consumer-coverage` counts a method as checked only when a scenario that
 covers it has a recording, since replay skips scenarios without one. It also
 shows how many have a scenario that is not recorded yet. Every method of
-`TradingClient` and of the market-data clients (stock, crypto, options, news,
-screener, corporate actions) has a scenario. Market-data scenarios
+`TradingClient`, of the market-data REST clients (stock, crypto, options, news,
+screener, corporate actions), and of the market-data stream clients (stock,
+crypto, options, news) has a scenario. REST market-data scenarios
 are read only and use the feeds every paper account has: IEX for stocks and
 `indicative` for options. Fixed past dates keep requests identical on replay.
+Stream scenarios use the same default feeds and fixed frames.
 Where data has to be current (option contracts expire), the scenario picks it
 from an earlier response, such as the option chain, which replay serves back.
 
@@ -274,9 +283,8 @@ from an earlier response, such as the option chain, which replay serves back.
   bracket, OCO, multi-leg) and options such as `sort`, `currency` and `asof`
   are not sent yet.
 - OAuth (`oauth_token`) and `url_override` clients are not exercised.
-
-- Streaming (websocket) clients have no scenarios yet. They would need their own
-  record and replay transport, so for now cover them in live mode only.
+- `TradingStream` has no scenario yet. It is a trading socket (JSON, not the
+  market-data msgpack stream) and is not part of the coverage gate.
 - `BrokerClient` (78 methods) needs Broker sandbox keys and its own safety
   rules, since sandbox accounts, transfers and journals can only be closed,
   not deleted. Not wired in yet; allowlisted in `coverage_allowlist.txt`.

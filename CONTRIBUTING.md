@@ -305,7 +305,9 @@ talks to the API (the HTTP layer, auth, retries, request serialization), also
 add the `consumer-live` label: it runs the scenarios against the real paper API
 with your branch's code, on each push while the label stays.
 
-Run `make consumer-check` before opening a PR. After each release, a workflow
+Run `make consumer-check` before opening a PR. That type-checks the scenarios,
+replays them, and fails if a public client method has no recorded scenario
+(`consumer_checks/check_coverage.py --strict`). After each release, a workflow
 moves BASELINE to it and opens a PR with the re-recorded scenarios.
 
 ## Pull request checklist

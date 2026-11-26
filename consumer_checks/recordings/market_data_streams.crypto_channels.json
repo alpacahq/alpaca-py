@@ -1,0 +1,378 @@
+{
+  "format": 2,
+  "interactions": [],
+  "recorded_against": "baseline",
+  "recorded_with": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "bar": {
+      "__type__": "Bar",
+      "fields": {
+        "close": 178.005,
+        "high": 178.005,
+        "low": 177.94,
+        "open": 177.94,
+        "symbol": "BTC/USD",
+        "timestamp": {
+          "__type__": "datetime",
+          "value": "2024-03-09T16:00:00+00:00"
+        },
+        "trade_count": 66.0,
+        "volume": 8547.0,
+        "vwap": 177.987562
+      }
+    },
+    "daily_bar": {
+      "__type__": "Bar",
+      "fields": {
+        "close": 178.005,
+        "high": 178.005,
+        "low": 177.94,
+        "open": 177.94,
+        "symbol": "BTC/USD",
+        "timestamp": {
+          "__type__": "datetime",
+          "value": "2024-03-09T16:00:00+00:00"
+        },
+        "trade_count": 66.0,
+        "volume": 8547.0,
+        "vwap": 177.987562
+      }
+    },
+    "orderbook": {
+      "__type__": "Orderbook",
+      "fields": {
+        "asks": [
+          {
+            "__type__": "OrderbookQuote",
+            "fields": {
+              "price": 65129.2,
+              "size": 0.4
+            }
+          }
+        ],
+        "bids": [
+          {
+            "__type__": "OrderbookQuote",
+            "fields": {
+              "price": 65128.1,
+              "size": 1.6542
+            }
+          }
+        ],
+        "reset": true,
+        "symbol": "BTC/USD",
+        "timestamp": {
+          "__type__": "datetime",
+          "value": "2024-03-09T16:00:00+00:00"
+        }
+      }
+    },
+    "quote": {
+      "__type__": "Quote",
+      "fields": {
+        "ask_exchange": null,
+        "ask_price": 74085.74,
+        "ask_size": 0.0010096,
+        "bid_exchange": null,
+        "bid_price": 74062.27,
+        "bid_size": 0.0009913,
+        "conditions": null,
+        "symbol": "BTC/USD",
+        "tape": null,
+        "timestamp": {
+          "__type__": "datetime",
+          "value": "2024-03-09T16:00:00+00:00"
+        }
+      }
+    },
+    "trade": {
+      "__type__": "Trade",
+      "fields": {
+        "conditions": null,
+        "exchange": null,
+        "id": 8827103037403251704,
+        "price": 74100.0,
+        "size": 1.35e-05,
+        "symbol": "BTC/USD",
+        "tape": null,
+        "timestamp": {
+          "__type__": "datetime",
+          "value": "2024-03-09T16:00:00+00:00"
+        }
+      }
+    },
+    "updated_bar": {
+      "__type__": "Bar",
+      "fields": {
+        "close": 178.005,
+        "high": 178.005,
+        "low": 177.94,
+        "open": 177.94,
+        "symbol": "BTC/USD",
+        "timestamp": {
+          "__type__": "datetime",
+          "value": "2024-03-09T16:00:00+00:00"
+        },
+        "trade_count": 66.0,
+        "volume": 8547.0,
+        "vwap": 177.987562
+      }
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "market_data_streams.crypto_channels",
+  "scenario_sha256": "7f592b4a0061265fefdb3c6ae3126bee6a712ee795ec6ce111b86f3d2a973e14",
+  "vars": {},
+  "websockets": [
+    {
+      "connect": {
+        "headers": {
+          "content-type": "application/msgpack",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "options": {
+          "max_queue": 1024,
+          "ping_interval": 10,
+          "ping_timeout": 180
+        },
+        "url": "wss://stream.data.alpaca.markets/v1beta3/crypto/us"
+      },
+      "events": [
+        {
+          "recv": [
+            {
+              "T": "success",
+              "msg": "connected"
+            }
+          ]
+        },
+        {
+          "send": {
+            "action": "auth",
+            "key": "<redacted>",
+            "secret": "<redacted>"
+          }
+        },
+        {
+          "recv": [
+            {
+              "T": "success",
+              "msg": "authenticated"
+            }
+          ]
+        },
+        {
+          "send": {
+            "action": "subscribe",
+            "bars": [
+              "BTC/USD"
+            ],
+            "dailyBars": [
+              "BTC/USD"
+            ],
+            "orderbooks": [
+              "BTC/USD"
+            ],
+            "quotes": [
+              "BTC/USD"
+            ],
+            "trades": [
+              "BTC/USD"
+            ],
+            "updatedBars": [
+              "BTC/USD"
+            ]
+          }
+        },
+        {
+          "recv": [
+            {
+              "S": "BTC/USD",
+              "T": "t",
+              "i": 8827103037403251704,
+              "p": 74100.0,
+              "s": 1.35e-05,
+              "t": {
+                "$timestamp": [
+                  1710000000,
+                  0
+                ]
+              },
+              "tks": "S"
+            }
+          ]
+        },
+        {
+          "recv": [
+            {
+              "S": "BTC/USD",
+              "T": "q",
+              "ap": 74085.74,
+              "as": 0.0010096,
+              "bp": 74062.27,
+              "bs": 0.0009913,
+              "t": {
+                "$timestamp": [
+                  1710000000,
+                  0
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "recv": [
+            {
+              "S": "BTC/USD",
+              "T": "b",
+              "c": 178.005,
+              "h": 178.005,
+              "l": 177.94,
+              "n": 66,
+              "o": 177.94,
+              "t": {
+                "$timestamp": [
+                  1710000000,
+                  0
+                ]
+              },
+              "v": 8547,
+              "vw": 177.987562
+            }
+          ]
+        },
+        {
+          "recv": [
+            {
+              "S": "BTC/USD",
+              "T": "u",
+              "c": 178.005,
+              "h": 178.005,
+              "l": 177.94,
+              "n": 66,
+              "o": 177.94,
+              "t": {
+                "$timestamp": [
+                  1710000000,
+                  0
+                ]
+              },
+              "v": 8547,
+              "vw": 177.987562
+            }
+          ]
+        },
+        {
+          "recv": [
+            {
+              "S": "BTC/USD",
+              "T": "d",
+              "c": 178.005,
+              "h": 178.005,
+              "l": 177.94,
+              "n": 66,
+              "o": 177.94,
+              "t": {
+                "$timestamp": [
+                  1710000000,
+                  0
+                ]
+              },
+              "v": 8547,
+              "vw": 177.987562
+            }
+          ]
+        },
+        {
+          "recv": [
+            {
+              "S": "BTC/USD",
+              "T": "o",
+              "a": [
+                {
+                  "p": 65129.2,
+                  "s": 0.4
+                }
+              ],
+              "b": [
+                {
+                  "p": 65128.1,
+                  "s": 1.6542
+                }
+              ],
+              "r": true,
+              "t": {
+                "$timestamp": [
+                  1710000000,
+                  0
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "send": {
+            "action": "unsubscribe",
+            "trades": [
+              "BTC/USD"
+            ]
+          }
+        },
+        {
+          "send": {
+            "action": "unsubscribe",
+            "quotes": [
+              "BTC/USD"
+            ]
+          }
+        },
+        {
+          "send": {
+            "action": "unsubscribe",
+            "bars": [
+              "BTC/USD"
+            ]
+          }
+        },
+        {
+          "send": {
+            "action": "unsubscribe",
+            "updatedBars": [
+              "BTC/USD"
+            ]
+          }
+        },
+        {
+          "send": {
+            "action": "unsubscribe",
+            "dailyBars": [
+              "BTC/USD"
+            ]
+          }
+        },
+        {
+          "send": {
+            "action": "unsubscribe",
+            "orderbooks": [
+              "BTC/USD"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

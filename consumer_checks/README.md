@@ -260,8 +260,10 @@ Broker sandbox (see `.env.example`). These are not the `APCA_*` or
 environment come first; otherwise they are read from the repo's `.env` (or
 `CONSUMER_ENV_FILE`). The file is parsed, not executed, and only those four
 variables are read. The pytest header shows where the keys came from, never
-their values. A broker scenario that actually calls the sandbox fails when its
-keys are missing. The preflight still exits 0 in that case, so a trading-only
+their values. A broker scenario that calls the sandbox with the consumer
+keys fails when those keys are missing.
+`broker_errors.invalid_keys_raise_api_error` sends rejected keys of its own
+and runs without them. The preflight still exits 0 in that case, so a trading-only
 re-record is not blocked; it prints that the broker keys were not found.
 Stubbed broker scenarios do not need keys. A scenario still listed in
 `recording_allowlist.txt` is skipped instead, in record and live mode, when its

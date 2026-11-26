@@ -102,3 +102,30 @@ def test_recorded_scenario_still_fails_without_keys(tmp_path):
     scenario = _scenario(RECORDED, AssertionError("must not run"))
     with pytest.raises(pytest.fail.Exception, match="CONSUMER_BROKER_API_KEY"):
         _harness.check_scenario(scenario, _settings(tmp_path, "live", keys=False))
+
+
+def test_scenario_with_its_own_keys_runs_live_without_broker_secrets(tmp_path):
+    ran = False
+
+    def fn(ctx):
+        nonlocal ran
+        ran = True
+        return {}
+
+    scenario = Scenario(
+        name=RECORDED,
+        fn=fn,
+        covers=(),
+        credentials="broker",
+        requires_credentials=False,
+    )
+    _harness.check_scenario(scenario, _settings(tmp_path, "live", keys=False))
+    assert ran
+
+
+def test_invalid_broker_keys_scenario_does_not_require_consumer_secrets():
+    from scenarios import load_all
+
+    scenario = load_all()["broker_errors.invalid_keys_raise_api_error"]
+    assert scenario.credentials == "broker"
+    assert scenario.requires_credentials is False

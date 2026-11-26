@@ -67,6 +67,10 @@ class Scenario:
         credentials: ``trading`` (paper Trading API keys) or ``broker`` (Broker
             sandbox keys). Stubbed scenarios never call the API, so they do not
             need the keys, but ``broker`` still builds ``ctx.broker``.
+        requires_credentials: When False, record and live do not read the
+            consumer key pair. The scenario authenticates itself, for example
+            with keys the API rejects. ``credentials`` still says which API
+            it talks to.
     """
 
     name: str
@@ -76,6 +80,7 @@ class Scenario:
     stub_responses: Tuple[Mapping[str, Any], ...] = ()
     stub_websocket: Tuple[Tuple[Mapping[str, Any], ...], ...] = ()
     credentials: str = "trading"
+    requires_credentials: bool = True
 
 
 SCENARIOS: Dict[str, Scenario] = {}
@@ -88,6 +93,7 @@ def scenario(
     stub_responses: Sequence[Mapping[str, Any]] = (),
     stub_websocket: Sequence[Sequence[Mapping[str, Any]]] = (),
     credentials: str = "trading",
+    requires_credentials: bool = True,
 ) -> Callable[[ScenarioFn], ScenarioFn]:
     """Register a scenario function and the client methods it exercises."""
 
@@ -107,6 +113,7 @@ def scenario(
             stub_responses=tuple(stub_responses),
             stub_websocket=tuple(tuple(frame) for frame in stub_websocket),
             credentials=credentials,
+            requires_credentials=requires_credentials,
         )
         return fn
 

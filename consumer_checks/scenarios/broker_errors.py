@@ -2,14 +2,15 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import date
-from typing import Any, Dict
+from typing import Any, Callable, Dict
 from uuid import UUID
 
 from alpaca.common.exceptions import APIError
 from alpaca.trading.requests import GetCalendarRequest
 
-from . import Context, scenario
+from . import SCENARIOS, Context, scenario
 from ._errors import error_details
 
 BROKER = "broker"
@@ -24,6 +25,21 @@ def invalid_keys_raise_api_error(ctx: Context) -> Dict[str, Any]:
         assert error.status_code in (401, 403)
         return error_details(error)
     raise AssertionError("invalid broker keys should be rejected")
+
+
+def _uses_its_own_keys(fn: Callable[..., Any]) -> None:
+    """Record and live do not require the consumer key pair for ``fn``.
+
+    This is not a decorator. The decorator line is part of the scenario source
+    hash, and a change there fails replay of an unchanged recording.
+    """
+    name = f"{fn.__module__.rsplit('.', 1)[-1]}.{fn.__name__}"
+    SCENARIOS[name] = replace(SCENARIOS[name], requires_credentials=False)
+
+
+# Rejected keys are hardcoded. The recording is not allowlisted, so requiring
+# CONSUMER_BROKER_* would fail the weekday live job before get_clock runs.
+_uses_its_own_keys(invalid_keys_raise_api_error)
 
 
 @scenario(

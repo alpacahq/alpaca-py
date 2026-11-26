@@ -61,16 +61,21 @@ def test_funding_failure_withdraws_before_deleting_relationship_and_closing(
         broker_funding.ach_bank_and_transfer(ctx)
 
     assert raised.value is original_error
-    assert [call[0] for call in calls.mock_calls] == [
+    expected = [
         "get_ach_relationships_for_account",
         "withdraw",
-        "delete_ach_relationship_for_account",
-        "close_account",
     ]
+    if not withdraw_fails:
+        expected.append("delete_ach_relationship_for_account")
+    expected.append("close_account")
+    assert [call[0] for call in calls.mock_calls] == expected
     calls.withdraw.assert_called_once_with(ctx, account_id, relationship_id)
-    calls.delete_ach_relationship_for_account.assert_called_once_with(
-        account_id, relationship_id
-    )
+    if withdraw_fails:
+        calls.delete_ach_relationship_for_account.assert_not_called()
+    else:
+        calls.delete_ach_relationship_for_account.assert_called_once_with(
+            account_id, relationship_id
+        )
 
 
 def test_failed_deposit_deletes_the_relationship_it_created():
@@ -96,7 +101,6 @@ def test_failed_deposit_deletes_the_relationship_it_created():
     [
         (AssertionError("cash was not a number"), None),
         (None, APIError('{"message":"delete failed"}')),
-        (AssertionError("cash was not a number"), RuntimeError("delete failed")),
     ],
 )
 def test_release_keeps_the_scenario_error(monkeypatch, withdraw_error, delete_error):
@@ -115,9 +119,12 @@ def test_release_keeps_the_scenario_error(monkeypatch, withdraw_error, delete_er
             _broker.release_ach_quietly(ctx, account_id, relationship_id)
 
     assert raised.value is original_error
-    ctx.broker.delete_ach_relationship_for_account.assert_called_once_with(
-        account_id, relationship_id
-    )
+    if withdraw_error is None:
+        ctx.broker.delete_ach_relationship_for_account.assert_called_once_with(
+            account_id, relationship_id
+        )
+    else:
+        ctx.broker.delete_ach_relationship_for_account.assert_not_called()
 
 
 def test_rebalancing_failure_unsubscribes_before_closing(monkeypatch):

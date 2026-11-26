@@ -24,7 +24,9 @@
 # call the sandbox also need CONSUMER_BROKER_API_KEY / CONSUMER_BROKER_API_SECRET
 # (sandbox=True always). Missing broker keys do not fail this preflight; a
 # broker scenario fails when it records, unless it is still in
-# recording_allowlist.txt (then it is skipped). See _dotenv.py and .env.example.
+# recording_allowlist.txt (then it is skipped) or it does not use the consumer
+# keys (broker_errors.invalid_keys_raise_api_error). See _dotenv.py and
+# .env.example.
 # Optional: CONSUMER_VENV=path (defaults to .consumer-venv).
 set -euo pipefail
 

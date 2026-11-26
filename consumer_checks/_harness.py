@@ -1322,9 +1322,14 @@ def _keys(settings: Settings, scenario: Scenario) -> tuple:
     if scenario.stub_responses or scenario.stub_websocket:
         return "stub-key-id", "stub-secret-key"
     if scenario.credentials == "broker":
-        _require_broker_keys(settings)
+        # requires_credentials is false when the scenario sends its own keys.
+        # Those recordings are not allowlisted, so the weekday live job must
+        # not fail them for missing consumer secrets.
+        if scenario.requires_credentials:
+            _require_broker_keys(settings)
         return settings.broker_api_key or "", settings.broker_secret_key or ""
-    _require_keys(settings)
+    if scenario.requires_credentials:
+        _require_keys(settings)
     return settings.api_key or "", settings.secret_key or ""
 
 

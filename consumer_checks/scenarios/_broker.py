@@ -264,12 +264,15 @@ def _describe(error: Exception) -> str:
     return f"{type(error).__name__}: {error}"
 
 
-def withdraw_quietly(ctx: Context, account_id: UUID, relationship_id: UUID) -> None:
+def withdraw_quietly(ctx: Context, account_id: UUID, relationship_id: UUID) -> bool:
     """``withdraw_remaining_cash`` for ``finally`` blocks.
 
-    It must not replace the error a failed scenario is already raising. If the
-    cash stays, ``close_account`` fails next, so the problem is still reported.
-    Replay keeps request mismatches and fails on them even when caught here.
+    Returns whether the ACH relationship may be deleted: the cash was sent
+    out, or there was none. A failure returns False and the relationship stays,
+    so the cash can still be withdrawn by hand. The warning must not replace
+    the error a failed scenario is already raising. If the cash stays,
+    ``close_account`` fails next, so the problem is still reported. Replay
+    keeps request mismatches and fails on them even when caught here.
     """
     try:
         withdraw_remaining_cash(ctx, account_id, relationship_id)
@@ -279,6 +282,8 @@ def withdraw_quietly(ctx: Context, account_id: UUID, relationship_id: UUID) -> N
             f"{_describe(error)}. Withdraw it by hand before closing.",
             stacklevel=2,
         )
+        return False
+    return True
 
 
 def _delete_ach_quietly(ctx: Context, account_id: UUID, relationship_id: UUID) -> None:
@@ -295,10 +300,14 @@ def _delete_ach_quietly(ctx: Context, account_id: UUID, relationship_id: UUID) -
 def release_ach_quietly(ctx: Context, account_id: UUID, relationship_id: UUID) -> None:
     """``finally`` cleanup for ``fund_with_ach``: withdraw, then delete the ACH.
 
-    Neither step replaces the error a failed scenario is already raising.
+    The relationship is deleted only when the withdrawal succeeded or there
+    was no cash. Deleting it after a failed withdrawal leaves a funded account
+    that ``close_account`` refuses, with no relationship left to withdraw
+    through. Neither step replaces the error a failed scenario is already
+    raising.
     """
-    withdraw_quietly(ctx, account_id, relationship_id)
-    _delete_ach_quietly(ctx, account_id, relationship_id)
+    if withdraw_quietly(ctx, account_id, relationship_id):
+        _delete_ach_quietly(ctx, account_id, relationship_id)
 
 
 def _close_quietly(ctx: Context, account_id: UUID) -> None:

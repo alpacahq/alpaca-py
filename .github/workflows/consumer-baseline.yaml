@@ -8,7 +8,9 @@ name: Consumer checks baseline bump
 # secrets CONSUMER_TRADING_API_KEY_ID / CONSUMER_TRADING_API_SECRET_KEY) and the
 # same Broker sandbox (CONSUMER_BROKER_API_KEY / CONSUMER_BROKER_API_SECRET).
 # Broker scenarios still in recording_allowlist.txt are skipped while those keys
-# are missing or rejected; recorded ones fail. A PR
+# are missing or rejected. Recorded ones fail, except
+# broker_errors.invalid_keys_raise_api_error, which sends its own rejected keys.
+# A PR
 # opened with GITHUB_TOKEN does not start other workflows: close and reopen it
 # (or push to it) to run CI.
 on:

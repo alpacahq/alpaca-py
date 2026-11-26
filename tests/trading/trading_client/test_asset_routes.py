@@ -8,7 +8,7 @@ from alpaca.data.enums import Exchange
 from alpaca.trading.enums import AssetClass, AssetExchange, AssetStatus
 from alpaca.trading.requests import GetAssetsRequest
 from alpaca.trading.client import TradingClient
-from alpaca.trading.models import Asset
+from alpaca.trading.models import Asset, Assets
 
 
 def test_get_all_assets(reqmock, trading_client: TradingClient):
@@ -161,3 +161,63 @@ def test_get_asset_txse_exchange(reqmock, trading_client: TradingClient):
 
     assert reqmock.called_once
     assert asset.exchange == AssetExchange.TXSE
+
+
+def test_get_asset_returns_the_generated_assets_on_request(
+    reqmock, trading_client: TradingClient
+):
+    reqmock.get(
+        f"{BaseURL.TRADING_PAPER.value}/v2/assets/AAPL",
+        text="""
+        {
+          "id": "904837e3-3b76-47ec-b432-046db621571b",
+          "class": "us_equity",
+          "exchange": "NASDAQ",
+          "symbol": "AAPL",
+          "name": "Apple Inc. Common Stock",
+          "status": "active",
+          "tradable": true,
+          "marginable": true,
+          "shortable": true,
+          "easy_to_borrow": true,
+          "fractionable": true,
+          "margin_requirement_long": "30",
+          "margin_requirement_short": "100",
+          "attributes": ["has_options"]
+        }
+        """,
+    )
+
+    assert type(trading_client.get_asset("AAPL")) is Asset
+    generated = trading_client.get_asset("AAPL", generated=True)
+    assert type(generated) is Assets
+    assert generated.symbol == "AAPL"
+
+
+def test_get_all_assets_returns_the_generated_assets_on_request(
+    reqmock, trading_client: TradingClient
+):
+    reqmock.get(
+        f"{BaseURL.TRADING_PAPER.value}/v2/assets",
+        text="""
+        [{
+          "id": "904837e3-3b76-47ec-b432-046db621571b",
+          "class": "us_equity",
+          "exchange": "NASDAQ",
+          "symbol": "AAPL",
+          "name": "Apple Inc. Common Stock",
+          "status": "active",
+          "tradable": true,
+          "marginable": true,
+          "shortable": true,
+          "easy_to_borrow": true,
+          "fractionable": true,
+          "margin_requirement_long": "30",
+          "margin_requirement_short": "100",
+          "attributes": ["has_options"]
+        }]
+        """,
+    )
+
+    assert [type(a) for a in trading_client.get_all_assets()] == [Asset]
+    assert [type(a) for a in trading_client.get_all_assets(generated=True)] == [Assets]

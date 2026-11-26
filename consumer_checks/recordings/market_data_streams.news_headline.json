@@ -5,8 +5,8 @@
   "recorded_with": {
     "alpaca-py": "0.45.0",
     "numpy": "2.5.4",
-    "pandas": "3.1.0",
-    "pydantic": "2.14.2",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
     "python": "3.14.7",
     "requests": "2.34.2"
   },
@@ -39,13 +39,13 @@
   "result_from": {
     "alpaca-py": "0.45.0",
     "numpy": "2.5.4",
-    "pandas": "3.1.0",
-    "pydantic": "2.14.2",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
     "python": "3.14.7",
     "requests": "2.34.2"
   },
   "scenario": "market_data_streams.news_headline",
-  "scenario_sha256": "7007d8a29490dbfdf2f1df43351770f273abe546e0f53c96dc66131b52f48cad",
+  "scenario_sha256": "8d3caaaccc51ce5763afb28541af10743e3d2470516a947fc1e458ac59d83ccc",
   "vars": {},
   "websockets": [
     {

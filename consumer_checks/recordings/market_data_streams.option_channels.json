@@ -5,8 +5,8 @@
   "recorded_with": {
     "alpaca-py": "0.45.0",
     "numpy": "2.5.4",
-    "pandas": "3.1.0",
-    "pydantic": "2.14.2",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
     "python": "3.14.7",
     "requests": "2.34.2"
   },
@@ -14,17 +14,15 @@
     "quote": {
       "__type__": "Quote",
       "fields": {
-        "ask_exchange": "V",
-        "ask_price": 25.43,
-        "ask_size": 35.0,
-        "bid_exchange": "V",
-        "bid_price": 25.41,
-        "bid_size": 35.0,
-        "conditions": [
-          "R"
-        ],
+        "ask_exchange": "I",
+        "ask_price": 142.05,
+        "ask_size": 17.0,
+        "bid_exchange": "X",
+        "bid_price": 140.28,
+        "bid_size": 175.0,
+        "conditions": " ",
         "symbol": "SPY240119C00500000",
-        "tape": "B",
+        "tape": null,
         "timestamp": {
           "__type__": "datetime",
           "value": "2024-03-09T16:00:00+00:00"
@@ -34,16 +32,13 @@
     "trade": {
       "__type__": "Trade",
       "fields": {
-        "conditions": [
-          "@",
-          "I"
-        ],
-        "exchange": "V",
-        "id": 6142,
-        "price": 177.79,
-        "size": 90.0,
+        "conditions": "f",
+        "exchange": "I",
+        "id": null,
+        "price": 132.38,
+        "size": 6.0,
         "symbol": "SPY240119C00500000",
-        "tape": "C",
+        "tape": null,
         "timestamp": {
           "__type__": "datetime",
           "value": "2024-03-09T16:00:00+00:00"
@@ -54,13 +49,13 @@
   "result_from": {
     "alpaca-py": "0.45.0",
     "numpy": "2.5.4",
-    "pandas": "3.1.0",
-    "pydantic": "2.14.2",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
     "python": "3.14.7",
     "requests": "2.34.2"
   },
   "scenario": "market_data_streams.option_channels",
-  "scenario_sha256": "6961656afdefdfbd0144bbbe9b8b06c197d7f4d8cbe5d9c2052d46c7064d7b69",
+  "scenario_sha256": "afc5617c46339de26fec15aa91e936fe589c73afe62c4789a181c54b3dfcda9b",
   "vars": {},
   "websockets": [
     {
@@ -116,21 +111,16 @@
             {
               "S": "SPY240119C00500000",
               "T": "t",
-              "c": [
-                "@",
-                "I"
-              ],
-              "i": 6142,
-              "p": 177.79,
-              "s": 90,
+              "c": "f",
+              "p": 132.38,
+              "s": 6,
               "t": {
                 "$timestamp": [
                   1710000000,
                   0
                 ]
               },
-              "x": "V",
-              "z": "C"
+              "x": "I"
             }
           ]
         },
@@ -139,22 +129,19 @@
             {
               "S": "SPY240119C00500000",
               "T": "q",
-              "ap": 25.43,
-              "as": 35,
-              "ax": "V",
-              "bp": 25.41,
-              "bs": 35,
-              "bx": "V",
-              "c": [
-                "R"
-              ],
+              "ap": 142.05,
+              "as": 17,
+              "ax": "I",
+              "bp": 140.28,
+              "bs": 175,
+              "bx": "X",
+              "c": " ",
               "t": {
                 "$timestamp": [
                   1710000000,
                   0
                 ]
-              },
-              "z": "B"
+              }
             }
           ]
         },

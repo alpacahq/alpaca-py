@@ -5,8 +5,8 @@
   "recorded_with": {
     "alpaca-py": "0.45.0",
     "numpy": "2.5.4",
-    "pandas": "3.1.0",
-    "pydantic": "2.14.2",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
     "python": "3.14.7",
     "requests": "2.34.2"
   },
@@ -168,13 +168,13 @@
   "result_from": {
     "alpaca-py": "0.45.0",
     "numpy": "2.5.4",
-    "pandas": "3.1.0",
-    "pydantic": "2.14.2",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
     "python": "3.14.7",
     "requests": "2.34.2"
   },
   "scenario": "market_data_streams.stock_channels",
-  "scenario_sha256": "1a620bb8be0655a44ccd21ca9bc1b373fb397fb5709aaa5bb65e250fd108fb2a",
+  "scenario_sha256": "85750108fd5ec31e230ff60a8d92c41c6b0a3cf6b690a44477e02d0448b49d5c",
   "vars": {},
   "websockets": [
     {

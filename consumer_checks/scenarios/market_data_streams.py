@@ -26,9 +26,13 @@ from alpaca.data.models import (
 from . import Context, scenario
 from ._stream import (
     bar,
+    crypto_quote,
+    crypto_trade,
     frame,
     handshake,
     news,
+    option_quote,
+    option_trade,
     orderbook,
     quote,
     run_until,
@@ -50,17 +54,18 @@ def _channels(names: List[str]) -> tuple:
     pending = {name: False for name in names}
     buckets: Dict[str, List[Any]] = {name: [] for name in names}
     handlers = {name: take(buckets[name], pending, name, ready) for name in names}
-    return ready, buckets, handlers
+    return ready, pending, buckets, handlers
 
 
 def _finish(
     stream: Any,
     ready: threading.Event,
+    pending: Dict[str, bool],
     unsubscribe: Callable[[], None],
     buckets: Dict[str, List[Any]],
     expected: Dict[str, type],
 ) -> Dict[str, Any]:
-    run_until(stream, ready, unsubscribe)
+    run_until(stream, ready, unsubscribe, pending)
     result = {}
     for name, model in expected.items():
         assert buckets[name], name
@@ -111,7 +116,7 @@ _STOCK_MESSAGES = [
     stub_websocket=handshake() + [frame(message) for message in _STOCK_MESSAGES],
 )
 def stock_channels(ctx: Context) -> Dict[str, Any]:
-    ready, buckets, handlers = _channels(_STOCK_NAMES)
+    ready, pending, buckets, handlers = _channels(_STOCK_NAMES)
     stream = ctx.stock_stream
     stream.subscribe_trades(handlers["trade"], STOCK)
     stream.subscribe_quotes(handlers["quote"], STOCK)
@@ -133,6 +138,7 @@ def stock_channels(ctx: Context) -> Dict[str, Any]:
     return _finish(
         stream,
         ready,
+        pending,
         unsubscribe,
         buckets,
         {
@@ -150,8 +156,8 @@ def stock_channels(ctx: Context) -> Dict[str, Any]:
 
 _CRYPTO_NAMES = ["trade", "quote", "bar", "updated_bar", "daily_bar", "orderbook"]
 _CRYPTO_MESSAGES = [
-    trade(CRYPTO),
-    quote(CRYPTO),
+    crypto_trade(CRYPTO),
+    crypto_quote(CRYPTO),
     bar(CRYPTO, "b"),
     bar(CRYPTO, "u"),
     bar(CRYPTO, "d"),
@@ -177,7 +183,7 @@ _CRYPTO_MESSAGES = [
     stub_websocket=handshake() + [frame(message) for message in _CRYPTO_MESSAGES],
 )
 def crypto_channels(ctx: Context) -> Dict[str, Any]:
-    ready, buckets, handlers = _channels(_CRYPTO_NAMES)
+    ready, pending, buckets, handlers = _channels(_CRYPTO_NAMES)
     stream = ctx.crypto_stream
     stream.subscribe_trades(handlers["trade"], CRYPTO)
     stream.subscribe_quotes(handlers["quote"], CRYPTO)
@@ -197,6 +203,7 @@ def crypto_channels(ctx: Context) -> Dict[str, Any]:
     return _finish(
         stream,
         ready,
+        pending,
         unsubscribe,
         buckets,
         {
@@ -211,7 +218,7 @@ def crypto_channels(ctx: Context) -> Dict[str, Any]:
 
 
 _OPTION_NAMES = ["trade", "quote"]
-_OPTION_MESSAGES = [trade(OPTION), quote(OPTION)]
+_OPTION_MESSAGES = [option_trade(OPTION), option_quote(OPTION)]
 
 
 @scenario(
@@ -224,7 +231,7 @@ _OPTION_MESSAGES = [trade(OPTION), quote(OPTION)]
     stub_websocket=handshake() + [frame(message) for message in _OPTION_MESSAGES],
 )
 def option_channels(ctx: Context) -> Dict[str, Any]:
-    ready, buckets, handlers = _channels(_OPTION_NAMES)
+    ready, pending, buckets, handlers = _channels(_OPTION_NAMES)
     stream = ctx.option_stream
     stream.subscribe_trades(handlers["trade"], OPTION)
     stream.subscribe_quotes(handlers["quote"], OPTION)
@@ -236,6 +243,7 @@ def option_channels(ctx: Context) -> Dict[str, Any]:
     return _finish(
         stream,
         ready,
+        pending,
         unsubscribe,
         buckets,
         {"trade": Trade, "quote": Quote},
@@ -247,11 +255,11 @@ def option_channels(ctx: Context) -> Dict[str, Any]:
     stub_websocket=handshake() + [frame(news(NEWS_SYMBOL))],
 )
 def news_headline(ctx: Context) -> Dict[str, Any]:
-    ready, buckets, handlers = _channels(["news"])
+    ready, pending, buckets, handlers = _channels(["news"])
     stream = ctx.news_stream
     stream.subscribe_news(handlers["news"], NEWS_SYMBOL)
 
     def unsubscribe() -> None:
         stream.unsubscribe_news(NEWS_SYMBOL)
 
-    return _finish(stream, ready, unsubscribe, buckets, {"news": News})
+    return _finish(stream, ready, pending, unsubscribe, buckets, {"news": News})

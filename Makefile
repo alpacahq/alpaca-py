@@ -41,11 +41,14 @@ check-api-breakage: ## Compare public API vs a release (AGAINST=version) or ref 
 
 # Consumer checks (consumer_checks/README.md): SDK code written like user code,
 # replayed from recordings of the paper API made with the BASELINE release.
-# The coverage gate is the same check CI runs: a public client method with no
-# recorded scenario fails, unless coverage_allowlist.txt explains why.
+# The coverage and surface gates are the same checks CI runs: a public client
+# method with no recorded scenario fails, unless coverage_allowlist.txt explains
+# why; new parameters and fields since BASELINE must be exercised, or allowlisted
+# in surface_allowlist.txt.
 .PHONY: consumer-check
-consumer-check: consumer-typecheck consumer-replay ## Type-check, replay, and require a recorded scenario per public client method
+consumer-check: consumer-typecheck consumer-replay ## Type-check, replay, and require recorded scenarios for public methods and new surface
 	poetry run python consumer_checks/check_coverage.py --strict
+	poetry run python consumer_checks/check_surface.py --strict
 
 .PHONY: consumer-typecheck
 consumer-typecheck: ## Type-check the consumer scenarios against the current SDK

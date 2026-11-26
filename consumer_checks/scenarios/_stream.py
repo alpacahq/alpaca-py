@@ -10,7 +10,7 @@ that waits on the same loop), then ``stop``.
 from __future__ import annotations
 
 import threading
-from typing import Any, Callable, Dict, List, MutableMapping
+from typing import Any, Callable, Dict, List, Mapping, MutableMapping
 
 # One instant, packed as a msgpack timestamp by the harness.
 TIMESTAMP: Dict[str, List[int]] = {"$timestamp": [1_710_000_000, 0]}
@@ -68,6 +68,67 @@ def trade(symbol: str) -> Dict[str, Any]:
         "s": 90,
         "c": ["@", "I"],
         "z": "C",
+        "t": TIMESTAMP,
+    }
+
+
+# The crypto and option frames below follow the shapes of the REST recordings
+# (crypto_data.latest_crypto_data_by_symbol, option_data.chain_then_latest_
+# contract_data): the stream carries the same per-asset fields, so a model that
+# only works for the stock shape must fail these scenarios.
+
+
+def crypto_trade(symbol: str) -> Dict[str, Any]:
+    # No exchange, conditions or tape; "tks" is the taker side.
+    return {
+        "T": "t",
+        "S": symbol,
+        "i": 8827103037403251704,
+        "p": 74100.0,
+        "s": 1.35e-05,
+        "t": TIMESTAMP,
+        "tks": "S",
+    }
+
+
+def crypto_quote(symbol: str) -> Dict[str, Any]:
+    # No exchanges, conditions or tape.
+    return {
+        "T": "q",
+        "S": symbol,
+        "bp": 74062.27,
+        "bs": 0.0009913,
+        "ap": 74085.74,
+        "as": 0.0010096,
+        "t": TIMESTAMP,
+    }
+
+
+def option_trade(symbol: str) -> Dict[str, Any]:
+    # No trade id or tape; the condition is a single string, not a list.
+    return {
+        "T": "t",
+        "S": symbol,
+        "x": "I",
+        "p": 132.38,
+        "s": 6,
+        "c": "f",
+        "t": TIMESTAMP,
+    }
+
+
+def option_quote(symbol: str) -> Dict[str, Any]:
+    # No tape; the condition is a string.
+    return {
+        "T": "q",
+        "S": symbol,
+        "bx": "X",
+        "bp": 140.28,
+        "bs": 175,
+        "ax": "I",
+        "ap": 142.05,
+        "as": 17,
+        "c": " ",
         "t": TIMESTAMP,
     }
 
@@ -160,9 +221,16 @@ def take(
 
 
 def run_until(
-    stream: Any, ready: threading.Event, unsubscribe: Callable[[], None]
+    stream: Any,
+    ready: threading.Event,
+    unsubscribe: Callable[[], None],
+    pending: Mapping[str, bool],
 ) -> None:
-    """Run ``stream`` until ``ready``, then unsubscribe and stop it."""
+    """Run ``stream`` until ``ready``, then unsubscribe and stop it.
+
+    ``pending`` is the mapping given to ``take``: on timeout it names the
+    channels that never delivered a message.
+    """
     failed: List[BaseException] = []
 
     def target() -> None:
@@ -178,7 +246,8 @@ def run_until(
     thread.start()
     try:
         if not ready.wait(10):
-            raise AssertionError("market data stream produced no message")
+            missing = sorted(name for name, seen in pending.items() if not seen)
+            raise AssertionError(f"no message reached the handlers for: {missing}")
         if not failed:
             unsubscribe()
     finally:

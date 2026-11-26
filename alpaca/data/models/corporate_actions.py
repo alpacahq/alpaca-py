@@ -1,5 +1,8 @@
+import warnings
 from datetime import date
 from typing import Dict, List, Optional, Union
+
+from pydantic import model_validator
 
 from alpaca.common.models import ModelWithID as BaseModel
 from alpaca.common.types import RawData
@@ -162,9 +165,21 @@ class RightsDistribution(BaseModel):
     rate: float
     process_date: date
     ex_date: date
-    payable_date: date = None
+    payable_date: date = None  # required by the API; default removed in the next major
     record_date: Optional[date] = None
     expiration_date: Optional[date] = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def _warn_missing_payable_date(cls, data):
+        if isinstance(data, dict) and data.get("payable_date") is None:
+            warnings.warn(
+                "RightsDistribution.payable_date is required by the Market Data API "
+                "and will be required in the next major release.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        return data
 
 
 CorporateAction = Union[

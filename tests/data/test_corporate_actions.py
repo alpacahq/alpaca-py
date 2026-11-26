@@ -1,6 +1,9 @@
 import urllib
+import warnings
 from datetime import date
 from uuid import UUID
+
+import pytest
 
 from alpaca.data.enums import CorporateActionsType
 from alpaca.data.historical.corporate_actions import CorporateActionsClient
@@ -9,6 +12,7 @@ from alpaca.data.models.corporate_actions import (
     CorporateActionsSet,
     ForwardSplit,
     ReverseSplit,
+    RightsDistribution,
     StockDividend,
     UnitSplit,
 )
@@ -328,3 +332,41 @@ def test_get_corporate_actions(
     assert res.df.index[0] == "reverse_splits"
 
     assert reqmock.call_count == 2
+
+
+def _rights_distribution_payload(**overrides):
+    payload = {
+        "id": "a7932b15-f816-4f83-921e-998b524487c2",
+        "corporate_action_type": "rights_distributions",
+        "source_cusip": "SOURCECUSIP1",
+        "source_symbol": "IFN",
+        "new_cusip": "NEWCUSIP1",
+        "new_symbol": "IFN.RTWI",
+        "rate": 1,
+        "ex_date": "2024-04-17",
+        "record_date": "2024-04-18",
+        "process_date": "2024-04-19",
+        "expiration_date": "2024-05-14",
+    }
+    payload.update(overrides)
+    return payload
+
+
+def test_rights_distribution_with_payable_date_no_warning():
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always", DeprecationWarning)
+        rights_distribution = RightsDistribution(
+            **_rights_distribution_payload(payable_date="2024-04-22")
+        )
+
+    assert not caught
+    assert rights_distribution.payable_date == date(2024, 4, 22)
+
+
+def test_rights_distribution_missing_payable_date_warns():
+    with pytest.warns(
+        DeprecationWarning, match="RightsDistribution.payable_date is required"
+    ):
+        rights_distribution = RightsDistribution(**_rights_distribution_payload())
+
+    assert rights_distribution.payable_date is None

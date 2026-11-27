@@ -443,7 +443,7 @@ class DataStream:
                 )
         finally:
             for symbol in symbols:
-                del self._handlers[channel][symbol]
+                self._handlers[channel].pop(symbol, None)
 
     async def _send_unsubscribe_msg(self, channel: str, symbols: List[str]) -> None:
         if symbols:

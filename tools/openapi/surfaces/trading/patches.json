@@ -14,21 +14,6 @@
       "reason": "RESOLVE_INLINE_ENUMS names the promoted inline enum after the parent schema (AssetsBorrowStatus); the title keeps the published AssetBorrowStatus class name"
     },
     {
-      "path": [
-        "components",
-        "schemas",
-        "OptionDeliverable",
-        "properties",
-        "amount",
-        "type"
-      ],
-      "value": [
-        "string",
-        "null"
-      ],
-      "reason": "the API has sent null while delayed settlement is pending (tests/trading/trading_client/test_option_routes.py), but the schema types amount as a plain string"
-    },
-    {
       "op": "add",
       "path": [
         "components",

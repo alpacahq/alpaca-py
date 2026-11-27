@@ -2641,7 +2641,7 @@ class OptionDeliverable(ValidateBaseModel):
         description="Cost allocation percentage of the deliverable. This is used to determine the cost basis of the equity shares received from the exercise, specially for non-standard contracts with multiple deliverables. ",
         json_schema_extra={"examples": ["100"]},
     )
-    amount: Optional[StrictStr] = Field(
+    amount: StrictStr = Field(
         description='The deliverable amount. For cash deliverables, this is the cash amount. For standard contract, this is always 100. When deliverable settlement is delayed and the amount is not yet determined, this value is "0" and delayed_settlement is true. ',
         json_schema_extra={"examples": ["100"]},
     )

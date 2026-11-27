@@ -730,7 +730,7 @@ class AnnouncementCASubType(str, Enum):
     MERGER_UPDATE = "merger_update"
     MERGER_COMPLETION = "merger_completion"
     STOCK_SPLIT = "stock_split"
-    UNTIL_SPLIT = "until_split"
+    UNIT_SPLIT = "unit_split"
     REVERSE_SPLIT = "reverse_split"
     RECAPITALIZATION = "recapitalization"
     SPINOFF = "spinoff"

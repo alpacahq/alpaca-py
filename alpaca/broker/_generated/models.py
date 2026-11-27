@@ -145,6 +145,7 @@ from alpaca.broker._generated.enums import (
     TokenizationNetwork,
     TokenizationRequestStatus,
     TokenizationRequestType,
+    TokenizationTransferStatus,
     TradeAccountOptionsApprovedLevel,
     TradeAccountOptionsTradingLevel,
     TradeActivitySide,
@@ -3025,7 +3026,7 @@ class CryptoTransfer(ModelWithID):
     )
 
 
-class CryptoWallet(ModelWithID):
+class CryptoWallet(ValidateBaseModel):
     """
     CryptoWallet
     """
@@ -6926,7 +6927,7 @@ class TokenizationMintCallback(ValidateBaseModel):
     )
 
 
-class TokenizationMintResponse(ModelWithID):
+class TokenizationMintResponse(ValidateBaseModel):
     """
     TokenizationMintResponse
     """
@@ -6971,6 +6972,54 @@ class TokenizationRedeemResponse(ValidateBaseModel):
     underlying_symbol: StrictStr = Field(description="The underlying asset symbol")
     wallet_address: StrictStr = Field(
         description="The address where the redeemed tokens were originally held"
+    )
+
+
+class TokenizationRequest(ValidateBaseModel):
+    """
+    TokenizationRequest
+    """
+
+    client_account_id: Optional[UUID] = Field(
+        default=None,
+        description="Alpaca account UUID of the Authorized Participant associated with this tokenization request",
+    )
+    client_external_account_id: Optional[StrictStr] = Field(
+        default=None,
+        description="Issuer-side account identifier of the Authorized Participant associated with this tokenization request",
+    )
+    client_request_id: Optional[StrictStr] = Field(
+        default=None,
+        description="Authorized Participant-supplied label associated with this tokenization request",
+    )
+    created_at: datetime
+    fees: Optional[StrictStr] = Field(
+        default=None, description="Fees charged for this tokenization request"
+    )
+    issuer: TokenizationIssuer
+    issuer_request_id: Optional[StrictStr] = Field(
+        default=None,
+        description="Unique identifier of the tokenization request set by the issuer",
+    )
+    network: TokenizationNetwork
+    qty: StrictStr = Field(
+        description="The quantity to convert for this tokenization request. It can be fractional."
+    )
+    status: TokenizationRequestStatus
+    token_symbol: StrictStr = Field(description="The tokenized asset symbol")
+    tokenization_request_id: StrictStr = Field(
+        description="Unique identifier of the tokenization request set by Alpaca"
+    )
+    transfer_status: Optional[TokenizationTransferStatus] = None
+    tx_hash: Optional[StrictStr] = Field(
+        default=None,
+        description="Transaction hash of the completed request on the blockchain",
+    )
+    type: TokenizationRequestType
+    underlying_symbol: StrictStr = Field(description="The underlying asset symbol")
+    updated_at: Optional[datetime] = None
+    wallet_address: StrictStr = Field(
+        description="The wallet address associated with this tokenization request"
     )
 
 
@@ -8212,7 +8261,7 @@ class WatchlistWithoutAsset(ValidateBaseModel):
     updated_at: datetime = Field(description="When watchlist was last updated")
 
 
-class WhitelistedAddress(ModelWithID):
+class WhitelistedAddress(ValidateBaseModel):
     """
     WhitelistedAddress
     """

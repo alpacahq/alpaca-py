@@ -4,6 +4,26 @@
       "path": [
         "components",
         "schemas",
+        "AnnouncementCASubType",
+        "enum"
+      ],
+      "value": [
+        "cash",
+        "stock",
+        "merger_update",
+        "merger_completion",
+        "stock_split",
+        "unit_split",
+        "reverse_split",
+        "recapitalization",
+        "spinoff"
+      ],
+      "reason": "the spec spells the member until_split, but the API emits unit_split (as does the Market Data corporate actions endpoint) and released SDKs only ever accepted unit_split; renaming a public enum member after release would break callers"
+    },
+    {
+      "path": [
+        "components",
+        "schemas",
         "AcatsInitiateTransferDetails",
         "oneOf"
       ],

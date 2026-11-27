@@ -24,8 +24,12 @@ additionally compares:
   would match still returns the baseline type (listed under ``--verbose``)
 
 ``Annotated[str, Strict()]`` and the ``StrictStr`` alias compare equal to ``str``.
-Strict ``int``, ``bool``, ``float``, and ``bytes`` stay distinct: unlike
-``str``, those reject values the lax type accepts. These AexPy findings are
+This is a deliberate trade-off: strict ``str`` stops coercing ``bytes`` and
+``bytearray`` (lax ``str`` accepts ``b"x"``, ``StrictStr`` rejects it). Callers
+that follow the ``str`` annotation are unaffected, so the check accepts it.
+Strict ``int``, ``bool``, ``float``, and ``bytes`` stay distinct: those reject
+values the lax type accepts that a typed caller can plausibly pass (numeric
+strings, ``1`` for ``bool``, and so on). These AexPy findings are
 ranked compatible, when AexPy ranked them breaking, and listed under
 ``--verbose`` instead of failing the check:
 
@@ -961,17 +965,22 @@ _ANNOTATION_NAMES = {
     "typing.Union": "Union",
     "Annotated": "Annotated",
     "typing.Annotated": "Annotated",
-    # Only strict str collapses. Strict int/bool/float/bytes reject values the
-    # lax type accepts (numeric strings, 1 for bool, and so on), so those
-    # aliases stay distinct. The dumper usually spells the marker out; this
-    # name covers a snapshot that stored the alias instead.
+    # Only strict str collapses. This is an accepted trade-off, not a claim
+    # that strict str rejects nothing the lax type accepts: StrictStr stops
+    # coercing bytes/bytearray (pydantic's lax str takes b"x"), which a caller
+    # following the str annotation does not pass. Strict int/bool/float/bytes
+    # reject values a typed caller can plausibly pass (numeric strings, 1 for
+    # bool, and so on), so those aliases stay distinct. The dumper usually
+    # spells the marker out; this name covers a snapshot that stored the alias
+    # instead.
     "StrictStr": "str",
     "pydantic.types.StrictStr": "str",
     "NoneType": "None",
     "types.NoneType": "None",
     "builtins.NoneType": "None",
 }
-# Field dumper spelling of a strict string. Only this form collapses to str.
+# Field dumper spelling of a strict string. Only this form collapses to str,
+# accepting that strict str no longer coerces bytes/bytearray.
 # Strict(strict=False), and Strict on int/bool/float/bytes, are left in place
 # so the comparison still sees them.
 _STRICT_STR_ANNOTATED = re.compile(
@@ -1205,7 +1214,8 @@ def _strip_strict_metadata(annotation: str) -> str:
     """Rewrite ``Annotated[str, Strict(strict=True)]`` to ``str``.
 
     The field dumper stores the marker as ``Strict(strict=True)``, which the
-    annotation tokenizer cannot parse. Only strict strings are rewritten.
+    annotation tokenizer cannot parse. Only strict strings are rewritten, and
+    that accepts that strict ``str`` stops coercing ``bytes`` and ``bytearray``.
     ``Strict(strict=False)`` and strict ``int``, ``bool``, ``float``, or
     ``bytes`` stay in the text, so a real tightening is still reported.
     """

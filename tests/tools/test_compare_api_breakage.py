@@ -2495,6 +2495,92 @@ class TestCallableSnapshotSource:
         assert len(additive) == 1
 
 
+class TestEnumAliasSnapshotSource:
+    @staticmethod
+    def _dump_enum(cab, root, body):
+        """Snapshot a throwaway package that defines one enum."""
+        import subprocess
+        import sys
+
+        name = "enum_fixture"
+        package = root / name
+        package.mkdir(parents=True)
+        (package / "__init__.py").write_text(
+            "from enum import Enum\n\n" "class JournalEntryType(str, Enum):\n" + body
+        )
+        source = cab._PUBLIC_DUMP_SOURCE.format(top_module=name, package_name="pytest")
+        result = subprocess.run(
+            [sys.executable, "-c", source],
+            cwd=root,
+            env={"PYTHONPATH": str(root), "PATH": ""},
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        return json.loads(result.stdout)
+
+    CANONICAL = '    CASH = "JNLC"\n    SECURITY = "JNLS"\n'
+    DEMOTED = (
+        '    JNLC = "JNLC"\n    JNLS = "JNLS"\n'
+        '    CASH = "JNLC"\n    SECURITY = "JNLS"\n'
+    )
+    REMOVE_CASH = {
+        "rank": 100,
+        "message": "Remove attribute (enum_fixture.JournalEntryType): CASH.",
+    }
+
+    def test_dump_records_aliases_with_their_canonical_name(self, cab, tmp_path):
+        enum = self._dump_enum(cab, tmp_path, self.DEMOTED)["enums"][
+            "enum_fixture.JournalEntryType"
+        ]
+
+        assert enum["aliases"] == {"CASH": "JNLC", "SECURITY": "JNLS"}
+        # Aliases stay in members, which is what the value comparison reads.
+        assert set(enum["members"]) == {"JNLC", "JNLS", "CASH", "SECURITY"}
+
+    def test_dump_records_no_aliases_for_canonical_members(self, cab, tmp_path):
+        enum = self._dump_enum(cab, tmp_path, self.CANONICAL)["enums"][
+            "enum_fixture.JournalEntryType"
+        ]
+
+        assert enum["aliases"] == {}
+
+    def test_demotion_between_real_dumps_stays_breaking(self, cab, tmp_path):
+        old = self._dump_enum(cab, tmp_path / "old", self.CANONICAL)
+        new = self._dump_enum(cab, tmp_path / "new", self.DEMOTED)
+
+        marked = cab._mark_sdk_compatible_aexpy_entries([self.REMOVE_CASH], old, new)
+
+        assert "_sdk_compatible" not in marked[0]
+        assert cab._effective_rank(marked[0]) == 100
+
+    def test_baseline_alias_between_real_dumps_is_compatible(self, cab, tmp_path):
+        old = self._dump_enum(cab, tmp_path / "old", self.DEMOTED)
+        new = self._dump_enum(cab, tmp_path / "new", self.DEMOTED)
+
+        marked = cab._mark_sdk_compatible_aexpy_entries([self.REMOVE_CASH], old, new)
+
+        assert marked[0]["_sdk_compatible"] is True
+        assert cab._effective_rank(marked[0]) == 0
+
+    def test_alias_is_found_through_the_defining_target(self, cab):
+        # AexPy names the defining class, not the public re-export path.
+        snapshot = {
+            "enums": {
+                "pkg.enums.E": {
+                    "target": "pkg._generated.enums.E",
+                    "members": {"A": "1", "B": "1"},
+                    "aliases": {"B": "A"},
+                }
+            }
+        }
+
+        assert cab._was_enum_alias(snapshot, "pkg._generated.enums.E", "B")
+        assert cab._was_enum_alias(snapshot, "pkg.enums.E", "B")
+        assert not cab._was_enum_alias(snapshot, "pkg.enums.E", "A")
+        assert not cab._was_enum_alias(snapshot, "pkg.enums.Other", "B")
+
+
 def _field(type_: str) -> dict:
     return {
         "type": type_,
@@ -2889,27 +2975,74 @@ class TestPrivateAexpyEntries:
 
 
 class TestAexpySnapshotFalsePositives:
-    def _journal(self, members: dict) -> dict:
+    def _journal(self, members: dict, aliases: dict | None = None) -> dict:
         entry = {
             "target": "alpaca.broker.enums.JournalEntryType",
             "bases": ["builtins.str", "enum.Enum"],
             "members": members,
         }
+        if aliases is not None:
+            entry["aliases"] = aliases
         return {"enums": {"alpaca.broker.enums.JournalEntryType": entry}}
 
     def test_enum_alias_removal_is_not_breaking(self, cab):
+        # The baseline already had CASH as an alias of JNLC.
         members = {"JNLC": "'JNLC'", "CASH": "'JNLC'"}
+        aliases = {"CASH": "JNLC"}
         entry = {
             "kind": "RemoveAttribute",
             "rank": 100,
             "message": "Remove attribute (alpaca.broker.enums.JournalEntryType): CASH.",
         }
         marked = cab._mark_sdk_compatible_aexpy_entries(
-            [entry], self._journal(members), self._journal(members)
+            [entry],
+            self._journal(members, aliases),
+            self._journal(members, aliases),
         )
         assert marked[0]["_sdk_compatible"] is True
         assert cab._effective_rank(marked[0]) == 0
         assert cab._summarize_changes(marked) == (0, 1, 0)
+
+    def test_canonical_member_demoted_to_alias_stays_breaking(self, cab):
+        # CASH was canonical in the baseline. It is an alias now, so .name,
+        # str() and iteration return JNLC and AexPy's removal report is right.
+        entry = {
+            "kind": "RemoveAttribute",
+            "rank": 100,
+            "message": "Remove attribute (alpaca.broker.enums.JournalEntryType): CASH.",
+        }
+        marked = cab._mark_sdk_compatible_aexpy_entries(
+            [entry],
+            self._journal({"CASH": "'JNLC'", "SECURITY": "'JNLS'"}, {}),
+            self._journal(
+                {
+                    "JNLC": "'JNLC'",
+                    "JNLS": "'JNLS'",
+                    "CASH": "'JNLC'",
+                    "SECURITY": "'JNLS'",
+                },
+                {"CASH": "JNLC", "SECURITY": "JNLS"},
+            ),
+        )
+        assert "_sdk_compatible" not in marked[0]
+        assert cab._effective_rank(marked[0]) == 100
+        assert cab._summarize_changes(marked) == (1, 0, 0)
+
+    def test_baseline_without_alias_data_stays_breaking(self, cab):
+        # A snapshot that predates alias recording must not make a removal
+        # compatible.
+        members = {"JNLC": "'JNLC'", "CASH": "'JNLC'"}
+        entry = {
+            "rank": 100,
+            "message": "Remove attribute (alpaca.broker.enums.JournalEntryType): CASH.",
+        }
+        marked = cab._mark_sdk_compatible_aexpy_entries(
+            [entry],
+            self._journal(members),
+            self._journal(members, {"CASH": "JNLC"}),
+        )
+        assert "_sdk_compatible" not in marked[0]
+        assert cab._effective_rank(marked[0]) == 100
 
     def test_removed_enum_member_stays_breaking(self, cab):
         entry = {
@@ -2931,19 +3064,22 @@ class TestAexpySnapshotFalsePositives:
         }
         marked = cab._mark_sdk_compatible_aexpy_entries(
             [entry],
-            self._journal({"CASH": "'JNLC'"}),
-            self._journal({"CASH": "'CASH'"}),
+            self._journal({"JNLC": "'JNLC'", "CASH": "'JNLC'"}, {"CASH": "JNLC"}),
+            self._journal({"JNLC": "'JNLC'", "CASH": "'CASH'"}, {}),
         )
         assert cab._effective_rank(marked[0]) == 100
 
     def test_unknown_rank_alias_stays_unknown(self, cab):
         members = {"JNLC": "'JNLC'", "CASH": "'JNLC'"}
+        aliases = {"CASH": "JNLC"}
         entry = {
             "rank": -1,
             "message": "Remove attribute (alpaca.broker.enums.JournalEntryType): CASH.",
         }
         marked = cab._mark_sdk_compatible_aexpy_entries(
-            [entry], self._journal(members), self._journal(members)
+            [entry],
+            self._journal(members, aliases),
+            self._journal(members, aliases),
         )
         assert "_sdk_compatible" not in marked[0]
         assert cab._effective_rank(marked[0]) == -1

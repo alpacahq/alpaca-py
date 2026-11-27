@@ -34,8 +34,10 @@ ranked compatible, when AexPy ranked them breaking, and listed under
 ``--verbose`` instead of failing the check:
 
 * removal of ``__annotate__`` (the Python 3.14 annotation helper)
-* removal of an enum attribute the snapshot still has, at the same value
-  (aliases are omitted from ``dir()``, which is what AexPy lists)
+* removal of an enum attribute that the baseline already had as an alias and
+  the snapshot still has at the same value (aliases are omitted from
+  ``dir()``, which is what AexPy lists). A canonical member demoted to an
+  alias stays breaking: ``.name``, ``str()`` and iteration change
 * a parameter or return type change whose only difference is a class that
   ``_moved_targets`` already recorded as a move to a new defining module
 
@@ -301,6 +303,14 @@ def main():
                     "members": {{
                         member_name: repr(member.value)
                         for member_name, member in obj.__members__.items()
+                    }},
+                    # Names that are aliases of another member, mapped to the
+                    # canonical name. The snapshot is written with sorted keys,
+                    # so definition order cannot tell an alias from a member.
+                    "aliases": {{
+                        member_name: member.name
+                        for member_name, member in obj.__members__.items()
+                        if member_name != member.name
                     }},
                 }}
             elif issubclass(obj, BaseModel) and obj is not BaseModel:
@@ -2109,9 +2119,31 @@ def _enum_member_value(snapshot: dict, class_id: str, name: str) -> str | None:
     return None
 
 
+def _was_enum_alias(snapshot: dict, class_id: str, name: str) -> bool:
+    """True when ``name`` is recorded as an alias on the enum ``class_id``.
+
+    A snapshot taken before aliases were recorded has no ``aliases`` key, so
+    nothing counts as an alias there and the removal stays breaking.
+    """
+    for path, entry in (snapshot.get("enums") or {}).items():
+        if path != class_id and entry.get("target") != class_id:
+            continue
+        if name in (entry.get("aliases") or {}):
+            return True
+    return False
+
+
 def _same_enum_member(
     old_snapshot: dict, new_snapshot: dict, class_id: str, name: str
 ) -> bool:
+    """True when the baseline already had ``name`` as an alias, still at the same value.
+
+    A member that was canonical in the baseline and is an alias now is not
+    accepted: ``.name``, ``str()`` and iteration return the other member after
+    the demotion, so AexPy's removal report is right.
+    """
+    if not _was_enum_alias(old_snapshot, class_id, name):
+        return False
     old_value = _enum_member_value(old_snapshot, class_id, name)
     new_value = _enum_member_value(new_snapshot, class_id, name)
     return old_value is not None and old_value == new_value
@@ -2133,10 +2165,12 @@ def _mark_sdk_compatible_aexpy_entries(
 ) -> list[dict]:
     """Copy entries, flagging AexPy false positives the snapshot already accepts.
 
-    An enum attribute AexPy reports removed is still there when ``__members__``
-    has it at the same value (``dir()`` hides aliases). A parameter or return
-    type that differs only by a defining module ``_moved_targets`` recorded is
-    the same class, re-exported. Entries AexPy did not rank as breaking
+    An enum attribute AexPy reports removed is still there when the baseline
+    already had it as an alias and ``__members__`` has it at the same value
+    (``dir()`` hides aliases). A canonical member demoted to an alias stays
+    breaking. A parameter or return type that differs only by a defining
+    module ``_moved_targets`` recorded is the same class, re-exported.
+    Entries AexPy did not rank as breaking
     (rank <= 0, including unknown) are left alone so ``--fail-on-unknown``
     still sees them.
     """

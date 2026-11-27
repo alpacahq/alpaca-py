@@ -23,6 +23,24 @@ additionally compares:
   change is not reported when the overload that a call valid on the baseline
   would match still returns the baseline type (listed under ``--verbose``)
 
+``Annotated[str, Strict()]`` and the ``StrictStr`` alias compare equal to ``str``.
+This is a deliberate trade-off: strict ``str`` stops coercing ``bytes`` and
+``bytearray`` (lax ``str`` accepts ``b"x"``, ``StrictStr`` rejects it). Callers
+that follow the ``str`` annotation are unaffected, so the check accepts it.
+Strict ``int``, ``bool``, ``float``, and ``bytes`` stay distinct: those reject
+values the lax type accepts that a typed caller can plausibly pass (numeric
+strings, ``1`` for ``bool``, and so on). These AexPy findings are
+ranked compatible, when AexPy ranked them breaking, and listed under
+``--verbose`` instead of failing the check:
+
+* removal of ``__annotate__`` (the Python 3.14 annotation helper)
+* removal of an enum attribute that the baseline already had as an alias and
+  the snapshot still has at the same value (aliases are omitted from
+  ``dir()``, which is what AexPy lists). A canonical member demoted to an
+  alias stays breaking: ``.name``, ``str()`` and iteration change
+* a parameter or return type change whose only difference is a class that
+  ``_moved_targets`` already recorded as a move to a new defining module
+
 Examples:
   tools/scripts/compare_api_breakage.py
   tools/scripts/compare_api_breakage.py --against 0.43.5
@@ -285,6 +303,14 @@ def main():
                     "members": {{
                         member_name: repr(member.value)
                         for member_name, member in obj.__members__.items()
+                    }},
+                    # Names that are aliases of another member, mapped to the
+                    # canonical name. The snapshot is written with sorted keys,
+                    # so definition order cannot tell an alias from a member.
+                    "aliases": {{
+                        member_name: member.name
+                        for member_name, member in obj.__members__.items()
+                        if member_name != member.name
                     }},
                 }}
             elif issubclass(obj, BaseModel) and obj is not BaseModel:
@@ -947,10 +973,29 @@ _ANNOTATION_NAMES = {
     "typing.Type": "type",
     "typing.Optional": "Optional",
     "typing.Union": "Union",
+    "Annotated": "Annotated",
+    "typing.Annotated": "Annotated",
+    # Only strict str collapses. This is an accepted trade-off, not a claim
+    # that strict str rejects nothing the lax type accepts: StrictStr stops
+    # coercing bytes/bytearray (pydantic's lax str takes b"x"), which a caller
+    # following the str annotation does not pass. Strict int/bool/float/bytes
+    # reject values a typed caller can plausibly pass (numeric strings, 1 for
+    # bool, and so on), so those aliases stay distinct. The dumper usually
+    # spells the marker out; this name covers a snapshot that stored the alias
+    # instead.
+    "StrictStr": "str",
+    "pydantic.types.StrictStr": "str",
     "NoneType": "None",
     "types.NoneType": "None",
     "builtins.NoneType": "None",
 }
+# Field dumper spelling of a strict string. Only this form collapses to str,
+# accepting that strict str no longer coerces bytes/bytearray.
+# Strict(strict=False), and Strict on int/bool/float/bytes, are left in place
+# so the comparison still sees them.
+_STRICT_STR_ANNOTATED = re.compile(
+    r"\b(?:typing\.)?Annotated\[\s*str\s*,\s*Strict\(strict=True\)\s*\]"
+)
 # Container ABCs. The snapshot writes the origin's bare ``__name__`` for these
 # (``Sequence[...]``), source strings may use ``typing.Sequence`` or the bare
 # name, and ``collections.abc.Sequence`` is the canonical form, so all three
@@ -1075,7 +1120,9 @@ def _tokenize_annotation(text: str) -> list[str]:
 
 
 class _AnnotationParser:
-    def __init__(self, tokens: list[str], *, preserve_union_order: bool = False) -> None:
+    def __init__(
+        self, tokens: list[str], *, preserve_union_order: bool = False
+    ) -> None:
         self.tokens = tokens
         self.index = 0
         self.preserve_union_order = preserve_union_order
@@ -1145,9 +1192,15 @@ class _AnnotationParser:
         if name == "Optional":
             if len(args) != 1:
                 raise ValueError("Optional expects one argument")
-            return _union_of([args[0], "None"], preserve_order=self.preserve_union_order)
+            return _union_of(
+                [args[0], "None"], preserve_order=self.preserve_union_order
+            )
         if name == "Union":
             return _union_of(args, preserve_order=self.preserve_union_order)
+        # Annotated[str] with no metadata is str. Other metadata, and Annotated
+        # of any other type, stays so a real constraint still compares unequal.
+        if name == "Annotated" and args == ["str"]:
+            return "str"
         if not args:
             return name
         return f"{name}[{', '.join(args)}]"
@@ -1167,6 +1220,18 @@ _RAW_DATA_ANNOTATION = "dict[str, Any]"
 _RAW_DATA_LIST_ANNOTATION = f"list[{_RAW_DATA_ANNOTATION}]"
 
 
+def _strip_strict_metadata(annotation: str) -> str:
+    """Rewrite ``Annotated[str, Strict(strict=True)]`` to ``str``.
+
+    The field dumper stores the marker as ``Strict(strict=True)``, which the
+    annotation tokenizer cannot parse. Only strict strings are rewritten, and
+    that accepts that strict ``str`` stops coercing ``bytes`` and ``bytearray``.
+    ``Strict(strict=False)`` and strict ``int``, ``bool``, ``float``, or
+    ``bytes`` stay in the text, so a real tightening is still reported.
+    """
+    return _STRICT_STR_ANNOTATED.sub("str", annotation)
+
+
 def _normalize_type_annotation(
     annotation: str, *, preserve_union_order: bool = False
 ) -> str:
@@ -1175,6 +1240,7 @@ def _normalize_type_annotation(
     Unparseable text falls back to collapsed whitespace so a real change is
     still reported. Object addresses are stripped first, then ``<class '...'>``
     wrappers are unwrapped so a bare class matches that class inside a union.
+    A strict string annotation is rewritten to ``str`` before parsing.
 
     ``preserve_union_order`` keeps declaration order instead of sorting union
     members. Pass it for a field whose ``union_mode="left_to_right"`` makes
@@ -1183,6 +1249,7 @@ def _normalize_type_annotation(
     otherwise.
     """
     text = _CLASS_REPR.sub(r"\1", _OBJECT_ADDRESS.sub("", " ".join(annotation.split())))
+    text = _strip_strict_metadata(text)
     if not text:
         return ""
     try:
@@ -2012,10 +2079,130 @@ def _is_caller_compatible(entry: dict) -> bool:
     return entry.get("kind") in CALLER_COMPATIBLE_KINDS and _rank_value(entry) > 0
 
 
+# AexPy "Remove attribute/function (parent): name." The name is not qualified.
+_REMOVE_MEMBER = re.compile(r"^Remove (?:attribute|function) \(([^)]+)\): ([^.]+)\.$")
+_PARAMETER_TYPE_CHANGE = re.compile(
+    r"^Change parameter type \([^)]+\): [^:]+: (.*) => (.*)$"
+)
+_RETURN_TYPE_CHANGE = re.compile(r"^Change return type \([^)]+\): (.*) => (.*)$")
+
+
+def _removed_member(entry: dict) -> tuple[str, str] | None:
+    """``(parent id, member name)`` for an AexPy remove-attribute/function entry."""
+    message = entry.get("message") or ""
+    match = _REMOVE_MEMBER.match(message)
+    if match is None:
+        return None
+    return match.group(1), match.group(2)
+
+
+def _is_annotate_entry(entry: dict) -> bool:
+    """True for a change to the Python 3.14 ``__annotate__`` helper.
+
+    A class that declares annotations grows this function; a subclass that only
+    adds a method does not. Callers do not use it.
+    """
+    removed = _removed_member(entry)
+    if removed is not None and removed[1] == "__annotate__":
+        return True
+    return any(api_id.endswith(".__annotate__") for api_id in _entry_api_ids(entry))
+
+
+def _enum_member_value(snapshot: dict, class_id: str, name: str) -> str | None:
+    """Value of ``name`` on the enum whose public path or defining target is ``class_id``."""
+    for path, entry in (snapshot.get("enums") or {}).items():
+        if path != class_id and entry.get("target") != class_id:
+            continue
+        members = entry.get("members") or {}
+        if name in members:
+            return members[name]
+    return None
+
+
+def _was_enum_alias(snapshot: dict, class_id: str, name: str) -> bool:
+    """True when ``name`` is recorded as an alias on the enum ``class_id``.
+
+    A snapshot taken before aliases were recorded has no ``aliases`` key, so
+    nothing counts as an alias there and the removal stays breaking.
+    """
+    for path, entry in (snapshot.get("enums") or {}).items():
+        if path != class_id and entry.get("target") != class_id:
+            continue
+        if name in (entry.get("aliases") or {}):
+            return True
+    return False
+
+
+def _same_enum_member(
+    old_snapshot: dict, new_snapshot: dict, class_id: str, name: str
+) -> bool:
+    """True when the baseline already had ``name`` as an alias, still at the same value.
+
+    A member that was canonical in the baseline and is an alias now is not
+    accepted: ``.name``, ``str()`` and iteration return the other member after
+    the demotion, so AexPy's removal report is right.
+    """
+    if not _was_enum_alias(old_snapshot, class_id, name):
+        return False
+    old_value = _enum_member_value(old_snapshot, class_id, name)
+    new_value = _enum_member_value(new_snapshot, class_id, name)
+    return old_value is not None and old_value == new_value
+
+
+def _type_change_is_only_a_move(message: str, moved: dict[str, str]) -> bool:
+    """True when an AexPy parameter or return change is only a moved class path."""
+    if not moved:
+        return False
+    match = _PARAMETER_TYPE_CHANGE.match(message) or _RETURN_TYPE_CHANGE.match(message)
+    if match is None:
+        return False
+    old_type, new_type = match.group(1), match.group(2)
+    return old_type != new_type and _rewrite_moved(old_type, moved) == new_type
+
+
+def _mark_sdk_compatible_aexpy_entries(
+    entries: list[dict], old_snapshot: dict, new_snapshot: dict
+) -> list[dict]:
+    """Copy entries, flagging AexPy false positives the snapshot already accepts.
+
+    An enum attribute AexPy reports removed is still there when the baseline
+    already had it as an alias and ``__members__`` has it at the same value
+    (``dir()`` hides aliases). A canonical member demoted to an alias stays
+    breaking. A parameter or return type that differs only by a defining
+    module ``_moved_targets`` recorded is the same class, re-exported.
+    Entries AexPy did not rank as breaking
+    (rank <= 0, including unknown) are left alone so ``--fail-on-unknown``
+    still sees them.
+    """
+    moved = _moved_targets(old_snapshot, new_snapshot)
+    marked: list[dict] = []
+    for entry in entries:
+        if _rank_value(entry) <= 0:
+            marked.append(entry)
+            continue
+        compatible = False
+        removed = _removed_member(entry)
+        if removed is not None and _same_enum_member(
+            old_snapshot, new_snapshot, removed[0], removed[1]
+        ):
+            compatible = True
+        elif _type_change_is_only_a_move(entry.get("message") or "", moved):
+            compatible = True
+        if compatible:
+            entry = {**entry, "_sdk_compatible": True}
+        marked.append(entry)
+    return marked
+
+
 def _effective_rank(entry: dict) -> int:
     if _is_private_entry(entry):
         return 0
-    return 0 if _is_caller_compatible(entry) else _rank_value(entry)
+    rank = _rank_value(entry)
+    # Unknown (negative) ranks stay unknown. Collapsing them to compatible
+    # would hide them from --fail-on-unknown.
+    if rank > 0 and (_is_annotate_entry(entry) or entry.get("_sdk_compatible")):
+        return 0
+    return 0 if _is_caller_compatible(entry) else rank
 
 
 def _change_entries(changes_json: Path | list[dict]) -> list[dict]:
@@ -2071,6 +2258,8 @@ def _caller_compatible_entries(changes_json: Path | list[dict]) -> list[dict]:
         {"rank": _rank_value(entry), "message": _entry_message(entry)}
         for entry in _change_entries(changes_json)
         if _is_caller_compatible(entry)
+        or entry.get("_sdk_compatible")
+        or (_is_annotate_entry(entry) and _rank_value(entry) > 0)
     ]
     entries.sort(key=lambda item: item["message"])
     return entries
@@ -2352,6 +2541,9 @@ def main(argv: list[str] | None = None) -> int:
             )
             report_entries, aexpy_overloaded = _apply_overload_contracts_to_entries(
                 change_entries, old_snapshot, new_snapshot
+            )
+            report_entries = _mark_sdk_compatible_aexpy_entries(
+                report_entries, old_snapshot, new_snapshot
             )
             return_compatible = sorted(
                 return_compatible + return_overloaded + aexpy_overloaded

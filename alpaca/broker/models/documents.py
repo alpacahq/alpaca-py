@@ -6,13 +6,23 @@ from uuid import UUID
 
 from pydantic import model_validator
 
-from alpaca.broker.enums import DocumentType, TradeDocumentSubType, TradeDocumentType
+from alpaca.broker.enums import (
+    AccountDocumentType,
+    DocumentType,
+    OwnerDocumentType,
+    TradeDocumentSubType,
+    TradeDocumentType,
+)
+from alpaca.common._deprecation import (
+    deprecate_compatibility_shape as _deprecate_compatibility_shape,
+)
 from alpaca.common.models import ModelWithID
 from alpaca.common.models import ValidateBaseModel as BaseModel
 
 IPAddress = Union[IPv4Address, IPv6Address]
 
 
+@_deprecate_compatibility_shape
 class AccountDocument(BaseModel):
     """
     User documents provided within Account Model.
@@ -24,7 +34,8 @@ class AccountDocument(BaseModel):
 
     Attributes:
         id (UUID): ID of the Document
-        document_type (DocumentType): The type of document uploaded
+        document_type (Optional[Union[DocumentType, OwnerDocumentType]]): The type of document uploaded. Types
+          DocumentType lacks, such as w9, parse into OwnerDocumentType.
         document_sub_type (Optional[str]): The specific type of document, e.g. passport
         name (Optional(str)): Name of the document if present
         content (str): Base64 string representing the document
@@ -33,7 +44,7 @@ class AccountDocument(BaseModel):
     """
 
     id: Optional[UUID]
-    document_type: Optional[DocumentType]
+    document_type: Optional[Union[DocumentType, OwnerDocumentType]]
     document_sub_type: Optional[str] = None
     content: Optional[str] = None
     mime_type: Optional[str] = None
@@ -58,14 +69,15 @@ class TradeDocument(ModelWithID):
     Attributes:
         id (UUID): Unique id of the TradeDocument
         name (str): Name of the document
-        type (TradeDocumentType): The kind of TradeDocument this is
+        type (Union[TradeDocumentType, AccountDocumentType]): The kind of TradeDocument this is. Types
+          TradeDocumentType lacks, such as crypto_account_statement, parse into AccountDocumentType.
         sub_type (Optional[TradeDocumentSubType]): The subtype of the document. The API returns "" in the case of this
           not being specified, however we transform this case into None for convenience.
         date (date): Date on when this TradeDocument was generated
     """
 
     name: str
-    type: TradeDocumentType
+    type: Union[TradeDocumentType, AccountDocumentType]
     sub_type: Optional[TradeDocumentSubType] = None
     date: datetime_date
 

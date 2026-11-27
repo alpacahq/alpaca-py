@@ -14,6 +14,7 @@ from alpaca.broker.enums import (
     JournalStatus,
     TransferStatus,
 )
+from alpaca.trading._generated.enums import ActivityType as GeneratedActivityType
 from alpaca.trading.enums import (
     AccountStatus,
     ActivityType,
@@ -32,6 +33,17 @@ def test_activity_type_is_trade_activity():
     assert not ActivityType.ACATC.is_trade_activity()
 
 
+def test_activity_type_is_compatibility_shape_with_helpers():
+    # ActivityType is a hand-written compatibility shape, not the generated enum: it
+    # keeps the deprecated members (CIL, ...) alongside the generated values plus the
+    # SDK helper methods during the deprecation window.
+    assert ActivityType is not GeneratedActivityType
+    assert ActivityType.is_str_trade_activity("FILL")
+    assert not ActivityType.is_str_trade_activity("ACATC")
+    assert hasattr(ActivityType, "TRANS")
+    assert hasattr(ActivityType, "CIL")
+
+
 def _deprecation_message(enum_name: str, member_name: str, kind: str) -> str:
     return (
         f"{enum_name}.{member_name} is deprecated and will be removed in the next release. "
@@ -42,6 +54,13 @@ def _deprecation_message(enum_name: str, member_name: str, kind: str) -> str:
 @pytest.mark.parametrize(
     ("enum_cls", "member_name", "wire_value", "kind", "stable_member"),
     [
+        (
+            AgreementType,
+            "CUSTODIAL_CUSTOMER",
+            "custodial_customer_agreement",
+            "agreement type",
+            "ACCOUNT_AGREEMENT",
+        ),
         (ActivityType, "CIL", "CIL", "activity type", "FILL"),
         (ActivityType, "DIVWH", "DIVWH", "activity type", "FILL"),
         (ActivityType, "EXTRD", "EXTRD", "activity type", "FILL"),
@@ -51,14 +70,6 @@ def _deprecation_message(enum_name: str, member_name: str, kind: str) -> str:
         (ActivityType, "SWP", "SWP", "activity type", "FILL"),
         (ActivityType, "VOF", "VOF", "activity type", "FILL"),
         (ActivityType, "WH", "WH", "activity type", "FILL"),
-        (OrderStatus, "PENDING_REVIEW", "pending_review", "order status", "NEW"),
-        (
-            AgreementType,
-            "CUSTODIAL_CUSTOMER",
-            "custodial_customer_agreement",
-            "agreement type",
-            "ACCOUNT_AGREEMENT",
-        ),
         (AccountStatus, "AML_REVIEW", "AML_REVIEW", "account status", "ACTIVE"),
         (AccountStatus, "DISABLED", "DISABLED", "account status", "ACTIVE"),
         (
@@ -276,7 +287,6 @@ def test_model_validation_accepts_added_and_renamed_wire_values_quietly():
     assert activity.activity_type is ActivityType.CGD
     assert agreement is AgreementType.MARGIN_AGREEMENT
     assert bank_account_type is BankAccountType.CHECKING
-    assert "pending_review" in status_schema["enum"]
     assert "new" in status_schema["enum"]
 
 

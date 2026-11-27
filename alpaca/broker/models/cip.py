@@ -2,9 +2,12 @@ from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
 
-from alpaca.common.models import ModelWithID, ValidateBaseModel as BaseModel
-
 from alpaca.broker.enums import CIPApprovalStatus, CIPProvider, CIPResult, CIPStatus
+from alpaca.common._deprecation import (
+    deprecate_compatibility_shape as _deprecate_compatibility_shape,
+)
+from alpaca.common.models import ModelWithID
+from alpaca.common.models import ValidateBaseModel as BaseModel
 
 
 class CIPKYCInfo(BaseModel):
@@ -54,6 +57,7 @@ class CIPKYCInfo(BaseModel):
     approved_at: Optional[datetime] = None
 
 
+@_deprecate_compatibility_shape
 class CIPDocument(BaseModel):
     """
     Represents results of checking a document for CIPInfo
@@ -119,6 +123,7 @@ class CIPDocument(BaseModel):
     visual_authenticity: Optional[str] = None
 
 
+@_deprecate_compatibility_shape
 class CIPPhoto(BaseModel):
     """
     Represents the results of checking a Photo for CIPInfo
@@ -153,8 +158,13 @@ class CIPPhoto(BaseModel):
     visual_authenticity_breakdown: Optional[str] = None
 
 
+@_deprecate_compatibility_shape
 class CIPIdentity(BaseModel):
     """
+    The generated CIPIdentity types these results as plain strings and created_at as a
+    string; this shape keeps the published CIPResult/CIPStatus enums and datetime
+    until the generated model replaces it.
+
     Represents the results of running an identity check for a CIPInfo
 
     Attributes:
@@ -195,8 +205,13 @@ class CIPIdentity(BaseModel):
     tax_id_breakdown: Optional[str] = None
 
 
+@_deprecate_compatibility_shape
 class CIPWatchlist(BaseModel):
     """
+    The generated CIPWatchlist types these results as plain strings and created_at as a
+    string; this shape keeps the published CIPResult/CIPStatus enums and datetime
+    until the generated model replaces it.
+
     Represents the result of checking to see if the applicant is in any watchlists for a CIPInfo
 
     TODO: We're missing almost entirely documentation in prod for this as well as even internal documentation
@@ -225,8 +240,13 @@ class CIPWatchlist(BaseModel):
     monitored_lists: Optional[CIPResult] = None
 
 
+@_deprecate_compatibility_shape
 class CIPInfo(ModelWithID):
     """
+    The generated CIPInfo makes ids and timestamps optional and types provider_name
+    as strings; this shape keeps the published contract until the generated model
+    replaces it.
+
     The Customer Identification Program (CIP) API allows you to submit the CIP results received from your KYC provider.
 
     This model is how to represent that information when talking to Alpaca

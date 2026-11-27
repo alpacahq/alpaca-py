@@ -5,19 +5,51 @@ from typing import Any, Dict, List, Optional, Union
 
 import pandas as pd
 from pydantic import ValidationInfo, field_validator, model_validator
+from typing_extensions import deprecated as _deprecated
 
+from alpaca.common._deprecation import (
+    warn_on_direct_instantiation as _warn_on_direct_instantiation,
+)
 from alpaca.common.enums import Sort
 from alpaca.common.models import ModelWithID
 from alpaca.common.requests import NonEmptyRequest
+from alpaca.trading._generated.models import CanceledOrderResponse
+from alpaca.trading._generated.requests import (
+    AddAssetToWatchlistRequest,
+    AdvancedInstructions,
+    CreateLocateRequest,
+    CreateOrderRequest,
+    CreateOrderRequestStopLoss,
+    CreateOrderRequestTakeProfit,
+    CreateWhitelistedAddressRequest,
+    MLegOrderLeg,
+    PatchOrderRequest,
+    TokenizationMintRequest,
+    TravelRuleInfo,
+    TravelRuleManualEntry,
+    UpdateWhitelistedAddressTravelRuleInfoRequest,
+)
+
+# Pre-codegen public names kept as aliases of the OpenAPI-generated request types.
+PostOrderRequest = CreateOrderRequest
+PostOrderRequestStopLoss = CreateOrderRequestStopLoss
+PostOrderRequestTakeProfit = CreateOrderRequestTakeProfit
 from alpaca.trading.enums import (
     AssetClass,
     AssetExchange,
+    AssetsStatus,
     AssetStatus,
     CalendarDateType,
     ContractType,
     CorporateActionDateType,
     CorporateActionType,
+    Exchange,
     ExerciseStyle,
+    GetAllOrdersStatusParameter,
+    GetV2CorporateActionsAnnouncementsDateTypeParameter,
+    LegacyCalendarDateTypeParameter,
+    OptionContractStyle,
+    OptionContractType,
     OrderClass,
     OrderSide,
     OrderType,
@@ -95,9 +127,18 @@ class GetCalendarRequest(NonEmptyRequest):
 
     start: Optional[date] = None
     end: Optional[date] = None
-    date_type: Optional[CalendarDateType] = None
+    date_type: Optional[Union[CalendarDateType, LegacyCalendarDateTypeParameter]] = None
 
 
+@_deprecated(
+    "CreateWatchlistRequest is a temporary compatibility shape and will be replaced "
+    "by the OpenAPI-generated CreateWatchlistRequest in a future release.",
+    category=None,
+)
+@_warn_on_direct_instantiation(
+    "CreateWatchlistRequest is a temporary compatibility shape and will be replaced "
+    "by the OpenAPI-generated CreateWatchlistRequest in a future release."
+)
 class CreateWatchlistRequest(NonEmptyRequest):
     """
     Represents the fields you can specify when creating a Watchlist
@@ -111,6 +152,15 @@ class CreateWatchlistRequest(NonEmptyRequest):
     symbols: List[str]
 
 
+@_deprecated(
+    "UpdateWatchlistRequest is a temporary compatibility shape and will be replaced "
+    "by the OpenAPI-generated UpdateWatchlistRequest in a future release.",
+    category=None,
+)
+@_warn_on_direct_instantiation(
+    "UpdateWatchlistRequest is a temporary compatibility shape and will be replaced "
+    "by the OpenAPI-generated UpdateWatchlistRequest in a future release."
+)
 class UpdateWatchlistRequest(NonEmptyRequest):
     """
     Represents the fields you can specify when updating a Watchlist
@@ -144,12 +194,19 @@ class GetAssetsRequest(NonEmptyRequest):
         attributes (Optional[str]): Comma separated values to query for more than one attribute.
     """
 
-    status: Optional[AssetStatus] = None
+    status: Optional[Union[AssetStatus, AssetsStatus]] = None
     asset_class: Optional[AssetClass] = None
-    exchange: Optional[AssetExchange] = None
+    exchange: Optional[Union[AssetExchange, Exchange]] = None
     attributes: Optional[str] = None
 
 
+@_deprecated(
+    "TakeProfitRequest is deprecated; use CreateOrderRequestTakeProfit instead.",
+    category=None,
+)
+@_warn_on_direct_instantiation(
+    "TakeProfitRequest is deprecated; use CreateOrderRequestTakeProfit instead."
+)
 class TakeProfitRequest(NonEmptyRequest):
     """
     Used for providing take profit details for a bracket order.
@@ -161,6 +218,13 @@ class TakeProfitRequest(NonEmptyRequest):
     limit_price: float
 
 
+@_deprecated(
+    "StopLossRequest is deprecated; use CreateOrderRequestStopLoss instead.",
+    category=None,
+)
+@_warn_on_direct_instantiation(
+    "StopLossRequest is deprecated; use CreateOrderRequestStopLoss instead."
+)
 class StopLossRequest(NonEmptyRequest):
     """
     Used for providing stop loss details for a bracket order.
@@ -175,6 +239,10 @@ class StopLossRequest(NonEmptyRequest):
     limit_price: Optional[float] = None
 
 
+@_deprecated("OptionLegRequest is deprecated; use MLegOrderLeg instead.", category=None)
+@_warn_on_direct_instantiation(
+    "OptionLegRequest is deprecated; use MLegOrderLeg instead."
+)
 class OptionLegRequest(NonEmptyRequest):
     """
     Used for providing details for a leg of a multi-leg order.
@@ -193,6 +261,10 @@ class OptionLegRequest(NonEmptyRequest):
 
     @model_validator(mode="before")
     def root_validator(cls, values: dict) -> dict:
+        # Union fields may offer other models (e.g. MLegOrderLeg) to this validator.
+        if not isinstance(values, dict):
+            return values
+
         side = values.get("side", None)
         position_intent = values.get("position_intent", None)
 
@@ -218,7 +290,7 @@ class GetOrdersRequest(NonEmptyRequest):
         symbols (Optional[List[str]]): List of symbols to filter by.
     """
 
-    status: Optional[QueryOrderStatus] = None
+    status: Optional[Union[QueryOrderStatus, GetAllOrdersStatusParameter]] = None
     limit: Optional[int] = None  # not pagination = None
     after: Optional[datetime] = None
     until: Optional[datetime] = None
@@ -306,6 +378,26 @@ def _reject_non_positive(value: Any, field_name: str) -> None:
         raise ValueError(f"{field_name} must be greater than 0")
 
 
+def validate_replace_order_bounds(
+    order_data: Union["PatchOrderRequest", "ReplaceOrderRequest"],
+) -> None:
+    """Reject non-positive ``qty``, ``stop_price`` and ``trail`` on a replace request.
+
+    ``ReplaceOrderRequest`` enforces this on construction. The generated
+    ``PatchOrderRequest`` does not, so the client applies the same checks to both
+    types before sending.
+    """
+    _reject_non_positive(getattr(order_data, "qty", None), "qty")
+    _reject_non_positive(getattr(order_data, "stop_price", None), "stop_price")
+    _reject_non_positive(getattr(order_data, "trail", None), "trail")
+
+
+@_deprecated(
+    "ReplaceOrderRequest is deprecated; use PatchOrderRequest instead.", category=None
+)
+@_warn_on_direct_instantiation(
+    "ReplaceOrderRequest is deprecated; use PatchOrderRequest instead."
+)
 class ReplaceOrderRequest(NonEmptyRequest):
     """Contains data for submitting a request to replace an order.
 
@@ -337,6 +429,13 @@ class ReplaceOrderRequest(NonEmptyRequest):
         return values
 
 
+@_deprecated(
+    "CancelOrderResponse is deprecated; use CanceledOrderResponse instead.",
+    category=None,
+)
+@_warn_on_direct_instantiation(
+    "CancelOrderResponse is deprecated; use CanceledOrderResponse instead."
+)
 class CancelOrderResponse(ModelWithID):
     """
     Data returned after requesting to cancel an order. It contains the cancel status of an order.
@@ -351,6 +450,12 @@ class CancelOrderResponse(ModelWithID):
     body: Optional[Dict[str, Any]] = None
 
 
+@_deprecated(
+    "OrderRequest is deprecated; use CreateOrderRequest instead.", category=None
+)
+@_warn_on_direct_instantiation(
+    "OrderRequest is deprecated; use CreateOrderRequest instead."
+)
 class OrderRequest(NonEmptyRequest):
     """A base class for requests for creating an order. You probably shouldn't directly use
     this class when submitting an order. Instead, use one of the order type specific classes.
@@ -384,9 +489,9 @@ class OrderRequest(NonEmptyRequest):
     order_class: Optional[OrderClass] = None
     extended_hours: Optional[bool] = None
     client_order_id: Optional[str] = None
-    legs: Optional[List[OptionLegRequest]] = None
-    take_profit: Optional[TakeProfitRequest] = None
-    stop_loss: Optional[StopLossRequest] = None
+    legs: Optional[List[Union[OptionLegRequest, MLegOrderLeg]]] = None
+    take_profit: Optional[Union[TakeProfitRequest, CreateOrderRequestTakeProfit]] = None
+    stop_loss: Optional[Union[StopLossRequest, CreateOrderRequestStopLoss]] = None
     position_intent: Optional[PositionIntent] = None
 
     @model_validator(mode="before")
@@ -460,6 +565,12 @@ def _raise_for_unsupported_price_fields(
             raise ValueError(f"{field} is not supported for {order_type.value} orders.")
 
 
+@_deprecated(
+    "MarketOrderRequest is deprecated; use CreateOrderRequest instead.", category=None
+)
+@_warn_on_direct_instantiation(
+    "MarketOrderRequest is deprecated; use CreateOrderRequest instead."
+)
 class MarketOrderRequest(OrderRequest):
     """
     Used to submit a market order.
@@ -495,6 +606,12 @@ class MarketOrderRequest(OrderRequest):
         return values
 
 
+@_deprecated(
+    "StopOrderRequest is deprecated; use CreateOrderRequest instead.", category=None
+)
+@_warn_on_direct_instantiation(
+    "StopOrderRequest is deprecated; use CreateOrderRequest instead."
+)
 class StopOrderRequest(OrderRequest):
     """
     Used to submit a stop order.
@@ -533,6 +650,12 @@ class StopOrderRequest(OrderRequest):
         return values
 
 
+@_deprecated(
+    "LimitOrderRequest is deprecated; use CreateOrderRequest instead.", category=None
+)
+@_warn_on_direct_instantiation(
+    "LimitOrderRequest is deprecated; use CreateOrderRequest instead."
+)
 class LimitOrderRequest(OrderRequest):
     """
     Used to submit a limit order.
@@ -579,6 +702,13 @@ class LimitOrderRequest(OrderRequest):
         return values
 
 
+@_deprecated(
+    "StopLimitOrderRequest is deprecated; use CreateOrderRequest instead.",
+    category=None,
+)
+@_warn_on_direct_instantiation(
+    "StopLimitOrderRequest is deprecated; use CreateOrderRequest instead."
+)
 class StopLimitOrderRequest(OrderRequest):
     """
     Used to submit a stop limit order.
@@ -623,6 +753,13 @@ class StopLimitOrderRequest(OrderRequest):
         return values
 
 
+@_deprecated(
+    "TrailingStopOrderRequest is deprecated; use CreateOrderRequest instead.",
+    category=None,
+)
+@_warn_on_direct_instantiation(
+    "TrailingStopOrderRequest is deprecated; use CreateOrderRequest instead."
+)
 class TrailingStopOrderRequest(OrderRequest):
     """
     Used to submit a trailing stop order.
@@ -693,7 +830,11 @@ class GetCorporateAnnouncementsRequest(NonEmptyRequest):
     until: date
     symbol: Optional[str] = None
     cusip: Optional[str] = None
-    date_type: Optional[CorporateActionDateType] = None
+    date_type: Optional[
+        Union[
+            CorporateActionDateType, GetV2CorporateActionsAnnouncementsDateTypeParameter
+        ]
+    ] = None
 
     @model_validator(mode="before")
     def root_validator(cls, values: dict) -> dict:
@@ -755,13 +896,13 @@ class GetOptionContractsRequest(NonEmptyRequest):
     """
 
     underlying_symbols: Optional[List[str]] = None
-    status: Optional[AssetStatus] = AssetStatus.ACTIVE
+    status: Optional[Union[AssetStatus, AssetsStatus]] = AssetStatus.ACTIVE
     expiration_date: Optional[Union[date, str]] = None
     expiration_date_gte: Optional[Union[date, str]] = None
     expiration_date_lte: Optional[Union[date, str]] = None
     root_symbol: Optional[str] = None
-    type: Optional[ContractType] = None
-    style: Optional[ExerciseStyle] = None
+    type: Optional[Union[ContractType, OptionContractType]] = None
+    style: Optional[Union[ExerciseStyle, OptionContractStyle]] = None
     strike_price_gte: Optional[float] = None
     strike_price_lte: Optional[float] = None
     show_deliverables: Optional[bool] = None

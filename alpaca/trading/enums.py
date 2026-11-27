@@ -1,26 +1,483 @@
 from enum import Enum
 
+from typing_extensions import deprecated as _deprecated
+
 from alpaca._deprecating_enum import DeprecatingEnumMeta as _DeprecatingEnumMeta
+from alpaca.trading._generated.enums import AssetAttribute
+from alpaca.trading._generated.enums import AssetClass as _GeneratedAssetClass
+from alpaca.trading._generated.enums import (
+    AccountConfigurationsMaxOptionsTradingLevel,
+    AccountOptionsApprovedLevel,
+    AccountOptionsTradingLevel,
+    ActivityV2DetailTRDExecutionType,
+    ActivityV2DetailTRDSide,
+    AdvancedInstructionsAlgorithm,
+    AdvancedInstructionsDestination,
+    AssetBorrowStatus,
+    AssetsStatus,
+    CalendarTimezoneParameter,
+    CommonCDIVActivityV2Foreign,
+    CommonCDIVActivityV2Special,
+    CorporateActionCaType,
+    CryptoChain,
+    CryptoTransferStatus,
+    Exchange,
+    ExchangeForPosition,
+    FixedIncomeInterestType,
+    GetAccountActivitiesCategoryParameter,
+    GetAccountActivitiesDirectionParameter,
+    GetAccountPortfolioHistoryIntradayReportingParameter,
+    GetAccountPortfolioHistoryPnlResetParameter,
+    GetAllOrdersAssetClassParameterInner,
+    GetAllOrdersDirectionParameter,
+    GetAllOrdersStatusParameter,
+    GetOptionsContractsStatusParameter,
+    GetV2CorporateActionsAnnouncementsDateTypeParameter,
+    LegacyCalendarDateTypeParameter,
+    LocateErrorCode,
+    LocateQuoteErrorCode,
+    LocateStatus,
+    Market,
+    NonTradeActivitiesStatus,
+    OptionContractStatus,
+    OptionContractStyle,
+    OptionContractType,
+    OptionDeliverableSettlementMethod,
+    OptionDeliverableSettlementType,
+    OptionDeliverableType,
+    OrderGroupRole,
+    PortfolioHistoryTimeframe,
+    TradingActivitiesType,
+    TokenizationIssuer,
+    TokenizationNetwork,
+    TokenizationRequestStatus,
+    TokenizationRequestType,
+    TokenizationTransferStatus,
+    TransferDirection,
+    TravelRuleNextActionType,
+    TravelRuleRequiredFieldValueType,
+    TravelRuleValidationErrorCode,
+    V2WalletsNetworkParameter,
+    WhitelistedAddressStatus,
+)
+from alpaca.trading._generated.enums import OrderClass as _GeneratedOrderClass
+from alpaca.trading._generated.enums import OrderType as _GeneratedOrderType
+from alpaca.trading._generated.enums import Phase
+from alpaca.trading._generated.enums import PositionIntent as _GeneratedPositionIntent
+from alpaca.trading._generated.enums import PositionSide as _GeneratedPositionSide
+from alpaca.trading._generated.enums import TimeInForce as _GeneratedTimeInForce
+
+# Deprecated enums pass stacklevel=2 so the warning from ``Enum(value)`` points at
+# the caller rather than at enum.py, where Python's default filters would hide it.
+# Member access such as ``TradeActivityType.FILL`` does not warn at runtime; type
+# checkers and IDEs flag it instead.
+
+
+@_deprecated(
+    "TradeActivityType is deprecated and will be removed in a future version. "
+    "Please use `TradingActivitiesType` instead.",
+    stacklevel=2,
+)
+class TradeActivityType(str, Enum):
+    """
+    Represents the type of TradeActivity.
+
+    Please see https://alpaca.markets/docs/api-references/broker-api/accounts/account-activities/#attributes
+
+    .. deprecated:: 0.45.0
+        Please use `TradingActivitiesType` instead.
+    """
+
+    PARTIAL_FILL = "partial_fill"
+    FILL = "fill"
+
+
+@_deprecated(
+    "NonTradeActivityStatus is deprecated and will be removed in a future version. "
+    "Please use `NonTradeActivitiesStatus` instead.",
+    stacklevel=2,
+)
+class NonTradeActivityStatus(str, Enum):
+    """
+    Represents the status of a NonTradeActivity.
+
+    Please see https://alpaca.markets/docs/api-references/broker-api/accounts/account-activities/#enumaccountactivity
+    for more info.
+
+    .. deprecated:: 0.45.0
+        Please use `NonTradeActivitiesStatus` instead.
+    """
+
+    EXECUTED = "executed"
+    CORRECT = "correct"
+    CANCELED = "canceled"
+
+
+@_deprecated(
+    "AssetStatus is deprecated and will be removed in a future version. "
+    "Please use `AssetsStatus` instead. AssetsStatus has no ALL member.",
+    stacklevel=2,
+)
+class AssetStatus(str, Enum):
+    """
+    Represents the various states for an Asset's lifecycle.
+
+    Broker ``GET /v1/assets`` also accepts ``all``, which returns both active
+    and inactive assets.
+
+    .. deprecated:: 0.45.0
+        Please use `AssetsStatus` instead. It has no ``ALL`` member.
+    """
+
+    ACTIVE = "active"
+    INACTIVE = "inactive"
+    ALL = "all"
+
+
+_DEPRECATED_ASSET_EXCHANGES = {
+    name: (
+        f"AssetExchange.{name} is deprecated and will be removed in the next release. "
+        "It is no longer a valid asset exchange."
+    )
+    for name in ("ASCX", "FTXU", "CBSE", "GNSS", "ERSX")
+}
+
+
+# category=None keeps the class-level deprecation static only: a runtime warning
+# would fire for every member, doubling the per-member warnings on removed
+# exchanges and making the stable ones warn too.
+@_deprecated(
+    "AssetExchange is deprecated and will be removed in a future version. "
+    "Please use `Exchange` instead. Exchange has no EMPTY member.",
+    category=None,
+)
+class AssetExchange(
+    str, Enum, metaclass=_DeprecatingEnumMeta, deprecations=_DEPRECATED_ASSET_EXCHANGES
+):
+    """
+    Represents the current exchanges Alpaca supports.
+
+    ASCX, FTXU, CBSE, GNSS, and ERSX are deprecated and will be removed in the
+    next release. They are no longer valid asset exchanges.
+
+    .. deprecated:: 0.45.0
+        Please use `Exchange` instead. It has no ``EMPTY`` member.
+    """
+
+    AMEX = "AMEX"
+    ARCA = "ARCA"
+    ASCX = "ASCX"
+    BATS = "BATS"
+    NYSE = "NYSE"
+    NASDAQ = "NASDAQ"
+    NYSEARCA = "NYSEARCA"
+    TXSE = "TXSE"
+    FTXU = "FTXU"
+    CBSE = "CBSE"
+    GNSS = "GNSS"
+    ERSX = "ERSX"
+    OTC = "OTC"
+    CRYPTO = "CRYPTO"
+    EMPTY = ""
+
+
+@_deprecated(
+    "CorporateActionType is deprecated and will be removed in a future version. "
+    "Please use `CorporateActionCaType` instead. Its values are capitalized "
+    "(Dividend) while this enum's are lowercase (dividend), so check that the API "
+    "accepts them before switching.",
+    stacklevel=2,
+)
+class CorporateActionType(str, Enum):
+    """
+    The general types of corporate action events.
+
+    Learn more here: https://alpaca.markets/docs/api-references/trading-api/corporate-actions-announcements/
+
+    .. deprecated:: 0.45.0
+        Please use `CorporateActionCaType` instead. Its values are capitalized
+        (``Dividend``) while this enum's are lowercase (``dividend``), so check that
+        the API accepts them before switching.
+    """
+
+    DIVIDEND = "dividend"
+    MERGER = "merger"
+    SPINOFF = "spinoff"
+    SPLIT = "split"
+
+
+class CorporateActionSubType(str, Enum):
+    """
+    The specific types of corporate actions. Each subtype is related to CorporateActionType.
+
+    Learn more here: https://alpaca.markets/docs/api-references/trading-api/corporate-actions-announcements/
+    """
+
+    CASH = "cash"
+    STOCK = "stock"
+    MERGER_UPDATE = "merger_update"
+    MERGER_COMPLETION = "merger_completion"
+    SPINOFF = "spinoff"
+    STOCK_SPLIT = "stock_split"
+    UNIT_SPLIT = "unit_split"
+    REVERSE_SPLIT = "reverse_split"
+    RECAPITALIZATION = "recapitalization"
+
+
+_DEPRECATED_ACCOUNT_STATUSES = {
+    name: (
+        f"AccountStatus.{name} is deprecated and will be removed in the next release. "
+        "It is no longer a valid account status."
+    )
+    for name in (
+        "AML_REVIEW",
+        "DISABLED",
+        "DISABLE_PENDING",
+        "EDITED",
+        "KYC_SUBMITTED",
+        "REAPPROVAL_PENDING",
+        "RESUBMITTED",
+        "SIGNED_UP",
+    )
+}
+
+
+# AccountStatus, ActivityType and OrderStatus share their name with a generated
+# twin, so users have nothing else to migrate to. Their deprecation is static only
+# (category=None): type checkers and IDEs flag them, naming what the twin lacks,
+# while runtime warnings come only from the deprecated members. The public name
+# switches to the generated enum once those members are removed. OrderSide stays
+# hand-written and is not deprecated: it keeps FIX sides the twin lacks so
+# responses that use them still parse.
+
+
+@_deprecated(
+    "AccountStatus is a temporary compatibility shape and will be replaced by the "
+    "OpenAPI-generated AccountStatus in a future release. That enum has no "
+    "AML_REVIEW, DISABLED, DISABLE_PENDING, EDITED, KYC_SUBMITTED, "
+    "REAPPROVAL_PENDING, RESUBMITTED or SIGNED_UP members.",
+    category=None,
+)
+class AccountStatus(
+    str, Enum, metaclass=_DeprecatingEnumMeta, deprecations=_DEPRECATED_ACCOUNT_STATUSES
+):
+    """
+    The various statuses each brokerage account can take during its lifetime
+
+    see https://alpaca.markets/docs/broker/api-references/accounts/accounts/#account-status
+
+    AML_REVIEW, DISABLED, DISABLE_PENDING, EDITED, KYC_SUBMITTED,
+    REAPPROVAL_PENDING, RESUBMITTED, and SIGNED_UP are deprecated and will be
+    removed in the next release. They are no longer valid account statuses.
+
+    .. deprecated:: 0.45.0
+        Will be replaced by the OpenAPI-generated ``AccountStatus``, which has none
+        of the deprecated members above.
+    """
+
+    ACCOUNT_CLOSED = "ACCOUNT_CLOSED"
+    ACCOUNT_CLOSED_PENDING = "ACCOUNT_CLOSED_PENDING"
+    ACCOUNT_UPDATED = "ACCOUNT_UPDATED"
+    ACTION_REQUIRED = "ACTION_REQUIRED"
+    ACTIVE = "ACTIVE"
+    AML_REVIEW = "AML_REVIEW"
+    APPROVAL_PENDING = "APPROVAL_PENDING"
+    APPROVED = "APPROVED"
+    DISABLED = "DISABLED"
+    DISABLE_PENDING = "DISABLE_PENDING"
+    EDITED = "EDITED"
+    INACTIVE = "INACTIVE"
+    KYC_SUBMITTED = "KYC_SUBMITTED"
+    LIMITED = "LIMITED"
+    ONBOARDING = "ONBOARDING"
+    PAPER_ONLY = "PAPER_ONLY"
+    REAPPROVAL_PENDING = "REAPPROVAL_PENDING"
+    REJECTED = "REJECTED"
+    RESUBMITTED = "RESUBMITTED"
+    SIGNED_UP = "SIGNED_UP"
+    SUBMISSION_FAILED = "SUBMISSION_FAILED"
+    SUBMITTED = "SUBMITTED"
+
+
+class CorporateActionDateType(str, Enum):
+    DECLARATION_DATE = "declaration_date"
+    EX_DATE = "ex_date"
+    RECORD_DATE = "record_date"
+    PAYABLE_DATE = "payable_date"
+
+
+class TradeEvent(str, Enum):
+    ACCEPTED = "accepted"
+    CANCELED = "canceled"
+    EXPIRED = "expired"
+    FILL = "fill"
+    NEW = "new"
+    PARTIAL_FILL = "partial_fill"
+    PENDING_CANCEL = "pending_cancel"
+    PENDING_NEW = "pending_new"
+    PENDING_REPLACE = "pending_replace"
+    REJECTED = "rejected"
+    REPLACED = "replaced"
+    RESTATED = "restated"
+
+
+@_deprecated(
+    "QueryOrderStatus is deprecated and will be removed in a future version. "
+    "Please use `GetAllOrdersStatusParameter` instead.",
+    stacklevel=2,
+)
+class QueryOrderStatus(str, Enum):
+    """
+    Which orders ``GET /v2/orders`` returns.
+
+    .. deprecated:: 0.45.0
+        Please use `GetAllOrdersStatusParameter` instead.
+    """
+
+    OPEN = "open"
+    CLOSED = "closed"
+    ALL = "all"
+
+
+class DTBPCheck(str, Enum):
+    """
+    Specifies when to run a DTBP check for an account.
+
+    NOTE: These values are currently the same as PDTCheck however they are not guaranteed to be in sync the future
+
+    please see https://alpaca.markets/docs/api-references/broker-api/trading/trading-configurations/#attributes
+    for more info.
+    """
+
+    BOTH = "both"
+    ENTRY = "entry"
+    EXIT = "exit"
+
+
+class PDTCheck(str, Enum):
+    """
+    Specifies when to run a PDT check for an account.
+
+    NOTE: These values are currently the same as DTBPCheck however they are not guaranteed to be in sync the future
+
+    please see https://alpaca.markets/docs/api-references/broker-api/trading/trading-configurations/#attributes
+    for more info.
+    """
+
+    BOTH = "both"
+    ENTRY = "entry"
+    EXIT = "exit"
+
+
+class TradeConfirmationEmail(str, Enum):
+    """
+    Used for controlling when an Account will receive a trade confirmation email.
+
+    please see https://docs.alpaca.markets/reference/getaccountconfig
+    for more info.
+    """
+
+    ALL = "all"
+    NONE = "none"
+
+
+@_deprecated(
+    "ContractType is deprecated and will be removed in a future version. "
+    "Please use `OptionContractType` instead.",
+    stacklevel=2,
+)
+class ContractType(str, Enum):
+    """
+    Represents the contract type of options
+
+    .. deprecated:: 0.45.0
+        Please use `OptionContractType` instead.
+    """
+
+    CALL = "call"
+    PUT = "put"
+
+
+@_deprecated(
+    "ExerciseStyle is deprecated and will be removed in a future version. "
+    "Please use `OptionContractStyle` instead.",
+    stacklevel=2,
+)
+class ExerciseStyle(str, Enum):
+    """
+    Represents the exercise style of options
+
+    .. deprecated:: 0.45.0
+        Please use `OptionContractStyle` instead.
+    """
+
+    AMERICAN = "american"
+    EUROPEAN = "european"
+
+
+@_deprecated(
+    "ActivityCategory is deprecated and will be removed in a future version. "
+    "Please use `GetAccountActivitiesCategoryParameter` instead.",
+    stacklevel=2,
+)
+class ActivityCategory(str, Enum):
+    """
+    Represents the category of an Activity
+
+    .. deprecated:: 0.45.0
+        Please use `GetAccountActivitiesCategoryParameter` instead.
+    """
+
+    TRADE_ACTIVITY = "trade_activity"
+    NON_TRADE_ACTIVITY = "non_trade_activity"
+
+
+class OrderSide(str, Enum):
+    """
+    Represents which side this order was on.
+
+    The trading OpenAPI spec lists buy and sell. These extra values stay so
+    responses that still use the older FIX sides keep parsing.
+    """
+
+    BUY = "buy"
+    SELL = "sell"
+    BUY_MINUS = "buy_minus"
+    SELL_PLUS = "sell_plus"
+    SELL_SHORT = "sell_short"
+    SELL_SHORT_EXEMPT = "sell_short_exempt"
+    UNDISCLOSED = "undisclosed"
+    CROSS = "cross"
+    CROSS_SHORT = "cross_short"
+
+
+# These generated enums preserve every legacy value (and may add new values), so
+# the canonical public names can move to generated ownership without invalidating
+# existing serialized values.
+AssetClass = _GeneratedAssetClass
+OrderClass = _GeneratedOrderClass
+OrderType = _GeneratedOrderType
+PositionIntent = _GeneratedPositionIntent
+PositionSide = _GeneratedPositionSide
+TimeInForce = _GeneratedTimeInForce
+
 
 _DEPRECATED_ACTIVITY_TYPES = {
     name: (
         f"ActivityType.{name} is deprecated and will be removed in the next release. "
         "It is no longer a valid activity type."
     )
-    for name in (
-        "CIL",
-        "DIVWH",
-        "EXTRD",
-        "FXTRD",
-        "INTPNL",
-        "MEM",
-        "SWP",
-        "VOF",
-        "WH",
-    )
+    for name in ("CIL", "DIVWH", "EXTRD", "FXTRD", "INTPNL", "MEM", "SWP", "VOF", "WH")
 }
 
 
+@_deprecated(
+    "ActivityType is a temporary compatibility shape and will be replaced by the "
+    "OpenAPI-generated ActivityType in a future release. That enum has no CIL, "
+    "DIVWH, EXTRD, FXTRD, INTPNL, MEM, SWP, VOF or WH members, and no "
+    "is_trade_activity or is_str_trade_activity helpers.",
+    category=None,
+)
 class ActivityType(
     str, Enum, metaclass=_DeprecatingEnumMeta, deprecations=_DEPRECATED_ACTIVITY_TYPES
 ):
@@ -32,6 +489,11 @@ class ActivityType(
 
     CIL, DIVWH, EXTRD, FXTRD, INTPNL, MEM, SWP, VOF, and WH are deprecated and
     will be removed in the next release. They are no longer valid activity types.
+
+    .. deprecated:: 0.45.0
+        Will be replaced by the OpenAPI-generated ``ActivityType``, which has none of
+        the deprecated members above and no ``is_trade_activity`` or
+        ``is_str_trade_activity`` helpers.
     """
 
     FILL = "FILL"
@@ -114,103 +576,20 @@ class ActivityType(
         return value == ActivityType.FILL
 
 
-class TradeActivityType(str, Enum):
-    """
-    Represents the type of TradeActivity.
-
-    Please see https://alpaca.markets/docs/api-references/broker-api/accounts/account-activities/#attributes
-    """
-
-    PARTIAL_FILL = "partial_fill"
-    FILL = "fill"
-
-
-class NonTradeActivityStatus(str, Enum):
-    """
-    Represents the status of a NonTradeActivity.
-
-    Please see https://alpaca.markets/docs/api-references/broker-api/accounts/account-activities/#enumaccountactivity
-    for more info.
-    """
-
-    EXECUTED = "executed"
-    CORRECT = "correct"
-    CANCELED = "canceled"
-
-
-class OrderClass(str, Enum):
-    """
-    Represents what class of order this is.
-
-    The order classes supported by Alpaca vary based on the order's security type.
-    The following provides a comprehensive breakdown of the supported order classes for each category:
-    - Equity trading: simple (or ""), oco, oto, bracket.
-    - Options trading: simple (or ""), mleg (required for multi-leg complex options strategies).
-    - Crypto trading: simple (or "").
-    """
-
-    SIMPLE = "simple"
-    MLEG = "mleg"
-    BRACKET = "bracket"
-    OCO = "oco"
-    OTO = "oto"
-    EMPTY = ""
-
-
-class OrderGroupRole(str, Enum):
-    """
-    The role of an order within a bracket, oto, or oco group.
-
-    Omitted whenever group_id is omitted.
-    """
-
-    ENTRY = "entry"
-    TAKE_PROFIT = "take_profit"
-    STOP_LOSS = "stop_loss"
-
-
-class OrderType(str, Enum):
-    """
-    Represents what type of order this is.
-
-    The order types supported by Alpaca vary based on the order's security type.
-    The following provides a comprehensive breakdown of the supported order types for each category:
-    - Equity trading: market, limit, stop, stop_limit, trailing_stop.
-    - Options trading: market, limit, stop, stop_limit.
-    - Crypto trading: market, limit, stop_limit.
-    """
-
-    MARKET = "market"
-    LIMIT = "limit"
-    STOP = "stop"
-    STOP_LIMIT = "stop_limit"
-    TRAILING_STOP = "trailing_stop"
-
-
-class OrderSide(str, Enum):
-    """
-    Represents what side this order was executed on.
-    """
-
-    BUY = "buy"
-    SELL = "sell"
-    BUY_MINUS = "buy_minus"
-    SELL_PLUS = "sell_plus"
-    SELL_SHORT = "sell_short"
-    SELL_SHORT_EXEMPT = "sell_short_exempt"
-    UNDISCLOSED = "undisclosed"
-    CROSS = "cross"
-    CROSS_SHORT = "cross_short"
-
-
 _DEPRECATED_ORDER_STATUSES = {
     "PENDING_REVIEW": (
-        "OrderStatus.PENDING_REVIEW is deprecated and will be removed in the next release. "
-        "It is no longer a valid order status."
-    ),
+        "OrderStatus.PENDING_REVIEW is deprecated and will be removed in the next "
+        "release. It is no longer a valid order status."
+    )
 }
 
 
+@_deprecated(
+    "OrderStatus is a temporary compatibility shape and will be replaced by the "
+    "OpenAPI-generated OrderStatus in a future release. That enum has no "
+    "PENDING_REVIEW member.",
+    category=None,
+)
 class OrderStatus(
     str, Enum, metaclass=_DeprecatingEnumMeta, deprecations=_DEPRECATED_ORDER_STATUSES
 ):
@@ -221,6 +600,10 @@ class OrderStatus(
 
     PENDING_REVIEW is deprecated and will be removed in the next release.
     It is no longer a valid order status.
+
+    .. deprecated:: 0.45.0
+        Will be replaced by the OpenAPI-generated ``OrderStatus``, which has no
+        ``PENDING_REVIEW`` member.
     """
 
     NEW = "new"
@@ -243,356 +626,20 @@ class OrderStatus(
     HELD = "held"
 
 
-class AssetClass(str, Enum):
-    """
-    This represents the category to which the asset belongs to.
-    It serves to identify the nature of the financial instrument, with options
-    including "us_equity" for U.S. equities, "us_option" for U.S. options,
-    and "crypto" for cryptocurrencies.
-    """
-
-    US_EQUITY = "us_equity"
-    US_OPTION = "us_option"
-    CRYPTO = "crypto"
-    CRYPTO_PERP = "crypto_perp"
-    TREASURY = "treasury"
-    CORPORATE = "corporate"
-    GLOBAL_EQUITY = "global_equity"
-    US_INDEX = "us_index"
-    US_EQUITY_CHAIN = "us_equity_chain"
-    IPO = "ipo"
-
-
-class AssetStatus(str, Enum):
-    """
-    Represents the various states for an Asset's lifecycle.
-
-    Broker ``GET /v1/assets`` also accepts ``all``, which returns both active
-    and inactive assets.
-    """
-
-    ACTIVE = "active"
-    INACTIVE = "inactive"
-    ALL = "all"
-
-
+@_deprecated(
+    "CalendarDateType is deprecated and will be removed in a future version. "
+    "Please use `LegacyCalendarDateTypeParameter` instead.",
+    stacklevel=2,
+)
 class CalendarDateType(str, Enum):
     """
     Which calendar date ``GET /v1/calendar`` filters on.
 
     ``TRADING`` selects market sessions. ``SETTLEMENT`` selects settlement dates.
+
+    .. deprecated:: 0.45.0
+        Please use `LegacyCalendarDateTypeParameter` instead.
     """
 
     TRADING = "TRADING"
     SETTLEMENT = "SETTLEMENT"
-
-
-class AssetBorrowStatus(str, Enum):
-    """
-    Borrow status for a US equity asset.
-
-    Omitted for assets that are not US equities.
-    """
-
-    EASY_TO_BORROW = "easy_to_borrow"
-    HARD_TO_BORROW = "hard_to_borrow"
-
-
-_DEPRECATED_ASSET_EXCHANGES = {
-    name: (
-        f"AssetExchange.{name} is deprecated and will be removed in the next release. "
-        "It is no longer a valid asset exchange."
-    )
-    for name in ("ASCX", "FTXU", "CBSE", "GNSS", "ERSX")
-}
-
-
-class AssetExchange(
-    str, Enum, metaclass=_DeprecatingEnumMeta, deprecations=_DEPRECATED_ASSET_EXCHANGES
-):
-    """
-    Represents the current exchanges Alpaca supports.
-
-    ASCX, FTXU, CBSE, GNSS, and ERSX are deprecated and will be removed in the
-    next release. They are no longer valid asset exchanges.
-    """
-
-    AMEX = "AMEX"
-    ARCA = "ARCA"
-    ASCX = "ASCX"
-    BATS = "BATS"
-    NYSE = "NYSE"
-    NASDAQ = "NASDAQ"
-    NYSEARCA = "NYSEARCA"
-    TXSE = "TXSE"
-    FTXU = "FTXU"
-    CBSE = "CBSE"
-    GNSS = "GNSS"
-    ERSX = "ERSX"
-    OTC = "OTC"
-    CRYPTO = "CRYPTO"
-    EMPTY = ""
-
-
-class PositionSide(str, Enum):
-    """
-    Represents what side this position is.
-    """
-
-    SHORT = "short"
-    LONG = "long"
-
-
-class TimeInForce(str, Enum):
-    """
-    Represents the various time in force options for an Order.
-
-    The Time-In-Force values supported by Alpaca vary based on the order's security type. Here is a breakdown of the supported TIFs for each specific security type:
-    - Equity trading: day, gtc, opg, cls, ioc, fok.
-    - Options trading: day.
-    - Crypto trading: gtc, ioc.
-    Below are the descriptions of each TIF:
-    - day: A day order is eligible for execution only on the day it is live. By default, the order is only valid during Regular Trading Hours (9:30am - 4:00pm ET). If unfilled after the closing auction, it is automatically canceled. If submitted after the close, it is queued and submitted the following trading day. However, if marked as eligible for extended hours, the order can also execute during supported extended hours.
-    - gtc: The order is good until canceled. Non-marketable GTC limit orders are subject to price adjustments to offset corporate actions affecting the issue. We do not currently support Do Not Reduce(DNR) orders to opt out of such price adjustments.
-    - opg: Use this TIF with a market/limit order type to submit “market on open” (MOO) and “limit on open” (LOO) orders. This order is eligible to execute only in the market opening auction. Any unfilled orders after the open will be cancelled. OPG orders submitted after 9:28am but before 7:00pm ET will be rejected. OPG orders submitted after 7:00pm will be queued and routed to the following day’s opening auction. On open/on close orders are routed to the primary exchange. Such orders do not necessarily execute exactly at 9:30am / 4:00pm ET but execute per the exchange’s auction rules.
-    - cls: Use this TIF with a market/limit order type to submit “market on close” (MOC) and “limit on close” (LOC) orders. This order is eligible to execute only in the market closing auction. Any unfilled orders after the close will be cancelled. CLS orders submitted after 3:50pm but before 7:00pm ET will be rejected. CLS orders submitted after 7:00pm will be queued and routed to the following day’s closing auction. Only available with API v2.
-    - ioc: An Immediate Or Cancel (IOC) order requires all or part of the order to be executed immediately. Any unfilled portion of the order is canceled. Only available with API v2. Most market makers who receive IOC orders will attempt to fill the order on a principal basis only, and cancel any unfilled balance. On occasion, this can result in the entire order being cancelled if the market maker does not have any existing inventory of the security in question.
-    - fok: A Fill or Kill (FOK) order is only executed if the entire order quantity can be filled, otherwise the order is canceled. Only available with API v2.
-    """
-
-    DAY = "day"
-    GTC = "gtc"
-    OPG = "opg"
-    CLS = "cls"
-    IOC = "ioc"
-    FOK = "fok"
-
-
-class CorporateActionType(str, Enum):
-    """
-    The general types of corporate action events.
-
-    Learn more here: https://alpaca.markets/docs/api-references/trading-api/corporate-actions-announcements/
-    """
-
-    DIVIDEND = "dividend"
-    MERGER = "merger"
-    SPINOFF = "spinoff"
-    SPLIT = "split"
-
-
-class CorporateActionSubType(str, Enum):
-    """
-    The specific types of corporate actions. Each subtype is related to CorporateActionType.
-
-    Learn more here: https://alpaca.markets/docs/api-references/trading-api/corporate-actions-announcements/
-    """
-
-    CASH = "cash"
-    STOCK = "stock"
-    MERGER_UPDATE = "merger_update"
-    MERGER_COMPLETION = "merger_completion"
-    SPINOFF = "spinoff"
-    STOCK_SPLIT = "stock_split"
-    UNIT_SPLIT = "unit_split"
-    REVERSE_SPLIT = "reverse_split"
-    RECAPITALIZATION = "recapitalization"
-
-
-_DEPRECATED_ACCOUNT_STATUSES = {
-    name: (
-        f"AccountStatus.{name} is deprecated and will be removed in the next release. "
-        "It is no longer a valid account status."
-    )
-    for name in (
-        "AML_REVIEW",
-        "DISABLED",
-        "DISABLE_PENDING",
-        "EDITED",
-        "KYC_SUBMITTED",
-        "REAPPROVAL_PENDING",
-        "RESUBMITTED",
-        "SIGNED_UP",
-    )
-}
-
-
-class AccountStatus(
-    str, Enum, metaclass=_DeprecatingEnumMeta, deprecations=_DEPRECATED_ACCOUNT_STATUSES
-):
-    """
-    The various statuses each brokerage account can take during its lifetime
-
-    see https://alpaca.markets/docs/broker/api-references/accounts/accounts/#account-status
-
-    AML_REVIEW, DISABLED, DISABLE_PENDING, EDITED, KYC_SUBMITTED,
-    REAPPROVAL_PENDING, RESUBMITTED, and SIGNED_UP are deprecated and will be
-    removed in the next release. They are no longer valid account statuses.
-    """
-
-    ACCOUNT_CLOSED = "ACCOUNT_CLOSED"
-    ACCOUNT_CLOSED_PENDING = "ACCOUNT_CLOSED_PENDING"
-    ACCOUNT_UPDATED = "ACCOUNT_UPDATED"
-    ACTION_REQUIRED = "ACTION_REQUIRED"
-    ACTIVE = "ACTIVE"
-    AML_REVIEW = "AML_REVIEW"
-    APPROVAL_PENDING = "APPROVAL_PENDING"
-    APPROVED = "APPROVED"
-    DISABLED = "DISABLED"
-    DISABLE_PENDING = "DISABLE_PENDING"
-    EDITED = "EDITED"
-    INACTIVE = "INACTIVE"
-    KYC_SUBMITTED = "KYC_SUBMITTED"
-    LIMITED = "LIMITED"
-    ONBOARDING = "ONBOARDING"
-    PAPER_ONLY = "PAPER_ONLY"
-    REAPPROVAL_PENDING = "REAPPROVAL_PENDING"
-    REJECTED = "REJECTED"
-    RESUBMITTED = "RESUBMITTED"
-    SIGNED_UP = "SIGNED_UP"
-    SUBMISSION_FAILED = "SUBMISSION_FAILED"
-    SUBMITTED = "SUBMITTED"
-
-
-class CorporateActionDateType(str, Enum):
-    DECLARATION_DATE = "declaration_date"
-    EX_DATE = "ex_date"
-    RECORD_DATE = "record_date"
-    PAYABLE_DATE = "payable_date"
-
-
-class TradeEvent(str, Enum):
-    ACCEPTED = "accepted"
-    CANCELED = "canceled"
-    EXPIRED = "expired"
-    FILL = "fill"
-    NEW = "new"
-    PARTIAL_FILL = "partial_fill"
-    PENDING_CANCEL = "pending_cancel"
-    PENDING_NEW = "pending_new"
-    PENDING_REPLACE = "pending_replace"
-    REJECTED = "rejected"
-    REPLACED = "replaced"
-    RESTATED = "restated"
-
-
-class QueryOrderStatus(str, Enum):
-    OPEN = "open"
-    CLOSED = "closed"
-    ALL = "all"
-
-
-class DTBPCheck(str, Enum):
-    """
-    Specifies when to run a DTBP check for an account.
-
-    NOTE: These values are currently the same as PDTCheck however they are not guaranteed to be in sync the future
-
-    please see https://alpaca.markets/docs/api-references/broker-api/trading/trading-configurations/#attributes
-    for more info.
-    """
-
-    BOTH = "both"
-    ENTRY = "entry"
-    EXIT = "exit"
-
-
-class PDTCheck(str, Enum):
-    """
-    Specifies when to run a PDT check for an account.
-
-    NOTE: These values are currently the same as DTBPCheck however they are not guaranteed to be in sync the future
-
-    please see https://alpaca.markets/docs/api-references/broker-api/trading/trading-configurations/#attributes
-    for more info.
-    """
-
-    BOTH = "both"
-    ENTRY = "entry"
-    EXIT = "exit"
-
-
-class TradeConfirmationEmail(str, Enum):
-    """
-    Used for controlling when an Account will receive a trade confirmation email.
-
-    please see https://docs.alpaca.markets/reference/getaccountconfig
-    for more info.
-    """
-
-    ALL = "all"
-    NONE = "none"
-
-
-class ContractType(str, Enum):
-    """
-    Represents the contract type of options
-    """
-
-    CALL = "call"
-    PUT = "put"
-
-
-class ExerciseStyle(str, Enum):
-    """
-    Represents the exercise style of options
-    """
-
-    AMERICAN = "american"
-    EUROPEAN = "european"
-
-
-class OptionDeliverableType(str, Enum):
-    """
-    Whether an option deliverable settles in cash or equity.
-    """
-
-    CASH = "cash"
-    EQUITY = "equity"
-
-
-class OptionDeliverableSettlementType(str, Enum):
-    """
-    When an option deliverable settles after exercise or assignment.
-    """
-
-    T_PLUS_0 = "T+0"
-    T_PLUS_1 = "T+1"
-    T_PLUS_2 = "T+2"
-    T_PLUS_3 = "T+3"
-    T_PLUS_4 = "T+4"
-    T_PLUS_5 = "T+5"
-
-
-class OptionDeliverableSettlementMethod(str, Enum):
-    """
-    How an option deliverable is settled.
-
-    BTOB is broker to broker, CADF is cash difference, CAFX is cash fixed, and
-    CCC is Correspondent Clearing Corp.
-    """
-
-    BTOB = "BTOB"
-    CADF = "CADF"
-    CAFX = "CAFX"
-    CCC = "CCC"
-
-
-class ActivityCategory(str, Enum):
-    """
-    Represents the category of an Activity
-    """
-
-    TRADE_ACTIVITY = "trade_activity"
-    NON_TRADE_ACTIVITY = "non_trade_activity"
-
-
-class PositionIntent(str, Enum):
-    """
-    Represents what side this order was executed on.
-    """
-
-    BUY_TO_OPEN = "buy_to_open"
-    BUY_TO_CLOSE = "buy_to_close"
-    SELL_TO_OPEN = "sell_to_open"
-    SELL_TO_CLOSE = "sell_to_close"

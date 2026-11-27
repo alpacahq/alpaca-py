@@ -28,6 +28,7 @@ from alpaca.data.historical import (
     ScreenerClient,
     StockHistoricalDataClient,
 )
+from alpaca.broker.client import BrokerClient
 from alpaca.data.historical.corporate_actions import CorporateActionsClient
 from alpaca.data.live import (
     CryptoDataStream,
@@ -63,6 +64,13 @@ class Scenario:
             deterministic, so stream scenarios use this. Each frame is one
             ``recv`` (a list of messages). ``{"$timestamp": [seconds,
             nanoseconds]}`` is packed as a msgpack timestamp.
+        credentials: ``trading`` (paper Trading API keys) or ``broker`` (Broker
+            sandbox keys). Stubbed scenarios never call the API, so they do not
+            need the keys, but ``broker`` still builds ``ctx.broker``.
+        requires_credentials: When False, record and live do not read the
+            consumer key pair. The scenario authenticates itself, for example
+            with keys the API rejects. ``credentials`` still says which API
+            it talks to.
     """
 
     name: str
@@ -71,6 +79,8 @@ class Scenario:
     since: Optional[str] = None
     stub_responses: Tuple[Mapping[str, Any], ...] = ()
     stub_websocket: Tuple[Tuple[Mapping[str, Any], ...], ...] = ()
+    credentials: str = "trading"
+    requires_credentials: bool = True
 
 
 SCENARIOS: Dict[str, Scenario] = {}
@@ -82,6 +92,8 @@ def scenario(
     since: Optional[str] = None,
     stub_responses: Sequence[Mapping[str, Any]] = (),
     stub_websocket: Sequence[Sequence[Mapping[str, Any]]] = (),
+    credentials: str = "trading",
+    requires_credentials: bool = True,
 ) -> Callable[[ScenarioFn], ScenarioFn]:
     """Register a scenario function and the client methods it exercises."""
 
@@ -89,6 +101,10 @@ def scenario(
         name = f"{fn.__module__.rsplit('.', 1)[-1]}.{fn.__name__}"
         if name in SCENARIOS:
             raise ValueError(f"duplicate consumer scenario {name!r}")
+        if credentials not in ("trading", "broker"):
+            raise ValueError(
+                f"{name} credentials must be 'trading' or 'broker', not {credentials!r}"
+            )
         SCENARIOS[name] = Scenario(
             name=name,
             fn=fn,
@@ -96,6 +112,8 @@ def scenario(
             since=since,
             stub_responses=tuple(stub_responses),
             stub_websocket=tuple(tuple(frame) for frame in stub_websocket),
+            credentials=credentials,
+            requires_credentials=requires_credentials,
         )
         return fn
 
@@ -204,6 +222,23 @@ class Context:
     def trading_with_invalid_keys(self) -> TradingClient:
         """A client whose keys the API rejects, in every mode."""
         return TradingClient("INVALID-KEY-ID", "invalid-secret-key", paper=True)
+
+    @cached_property
+    def broker(self) -> BrokerClient:
+        """Broker sandbox. Record and live pass the consumer broker keys."""
+        return BrokerClient(self._api_key, self._secret_key, sandbox=True)
+
+    @cached_property
+    def raw_broker(self) -> BrokerClient:
+        """``raw_data=True``: methods return the API's JSON instead of models."""
+        return BrokerClient(
+            self._api_key, self._secret_key, sandbox=True, raw_data=True
+        )
+
+    @cached_property
+    def broker_with_invalid_keys(self) -> BrokerClient:
+        """A sandbox client whose keys the API rejects, in every mode."""
+        return BrokerClient("INVALID-KEY-ID", "invalid-secret-key", sandbox=True)
 
     def sleep(self, seconds: float) -> None:
         """Wait between polls. A no-op in replay mode."""

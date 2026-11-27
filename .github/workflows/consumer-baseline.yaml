@@ -5,7 +5,12 @@ name: Consumer checks baseline bump
 # The PR diff shows what changed for users between the two releases.
 #
 # Uses the same dedicated paper account as the nightly live job (repository
-# secrets CONSUMER_TRADING_API_KEY_ID / CONSUMER_TRADING_API_SECRET_KEY). A PR
+# secrets CONSUMER_TRADING_API_KEY_ID / CONSUMER_TRADING_API_SECRET_KEY) and the
+# same Broker sandbox (CONSUMER_BROKER_API_KEY / CONSUMER_BROKER_API_SECRET).
+# Broker scenarios still in recording_allowlist.txt are skipped while those keys
+# are missing or rejected. Recorded ones fail, except
+# broker_errors.invalid_keys_raise_api_error, which sends its own rejected keys.
+# A PR
 # opened with GITHUB_TOKEN does not start other workflows: close and reopen it
 # (or push to it) to run CI.
 on:
@@ -74,6 +79,8 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
           CONSUMER_TRADING_API_KEY_ID: ${{ secrets.CONSUMER_TRADING_API_KEY_ID }}
           CONSUMER_TRADING_API_SECRET_KEY: ${{ secrets.CONSUMER_TRADING_API_SECRET_KEY }}
+          CONSUMER_BROKER_API_KEY: ${{ secrets.CONSUMER_BROKER_API_KEY }}
+          CONSUMER_BROKER_API_SECRET: ${{ secrets.CONSUMER_BROKER_API_SECRET }}
         run: |
           printf '%s\n' "$VERSION" > consumer_checks/BASELINE
           # The release's public surface: what check_surface.py compares against.
@@ -97,8 +104,24 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git switch -c "$branch"
+          # A scenario that was just recorded no longer belongs in
+          # recording_allowlist.txt: replay fails while it is still listed.
+          python3 - <<'PY'
+          from pathlib import Path
+
+          root = Path("consumer_checks")
+          recorded = {path.stem for path in (root / "recordings").glob("*.json")}
+          allowlist = root / "recording_allowlist.txt"
+          kept = [
+              line
+              for line in allowlist.read_text(encoding="utf-8").splitlines()
+              if line.partition("#")[0].strip() not in recorded
+          ]
+          allowlist.write_text("\n".join(kept) + "\n", encoding="utf-8")
+          PY
           git add -A consumer_checks/BASELINE consumer_checks/surface_baseline.json \
-            consumer_checks/surface_allowlist.txt consumer_checks/recordings
+            consumer_checks/surface_allowlist.txt consumer_checks/recording_allowlist.txt \
+            consumer_checks/recordings
           git commit -m "chore(consumer-checks): move baseline to $VERSION"
           git push origin "$branch"
 

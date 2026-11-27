@@ -63,7 +63,8 @@ jobs:
         run: poetry run pytest
       - name: replay consumer scenarios
         # Offline: recorded paper API responses, frozen against consumer_checks/BASELINE.
-        # Strict: a scenario without a recording fails instead of being skipped.
+        # Strict: a scenario without a recording fails instead of being skipped,
+        # unless it is listed in consumer_checks/recording_allowlist.txt.
         run: poetry run pytest consumer_checks --consumer-strict
 
   # poetry.lock pins pandas 3, but pyproject.toml allows pandas>=1.5.3, so

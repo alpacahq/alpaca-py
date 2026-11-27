@@ -1,0 +1,126 @@
+{
+  "format": 2,
+  "interactions": [
+    {
+      "request": {
+        "body": null,
+        "headers": {
+          "accept": "*/*",
+          "authorization": "Basic <redacted>",
+          "user-agent": "APCA-PY/<version> Python/<version>"
+        },
+        "method": "GET",
+        "query": [
+          [
+            "page",
+            "1"
+          ]
+        ],
+        "url": "https://broker-api.sandbox.alpaca.markets/v1/accounts/positions"
+      },
+      "response": {
+        "body": {
+          "json": {
+            "as_of": "2024-03-04T21:00:00+00:00",
+            "positions": {
+              "00000000-0000-0000-0000-000000000001": [
+                {
+                  "asset_class": "us_equity",
+                  "asset_id": "00000000-0000-0000-0000-000000000002",
+                  "avg_entry_price": "1",
+                  "cost_basis": "1",
+                  "exchange": "NASDAQ",
+                  "qty": "1",
+                  "side": "long",
+                  "symbol": "AAPL"
+                }
+              ]
+            }
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "reason": "",
+        "status": 200
+      }
+    }
+  ],
+  "recorded_against": "baseline",
+  "recorded_with": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "result": {
+    "positions": {
+      "__type__": "AllAccountsPositions",
+      "fields": {
+        "as_of": {
+          "__type__": "datetime",
+          "value": "2024-03-04T21:00:00+00:00"
+        },
+        "positions": {
+          "00000000-0000-0000-0000-000000000001": [
+            {
+              "__type__": "Position",
+              "fields": {
+                "asset_class": {
+                  "__type__": "AssetClass",
+                  "name": "US_EQUITY",
+                  "value": "us_equity"
+                },
+                "asset_id": {
+                  "__type__": "UUID",
+                  "value": "00000000-0000-0000-0000-000000000002"
+                },
+                "asset_marginable": null,
+                "avg_entry_price": "1",
+                "avg_entry_swap_rate": null,
+                "change_today": null,
+                "cost_basis": "1",
+                "current_price": null,
+                "exchange": {
+                  "__type__": "AssetExchange",
+                  "name": "NASDAQ",
+                  "value": "NASDAQ"
+                },
+                "lastday_price": null,
+                "market_value": null,
+                "prev_swap_rate": null,
+                "qty": "1",
+                "qty_available": null,
+                "side": {
+                  "__type__": "PositionSide",
+                  "name": "LONG",
+                  "value": "long"
+                },
+                "swap_rate": null,
+                "symbol": "AAPL",
+                "unrealized_intraday_pl": null,
+                "unrealized_intraday_plpc": null,
+                "unrealized_pl": null,
+                "unrealized_plpc": null,
+                "usd": null
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  "result_from": {
+    "alpaca-py": "0.45.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "python": "3.14.7",
+    "requests": "2.34.2"
+  },
+  "scenario": "broker_events.bulk_positions_are_not_fetched_live",
+  "scenario_sha256": "76a9edae5a97917e9d5b4c33147adae2ffb3238ac0c40df337f016c7e466b1ac",
+  "vars": {}
+}

@@ -56,6 +56,9 @@ from packaging.version import Version
 from requests.adapters import HTTPAdapter
 from requests.structures import CaseInsensitiveDict
 
+from alpaca.broker.client import BrokerClient
+from alpaca.common.exceptions import APIError
+from alpaca.trading.client import TradingClient
 from scenarios import Context, Scenario, new_unique_id
 
 # 2: request and response headers recorded, snapshots keyed by attribute name,
@@ -64,10 +67,35 @@ FORMAT_VERSION = 2
 HERE = Path(__file__).resolve().parent
 REPO_ROOT = HERE.parent
 
-# Paper-account identifiers replaced in recorded response bodies. Request
+# Identifiers and personal data replaced in recorded response bodies. Request
 # headers (API keys) are never recorded. Replacements keep the value's shape
-# (a UUID stays a UUID) so the SDK models still validate on replay.
-SCRUBBED_RESPONSE_KEYS = frozenset({"account_number", "account_id"})
+# (a UUID stays a UUID) so the SDK models still validate on replay. Request
+# bodies are not scrubbed: replay compares them to what the scenario sends, so
+# scenarios put synthetic values there (example.com, 666-xx-xxxx, 192.0.2.1).
+# A broker account's own ``id`` is kept (``account_id`` fields elsewhere are
+# scrubbed). Scenarios pass that id back in the next request's URL, and
+# scrubbing it would make the URL differ on replay.
+SCRUBBED_RESPONSE_KEYS = frozenset(
+    {
+        "account_id",
+        "account_number",
+        "account_owner_name",
+        "bank_account_number",
+        "bank_routing_number",
+        "date_of_birth",
+        "email_address",
+        "family_name",
+        "given_name",
+        "ip_address",
+        "middle_name",
+        "phone_number",
+        "street_address",
+        "tax_id",
+        "transmitter_account_number",
+        "transmitter_address",
+        "transmitter_name",
+    }
+)
 # Endpoints whose top-level "id" is the paper account's own id.
 SCRUBBED_ID_PATHS = frozenset({"/v2/account"})
 SCRUBBED_VALUE = "SCRUBBED"
@@ -124,6 +152,8 @@ class Settings:
     # Left out of repr: pytest prints fixture values when a test fails.
     api_key: Optional[str] = field(default=None, repr=False)
     secret_key: Optional[str] = field(default=None, repr=False)
+    broker_api_key: Optional[str] = field(default=None, repr=False)
+    broker_secret_key: Optional[str] = field(default=None, repr=False)
 
 
 # --------------------------------------------------------------------------
@@ -202,10 +232,23 @@ def _scrubbed(value: Any) -> Any:
     return SCRUBBED_UUID
 
 
+def _redact(value: Any) -> Any:
+    """Replace a personal-data field, including when the value is a list or object."""
+    if isinstance(value, str):
+        return _scrubbed(value)
+    if isinstance(value, list):
+        return [_redact(item) for item in value]
+    if isinstance(value, dict):
+        return {key: _redact(item) for key, item in value.items()}
+    if value is None:
+        return None
+    return SCRUBBED_VALUE
+
+
 def _scrub(value: Any) -> Any:
     if isinstance(value, dict):
         return {
-            key: _scrubbed(item) if key in SCRUBBED_RESPONSE_KEYS else _scrub(item)
+            key: _redact(item) if key in SCRUBBED_RESPONSE_KEYS else _scrub(item)
             for key, item in value.items()
         }
     if isinstance(value, list):
@@ -1014,6 +1057,17 @@ def orphan_recordings(settings: Settings, scenario_names: Any) -> List[str]:
     return sorted(recorded - set(scenario_names))
 
 
+def recording_allowlist() -> Set[str]:
+    """Scenarios that may have no recording yet. See recording_allowlist.txt."""
+    path = Path(__file__).resolve().parent / "recording_allowlist.txt"
+    names = set()
+    for line in path.read_text(encoding="utf-8").splitlines():
+        name = line.partition("#")[0].strip()
+        if name:
+            names.add(name)
+    return names
+
+
 def sdk_location() -> Path:
     import alpaca
 
@@ -1031,6 +1085,17 @@ def _require_keys(settings: Settings) -> None:
             "CONSUMER_TRADING_API_SECRET_KEY, in the environment or the repo's "
             ".env, for a paper account used only by these checks (see "
             ".env.example)",
+            pytrace=False,
+        )
+
+
+def _require_broker_keys(settings: Settings) -> None:
+    if not (settings.broker_api_key and settings.broker_secret_key):
+        pytest.fail(
+            f"{settings.mode} mode needs CONSUMER_BROKER_API_KEY and "
+            "CONSUMER_BROKER_API_SECRET, in the environment or the repo's .env, "
+            "for a Broker sandbox used only by these checks (see .env.example). "
+            "Scenarios always pass sandbox=True.",
             pytrace=False,
         )
 
@@ -1256,7 +1321,15 @@ def _transport(
 def _keys(settings: Settings, scenario: Scenario) -> tuple:
     if scenario.stub_responses or scenario.stub_websocket:
         return "stub-key-id", "stub-secret-key"
-    _require_keys(settings)
+    if scenario.credentials == "broker":
+        # requires_credentials is false when the scenario sends its own keys.
+        # Those recordings are not allowlisted, so the weekday live job must
+        # not fail them for missing consumer secrets.
+        if scenario.requires_credentials:
+            _require_broker_keys(settings)
+        return settings.broker_api_key or "", settings.broker_secret_key or ""
+    if scenario.requires_credentials:
+        _require_keys(settings)
     return settings.api_key or "", settings.secret_key or ""
 
 
@@ -1291,6 +1364,56 @@ def _record(settings: Settings, scenario: Scenario, path: Path) -> None:
     _replay(settings, scenario, path, recording, update=True)
 
 
+@contextmanager
+def _unrecorded_until_keys_work(
+    settings: Settings, scenario: Scenario
+) -> Iterator[None]:
+    """Record and live: skip a recording_allowlist.txt scenario whose keys do not work.
+
+    Replay already skips these. Without this, the weekday live job and the
+    baseline re-record fail on scenarios that cannot be recorded yet. An
+    uncaught 401 or 403 only skips when a separate ``get_clock`` with the same
+    keys is rejected too: the broker API also answers 401 for an unknown
+    account, and that must still fail the scenario. Scenarios with a
+    recording are not listed, so they still fail on missing or rejected keys.
+    """
+    if scenario.name not in recording_allowlist():
+        yield
+        return
+    reason = (
+        f"{scenario.name} is listed in recording_allowlist.txt and the "
+        f"{scenario.credentials} keys"
+    )
+    if scenario.credentials == "broker" and not (
+        settings.broker_api_key and settings.broker_secret_key
+    ):
+        pytest.skip(f"{reason} are not set")
+    if scenario.credentials == "trading" and not (
+        settings.api_key and settings.secret_key
+    ):
+        pytest.skip(f"{reason} are not set")
+    try:
+        yield
+    except APIError as error:
+        if error.status_code in (401, 403) and _keys_rejected(settings, scenario):
+            pytest.skip(f"{reason} were rejected ({error.status_code})")
+        raise
+
+
+def _keys_rejected(settings: Settings, scenario: Scenario) -> bool:
+    """Whether the API refuses this scenario's keys on a call that needs nothing else."""
+    try:
+        if scenario.credentials == "broker":
+            BrokerClient(
+                settings.broker_api_key, settings.broker_secret_key, sandbox=True
+            ).get_clock()
+        else:
+            TradingClient(settings.api_key, settings.secret_key, paper=True).get_clock()
+    except APIError as error:
+        return error.status_code in (401, 403)
+    return False
+
+
 def _live(settings: Settings, scenario: Scenario) -> None:
     api_key, secret_key = _keys(settings, scenario)
     ctx = Context(
@@ -1311,10 +1434,12 @@ def check_scenario(scenario: Scenario, settings: Settings) -> None:
                 f"{scenario.name} is already recorded. Pass --consumer-rerecord to "
                 "record it again (that changes its recording: sdk-breaking label)."
             )
-        _record(settings, scenario, path)
+        with _unrecorded_until_keys_work(settings, scenario):
+            _record(settings, scenario, path)
         return
     if settings.mode == "live":
-        _live(settings, scenario)
+        with _unrecorded_until_keys_work(settings, scenario):
+            _live(settings, scenario)
         return
 
     recording = load_recording(path)
@@ -1327,6 +1452,13 @@ def check_scenario(scenario: Scenario, settings: Settings) -> None:
         _replay(settings, scenario, path, recording, update=True, migrate=True)
         return
     if recording is None:
+        if scenario.name in recording_allowlist():
+            pytest.skip(
+                f"no recording for {scenario.name}. Listed in "
+                "recording_allowlist.txt until the broker sandbox accepts "
+                "the consumer broker keys. Record it with `make consumer-record` "
+                "and remove the line."
+            )
         message = (
             f"no recording for {scenario.name} at {path}. Record it with "
             "`make consumer-record`."

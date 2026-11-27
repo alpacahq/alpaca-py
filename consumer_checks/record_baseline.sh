@@ -20,8 +20,14 @@
 #
 # Record mode needs CONSUMER_TRADING_API_KEY_ID / CONSUMER_TRADING_API_SECRET_KEY
 # for a paper account used only by these checks, in the environment or the
-# repo's .env (CONSUMER_ENV_FILE=path for another file). See _dotenv.py and
-# .env.example. Optional: CONSUMER_VENV=path (defaults to .consumer-venv).
+# repo's .env (CONSUMER_ENV_FILE=path for another file). Broker scenarios that
+# call the sandbox also need CONSUMER_BROKER_API_KEY / CONSUMER_BROKER_API_SECRET
+# (sandbox=True always). Missing broker keys do not fail this preflight; a
+# broker scenario fails when it records, unless it is still in
+# recording_allowlist.txt (then it is skipped) or it does not use the consumer
+# keys (broker_errors.invalid_keys_raise_api_error). See _dotenv.py and
+# .env.example.
+# Optional: CONSUMER_VENV=path (defaults to .consumer-venv).
 set -euo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd)"

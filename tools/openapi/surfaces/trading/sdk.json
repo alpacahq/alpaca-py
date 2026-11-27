@@ -1,0 +1,15 @@
+{
+  "baseClasses": {
+    "Account": "ModelWithID",
+    "CanceledOrderResponse": "ModelWithID",
+    "CryptoTransfer": "ModelWithID",
+    "Locate": "ModelWithID",
+    "Order": "ModelWithID",
+    "Watchlist": "ModelWithID"
+  },
+  "fieldAliases": {
+    "Assets": {
+      "class": "asset_class"
+    }
+  }
+}

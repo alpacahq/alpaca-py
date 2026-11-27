@@ -1,0 +1,32 @@
+{
+  "specPatches": [
+    {
+      "op": "add",
+      "path": [
+        "components",
+        "schemas",
+        "Assets",
+        "properties",
+        "borrow_status",
+        "title"
+      ],
+      "value": "AssetBorrowStatus",
+      "reason": "RESOLVE_INLINE_ENUMS names the promoted inline enum after the parent schema (AssetsBorrowStatus); the title keeps the published AssetBorrowStatus class name"
+    },
+    {
+      "op": "add",
+      "path": [
+        "components",
+        "schemas",
+        "Account",
+        "properties",
+        "crypto_tier"
+      ],
+      "value": {
+        "description": "The crypto trading tier assigned to the account. Only present if crypto trading is enabled.",
+        "type": "integer"
+      },
+      "reason": "the API returns crypto_tier (TradeAccount has parsed it since before codegen) but the Account schema omits it"
+    }
+  ]
+}

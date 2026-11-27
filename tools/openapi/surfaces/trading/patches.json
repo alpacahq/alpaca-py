@@ -1,23 +1,16 @@
 {
   "specPatches": [
     {
+      "op": "add",
       "path": [
         "components",
         "schemas",
         "Assets",
         "properties",
-        "borrow_status"
+        "borrow_status",
+        "title"
       ],
-      "value": {
-        "description": "Borrow status for US equity assets. This field is omitted for non-US-equity assets.",
-        "enum": [
-          "easy_to_borrow",
-          "hard_to_borrow"
-        ],
-        "example": "easy_to_borrow",
-        "title": "AssetBorrowStatus",
-        "type": "string"
-      },
+      "value": "AssetBorrowStatus",
       "reason": "RESOLVE_INLINE_ENUMS names the promoted inline enum after the parent schema (AssetsBorrowStatus); the title keeps the published AssetBorrowStatus class name"
     },
     {
@@ -26,17 +19,14 @@
         "schemas",
         "OptionDeliverable",
         "properties",
-        "amount"
+        "amount",
+        "type"
       ],
-      "value": {
-        "description": "The deliverable amount. For cash deliverables, this is the cash amount.\nFor standard contract, this is always 100.\nThis field can be null in case the deliverable settlement is delayed and the amount is yet to be determined.\n",
-        "example": "100",
-        "type": [
-          "string",
-          "null"
-        ]
-      },
-      "reason": "the description says amount is null while delayed settlement is pending, and the API sends null, but the schema types it as a plain string"
+      "value": [
+        "string",
+        "null"
+      ],
+      "reason": "the API has sent null while delayed settlement is pending (tests/trading/trading_client/test_option_routes.py), but the schema types amount as a plain string"
     },
     {
       "op": "add",

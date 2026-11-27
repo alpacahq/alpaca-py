@@ -1190,7 +1190,7 @@ class CryptoTransfer(ModelWithID):
     )
 
 
-class CryptoWallet(ModelWithID):
+class CryptoWallet(ValidateBaseModel):
     """
     CryptoWallet
     """
@@ -2642,7 +2642,7 @@ class OptionDeliverable(ValidateBaseModel):
         json_schema_extra={"examples": ["100"]},
     )
     amount: Optional[StrictStr] = Field(
-        description="The deliverable amount. For cash deliverables, this is the cash amount. For standard contract, this is always 100. This field can be null in case the deliverable settlement is delayed and the amount is yet to be determined. ",
+        description='The deliverable amount. For cash deliverables, this is the cash amount. For standard contract, this is always 100. When deliverable settlement is delayed and the amount is not yet determined, this value is "0" and delayed_settlement is true. ',
         json_schema_extra={"examples": ["100"]},
     )
     asset_id: Optional[UUID] = Field(
@@ -3322,7 +3322,7 @@ class TenderOfferActivityV2(ValidateBaseModel):
     source_symbol: StrictStr = Field(description="Symbol of the parent security")
 
 
-class TokenizationMintResponse(ModelWithID):
+class TokenizationMintResponse(ValidateBaseModel):
     """
     TokenizationMintResponse
     """
@@ -3341,7 +3341,7 @@ class TokenizationMintResponse(ModelWithID):
     underlying_symbol: StrictStr = Field(description="The underlying asset symbol")
 
 
-class TokenizationRequest(ModelWithID):
+class TokenizationRequest(ValidateBaseModel):
     """
     TokenizationRequest
     """
@@ -3786,7 +3786,7 @@ class WatchlistWithoutAsset(ValidateBaseModel):
     updated_at: datetime
 
 
-class WhitelistedAddress(ModelWithID):
+class WhitelistedAddress(ValidateBaseModel):
     """
     WhitelistedAddress
     """

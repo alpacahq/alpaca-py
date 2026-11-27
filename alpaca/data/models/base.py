@@ -25,7 +25,7 @@ class TimeSeriesMixin:
         columns = df.columns
 
         # set multi-level index
-        if "news" in self.dict():
+        if "news" in self.dict() and "id" in columns:
             # level=0 - id
             df = df.set_index(["id"])
         elif "corporate_action_type" in columns:

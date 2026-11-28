@@ -313,6 +313,84 @@ async def test_dispatch(ws_client: DataStream, timestamp: Timestamp):
     assert articles_star[1].headline == "c"
 
 
+@pytest.mark.asyncio
+async def test_dispatch_news_star_handler_once_per_article(
+    ws_client: DataStream, timestamp: Timestamp
+):
+    articles_a, articles_star = [], []
+
+    async def handler_a(d):
+        articles_a.append(d)
+
+    async def handler_star(d):
+        articles_star.append(d)
+
+    ws_client._subscribe(handler_a, ("A",), ws_client._handlers["news"])
+    ws_client._subscribe(handler_star, ("*",), ws_client._handlers["news"])
+
+    # one article tagged with one subscribed and three unsubscribed symbols
+    await ws_client._dispatch(
+        {
+            "T": "n",
+            "author": "benzinga",
+            "headline": "multi",
+            "id": 1,
+            "summary": "multi",
+            "content": "",
+            "url": "url",
+            "source": "benzinga",
+            "symbols": ["A", "B", "C", "D"],
+            "created_at": timestamp,
+            "updated_at": timestamp,
+        }
+    )
+    assert len(articles_a) == 1
+    assert len(articles_star) == 1
+    assert articles_star[0].headline == "multi"
+
+
+@pytest.mark.asyncio
+async def test_dispatch_daily_and_updated_bars(timestamp: Timestamp):
+    stream = StockDataStream("key-id", "secret-key")
+    bars, updated_bars, daily_bars = [], [], []
+
+    async def bar_handler(d):
+        bars.append(d)
+
+    async def updated_bar_handler(d):
+        updated_bars.append(d)
+
+    async def daily_bar_handler(d):
+        daily_bars.append(d)
+
+    stream.subscribe_bars(bar_handler, "AAPL")
+    stream.subscribe_updated_bars(updated_bar_handler, "AAPL")
+    stream.subscribe_daily_bars(daily_bar_handler, "AAPL")
+
+    msg = {
+        "S": "AAPL",
+        "o": 177.94,
+        "c": 178.005,
+        "h": 178.005,
+        "l": 177.94,
+        "v": 8547,
+        "t": timestamp,
+        "n": 66,
+        "vw": 177.987562,
+    }
+    await stream._dispatch({"T": "d", **msg})
+    assert len(daily_bars) == 1
+    assert len(updated_bars) == 0
+    assert len(bars) == 0
+    assert type(daily_bars[0]) == Bar
+
+    await stream._dispatch({"T": "u", **msg})
+    assert len(daily_bars) == 1
+    assert len(updated_bars) == 1
+    assert len(bars) == 0
+    assert type(updated_bars[0]) == Bar
+
+
 @pytest.mark.parametrize(
     "feed, endpoint",
     [

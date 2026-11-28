@@ -141,3 +141,9 @@ def test_news_set_dump_omits_unset_page_token():
     # A token supplied by the API response is still serialized.
     paged = NewsSet({"news": [article], "next_page_token": "p1"})
     assert paged.model_dump()["next_page_token"] == "p1"
+
+    # An explicit null token on the last page is also preserved.
+    last_page = NewsSet({"news": [article], "next_page_token": None})
+    dumped = last_page.model_dump()
+    assert "next_page_token" in dumped
+    assert dumped["next_page_token"] is None

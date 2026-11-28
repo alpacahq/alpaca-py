@@ -31,8 +31,7 @@ class ScreenerClient(RESTClient):
             secret_key (Optional[str], optional): Alpaca API secret key. Defaults to None.
             oauth_token (Optional[str]): The oauth token if authenticating via OAuth. Defaults to None.
             use_basic_auth (bool, optional): If true, API requests will use basic authorization headers.
-            raw_data (bool, optional): If true, API responses will not be wrapped and raw responses will be returned from
-              methods. Defaults to False. This has not been implemented yet.
+            raw_data (bool, optional): If True, return data without wrapping it in SDK models. Defaults to False.
             url_override (Optional[str], optional): If specified allows you to override the base url the client points
               to for proxy/testing.
         """
